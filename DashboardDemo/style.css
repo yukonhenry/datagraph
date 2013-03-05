@@ -1,0 +1,72 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: auto;
+    padding: 0;
+}
+ 
+#appLayout {
+    height: 100%;
+}
+#leftCol {
+    width: 14em;
+}
+ 
+.claro .demoLayout .edgePanel {
+    background-color: #d0e9fc;
+}
+ 
+#viewsChart {
+    width: 550px;
+    height: 550px;
+}
+
+/* see youtube video at http://www.youtube.com/watch?v=MUApnJ3y-Bs */
+/* for side-by-side div creation.  found by googline 'html side-by-side div */
+#container {
+	width: 1010px;
+}
+.left {
+	width: 500px;
+	height: 800px;
+	background-color: #00d;
+	float: left;
+}
+.right {
+	width: 500px;
+	height: 800px;
+	background-color: #00d;
+	float: right;
+	
+}
+/* See the folliwng d3js tutorial */
+/* http://alignedleft.com/tutorials/d3/drawing-divs/ */
+
+div.bar {
+	display: inline-block;
+	width: 20px;
+	height: 75px;
+	margin-right: 2px;
+	background-color: teal; 
+}
+
+/* following are from http://bl.ocks.org/4063550 */
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node {
+  font: 10px sans-serif;
+}
+.node text {
+  pointer-events: none;
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
