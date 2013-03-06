@@ -75,20 +75,22 @@ def getMLBStoveInfoJSON():
    G = nx.Graph()
    for team in mlbTwitterBaseSet:
        G.add_node(team)
-       freqtweets = getFreqTweets(team)
-       freqSet = set(freqtweets)
+       freqtweets_dict = getFreqTweets(team)
+       freqSet = set(freqtweets_dict.keys())
        selfSet = [team]
        mlbSet = mlbTwitterBaseSet.copy()
        mlbSet.difference_update(selfSet)
        interSet = freqSet.intersection(mlbSet)
        if interSet:
-           print team, interSet
-           G.add_edges_from([team,x] for x in interSet)
+           G.add_weighted_edges_from([(team,x,freqtweets_dict[x]) for x in interSet])
+           print "intersection",team, interSet
        else:
            print team, "no intersection"
-   print G.nodes(), G.edges()
+   print "Graph properties", G.nodes(), G.edges()
+   for line in nx.generate_edgelist(G,data=True):
+       print line
    graphdata = json_graph.node_link_data(G)
-   print graphdata
+   #print graphdata
    a = json.dumps({"mlbgraph":graphdata})
    return a
 

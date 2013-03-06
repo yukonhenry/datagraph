@@ -19,7 +19,8 @@ def hello():
         teamName = getMLBteam_details(teamCode)
         tname = teamName.twitter_name
         print teamCode, teamName.common_name, teamName.twitter_name
-        freqwords = getFreqTweets(tname)
+        freqwords_dict = getFreqTweets(tname)   # element  is words (keys)
+        freqwords = freqwords_dict.keys()
         if (ret_type == "team_relation"):
             freqSet = set(freqwords)
             # ref http://en.wikibooks.org/wiki/Python_Programming/Sets for python set operations

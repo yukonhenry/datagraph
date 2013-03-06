@@ -4,6 +4,7 @@ import twitter
 from nltk import FreqDist, regexp_tokenize
 from nltk.corpus import stopwords
 import json
+from collections import namedtuple
 #import twitter_text
 
 # reference "Mining the Social Web"
@@ -53,7 +54,7 @@ def getwords(tweets):
 #        words += [w.lower() for w in t.split()]
         tokens = regexp_tokenize(t, pattern)
         words += [w.lower() for w in tokens]
-    print "length="+str(len(words))
+#    print "length="+str(len(words))
     return words
 
 def filterdist_words(words):
@@ -62,10 +63,9 @@ def filterdist_words(words):
     uwords = dropList(words, swu)
     #uwords = [w for w in words if w not in swu]
     freq_dist = FreqDist(uwords)
-    for p in freq_dist.items()[:100]:
-        print p[0],p[1]
-    freqwords = freq_dist.keys()[:150]
-    return freqwords
+#    for p in freq_dist.items()[:150]:
+#        print p[0],p[1]
+    return freq_dist
 
 # use python filter command to drop sublist from list
 # http://www.codercaste.com/2010/01/11/how-to-filter-lists-in-python/
@@ -76,8 +76,14 @@ def dropList(mylist, rmlist):
     mylist = filter(testfun, mylist)
     return mylist
 
+
 def getFreqTweets(name):
     tweets = getTweets('#'+name)
     words = getwords(tweets)
-    freqwords = filterdist_words(words)
-    return freqwords
+    freqdist = filterdist_words(words)
+    total = 150
+    tweet_list = freqdist.keys()[:total]
+    count_list = freqdist.values()[:total]
+    freqtweets_dict = dict(zip(tweet_list, count_list))
+    #print "getFreqTweets",name,freqtweets_dict
+    return freqtweets_dict
