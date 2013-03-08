@@ -314,49 +314,127 @@ console.log("links "+links.length+links);
 								links2len--;
 							}
 							return d.id+" ind="+i + ' '+linkstr;});
-var width = 1000,
-    height = 500;
+					var width = 1200, height = 600;
 
-var color = d3.scale.category20();
+					var color = d3.scale.category20();
 
-var force = d3.layout.force()
-    .charge(-120)
-    .linkDistance(80)
-    .size([width, height]);
+					var force = d3.layout.force()
+								.charge(-3000)
+    							.linkDistance(50)
+    							.gravity(1)
+    							.size([width, height]);
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+					var svg = d3.select("body").append("svg")
+    							.attr("width", width)
+    							.attr("height", height);
+					// ref http://bl.ocks.org/MoritzStefaner/1377729 for labeled nodes
+					// but modify because we already have a graph to work off of
+					// (No need to generate a random one linke in the reference)
+					var labelDistance = 0;
+					var labelAnchors = [];
+ 					for (var i = 0; i < nodes.length; i++) {
+						labelAnchors.push({node:nodes[i]});
+						labelAnchors.push({node:nodes[i]});
+					};
+					var labelAnchorLinks = links.slice();
+					for (var i = 0; i < labelAnchorLinks.length; i++) {
+						labelAnchorLinks[i].weight = 1;  // for label links, anchor is always 1
+					};
+
+
+					// Add the data
+					force.nodes(nodes)
+					.links(links)
+					.linkStrength(function(x) {
+						return x.weight * 10
+					}).start();	
  
-	// Add the data
-	force.nodes(nodes)
-		.links(links)
-		.start();	
+ 					var force2 = d3.layout.force().nodes(labelAnchors).links(labelAnchorLinks)
+ 									.gravity(0).linkDistance(0).linkStrength(8)
+ 									.charge(-100).size([width, height]);
+					force2.start();
+					// Draw the links
+
+					var link = svg.selectAll(".link").data(links)
+	    						.enter().append("line")
+      							.attr("class", "link")
+      							.style("stroke", "#CCC")
+      							.style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+
+					// Draw the nodes
+					// ref http://stackoverflow.com/questions/11102795/d3-node-labeling
+					var node = svg.selectAll(".node").data(nodes)
+    							.enter().append("g")
+      							.attr("class", "node")
+      							.call(force.drag);	
  
-	// Draw the links
-	var link = svg.selectAll(".link").data(links)
-	    .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
- 
-	// Draw the nodes
-	// ref http://stackoverflow.com/questions/11102795/d3-node-labeling
-	var node = svg.selectAll(".node").data(nodes)
-    .enter().append("g")
-      .attr("class", "node")
- 
-      .call(force.drag);	
- 
- 	node.append("circle")
-      .attr("r", 5)
-      .style("fill", function(d) { return color(d.group); })
-	node.append("text")
-		.attr("dx", 12)
-		.attr("dy", ".35em")
-		.text(function(d) { return d.id });
+				 	node.append("circle")
+					 	.attr("r", 5)
+      					.style("fill", function(d) { return color(d.group); })
+      					.style("stroke-width", 3)
+					node.append("text")
+						.attr("dx", 12)
+						.attr("dy", ".35em")
+						.text(function(d) { return d.id });
+						
+					var anchorLink = svg.selectAll(".anchorLink")
+										.data(labelAnchorLinks)//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+
+					var anchorNode = svg.selectAll(".anchorNode")
+										.data(force2.nodes()).enter()
+										.append("g")
+										.attr("class", "anchorNode");
+					anchorNode.append("circle").attr("r", 0).style("fill", "#FFF");
+					anchorNode.append("text")
+								.text(function(d, i) {
+									return i % 2 == 0 ? "" : d.node.id
+								})
+								.style("fill", "#555").style("font-family", "Arial").style("font-size", 12);
+
+					var updateLink = function() {
+						this.attr("x1", function(d) {
+							return d.source.x;
+						}).attr("y1", function(d) {
+							return d.source.y;
+						}).attr("x2", function(d) {
+							return d.target.x;
+						}).attr("y2", function(d) {
+							return d.target.y;
+						});
+					}
+
+					var updateNode = function() {
+						this.attr("transform", function(d) {
+							return "translate(" + d.x + "," + d.y + ")";
+						});
+
+					}
+					force.on("tick", function() {
+						force2.start();
+						node.call(updateNode);
+						anchorNode.each(function(d, i) {
+							if (i % 2 == 0) {
+								d.x = d.node.x;
+								d.y = d.node.y;
+							} else {
+								var b = this.childNodes[1].getBBox();
+								var diffX = d.x - d.node.x;
+								var diffY = d.y - d.node.y;
+								var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+								var shiftX = b.width * (diffX - dist) / (dist * 2);
+								shiftX = Math.max(-b.width, Math.min(0, shiftX));
+								var shiftY = 5;
+								this.childNodes[1]
+									.setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+							}
+						});
+						anchorNode.call(updateNode);
+						link.call(updateLink);
+						anchorLink.call(updateLink);
+					});
 	//node.append("title")
-    //  .text(function(d) { console.log("node ="+d.id);return d.id; });
-
+    //  .text(function(d) { console.log("node ="宮市 剛+d.id);return d.id; });
+/*
   force.on("tick", function() {
     link.attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
@@ -366,7 +444,7 @@ node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"
     //node.attr("cx", function(d) { return d.x; })
         //.attr("cy", function(d) { return d.y; });
   });
-										
+*/										
 				}, function(error){
                    	// Display the error returned
                     console.log('error response is ' + error);

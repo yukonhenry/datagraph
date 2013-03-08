@@ -87,10 +87,11 @@ def getMLBStoveInfoJSON():
        else:
            print team, "no intersection"
    print "Graph properties", G.nodes(), G.edges()
+   #show edge list
    for line in nx.generate_edgelist(G,data=True):
        print line
    graphdata = json_graph.node_link_data(G)
-   #print graphdata
+   print graphdata
    a = json.dumps({"mlbgraph":graphdata})
    return a
 
