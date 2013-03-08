@@ -314,7 +314,7 @@ console.log("links "+links.length+links);
 								links2len--;
 							}
 							return d.id+" ind="+i + ' '+linkstr;});
-					var width = 1200, height = 600;
+					var width = 1200, height = 1000;
 
 					var color = d3.scale.category20();
 
@@ -336,9 +336,13 @@ console.log("links "+links.length+links);
 						labelAnchors.push({node:nodes[i]});
 						labelAnchors.push({node:nodes[i]});
 					};
-					var labelAnchorLinks = links.slice();
-					for (var i = 0; i < labelAnchorLinks.length; i++) {
-						labelAnchorLinks[i].weight = 1;  // for label links, anchor is always 1
+					var labelAnchorLinks = [];  
+					for (var i = 0; i < nodes.length; i++) {
+						labelAnchorLinks.push({
+							source : i * 2,
+							target : i * 2 + 1,
+							weight : 1
+						});
 					};
 
 
