@@ -16,14 +16,14 @@ twitter_list = []
 for team in teams:
     twitter_list.append(team.get('twitter'))
 twitterSet = set(twitter_list)
-f = open("mlb_team_twitternames.pickle","wb")
+f = open("/home/henry/workspace/datagraph/bottle_baseball/mlb_team_twitternames.pickle","wb")
 cPickle.dump(twitterSet, f)
 f.close()
 
 # use primarily for testing below as it takes too long
 # to construct relationship tweet graph for mlb teams
 # based on team correlation through twitter
-f = open('mlb_twitter_team_graph.txt','w')
+f = open('/home/henry/workspace/datagraph/bottle_baseball/mlb_twitter_team_graph.txt','w')
 f.write(getMLBStoveInfoJSON())
 f.close()
 

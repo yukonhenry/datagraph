@@ -295,7 +295,8 @@ console.log("links "+links.length+links);
 	        	script.get("http://127.0.0.1:8080/getmlbstoveinfo", {
 	        		jsonp:"callback"
 	        	}).then(function(data) {
-	        		console.log("graph json len="+data.mlbgraph.nodes.length);
+	        		console.log("graph json len="+data.creation_time);
+	        		resultDiv.innerHTML = "<p><b>Data Creation time is "+data.creation_time+"</b></p>";
 	        		var nodes = data.mlbgraph.nodes;
 	        		var links = data.mlbgraph.links;
 	        		var links2 = links.slice();  //make a copy
@@ -329,7 +330,7 @@ console.log("links "+links.length+links);
     							.attr("height", height);
 					// ref http://bl.ocks.org/MoritzStefaner/1377729 for labeled nodes
 					// but modify because we already have a graph to work off of
-					// (No need to generate a random one linke in the reference)
+					// (No need to generate a random one as described in the reference)
 					var labelDistance = 0;
 					var labelAnchors = [];
  					for (var i = 0; i < nodes.length; i++) {
@@ -350,7 +351,8 @@ console.log("links "+links.length+links);
 					force.nodes(nodes)
 					.links(links)
 					.linkStrength(function(x) {
-						return x.weight * 10
+						return x.weight*0.5;  // experiment w. weighting scaling factor - 0.5 seems to work
+						// for link weights < 10.
 					}).start();	
  
  					var force2 = d3.layout.force().nodes(labelAnchors).links(labelAnchorLinks)
@@ -369,18 +371,19 @@ console.log("links "+links.length+links);
 					// ref http://stackoverflow.com/questions/11102795/d3-node-labeling
 					var node = svg.selectAll(".node").data(nodes)
     							.enter().append("g")
-      							.attr("class", "node")
-      							.call(force.drag);	
+      							.attr("class", "node");
  
 				 	node.append("circle")
 					 	.attr("r", 5)
       					.style("fill", function(d) { return color(d.group); })
-      					.style("stroke-width", 3)
+      					.style("stroke-width", 3);
+      				node.call(force.drag);
+      				/*
 					node.append("text")
 						.attr("dx", 12)
 						.attr("dy", ".35em")
 						.text(function(d) { return d.id });
-						
+					*/
 					var anchorLink = svg.selectAll(".anchorLink")
 										.data(labelAnchorLinks)//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
 

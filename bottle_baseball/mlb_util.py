@@ -6,6 +6,7 @@ from networkx.readwrite import json_graph
 from twitter_util import getFreqTweets
 import simplejson as json
 from pprint import pprint
+import time
 
 def getMLBteamlist():
     mlb_teamlist = ['ana','ari','atl','bal','bos','chn','cin','cle','col','cha',
@@ -92,12 +93,13 @@ def getMLBStoveInfoJSON():
        print line
    graphdata = json_graph.node_link_data(G)
    print graphdata
-   a = json.dumps({"mlbgraph":graphdata})
+   a = json.dumps({"creation_time":time.asctime(),"mlbgraph":graphdata})
    return a
 
 #ref http://stackoverflow.com/questions/2835559/python-parsing-file-json
 def getMLBStoveInfoJSON_fromfile():
-    json_file = open('mlb_twitter_team_graph.txt')
+    fname = 'mlb_twitter_team_graph.txt'
+    json_file = open(fname)
     data = json.load(json_file)
     pprint(data)
     json_file.close()
