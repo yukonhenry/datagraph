@@ -66,14 +66,18 @@ def getMLBteam_details(tcode):
 def getMLBteamname_list():
     # ref http://infohost.nmt.edu/tcc/help/pubs/pylxml/web/index.html
     # also experiment with source http://mlb.mlb.com/properties/mlb_properties.xml
-    fr = open("mlb_team_twitternames.pickle")
-    twitterSet = cPickle.load(fr)
-    fr.close()
-    return twitterSet
+    #fr = open("mlb_team_twitternames.pickle")
+    f_json = open("mlb_team_names_json.txt")
+    teamname_json = json.load(f_json)
+    pprint(teamname_json)
+    #twitterSet = cPickle.load(fr)
+    f_json.close()
+    return teamname_json
 
 def getMLBStoveInfoJSON():
-   mlbTwitterBaseSet = getMLBteamname_list()
+   teamname_json = getMLBteamname_list()
    G = nx.Graph()
+   mlbTwitterBaseSet = set(teamname_json.keys())
    for team in mlbTwitterBaseSet:
        G.add_node(team)
        freqtweets_dict = getFreqTweets(team)

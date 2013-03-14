@@ -92,7 +92,7 @@ def getFreqTweets(name):
     tweet_list = freqdist.keys()[:total]
     count_list = freqdist.values()[:total]
     freqtweets_dict = dict(zip(tweet_list, count_list))
-    #print "getFreqTweets",name,freqtweets_dict
+    print "getFreqTweets",name,freqtweets_dict
     return freqtweets_dict
 
 def getTextFromTweetUrls(name):
