@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 # above needed to support regex pattern below
+# refer to 'Mining Social Web' for installing sixohsix twitter api python package
+# upgrade using 'sudo pip install twitter --upgrade'
+
 import twitter
-from nltk import FreqDist, regexp_tokenize
+from nltk import FreqDist, regexp_tokenize, clean_html
 from nltk.corpus import stopwords
 import json
 from collections import namedtuple
-#import twitter_text
+from urllib2 import urlopen
+#import twitter_text  no need to use this, use twitter api
 
 # reference "Mining the Social Web"
 def getTweets(name):
@@ -87,3 +91,15 @@ def getFreqTweets(name):
     freqtweets_dict = dict(zip(tweet_list, count_list))
     #print "getFreqTweets",name,freqtweets_dict
     return freqtweets_dict
+
+def getTextFromTweetUrls(name):
+    tweetUrlList = getTweetUrls('#'+name)
+    textlist = []
+    for tweetUrl in tweetUrlList:
+        fileobj = urlopen(tweetUrl)
+        html = fileobj.read()
+        print tweetUrl, html
+        fileobj.close()
+        textlist.append(clean_html(html))
+    return textlist
+

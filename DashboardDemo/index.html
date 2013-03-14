@@ -228,7 +228,6 @@ console.log("links "+links.length+links);
 	        			jsonp:"callback", query: {general:term, ret_type:radio_val}
 	        		}).then(function(data) {
                    		//console.log('text file response is here'+JSON.stringify(data));
-	                   	//textDiv.value = data.tweet_freqs;
 	                   	textDiv.value = data.tweet_list;
 					}, function(error){
                    		// Display the error returned
@@ -510,8 +509,8 @@ node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"
     			id="radioOne" checked value="tweet_raw"/>
 				<label for="radioOne">Raw Tweet</label>
     			<input type="radio" data-dojo-type="dijit/form/RadioButton" name="radio_sel" 
-    			id="radioTwo" value="tweet_freq"/> 
-    			<label for="radioTwo">Tweet Freq</label>
+    			id="radioTwo" value="tweet_url"/> 
+    			<label for="radioTwo">Tweet URL</label>
     			<input type="radio" data-dojo-type="dijit/form/RadioButton" name="radio_sel" 
     			id="radioThree" value="team_relation"/> 
     			<label for="radioTwo">Team Relation</label>
