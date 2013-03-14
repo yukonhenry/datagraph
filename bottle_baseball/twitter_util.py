@@ -8,7 +8,10 @@ from nltk import FreqDist, regexp_tokenize, clean_html
 from nltk.corpus import stopwords
 import json
 from collections import namedtuple
-from urllib2 import urlopen
+from urllib2 import urlopen, Request, URLError
+import requests
+# ref http://docs.python.org/2/howto/urllib2.html
+# for handling or urlopen errors
 #import twitter_text  no need to use this, use twitter api
 
 # reference "Mining the Social Web"
@@ -96,10 +99,28 @@ def getTextFromTweetUrls(name):
     tweetUrlList = getTweetUrls('#'+name)
     textlist = []
     for tweetUrl in tweetUrlList:
-        fileobj = urlopen(tweetUrl)
-        html = fileobj.read()
-        print tweetUrl, html
-        fileobj.close()
-        textlist.append(clean_html(html))
+        #req = Request(tweetUrl)
+        try:
+            r = requests.get(tweetUrl)
+        except RequestException as e:
+            #response = urlopen(req)
+            '''
+        except URLError as e:
+            if hasattr(e, 'reason'):
+                print 'We failed to reach a server.'
+                print 'Reason: ', e.reason
+            elif hasattr(e, 'code'):
+                print 'The server couldn\'t fulfill the request.'
+                print 'Error code: ', e.code
+
+        else:
+            html = response.read()
+            response.close()
+            clean = clean_html(html)
+            print tweetUrl, clean
+            textlist.append(clean)
+        '''
+        else:
+            print r.text
     return textlist
 
