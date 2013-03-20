@@ -66,13 +66,42 @@ def getMLBteam_details(tcode):
 def getMLBteamname_list():
     # ref http://infohost.nmt.edu/tcc/help/pubs/pylxml/web/index.html
     # also experiment with source http://mlb.mlb.com/properties/mlb_properties.xml
-    #fr = open("mlb_team_twitternames.pickle")
-    f_json = open("mlb_team_names_json.txt")
-    teamname_json = json.load(f_json)
-    pprint(teamname_json)
-    #twitterSet = cPickle.load(fr)
-    f_json.close()
+    #f_json = open("mlb_team_names_json.txt")
+    #teamname_json = json.load(f_json)
+    #f_json.close()
+    # teamname json key is team twitter name
+    teamname_json = {"angels":["angels","halos"],
+                     "Dbacks":["Dbacks","D-backs","diamondbacks"],
+                     "braves":["braves"],
+                     "orioles":["orioles"],
+                     "redsox":["redsox","bosox","red sox"],
+                     "cubs":["cubs"],
+                     "reds":["reds"],
+                     "indians":["indians"],
+                     "rockies":["rockies"],
+                     "whitesox":["whitesox","white sox","chisox"],
+                     "tigers":["tigers"],
+                     "astros":["astros"],
+                     "royals":["royals"],
+                     "dodgers":["dodgers"],
+                     "marlins":["marlins"],
+                     "brewers":["brewers"],
+                     "twins":["twins"],
+                     "mets":["mets"],
+                     "yankees":["yankees"],
+                     "Athletics":["Athletics","A's"],
+                     "phillies":["phillies"],
+                     "pirates":["pirates"],
+                     "padres":["padres","pads"],
+                     "mariners":["mariners","M's"],
+                     "sfgiants":["sfgiants","giants"],
+                     "cardinals":["cardinals","cards","redbirds"],
+                     "raysbaseball":["raysbaseball","rays","devilrays"],
+                     "rangers":["rangers"],
+                     "bluejays":["bluejays","Blue Jays"],
+                     "nationals":["nationals"]}
     return teamname_json
+
 
 def getMLBStoveInfoJSON():
    teamname_json = getMLBteamname_list()
@@ -81,6 +110,20 @@ def getMLBStoveInfoJSON():
    for team in mlbTwitterBaseSet:
        G.add_node(team)
        freqtweets_dict = getFreqTweets(team)
+       if len(teamname_json[team]) > 1:
+           alt_teamname_list = list(teamname_json[team][1:])
+           tweet_list = freqtweets_dict.keys()
+           count_list = freqtweets_dict.values()
+           keyname_ind = tweet_list.index(team)
+           #ref http://stackoverflow.com/questions/1207406/remove-items-from-a-list-while-iterating-in-python
+           #http://stackoverflow.com/questions/6022764/python-removing-list-element-while-iterating-over-list
+           tweet_list[:] = [x for x in tweet_list if x in alt_teamname_list]
+           for tweet in tweet_list:
+               if tweet in alt_teamname_list:
+                   ind = tweet_list.index(tweet)
+                   count_list[keyname_ind] = count_list[keyname_ind] + count_list[ind]
+                   tweet_list.remove(tweet)
+
        freqSet = set(freqtweets_dict.keys())
        selfSet = [team]
        mlbSet = mlbTwitterBaseSet.copy()

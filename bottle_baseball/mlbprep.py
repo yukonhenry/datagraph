@@ -12,6 +12,7 @@ rootnode = tree.getroot()
 f = open("mlbxml.pickle","wb")
 cPickle.dump(etree.tostring(rootnode),f)
 f.close()
+'''
 teams = rootnode.xpath("/mlb/leagues/league[@club='mlb']/teams")[0].findall('team')
 mlb_twitter_dict = {}
 for team in teams:
@@ -21,13 +22,11 @@ for team in teams:
     #key is twitter name, followed by list of other recognizable names
     mlb_twitter_dict[team.get('twitter')] = teamname_list
 a = json.dumps(mlb_twitter_dict)
-#twitterSet = set(twitter_list)
-#f = open("/home/henry/workspace/datagraph/bottle_baseball/mlb_team_twitternames.pickle","wb")
-#cPickle.dump(twitterSet, f)
 print "team name list in mlbprep", a
 f = open('mlb_team_names_json.txt','w')
 f.write(a)
 f.close()
+'''
 # use primarily for testing below as it takes too long
 # to construct relationship tweet graph for mlb teams
 # based on team correlation through twitter
