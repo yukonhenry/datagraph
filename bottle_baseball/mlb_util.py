@@ -71,7 +71,7 @@ def getMLBteamname_list():
     #f_json.close()
     # teamname json key is team twitter name
     teamname_json = {"angels":["angels","halos"],
-                     "Dbacks":["Dbacks","D-backs","diamondbacks"],
+                     "dbacks":["Dbacks","D-backs","diamondbacks"],
                      "braves":["braves"],
                      "orioles":["orioles"],
                      "redsox":["redsox","bosox","red sox"],
@@ -89,7 +89,7 @@ def getMLBteamname_list():
                      "twins":["twins"],
                      "mets":["mets"],
                      "yankees":["yankees"],
-                     "Athletics":["Athletics","A's"],
+                     "athletics":["Athletics","A's"],
                      "phillies":["phillies"],
                      "pirates":["pirates"],
                      "padres":["padres","pads"],
@@ -111,19 +111,18 @@ def getMLBStoveInfoJSON():
        G.add_node(team)
        freqtweets_dict = getFreqTweets(team)
        if len(teamname_json[team]) > 1:
-           alt_teamname_list = list(teamname_json[team][1:])
+           # convert alternate team names into lower case
+           alt_teamname_list = [x.lower() for x in list(teamname_json[team][1:])]
            tweet_list = freqtweets_dict.keys()
            count_list = freqtweets_dict.values()
            keyname_ind = tweet_list.index(team)
+           def adjust_count(ytweet):
+               ind = tweet_list.index(ytweet)
+               count_list[keyname_ind] = count_list[keyname_ind] + count_list[ind]
+               return ytweet
            #ref http://stackoverflow.com/questions/1207406/remove-items-from-a-list-while-iterating-in-python
            #http://stackoverflow.com/questions/6022764/python-removing-list-element-while-iterating-over-list
-           tweet_list[:] = [x for x in tweet_list if x in alt_teamname_list]
-           for tweet in tweet_list:
-               if tweet in alt_teamname_list:
-                   ind = tweet_list.index(tweet)
-                   count_list[keyname_ind] = count_list[keyname_ind] + count_list[ind]
-                   tweet_list.remove(tweet)
-
+           tweet_list[:] = [adjust_count(x) for x in tweet_list if x in alt_teamname_list]
        freqSet = set(freqtweets_dict.keys())
        selfSet = [team]
        mlbSet = mlbTwitterBaseSet.copy()
