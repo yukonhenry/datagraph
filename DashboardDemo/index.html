@@ -1,30 +1,33 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Project Top Page</title>
+
 	<link rel="stylesheet" href="style.css" media="screen">
 	<link rel="stylesheet" href="dojo-release-1.8.3/dijit/themes/claro/claro.css" media="screen">
 	<!-- note to include local copy of dojo, make sure that it is placed in a subdirectory of the current
 		directory; even a relative path that goes up a directory (../) does not work
 	-->
-	<script src="dojo-release-1.8.3/dojo/dojo.js" 
-	data-dojo-config="isDebug: true, async: true, parseOnLoad: true, gfxRenderer: 'svg'">
-	</script>
-	<script>require(["dojo/parser", "dijit/layout/TabContainer", "dijit/layout/ContentPane"]);
-	</script>
+
 </head>
 <body class="claro">
-    <div style="width: 350px; height: 300px">
+<!--	<script src="dojo-release-1.8.3/dojo/dojo.js" --></script>
+<script src="//ajax.googleapis.com/ajax/libs/dojo/1.8.3/dojo/dojo.js"	
+	data-dojo-config="isDebug: true, async: true, parseOnLoad: true">
+	</script>
+	<script>require(["dojo/parser", "dijit/layout/TabContainer", "dijit/layout/ContentPane"]);</script>
+
+    <div style="width: 800px; height: 1000px">
     <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
-        <div data-dojo-type="dijit/layout/ContentPane" title="Twitter Analysis" data-dojo-props="selected:true">
-            Lorem ipsum and all around...
+        <div data-dojo-type="dijit/layout/ContentPane" title="Twitter Analysis" data-dojo-props="selected:true" 
+        	href="index2.html">
         </div>
         <div data-dojo-type="dijit/layout/ContentPane" title="Shortest Path">
             Lorem ipsum and all around - second...
         </div>
-        <div data-dojo-type="dijit/layout/ContentPane" title="My last tab" data-dojo-props="closable:true">
-            Lorem ipsum and all around - last...
+        <div data-dojo-type="dijit/layout/ContentPane" title="Get Design" >
         </div>
     </div>
 	</div>
