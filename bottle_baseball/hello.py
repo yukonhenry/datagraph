@@ -9,6 +9,7 @@ from networkx.readwrite import json_graph
 from mlb_util import getMLBteam_details, getMLBteamname_list, getMLBStoveInfoJSON, getMLBStoveInfoJSON_fromfile
 from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqTweets
 from cacooparse import getCacooDesignJSON
+import time
 
 # if one of the module is reworked, don't forget to invoke 'reload(module)' cmd
 @route('/hello')
@@ -83,4 +84,9 @@ def getMLBStoveInfo():
     callback_name = request.query.callback
     return callback_name+'('+a+');'
 
+@route('/getpathdata')
+def getpathdata():
+    a = json.dumps({"creation_time":time.asctime(),"pathdata":[[20,20],[150,150]]})
+    callback_name = request.query.callback
+    return callback_name+'('+a+');'
 run(host='localhost', port=8080, debug=True)

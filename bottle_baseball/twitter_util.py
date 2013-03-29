@@ -103,6 +103,7 @@ def getTextFromTweetUrls(name):
         try:
             r = requests.get(tweetUrl)
         except RequestException as e:
+            print "Request Exception", e
             #response = urlopen(req)
             '''
         except URLError as e:
@@ -119,8 +120,9 @@ def getTextFromTweetUrls(name):
             clean = clean_html(html)
             print tweetUrl, clean
             textlist.append(clean)
-        '''
+
         else:
             print r.text
+        '''
     return textlist
 

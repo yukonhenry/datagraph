@@ -340,7 +340,6 @@ node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"
         	//http://stackoverflow.com/questions/1850050/how-to-get-the-value-of-a-filteringselect-select-in-dojo
         	//dijit.byId is deprecated
  			ready(function() {
- 				console.log("in ready function"); 
  				parser.parse();
 				on(registry.byId("teamSelect"), "change", sendTeam);
 				on(registry.byId("searchterm"), "keydown", sendSearchTerm);
