@@ -31,6 +31,13 @@ require(["dojo/dom", "dojo/on", "dojo/request/script",
 	        			.enter()
 	        			.append("p")
 	        			.text(function(d) {return d;});
+	        		d3.select("svg")
+	        			.on("click", function() {
+	        				var point = d3.mouse(this);
+	        				console.log("coord x="+point[0]+" y="+point[1]);
+	        				var circ = svg.append("circle");
+	        				circ.attr("cx",point[0]).attr("cy",point[1]).attr("r",10);
+	        			});
         });
     }
 );        		
