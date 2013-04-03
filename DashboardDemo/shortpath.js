@@ -33,21 +33,22 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	        		.enter()
 	        		.append("p")
 	        		.text(function(d) {return d;});
-	        	d3.select("svg")
-	        		.on("click", function() {
-	        			var point = d3.mouse(this);
-	        			console.log("coord x="+point[0]+" y="+point[1]);
-	        			var circ = svg.append("circle");
-	        			var strokeColor;
-	        			if (drawmode == 'sg') {
-	        				strokeColor = "red";
-	        			} else if (drawmode == 'obs') {
-	        				strokeColor = "blue";
-	        			} else {
-	        				strokeColor = "yellow";
-	        			}
-	        			circ.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
-	        		});
+	        	var clickCount = 0;
+	        	//d3.select("svg")
+	        	svg.on("click", function() {
+	        		var point = d3.mouse(this);
+	        		console.log("coord x="+point[0]+" y="+point[1]);
+	        		var circ = svg.append("circle");
+	        		var strokeColor;
+	        		if (drawmode == 'sg') {
+	        			strokeColor = "red";
+	        		} else if (drawmode == 'obs') {
+	        			strokeColor = "blue";
+	        		} else {
+	        			strokeColor = "yellow";
+	        		}
+	        		circ.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
+	        	});
         	});
 
  		};  /* setDrawMode */
