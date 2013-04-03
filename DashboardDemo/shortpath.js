@@ -37,18 +37,37 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	        	//d3.select("svg")
 	        	svg.on("click", function() {
 	        		var point = d3.mouse(this);
+	        		var circstart;
+	        		var circend;
 	        		console.log("coord x="+point[0]+" y="+point[1]);
-	        		var circ = svg.append("circle");
-	        		var strokeColor;
-	        		if (drawmode == 'sg') {
-	        			strokeColor = "red";
-	        		} else if (drawmode == 'obs') {
-	        			strokeColor = "blue";
-	        		} else {
-	        			strokeColor = "yellow";
-	        		}
-	        		circ.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
-	        	});
+	        		switch(clickCount) {
+	        		case 0:
+	        			circstart = svg.append("circle");
+	        			var strokeColor;
+	        			if (drawmode == 'sg') {
+	        				strokeColor = "red";
+	        			} else if (drawmode == 'obs') {
+	        				strokeColor = "blue";
+	        			} else {
+	        				strokeColor = "yellow";
+	        			}
+	        			circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
+						clickCount = 1;
+						break;
+					case 1:
+						clickCount = 2;
+						break;
+					case 2:
+						circstart.exit().remove();
+						clickCount = 3;
+						break;
+					case 3:
+						circend.exit().remove();
+						clickCount = 0;
+						break;
+					}
+				};
+						
         	});
 
  		};  /* setDrawMode */
