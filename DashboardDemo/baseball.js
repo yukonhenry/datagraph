@@ -35,7 +35,7 @@
 	        	script.get("http://127.0.0.1:8080/hello", {
 	        		jsonp:"callback", query: {team_code:teamcode, ret_type:radio_val}
 	        	}).then(function(data) {
-                   	console.log('text file response is here'+JSON.stringify(data));
+                   	//console.log('text file response is here'+JSON.stringify(data));
                    	//resultDiv.innerHTML = "<pre>"+data.team+" "+data.team_tweets+"</pre>";
                    	if (radio_val == 'team_relation') {
                    		textDiv.value = JSON.stringify(data.team_search);
@@ -336,11 +336,12 @@ node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"
                     console.log('error response is ' + error);
                 });
 			};
+
         	// Results will be displayed in resultDiv
         	//http://stackoverflow.com/questions/1850050/how-to-get-the-value-of-a-filteringselect-select-in-dojo
         	//dijit.byId is deprecated
  			ready(function() {
- 				parser.parse();
+ 				//parser.parse();
 				on(registry.byId("teamSelect"), "change", sendTeam);
 				on(registry.byId("searchterm"), "keydown", sendSearchTerm);
 				on(registry.byId("startbtn"), "click", getDesign);

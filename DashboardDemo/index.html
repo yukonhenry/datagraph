@@ -125,6 +125,7 @@
 -->
     <script src="baseball.js">
 	</script>
+
     <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
         <div data-dojo-type="dijit/layout/ContentPane" title="Twitter Analysis" data-dojo-props="selected:true">
 
@@ -180,12 +181,19 @@
        	<div id="resultDiv">
     	</div>
     </div>
-        <div data-dojo-type="dijit/layout/ContentPane" title="Shortest Path" id="shortestPathDiv">
-        	<script src="shortpath.js">
-        	</script>
-
-        </div>
-        <div data-dojo-type="dijit/layout/ContentPane" title="Get Design" >
+	<div data-dojo-type="dijit/layout/ContentPane" title="Shortest Path">
+       	<label for="drawingMode">Drawing Mode:</label>
+    	<select id="drawingMode" data-dojo-type="dijit/form/Select" name="drawingMode">	
+        	<option value="" selected="selected">Select mode</option>
+        	<option value="sg">Start / Goal</option>
+        	<option value="obs">Draw Obstacle</option>
+    	</select>
+	    <script src="shortpath.js">
+        </script>
+		<div id="shortestPathDiv">
+    	</div>
+    </div>
+    <div data-dojo-type="dijit/layout/ContentPane" title="Get Design" >
 	</div>
 	</div>
 
