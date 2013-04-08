@@ -4,6 +4,14 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
     	var setDrawMode = function(evt) {
         	var shortDiv = dom.byId("shortestPathDiv");
         	var drawmode = registry.byId("drawingMode").get("value");
+        	var strokeColor;
+	        if (drawmode == 'sg') {
+	        	strokeColor = "red";
+	        } else if (drawmode == 'obs') {
+	        	strokeColor = "blue";
+	        } else {
+	        	strokeColor = "yellow";
+	        }
 	    	script.get("http://127.0.0.1:8080/getpathdata", {
 	        	jsonp:"callback"
 	        }).then(function(data) {
@@ -33,43 +41,41 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	        		.enter()
 	        		.append("p")
 	        		.text(function(d) {return d;});
+
 	        	var clickCount = 0;
+
 	        	//d3.select("svg")
 	        	svg.on("click", function() {
 	        		var point = d3.mouse(this);
-	        		var circstart;
-	        		var circend;
+	        		var circstart = svg.append("circle");
+	        		var circend = svg.append("circle");
 	        		console.log("coord x="+point[0]+" y="+point[1]);
-	        		switch(clickCount) {
+	        		switch (clickCount) {
 	        		case 0:
-	        			circstart = svg.append("circle");
-	        			var strokeColor;
-	        			if (drawmode == 'sg') {
-	        				strokeColor = "red";
-	        			} else if (drawmode == 'obs') {
-	        				strokeColor = "blue";
-	        			} else {
-	        				strokeColor = "yellow";
-	        			}
+	        			//circstart = svg.append("circle");
 	        			circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
 						clickCount = 1;
 						break;
 					case 1:
+	        			circend.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","yellow");
 						clickCount = 2;
 						break;
 					case 2:
-						circstart.exit().remove();
+						circstart.remove();
 						clickCount = 3;
 						break;
 					case 3:
-						circend.exit().remove();
+						circend.remove();
 						clickCount = 0;
 						break;
+					default:
+						break;
 					}
-				};
-						
-        	});
-
+				});
+			}, function(error){
+                  // Display the error returned
+                    console.log('error response is ' + error);
+            });				
  		};  /* setDrawMode */
  		ready(function() {
  			parser.parse();
