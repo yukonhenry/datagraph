@@ -42,34 +42,30 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	        		.append("p")
 	        		.text(function(d) {return d;});
 
-	        	var clickCount = 0;
-
+	        	// reference on null/undefined handling
+	     		// http://saladwithsteve.com/2008/02/javascript-undefined-vs-null.html
+				var circstart, circend = null;
+				var click_startnode = true;
 	        	//d3.select("svg")
 	        	svg.on("click", function() {
 	        		var point = d3.mouse(this);
-	        		var circstart = svg.append("circle");
-	        		var circend = svg.append("circle");
 	        		console.log("coord x="+point[0]+" y="+point[1]);
-	        		switch (clickCount) {
-	        		case 0:
-	        			//circstart = svg.append("circle");
+					if (click_startnode) {
+						if (circstart) {
+							circstart.attr("r",0);
+							circstart.transition().remove();
+						}							
+	        			circstart = svg.append("circle");
 	        			circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
-						clickCount = 1;
-						break;
-					case 1:
+						click_startnode = false;
+					} else {
+						if (circend) {
+							circend.attr("r",0);
+							circend.transition().remove();
+						}
+						circend = svg.append("circle");
 	        			circend.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","yellow");
-						clickCount = 2;
-						break;
-					case 2:
-						circstart.remove();
-						clickCount = 3;
-						break;
-					case 3:
-						circend.remove();
-						clickCount = 0;
-						break;
-					default:
-						break;
+						click_startnode = true;
 					}
 				});
 			}, function(error){
