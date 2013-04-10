@@ -50,22 +50,35 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	        	svg.on("click", function() {
 	        		var point = d3.mouse(this);
 	        		console.log("coord x="+point[0]+" y="+point[1]);
-					if (click_startnode) {
-						if (circstart) {
-							circstart.attr("r",0);
-							circstart.transition().remove();
-						}							
-	        			circstart = svg.append("circle");
+	        		switch(drawmode) {
+	        		case 'sg':
+						if (click_startnode) {
+							if (circstart) {
+								// delete note by reducing radius attribute to zero and then removing DOM node
+								// see example http://bl.ocks.org/benzguo/4370043
+								circstart.attr("r",0);
+								circstart.transition().remove();
+							}							
+	        				circstart = svg.append("circle");
+	        				circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
+							click_startnode = false;
+						} else {
+							if (circend) {
+								circend.attr("r",0);
+								circend.transition().remove();
+							}
+							circend = svg.append("circle");
+	        				circend.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","yellow");
+							click_startnode = true;
+						}
+						break;
+					case 'obs':
+						circstart = svg.append("circle");
 	        			circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
 						click_startnode = false;
-					} else {
-						if (circend) {
-							circend.attr("r",0);
-							circend.transition().remove();
-						}
-						circend = svg.append("circle");
-	        			circend.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","yellow");
-						click_startnode = true;
+						break;
+					default:
+						break;
 					}
 				});
 			}, function(error){
