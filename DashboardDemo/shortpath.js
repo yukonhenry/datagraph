@@ -1,8 +1,22 @@
 require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "dojo/request/script",
         "dojo/json", "dojo/domReady!", "dijit/form/Select"],
     function(dom, on, parser, registry, ready, script, JSON) {
-    	var setDrawMode = function(evt) {
-        	var shortDiv = dom.byId("shortestPathDiv");
+    	var shortDiv = dom.byId("shortestPathDiv");
+		var w = 500;
+		var h = 500;
+	    var svg = d3.select(shortDiv).append("svg")
+	        		.attr("width",w)
+	        		.attr("height",h);
+		var circstart, circend = null;
+		var click_startnode = true;
+		// ref http://knowledgestockpile.blogspot.com/2012/01/drawing-svg-path-using-d3js.html
+		// and https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-_area
+		var linearline = svg.line()
+							.x(function(d) { return d.x; })
+							.y(function(d) { return d.y; })
+							.interpolate("linear");
+	    var setDrawMode = function(evt) {
+
         	var drawmode = registry.byId("drawingMode").get("value");
         	var strokeColor;
 	        if (drawmode == 'sg') {
@@ -15,13 +29,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	    	script.get("http://127.0.0.1:8080/getpathdata", {
 	        	jsonp:"callback"
 	        }).then(function(data) {
-	        	shortDiv.innerHTML = "<b>Data Creation time is "+data.creation_time+"</b><br>";
+	        	//shortDiv.innerHTML = "<b>Data Creation time is "+data.creation_time+"</b><br>";
 	        	//Width and height
-				var w = 500;
-				var h = 500;
-	        	var svg = d3.select(shortDiv).append("svg")
-	        				.attr("width",w)
-	        				.attr("height",h);
+
 	        	var circles = svg.selectAll("circle")
 	        					.data(data.pathdata)
 	        					.enter()
@@ -44,14 +54,15 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 
 	        	// reference on null/undefined handling
 	     		// http://saladwithsteve.com/2008/02/javascript-undefined-vs-null.html
-				var circstart, circend = null;
-				var click_startnode = true;
+
 	        	//d3.select("svg")
+	        	var obs_startnode_flag = true;
 	        	svg.on("click", function() {
 	        		var point = d3.mouse(this);
 	        		console.log("coord x="+point[0]+" y="+point[1]);
 	        		switch(drawmode) {
 	        		case 'sg':
+	        			// click_startnode variable controls whether we are drawing start or end node
 						if (click_startnode) {
 							if (circstart) {
 								// delete note by reducing radius attribute to zero and then removing DOM node
@@ -73,9 +84,17 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 						}
 						break;
 					case 'obs':
-						circstart = svg.append("circle");
-	        			circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
-						click_startnode = false;
+						// draw obstacle
+						if (obs_startnode_flag) {
+							var obsnode = svg.append("circle");
+	        				obsnode.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","red")
+	        					.on("click", function(d) {
+	        						console.log("obsnode ="+obsnode);
+	        					});
+	        				obs_startnode_flag = false;
+	        			} else {
+	        				
+	        			} 
 						break;
 					default:
 						break;
@@ -88,7 +107,6 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
  		};  /* setDrawMode */
  		ready(function() {
  			parser.parse();
- 			console.log("parsing");
 			on(registry.byId("drawingMode"), "change", setDrawMode);
 			//on(dom.byId("National"), "click", myClick);
  		});
