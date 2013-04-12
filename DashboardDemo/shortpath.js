@@ -24,24 +24,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 							.x(function(d) { return d.x; })
 							.y(function(d) { return d.y; })
 							.interpolate("linear-closed");
-
-	    var setDrawMode = function(evt) {
-
-        	var drawmode = registry.byId("drawingMode").get("value");
-        	var strokeColor;
-	        if (drawmode == 'sg') {
-	        	strokeColor = "red";
-	        } else if (drawmode == 'obs') {
-	        	strokeColor = "blue";
-	        } else {
-	        	strokeColor = "yellow";
-	        }
-	    	script.get("http://127.0.0.1:8080/getpathdata", {
-	        	jsonp:"callback"
+		
+		function computePath(sgnodes, obs_polyline) {
+			script.get("http://127.0.0.1:8080/getpathdata", {
+	        	jsonp:"callback", query:{sg_nodes:sgnodes, obs_poly:obs_polyline}
 	        }).then(function(data) {
 	        	//shortDiv.innerHTML = "<b>Data Creation time is "+data.creation_time+"</b><br>";
 	        	//Width and height
-
 	        	var circles = svg.selectAll("circle")
 	        					.data(data.pathdata)
 	        					.enter()
@@ -54,99 +43,112 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	        		return d[1];
 	        	})
 	        		.attr("r",10);
-	        		
+	        	// will most likely delete text printout of nodes
 	        	d3.select(shortDiv)
 	        		.selectAll("p")
 	        		.data(data.pathdata)
 	        		.enter()
 	        		.append("p")
 	        		.text(function(d) {return d;});
-
-	        	// reference on null/undefined handling
-	     		// http://saladwithsteve.com/2008/02/javascript-undefined-vs-null.html
-
-	        	//d3.select("svg")
-				var line_drawing_mode = false;  // controls obstacle drawing
-				// create array that will hold point coordinates of polyline rep of obstacle
-				var obs_polyline = new Array();
-				var obs_pathobj_array = new Array();  // for holding the individual path line segments  
-	        	svg.on("click", function() {
-	        		var point = d3.mouse(this);
-	        		console.log("coord x="+point[0]+" y="+point[1]);
-	        		switch(drawmode) {
-	        		case 'sg':
-	        			// click_startnode variable controls whether we are drawing start or end node
-						if (click_startnode) {
-							if (circstart) {
-								// delete note by reducing radius attribute to zero and then removing DOM node
-								// see example http://bl.ocks.org/benzguo/4370043
-								//circstart.attr("r",0);  // we don't really need to do this where we decrease r to 0
-								circstart.remove();
-							}							
-	        				circstart = svg.append("circle");
-	        				circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
-							click_startnode = false;
-						} else {
-							if (circend) {
-								//circend.attr("r",0);
-								circend.remove();
-							}
-							circend = svg.append("circle");
-	        				circend.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","yellow");
-							click_startnode = true;
-						}
-						break;
-					case 'obs':
-						// draw obstacle
-						if (obs_startnode_flag) {
-							var obsnode = svg.append("circle");
-							line_drawing_mode = true;
-	        				obsnode.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","red")
-	        					.on("click", function(d) {
-	        						console.log("obsnode ="+obsnode);
-	        						line_drawing_mode = false;
-	        						// first remove the temporary line segments created during
-	        						// drawing of individual segments
-	        						while (obs_pathobj_array.length) {
-	        							pathelem = obs_pathobj_array.pop();
-	        							pathelem.remove();
-	        						}
-	        						svg.append("path")
-										.attr("d", linearline_closed(obs_polyline))
-										.style("stroke-width", 2)
-										.style("stroke", "navy")
-										.style("fill", "orange");
-									obsnode.remove();	        						
-	        					});
-	        				line_startpos.x = point[0];
-	        				line_startpos.y = point[1];
-	        				obs_polyline.push({x:line_startpos.x, y:line_startpos.y});
-	        				obs_startnode_flag = false;
-	        			} else {
-	        				if (line_drawing_mode) {
-	        					line_endpos.x = point[0];
-	        					line_endpos.y = point[1];
-	        					obs_polyline.push({x:line_endpos.x, y:line_endpos.y});
-	        					// draw temporary line segments
-	        					var lineseg = svg.append("path")
-													.attr("d", linearline([line_startpos, line_endpos]))
-													.style("stroke-width", 2)
-													.style("stroke", "steelblue")
-													.style("fill", "none");
-								obs_pathobj_array.push(lineseg);
-								line_startpos.x = line_endpos.x;
-								line_startpos.y = line_endpos.y;
-							}
-	        			} 
-						break;
-					default:
-						break;
-					}
-				});
 			}, function(error){
                   // Display the error returned
                     console.log('error response is ' + error);
-            });				
+            });
+		};  //computePath	
+
+	    var setDrawMode = function(evt) {
+        	var drawmode = registry.byId("drawingMode").get("value");
+        	var strokeColor;
+        	var sgnodes = [{x:0,y:0},{x:0,y:0}];
+			var obs_polyline = new Array();        	
+        	switch(drawmode) {
+        	case 'sg':
+	        	strokeColor = "red";
+	        	svg.on("click", function() {
+	        		var point = d3.mouse(this);
+	        		console.log("coord x="+point[0]+" y="+point[1]);
+	        		// click_startnode variable controls whether we are drawing start or end node
+					if (click_startnode) {
+						if (circstart) {
+							// delete note by reducing radius attribute to zero and then removing DOM node
+							// see example http://bl.ocks.org/benzguo/4370043
+							//circstart.attr("r",0);  // we don't really need to do this where we decrease r to 0
+							circstart.remove();
+						}							
+	        			circstart = svg.append("circle");
+	        			circstart.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","green");
+	        			sgnodes[0].x = point[0];
+	        			sgnodes[0].y = point[1];
+						click_startnode = false;
+					} else {
+						if (circend) {
+							//circend.attr("r",0);
+							circend.remove();
+						}
+						circend = svg.append("circle");
+	        			circend.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","yellow");
+	        			sgnodes[1].x = point[0];
+	        			sgnodes[1].y = point[1];
+						click_startnode = true;
+					}
+				});
+				break;
+	        case 'obs':
+	        	strokeColor = "blue";
+	        	var line_drawing_mode = false;  // controls obstacle drawing
+				// create array that will hold point coordinates of polyline rep of obstacle
+
+				var obs_pathobj_array = new Array();  // for holding the individual path line segments
+	        	svg.on("click", function() {
+	        		var point = d3.mouse(this);
+	        		console.log("coord x="+point[0]+" y="+point[1]);
+					// draw obstacle
+					if (obs_startnode_flag) {
+						var obsnode = svg.append("circle");
+						line_drawing_mode = true;
+	        			obsnode.attr("cx",point[0]).attr("cy",point[1]).attr("r",10).attr("stroke",strokeColor).attr("fill","red")
+	        				.on("click", function(d) {
+	        					console.log("obsnode ="+obsnode);
+	        					line_drawing_mode = false;
+	        					// first remove the temporary line segments created during
+	        					// drawing of individual segments
+	        					while (obs_pathobj_array.length) {
+	        						pathelem = obs_pathobj_array.pop();
+	        						pathelem.remove();
+	        					}
+	        					svg.append("path")
+									.attr("d", linearline_closed(obs_polyline))
+									.style("stroke-width", 2)
+									.style("stroke", "navy")
+									.style("fill", "orange");
+								obsnode.remove();	        						
+	        				});
+	        			line_startpos.x = point[0];
+	        			line_startpos.y = point[1];
+	        			obs_polyline.push({x:line_startpos.x, y:line_startpos.y});
+	        			obs_startnode_flag = false;
+	        		} else {
+	        			if (line_drawing_mode) {
+	        				line_endpos.x = point[0];
+	        				line_endpos.y = point[1];
+	        				obs_polyline.push({x:line_endpos.x, y:line_endpos.y});
+	        				// draw temporary line segments
+	        				var lineseg = svg.append("path")
+												.attr("d", linearline([line_startpos, line_endpos]))
+												.style("stroke-width", 2)
+												.style("stroke", "steelblue")
+												.style("fill", "none");
+							obs_pathobj_array.push(lineseg);
+							line_startpos.x = line_endpos.x;
+							line_startpos.y = line_endpos.y;
+						}
+	        		}
+	      		});
+				break;
+			case 'comp':
+				computePath(sgnodes, obs_polyline);
+				break;
+			}
  		};  /* setDrawMode */
  		ready(function() {
  			parser.parse();

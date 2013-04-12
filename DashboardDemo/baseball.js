@@ -318,19 +318,7 @@ console.log("links "+links.length+links);
 						link.call(updateLink);
 						anchorLink.call(updateLink);
 					});
-	//node.append("title")
-    //  .text(function(d) { console.log("node ="宮市 剛+d.id);return d.id; });
-/*
-  force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-    //node.attr("cx", function(d) { return d.x; })
-        //.attr("cy", function(d) { return d.y; });
-  });
-*/										
+									
 				}, function(error){
                    	// Display the error returned
                     console.log('error response is ' + error);
