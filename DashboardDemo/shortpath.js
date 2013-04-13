@@ -25,9 +25,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 							.y(function(d) { return d.y; })
 							.interpolate("linear-closed");
 		
-		function computePath(sgnodes, obs_polyline) {
+		function computePath(startgoal_nodes, obs_polyline) {
 			script.get("http://127.0.0.1:8080/getpathdata", {
-	        	jsonp:"callback", query:{sg_nodes:sgnodes, obs_poly:obs_polyline}
+	        	jsonp:"callback", query:{sg_nodes:startgoal_nodes, obs_poly:obs_polyline}
 	        }).then(function(data) {
 	        	//shortDiv.innerHTML = "<b>Data Creation time is "+data.creation_time+"</b><br>";
 	        	//Width and height
