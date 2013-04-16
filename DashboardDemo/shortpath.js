@@ -27,7 +27,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 		
 		function computePath(startgoal_nodes, obs_polyline) {
 			script.get("http://127.0.0.1:8080/getpathdata", {
-	        	jsonp:"callback", query:{sg_nodes:startgoal_nodes, obs_poly:obs_polyline}
+	        	jsonp:"callback", query:{sg_nodes:JSON.stringify({"asdf":[1,2,4,6,8]}),
+	        						obs_poly:JSON.stringify({"wow:":[2,3,5]})}
 	        }).then(function(data) {
 	        	//shortDiv.innerHTML = "<b>Data Creation time is "+data.creation_time+"</b><br>";
 	        	//Width and height

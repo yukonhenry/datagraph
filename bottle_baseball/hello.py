@@ -90,7 +90,8 @@ def getpathdata():
     callback_name = request.query.callback
     sg_nodes = request.query.sg_nodes;
     obs_polyline = request.query.obs_poly
-    print "nodes=",len(sg_nodes),sg_nodes[0], sg_nodes[1]
-    print "obstacle=",len(obs_polyline)
+    print "nodes=",sg_nodes
+    print "obstacle=",obs_polyline
     return callback_name+'('+a+');'
 run(host='localhost', port=8080, debug=True)
+
