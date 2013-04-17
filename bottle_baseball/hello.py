@@ -88,10 +88,11 @@ def getMLBStoveInfo():
 def getpathdata():
     a = json.dumps({"creation_time":time.asctime(),"pathdata":[[20,20],[150,150]]})
     callback_name = request.query.callback
-    sg_nodes = request.query.sg_nodes;
-    obs_polyline = request.query.obs_poly
-    print "nodes=",sg_nodes
-    print "obstacle=",obs_polyline
+    sg_nodes = json.loads(request.query.sg_nodes)
+    obs_polyline = json.loads(request.query.obs_poly)
+    print "nodes=",sg_nodes, len(sg_nodes)
+    print "obstacle=",obs_polyline, len(obs_polyline)
     return callback_name+'('+a+');'
+
 run(host='localhost', port=8080, debug=True)
 

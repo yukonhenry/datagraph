@@ -1,6 +1,7 @@
-require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "dojo/request/script",
+require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
+		"dojo/request","dojo/request/script",
         "dojo/json", "dojo/domReady!", "dijit/form/Select"],
-    function(dom, on, parser, registry, ready, script, JSON) {
+    function(dom, on, parser, registry, ready, request, script, JSON) {
     	var shortDiv = dom.byId("shortestPathDiv");
 		var w = 500;
 		var h = 500;
@@ -24,11 +25,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 							.x(function(d) { return d.x; })
 							.y(function(d) { return d.y; })
 							.interpolate("linear-closed");
-		
+       	// variables that are passed to server
+       	var sgnodes = [{x:0,y:0},{x:0,y:0}];
+		var obs_polyline = new Array();        			
 		function computePath(startgoal_nodes, obs_polyline) {
 			script.get("http://127.0.0.1:8080/getpathdata", {
-	        	jsonp:"callback", query:{sg_nodes:JSON.stringify({"asdf":[1,2,4,6,8]}),
-	        						obs_poly:JSON.stringify({"wow:":[2,3,5]})}
+	        	jsonp:"callback", query:{sg_nodes:JSON.stringify({"sg_nodes":startgoal_nodes}),
+	        						obs_poly:JSON.stringify({"obs_polyline":obs_polyline})}
 	        }).then(function(data) {
 	        	//shortDiv.innerHTML = "<b>Data Creation time is "+data.creation_time+"</b><br>";
 	        	//Width and height
@@ -60,8 +63,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", "d
 	    var setDrawMode = function(evt) {
         	var drawmode = registry.byId("drawingMode").get("value");
         	var strokeColor;
-        	var sgnodes = [{x:0,y:0},{x:0,y:0}];
-			var obs_polyline = new Array();        	
+ 
         	switch(drawmode) {
         	case 'sg':
 	        	strokeColor = "red";
