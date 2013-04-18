@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Baseball Dashboard Demo Project</title>
+        <title>YukonTR Demo Project</title>
 
         <link rel="stylesheet" href="style.css" media="screen">
         <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/dojo/1.8.3/dijit/themes/claro/claro.css"
@@ -17,31 +17,6 @@
         	function draw(data) {
         		console.log("draw called! "+data.stencil_id.length);
         		"use strict";
-        		/*
-        		d3.select("body")
-        		.selectAll("p")
-        		.data(data.stencil_id)
-        		.enter()
-        		.append("p").text(function(d){return "id ="+d;})
-        		.style("color", function(d) {
-        			if (d > 15) {
-        				return "red";
-        			} else {
-        				return "black"
-        			}
-        		}); */
- /*       		
-        		d3.select("body")
-        		.selectAll("div")
-        		.data(data.stencil_id)
-        		.enter()
-        		.append("div")
-				.attr("class", "bar")
-				.style("height", function(d) {
-					var barHeight = d * 5;
-					return barHeight + "px";
-				});  
-*/    		       		
 				var dataEnter =
 					d3.select("body")
 					.append("svg").attr("width","100%").attr("height","100%")
@@ -100,18 +75,7 @@
   {
    return i * horizontalBarDistance + textXOffset;
   }).attr("y", textYPosition);
-
-				
-/*        		.append("ul")
-        		.selectAll("li")
-        		.data(data)
-        		.enter()
-        		.append("li")
-        		.text(function (d) {
-        			return "test1 status ok";
-        		});
-*/
-        	}
+}
         </script> 
     </head>
     <body class='claro'>
@@ -125,11 +89,11 @@
 -->
     <script src="baseball.js">
 	</script>
-
+	<!--<h1>YukonTR Demo Applications</h1> -->
     <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
         <div data-dojo-type="dijit/layout/ContentPane" title="Twitter Analysis" data-dojo-props="selected:true">
 
-      	<h1>Dashboard Demo Project Page</h1>      
+      	<h2>Dashboard Demo Project Page</h2>      
 
         <button id="startbtn" data-dojo-type="dijit/form/Button">Get Design</button>
         <button id="mlbstove_btn" data-dojo-type="dijit/form/Button">MLB Stove</button>
@@ -194,7 +158,8 @@
 		<div id="shortestPathDiv">
     	</div>
     </div>
-    <div data-dojo-type="dijit/layout/ContentPane" title="Get Design" >
+    <div data-dojo-type="dijit/layout/ContentPane" title="Scheduler" >
+    	<h2>League Scheduler</h2>
 	</div>
 	</div>
 
