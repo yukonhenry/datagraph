@@ -160,6 +160,11 @@
     </div>
     <div data-dojo-type="dijit/layout/ContentPane" title="Scheduler" >
     	<h2>League Scheduler</h2>
+    	<label for="numberTeams">Number of Teams:</label>
+    	<input id="numberTeams" type="text" value="10" required="true" name="numberTeams"
+    		data-dojo-type="dijit/form/NumberTextBox"
+    		data-dojo-props="constraints:{min:2}, invalidMessage:'Entry must be greater than 1.'"/>
+    	<script src="scheduler.js"></script>
 	</div>
 	</div>
 

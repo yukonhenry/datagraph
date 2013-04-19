@@ -154,9 +154,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			}
  		};  /* setDrawMode */
  		ready(function() {
- 			parser.parse();
+ 			//parser.parse();
 			on(registry.byId("drawingMode"), "change", setDrawMode);
-			//on(dom.byId("National"), "click", myClick);
  		});
     }
 );        		
