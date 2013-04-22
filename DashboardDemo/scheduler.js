@@ -5,13 +5,18 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dojo/request","dojo/request/script",
         "dojo/json", "dojo/domReady!", "dijit/form/NumberTextBox"],
 	function(dom, on, parser, registry, ready, request, script, JSON) {
-		var setNumberTeams = function(evt) {
+
+		var getSchedule = function(evt) {
 			var numTeams = registry.byId("numberTeams").get("value");
-			console.log("number of teams="+numTeams);
+			var numVenues = registry.byId("numberVenues").get("value");
+	        script.get("http://127.0.0.1:8080/getschedule", {
+	        	jsonp:"callback", query: {num_teams:numTeams, num_venues:numVenues}
+	        }).then(function(data) {
+			});
 		}
 		ready(function() {
  			parser.parse();
-			on(registry.byId("numberTeams"), "change", setNumberTeams);
+			on(registry.byId("schedule_btn"), "click", getSchedule);
  		}); 
 	}
 );

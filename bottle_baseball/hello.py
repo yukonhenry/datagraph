@@ -10,6 +10,7 @@ from mlb_util import getMLBteam_details, getMLBteamname_list, getMLBStoveInfoJSO
 from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqTweets
 from cacooparse import getCacooDesignJSON
 import time
+from scheduler import generateRRSchedule
 
 # if one of the module is reworked, don't forget to invoke 'reload(module)' cmd
 @route('/hello')
@@ -93,6 +94,13 @@ def getpathdata():
     print "nodes=",sg_nodes, len(sg_nodes)
     print "obstacle=",obs_polyline, len(obs_polyline)
     return callback_name+'('+a+');'
+
+@route('/getschedule')
+def getschedule():
+    callback_name = request.query.callback
+    numTeams = request.query.num_teams
+    numVenues = request.query.num_venues
+    generateRRSchedule(int(numTeams), int(numVenues))
 
 run(host='localhost', port=8080, debug=True)
 

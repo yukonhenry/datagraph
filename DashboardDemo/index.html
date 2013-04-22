@@ -164,6 +164,11 @@
     	<input id="numberTeams" type="text" value="10" required="true" name="numberTeams"
     		data-dojo-type="dijit/form/NumberTextBox"
     		data-dojo-props="constraints:{min:2}, invalidMessage:'Entry must be greater than 1.'"/>
+    	<label for="numberVenues">Number of Venues:</label>
+    	<input id="numberVenues" type="text" value="2" required="true" name="numberVenues"
+    		data-dojo-type="dijit/form/NumberTextBox"
+    		data-dojo-props="constraints:{min:1}, invalidMessage:'Entry must be greater than 0.'"/>
+    	<button id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Schedule</button>
     	<script src="scheduler.js"></script>
 	</div>
 	</div>
