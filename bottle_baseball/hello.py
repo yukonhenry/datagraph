@@ -100,7 +100,9 @@ def getschedule():
     callback_name = request.query.callback
     numTeams = request.query.num_teams
     numVenues = request.query.num_venues
-    generateRRSchedule(int(numTeams), int(numVenues))
+    game_list = generateRRSchedule(int(numTeams), int(numVenues))
+    a = json.dumps({"game_list":game_list})
+    return callback_name+'('+a+');'
 
 run(host='localhost', port=8080, debug=True)
 
