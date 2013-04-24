@@ -80,7 +80,8 @@
     </head>
     <body class='claro'>
 		<!-- bug with version 1.8.3 where extra characters are inserted with a GET, use version 1.8.1 for now -->
-    	<script src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js" 
+
+    	<script src="//ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js"
  		data-dojo-config="isDebug: true, async: true, gfxRenderer: 'svg'"> 		
  		</script>
 
@@ -158,14 +159,26 @@
 		<div id="shortestPathDiv">
     	</div>
     </div>
+    <!-- http://dojotoolkit.org/documentation/tutorials/1.8/dijit_layout/ 
+    	for layout info using ccs -->
     <div data-dojo-type="dijit/layout/ContentPane" title="Scheduler" >
     	<h2>League Scheduler</h2>
+    	<label for="playdivision">Playing Division:</label>
+    	<select id="playdivision" data-dojo-type="dijit/form/Select" name="playdivision">	
+        	<option value="" selected="selected">Select division</option>
+        	<option value="U6B">U6B</option>
+        	<option value="U6G">U6G</option>
+        	<option value="U8B">U8B</option>
+        	<option value="U8B">U8G</option>
+    	</select>
     	<label for="numberTeams">Number of Teams:</label>
     	<input id="numberTeams" type="text" value="10" required="true" name="numberTeams"
+    		class="numberTextBoxClass"
     		data-dojo-type="dijit/form/NumberTextBox"
     		data-dojo-props="constraints:{min:2}, invalidMessage:'Entry must be greater than 1.'"/>
     	<label for="numberVenues">Number of Venues:</label>
-    	<input id="numberVenues" type="text" value="2" required="true" name="numberVenues"
+    	<input id="numberVenues" type="text" value="2" required="true" name="numberVenues" placeholder="number of fields"
+    		class="numberTextBoxClass"
     		data-dojo-type="dijit/form/NumberTextBox"
     		data-dojo-props="constraints:{min:1}, invalidMessage:'Entry must be greater than 0.'"/>
     	<button id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Schedule</button>
