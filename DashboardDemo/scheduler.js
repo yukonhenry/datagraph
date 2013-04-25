@@ -3,19 +3,51 @@
  */
 require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
 		"dojo/request","dojo/request/script",
-        "dojo/json", "dojo/domReady!", "dijit/form/NumberTextBox"],
-	function(dom, on, parser, registry, ready, request, script, JSON) {
+        "dojo/json", "dgrid/Grid", "dojo/store/Memory", "dojo/domReady!", "dijit/form/NumberTextBox"],
+	function(dom, on, parser, registry, ready, request, script, JSON, Grid, Memory) {
 		var game_listP = null;
+		var numTeams = 0;
+		var numVenues = 0;
+		var divnum = "";
+		var divisionData = [
+		];
+		//var numTeams = registry.byId("numberTeams").get("value");
+		//var numVenues = registry.byId("numberVenues").get("value");
+		//var divnum = registry.byId("playdivisionSelect").get("value");
+		function setDivTeams(div_num, nt, nv) {
+			console.log("dn, nt, nv="+div_num+" "+nt+" "+nv);
+			
+			var divdata = [
+				{dnum:div_num, nteams:nt, nvenues:nv}
+			];
+			var grid = new Grid({
+				columns: {
+					dnum: "Division", nteams: "Number Teams", nvenues: "Number Venues"
+				}
+			}, "divisionInfoGrid");
+			grid.renderArray(divdata);
+
+		}
+		var setNumberTeams = function(evt) {
+			numTeams = registry.byId("numberTeams").get("value");
+			setDivTeams(divnum, numTeams, numVenues);
+		}
+		var setNumberVenues = function(evt) {
+			numVenues = registry.byId("numberVenues").get("value");
+			setDivTeams(divnum, numTeams, numVenues);
+		}
+		var setPlayDivSelect = function(evt) {
+			divnum = registry.byId("playdivisionSelect").get("value");
+			setDivTeams(divnum, numTeams, numVenues);
+		}
 		var getSchedule = function(evt) {
-			var numTeams = registry.byId("numberTeams").get("value");
-			var numVenues = registry.byId("numberVenues").get("value");
+
 			var schedulerDiv = dom.byId("schedulerDiv");
 
 	        script.get("http://127.0.0.1:8080/getschedule", {
 	        	jsonp:"callback", query: {num_teams:numTeams, num_venues:numVenues}
 	        }).then(function(data) {
 	        	if (game_listP) {
-	        		console.log("about to remove");
 	        		d3.select(schedulerDiv).selectAll("p").remove();
 	        	}
 	        	// data returned from server is an array of tuples, with each tuple
@@ -40,6 +72,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		ready(function() {
  			parser.parse();
 			on(registry.byId("schedule_btn"), "click", getSchedule);
+			on(registry.byId("numberTeams"), "change", setNumberTeams);
+			on(registry.byId("numberVenues"), "change", setNumberVenues);
+			on(registry.byId("playdivisionSelect"), "change", setPlayDivSelect);			
  		}); 
 	}
 );
