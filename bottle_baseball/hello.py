@@ -11,6 +11,7 @@ from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqT
 from cacooparse import getCacooDesignJSON
 import time
 from scheduler import generateRRSchedule
+from leaguediv_process import *
 
 # if one of the module is reworked, don't forget to invoke 'reload(module)' cmd
 @route('/hello')

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import simplejson as json
-
+import time
 league_div = [
 { '_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
   'totalfields':2, 'gamedaysperweek':1},
@@ -16,7 +16,8 @@ league_div = [
   'totalfields':4, 'gamedaysperweek':2}
 ]
 
-jsonstr = json.dumps(league_div)
+jsonstr = json.dumps({"creation_time":time.asctime(),
+                      "leaguedivinfo":league_div})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
 f.close()
