@@ -19,8 +19,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				agediv:"Age Group",
 				gender:"Boy/Girl",
 				totalteams:"Total#",
-				totalfields:"Field#",
-				gamedaysperweek:"Weekly Games#"
+				fields:"Fields",
+				gamedaysperweek:"Weekly Games#",
+				gameinterval:"Game Interval(min)"				
 			},
 			selectionMode: "single"		
 		}, "divisionInfoGrid");

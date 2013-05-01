@@ -30,8 +30,7 @@ def leaguedivinfo(tid):
     for div in ldata_divinfo:
         if div['_id'] == tid:
             nt = div['totalteams']
-            nv = div['totalfields']
-            game_list = generateRRSchedule(nt, nv)
+            game_list = generateRRSchedule(nt)
             a = json.dumps({"game_list":game_list})
             return callback_name+'('+a+')'
     else:

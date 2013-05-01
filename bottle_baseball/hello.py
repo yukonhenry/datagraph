@@ -100,8 +100,7 @@ def getpathdata():
 def getschedule():
     callback_name = request.query.callback
     numTeams = request.query.num_teams
-    numVenues = request.query.num_venues
-    game_list = generateRRSchedule(int(numTeams), int(numVenues))
+    game_list = generateRRSchedule(int(numTeams))
     a = json.dumps({"game_list":game_list})
     return callback_name+'('+a+');'
 

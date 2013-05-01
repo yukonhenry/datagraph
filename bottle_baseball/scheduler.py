@@ -1,4 +1,4 @@
-def generateRRSchedule(numTeams, numVenues):
+def generateRRSchedule(numTeams):
     if (numTeams % 2):
         eff_numTeams = numTeams+1
         bye_flag = True
