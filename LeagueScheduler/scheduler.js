@@ -40,11 +40,20 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		script.get("http://127.0.0.1:8080/leaguedivinfo/"+idnum,{
     			jsonp:"callback"
     		}).then(function(sdata){
-				var game_array = sdata.game_list;
-
-				var game_grid_object = new Array();
+				var numFields = sdata.numFields;
+				// create columns dictionary
+				var slot_key_CONST = 'slot';
 				var game_columns = {};
+				game_columns[slot_key_CONST] = 'GameTime';
+				for (var i = 0; i < numFields; i++) {
+					var field_i = i+1;  // field names are 1-indexed
+					game_columns[field_i] = 'field '+field_i;
+				}
+				
+				var game_array = sdata.game_list;				
+				var game_grid_object = new Array();
 				arrayUtil.forEach(game_array, function(item,index) {
+					/*
 					if (index == 0) {
 						// create columns object required for dgrid
 						arrayUtil.forEach(item, function(it, i) {
@@ -52,6 +61,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 							game_columns[field_i] = 'field '+field_i;
 						});
 					};
+					*/
 					var game_grid_row = {};
 					arrayUtil.forEach(item, function(item2, index2) {
 						game_grid_row[index2+1] = item2;
