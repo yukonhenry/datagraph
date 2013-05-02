@@ -1,4 +1,5 @@
-def generateRRSchedule(numTeams):
+
+def generateRRSchedule(numTeams, numVenues):
     if (numTeams % 2):
         eff_numTeams = numTeams+1
         bye_flag = True
@@ -29,6 +30,11 @@ def generateRRSchedule(numTeams):
         # first game pairing
         round_list = [(circletop_team, circlecenter_team)]
         for j in range(1, half_n):
+            # we need to loop for the n value (called half_n) which is half of effective
+            # number of teams.
+            # But depending on number of venues we are going to have to play multiple games
+            # in a day (hence the schedule)
+            # ------------------
             # logic assumes teams are numbered from 1,..,circle_total_pos,
             # the latter also being the %mod operator value
             # first subtract 1 to recover 0-based index
