@@ -1,4 +1,3 @@
-
 def generateRRSchedule(numTeams, numVenues):
     if (numTeams % 2):
         eff_numTeams = numTeams+1
@@ -45,5 +44,9 @@ def generateRRSchedule(numTeams, numVenues):
             CCW_team = (((circletop_team-1)-j) % circle_total_pos)+1
             CW_team = (((circletop_team-1)+j) % circle_total_pos) + 1
             round_list.append((CCW_team, CW_team))
+        rlist_len = len(round_list)
+        num_time_slots = rlist_len / numVenues
+        num_in_last_slot = rlist_len % numVenues
+        print "numtimeslots, numinlastslot",num_time_slots, num_in_last_slot
         total_round_list.append(round_list)
     return total_round_list
