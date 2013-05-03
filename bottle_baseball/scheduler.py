@@ -1,9 +1,10 @@
 from datetime import  datetime, timedelta
-firstgame_starttime = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
+firstgame_starttime_CONST = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
 start_time_key_CONST = 'START_TIME'
 venue_game_list_key_CONST = 'VENUE_GAME_LIST'
 gameday_id_key_CONST = 'GAMEDAY_ID'
 gameday_data_key_CONST = 'GAMEDAY_DATA'
+bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 
 def generateRRSchedule(numTeams, numVenues, ginterval):
     #http://docs.python.org/2/library/datetime.html#timedelta-objects
@@ -28,8 +29,6 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
     # define center (of circle) team - this will be fixed
     if (not bye_flag):
         circlecenter_team = eff_numTeams
-    else:
-        circlecenter_team = 'bye'  # check later if string will be accepted
 
     # outer loop emulates circle rotation there will be eff_numTeams-1 iterations
     # corresponds to number of game rotations, i.e. weeks (assuming there is one week per game)
@@ -37,11 +36,19 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
 
     # half_n, num_time_slots, num_in_last_slot are variables relevant for schedule making
     # within a game day
+    # half_n denotes number of positions on the scheduling circle, so it is independent
+    # whether there is a bye or not
     half_n = eff_numTeams/2
-    num_time_slots = half_n / numVenues  # number of time slots per day
+    # if there is no bye, then the number of games per cycle equals half_n
+    # if there is a bye, then the number of games equals half_n minus 1
+    if (not bye_flag):
+        numgames_per_cycle = half_n
+    else:
+        numgames_per_cycle = half_n - 1
+    num_time_slots = numgames_per_cycle / numVenues  # number of time slots per day
     # number of games in time slot determined by number of venues,
     # but in last time slot not all venues may be used
-    num_in_last_slot = half_n % numVenues
+    num_in_last_slot = numgames_per_cycle % numVenues
 
     total_round_list = []
     for rotation_ind in range(circle_total_pos):
@@ -54,7 +61,10 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
         single_gameday_dict = {gameday_id_key_CONST:circletop_team}
 
         # first game pairing
-        round_list = [(circletop_team, circlecenter_team)]
+        if (not bye_flag):
+            round_list = [(circletop_team, circlecenter_team)]
+        else:
+            round_list = []
         '''
         j = 1 # j var will iterate from 1 to half_n-1 (games per game cycle)
         for timeslot in range(num_time_slots):
@@ -75,8 +85,9 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
             round_list.append(timeslot_game_list)
         '''
         for j in range(1, half_n):
-            # we need to loop for the n value (called half_n) which is half of effective
-            # number of teams.
+            # we need to loop for the n value (called half_n)
+            # which is half of effective number of teams (which includes bye team if
+            # there is one)
             # But depending on number of venues we are going to have to play multiple games
             # in a day (hence the schedule)
             # ------------------
@@ -96,7 +107,7 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
         # Do the list-sublist partition after the games have been determined above, as dealing
         # with the first game (top of circle vs center of circle/bye) presents too many special cases
         single_gameday_list = []
-        gametime = firstgame_starttime
+        gametime = firstgame_starttime_CONST
         ind = 0;
         for timeslot in range(num_time_slots):
             timeslot_dict = {}
@@ -123,6 +134,11 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
             single_gameday_list.append(timeslot_dict)
 
         single_gameday_dict[gameday_data_key_CONST] = single_gameday_list
+        if (bye_flag):
+            # if bye flag is enabled, then team at the top of 'circle' has bye.
+            # Note we are sending over the bye team info, but currently the UI is not
+            # displaying it (need to figure out where to display it)
+            single_gameday_dict[bye_CONST] = circletop_team
         # once dictionary element containing all data for the game cycle is created,
         # append that dict element to the total round list
         total_round_list.append(single_gameday_dict)

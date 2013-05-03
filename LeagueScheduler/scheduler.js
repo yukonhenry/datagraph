@@ -43,7 +43,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var numFields = sdata.numFields;
 				// create columns dictionary
 				var time_column_key_CONST = 'time';
-				var gameday_column_key_CONST = 'cycle'
+				var gameday_column_key_CONST = 'cycle';
 				var game_columns = {};
 				game_columns[gameday_column_key_CONST] = 'GameDay#'
 				game_columns[time_column_key_CONST] = 'GameTime';
@@ -51,7 +51,6 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					var field_i = i+1;  // field names are 1-indexed
 					game_columns[field_i] = 'field '+field_i;
 				}
-				
 				var game_array = sdata.game_list;				
 				var game_grid_list = new Array();
 				listindex = 0;
