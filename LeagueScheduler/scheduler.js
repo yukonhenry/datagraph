@@ -43,7 +43,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var numFields = sdata.numFields;
 				// create columns dictionary
 				var time_column_key_CONST = 'time';
+				var gameday_column_key_CONST = 'cycle'
 				var game_columns = {};
+				game_columns[gameday_column_key_CONST] = 'GameDay#'
 				game_columns[time_column_key_CONST] = 'GameTime';
 				for (var i = 0; i < numFields; i++) {
 					var field_i = i+1;  // field names are 1-indexed
@@ -54,18 +56,12 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var game_grid_list = new Array();
 				listindex = 0;
 				arrayUtil.forEach(game_array, function(item,index) {
-					/*
-					if (index == 0) {
-						// create columns object required for dgrid
-						arrayUtil.forEach(item, function(it, i) {
-							var field_i = i+1;
-							game_columns[field_i] = 'field '+field_i;
-						});
-					};
-					*/
-					arrayUtil.forEach(item, function(item2, index2) {
+					var gameday_id = item.GAMEDAY_ID;
+					var gameday_data = item.GAMEDAY_DATA; 
+					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						var game_grid_row = {};
-						// fill in the starttime
+						// fill in the game day number and start time
+						game_grid_row[gameday_column_key_CONST] = gameday_id;
 						game_grid_row[time_column_key_CONST] = item2.START_TIME;
 						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
 							// iterate amongst fields and fill in matches

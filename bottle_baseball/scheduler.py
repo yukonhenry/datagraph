@@ -2,6 +2,8 @@ from datetime import  datetime, timedelta
 firstgame_starttime = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
 start_time_key_CONST = 'START_TIME'
 venue_game_list_key_CONST = 'VENUE_GAME_LIST'
+gameday_id_key_CONST = 'GAMEDAY_ID'
+gameday_data_key_CONST = 'GAMEDAY_DATA'
 
 def generateRRSchedule(numTeams, numVenues, ginterval):
     #http://docs.python.org/2/library/datetime.html#timedelta-objects
@@ -45,6 +47,12 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
     for rotation_ind in range(circle_total_pos):
         # each rotation_ind corresponds to a single game cycle (a week if there is one game per week)
         circletop_team = rotation_ind + 1   # top of circle
+
+        # initialize dictionary that will contain data on the current game cycle's matches.
+        # Game cycle number (week number if there is only one game per week)
+        # is the same as the circletop_team number
+        single_gameday_dict = {gameday_id_key_CONST:circletop_team}
+
         # first game pairing
         round_list = [(circletop_team, circlecenter_team)]
         '''
@@ -87,32 +95,37 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
         # sublists.  Each sublist represent games that are played at a particular time.
         # Do the list-sublist partition after the games have been determined above, as dealing
         # with the first game (top of circle vs center of circle/bye) presents too many special cases
-        single_game_cycle_list = []
+        single_gameday_list = []
         gametime = firstgame_starttime
         ind = 0;
         for timeslot in range(num_time_slots):
-            timeslot_obj = {}
+            timeslot_dict = {}
             timeslot_game_list = []
             for v in range(numVenues):
                 timeslot_game_list.append(round_list[ind])
                 ind += 1
             # create dictionary entries for formatted game time as string and venue game list
             # format is 12-hour hour:minutes
-            timeslot_obj[start_time_key_CONST] = gametime.strftime('%I:%M')
-            timeslot_obj[venue_game_list_key_CONST] = timeslot_game_list
+            timeslot_dict[start_time_key_CONST] = gametime.strftime('%I:%M')
+            timeslot_dict[venue_game_list_key_CONST] = timeslot_game_list
             gametime += game_interval
-            single_game_cycle_list.append(timeslot_obj)
+            single_gameday_list.append(timeslot_dict)
+
         if (num_in_last_slot):
-            timeslot_obj = {}
+            # if there are games to be played in the last slot (less than number of venues)
+            timeslot_dict = {}
             timeslot_game_list = []
             for v in range(num_in_last_slot):
                 timeslot_game_list.append(round_list[ind])
                 ind += 1
-            timeslot_obj[start_time_key_CONST] = gametime.strftime('%I:%M')
-            timeslot_obj[venue_game_list_key_CONST] = timeslot_game_list
-            single_game_cycle_list.append(timeslot_obj)
+            timeslot_dict[start_time_key_CONST] = gametime.strftime('%I:%M')
+            timeslot_dict[venue_game_list_key_CONST] = timeslot_game_list
+            single_gameday_list.append(timeslot_dict)
 
-        total_round_list.append(single_game_cycle_list)
+        single_gameday_dict[gameday_data_key_CONST] = single_gameday_list
+        # once dictionary element containing all data for the game cycle is created,
+        # append that dict element to the total round list
+        total_round_list.append(single_gameday_dict)
 
-    print "total round list=",total_round_list, "len=",len(total_round_list)
+    print "total round list=",total_round_list
     return total_round_list
