@@ -42,16 +42,17 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		}).then(function(sdata){
 				var numFields = sdata.numFields;
 				// create columns dictionary
-				var slot_key_CONST = 'slot';
+				var time_column_key_CONST = 'time';
 				var game_columns = {};
-				game_columns[slot_key_CONST] = 'GameTime';
+				game_columns[time_column_key_CONST] = 'GameTime';
 				for (var i = 0; i < numFields; i++) {
 					var field_i = i+1;  // field names are 1-indexed
 					game_columns[field_i] = 'field '+field_i;
 				}
 				
 				var game_array = sdata.game_list;				
-				var game_grid_object = new Array();
+				var game_grid_list = new Array();
+				listindex = 0;
 				arrayUtil.forEach(game_array, function(item,index) {
 					/*
 					if (index == 0) {
@@ -62,12 +63,19 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						});
 					};
 					*/
-					var game_grid_row = {};
 					arrayUtil.forEach(item, function(item2, index2) {
-						game_grid_row[index2+1] = item2;
+						var game_grid_row = {};
+						// fill in the starttime
+						game_grid_row[time_column_key_CONST] = item2.START_TIME;
+						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
+							// iterate amongst fields and fill in matches
+							game_grid_row[index3+1] = item3;
+						})
+						game_grid_list[listindex] = game_grid_row;
+						listindex++;
 					});
-					game_grid_object[index] = game_grid_row; 
 				});
+				
 				// this will define number of columns (games per day)
 				if (gamesGrid) {
 					// clear grid by clearing dom node
@@ -76,12 +84,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			gamesGrid = new CustomGrid({
     				columns:game_columns,
     			},"scheduleInfoGrid");
-    			gamesGrid.renderArray(game_grid_object);
-    			/*
-    			arrayUtil.forEach(sdata.game_list, function(item, index) {
-    				console.log("item="+item+" ind="+index);
-    			}); */
-    			
+    			gamesGrid.renderArray(game_grid_list);    			
     		});
 		});
 		grid.on("dgrid-deselect", function(event){

@@ -1,5 +1,7 @@
 from datetime import  datetime, timedelta
 firstgame_starttime = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
+start_time_key_CONST = 'START_TIME'
+venue_game_list_key_CONST = 'VENUE_GAME_LIST'
 
 def generateRRSchedule(numTeams, numVenues, ginterval):
     #http://docs.python.org/2/library/datetime.html#timedelta-objects
@@ -85,26 +87,32 @@ def generateRRSchedule(numTeams, numVenues, ginterval):
         # sublists.  Each sublist represent games that are played at a particular time.
         # Do the list-sublist partition after the games have been determined above, as dealing
         # with the first game (top of circle vs center of circle/bye) presents too many special cases
-        partitioned_game_list = {}
+        single_game_cycle_list = []
         gametime = firstgame_starttime
         ind = 0;
         for timeslot in range(num_time_slots):
+            timeslot_obj = {}
             timeslot_game_list = []
             for v in range(numVenues):
                 timeslot_game_list.append(round_list[ind])
                 ind += 1
-            # create dictionary entry with formatted game time as string
+            # create dictionary entries for formatted game time as string and venue game list
             # format is 12-hour hour:minutes
-            partitioned_game_list[gametime.strftime('%I:%M')] = timeslot_game_list
+            timeslot_obj[start_time_key_CONST] = gametime.strftime('%I:%M')
+            timeslot_obj[venue_game_list_key_CONST] = timeslot_game_list
             gametime += game_interval
+            single_game_cycle_list.append(timeslot_obj)
         if (num_in_last_slot):
+            timeslot_obj = {}
             timeslot_game_list = []
             for v in range(num_in_last_slot):
                 timeslot_game_list.append(round_list[ind])
                 ind += 1
-            partitioned_game_list[gametime.strftime('%I:%M')] = timeslot_game_list
+            timeslot_obj[start_time_key_CONST] = gametime.strftime('%I:%M')
+            timeslot_obj[venue_game_list_key_CONST] = timeslot_game_list
+            single_game_cycle_list.append(timeslot_obj)
 
-        total_round_list.append(partitioned_game_list)
+        total_round_list.append(single_game_cycle_list)
 
-    print "total round list=",total_round_list
+    print "total round list=",total_round_list, "len=",len(total_round_list)
     return total_round_list
