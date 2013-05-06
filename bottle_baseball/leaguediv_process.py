@@ -2,7 +2,7 @@
 import simplejson as json
 from pprint import pprint
 from bottle import route, request
-from scheduler import generateRRSchedule
+from scheduler import ScheduleGenerator
 
 fname = 'leaguediv_json.txt'
 json_file = open(fname)
@@ -32,7 +32,8 @@ def leaguedivinfo(tid):
             nt = div['totalteams']
             nv = len(div['fields'])
             interval = div['gameinterval']
-            game_list = generateRRSchedule(nt, nv, interval)
+            scheduler = ScheduleGenerator(nt, nv, interval)
+            game_list = scheduler.generateRRSchedule()
             a = json.dumps({"game_list":game_list, "numFields":nv})
             return callback_name+'('+a+')'
     else:

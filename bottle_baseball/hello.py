@@ -10,7 +10,8 @@ from mlb_util import getMLBteam_details, getMLBteamname_list, getMLBStoveInfoJSO
 from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqTweets
 from cacooparse import getCacooDesignJSON
 import time
-from scheduler import generateRRSchedule
+# see comment below on OO implementation for scheduler
+# from scheduler import generateRRSchedule
 from leaguediv_process import *
 
 # if one of the module is reworked, don't forget to invoke 'reload(module)' cmd
@@ -96,6 +97,9 @@ def getpathdata():
     print "obstacle=",obs_polyline, len(obs_polyline)
     return callback_name+'('+a+');'
 
+''' Comment out for now during transition to class definition for
+Scheduler.
+
 @route('/getschedule')
 def getschedule():
     callback_name = request.query.callback
@@ -103,6 +107,6 @@ def getschedule():
     game_list = generateRRSchedule(int(numTeams))
     a = json.dumps({"game_list":game_list})
     return callback_name+'('+a+');'
-
+'''
 run(host='localhost', port=8080, debug=True)
 
