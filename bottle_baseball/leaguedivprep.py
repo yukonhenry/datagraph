@@ -19,7 +19,13 @@ league_div = [
   'gamedaysperweek':2, 'gameinterval':75},
 { '_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':38,
   'fields':[5,6,7],
-  'gamedaysperweek':2, 'gameinterval':75}
+  'gamedaysperweek':2, 'gameinterval':75},
+{ '_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':8,
+  'fields':[8,9,10],
+  'gamedaysperweek':2, 'gameinterval':90},
+{ '_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':4,
+  'fields':[8,9,10],
+  'gamedaysperweek':2, 'gameinterval':90}
 ]
 
 jsonstr = json.dumps({"creation_time":time.asctime(),

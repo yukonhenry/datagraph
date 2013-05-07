@@ -34,6 +34,8 @@ def leaguedivinfo(tid):
             interval = div['gameinterval']
             scheduler = ScheduleGenerator(nt, nv, interval)
             game_list = scheduler.generateRRSchedule()
+            ha_counter = getattr(scheduler, 'metrics_list')
+            print ha_counter
             a = json.dumps({"game_list":game_list, "numFields":nv})
             return callback_name+'('+a+')'
     else:
