@@ -27,9 +27,12 @@ league_div = [
   'fields':[8,9,10],
   'gamedaysperweek':2, 'gameinterval':90}
 ]
-
+coach_conflict_info = [
+    {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})}
+]
 jsonstr = json.dumps({"creation_time":time.asctime(),
-                      "leaguedivinfo":league_div})
+                      "leaguedivinfo":league_div,
+                      "conflict_info":coach_conflict_info})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
 f.close()
