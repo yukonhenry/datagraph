@@ -5,7 +5,7 @@ from bottle import route, request
 from scheduler import ScheduleGenerator
 
 # http://api.mongodb.org/python/current/tutorial.html
-from pymongo import MongoClient
+from pymongo import  *
 
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
@@ -61,7 +61,8 @@ def get_alldivSchedule():
     div_schedule_collect = testschedule_db.div_schedule
     # http://docs.mongodb.org/manual/tutorial/create-a-unique-index/
     # and pymango doc http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.ensure_index
-    div_schedule_collect.ensure_index({'age':1, 'gender':1},{unique:True})
+    # http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.create_index
+    div_schedule_collect.create_index([('age', ASCENDING),('gender',ASCENDING)])
     for div in ldata_divinfo:
         nt = div['totalteams']
         nv = len(div['fields'])
@@ -71,7 +72,7 @@ def get_alldivSchedule():
 
         age = div['agediv']
         gender = div['gender']
-        db_id = div_schedule_collect.insert({'age':age, 'gender':gender, 'game_list':game_list})
+        db_id = div_schedule_collect.insert({'age':age, 'gender':gender, 'game_list':game_list}, safe=True)
         print 'db_id=', db_id
         #ha_counter = getattr(scheduler, 'metrics_list')
         #print ha_counter
