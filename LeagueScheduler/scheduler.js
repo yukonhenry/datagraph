@@ -10,6 +10,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
 	function(dom, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil) {
+		var constant = {'SERVER_PREFIX':"http://127.0.0.1:8080/"}
 		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var numTeams = 0; numVenues =0; divnum = "U5";
 		var gamesGrid = null;
@@ -26,7 +27,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			selectionMode: "single"		
 		}, "divisionInfoGrid");
 		
-		script.get("http://127.0.0.1:8080/leaguedivinfo", {
+		script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
 			jsonp:"callback"
 		}).then(function(ldata){
 			ldata_array = ldata.leaguedivinfo;
@@ -37,7 +38,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data._id;
     		console.log("Row selected: ", idnum);
-    		script.get("http://127.0.0.1:8080/leaguedivinfo/"+idnum,{
+    		script.get(constant.SERVER_PREFIX+"leaguedivinfo/"+idnum,{
     			jsonp:"callback"
     		}).then(function(sdata){
 				var numFields = sdata.numFields;
@@ -85,13 +86,12 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		grid.on("dgrid-deselect", function(event){
     		console.log("Row de-selected: ", event.rows[0].data);
 		});
-/*		
-		var getSchedule = function(evt) {
-
-	        script.get("http://127.0.0.1:8080/getschedule", {
-	        	jsonp:"callback", query: {num_teams:numTeams, num_venues:numVenues}
-	        }).then(function(data) {
-	        	if (game_listP) {
+		
+		var getAllDivSchedule = function(evt) {
+	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {
+/*					        	if (game_listP) {
 	        		d3.select(schedulerDiv).selectAll("p").remove();
 	        	}
 	        	// data returned from server is an array of tuples, with each tuple
@@ -111,12 +111,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						}
 						return matchstr;
 					});
+*/
 			});
 		}
-*/
+
 		ready(function() {
  			parser.parse();	
-			//on(registry.byId("schedule_btn"), "click", getSchedule);
+			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
  		}); 
 	}
 );

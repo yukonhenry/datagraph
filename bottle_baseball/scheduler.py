@@ -22,6 +22,7 @@ class ScheduleGenerator:
             # can't use tuple because tuple does not support assignment
             # try array here
             self.metrics_list.append({homeaway_key_CONST:[0,0], venue_count_key_CONST:[0]*nv})
+
     def generateRRSchedule(self):
         if (self.numTeams % 2):
             eff_numTeams = self.numTeams+1
