@@ -59,6 +59,9 @@ def get_alldivSchedule():
     client = MongoClient()
     testschedule_db = client.testschedule_database
     div_schedule_collect = testschedule_db.div_schedule
+    # http://docs.mongodb.org/manual/tutorial/create-a-unique-index/
+    # and pymango doc http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.ensure_index
+    div_schedule_collect.ensure_index({'age':1, 'gender':1},{unique:True})
     for div in ldata_divinfo:
         nt = div['totalteams']
         nv = len(div['fields'])
