@@ -1,6 +1,9 @@
 #!/usr/bin/python
 import simplejson as json
 import time
+import networkx as nx
+from networkx import connected_components
+from networkx.readwrite import json_graph
 league_div = [
 { '_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
   'fields':[0,1],
@@ -35,4 +38,21 @@ jsonstr = json.dumps({"creation_time":time.asctime(),
                       "conflict_info":coach_conflict_info})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
+
+# using networkx
+G = nx.Graph()
+index = 0
+max_index = len(league_div)-1
+for division in league_div:
+    div_id = division['_id']
+    G.add_node(div_id)
+    field_set = set(division['fields'])
+    for other_div in league_div[index+1:]:
+        if field_set.intersection(other_div['fields']):
+            G.add_edge(div_id, other_div['_id'])
+            print div_id, other_div['_id']," overlaps"
+    index += 1
+data = json_graph.node_link_data(G)
+connected_list = connected_components(G)
+print connected_list
 f.close()
