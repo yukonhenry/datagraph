@@ -59,7 +59,6 @@ def leaguedivinfo(tid):
 
 @route('/getalldivschedule')
 def get_alldivSchedule():
-    print 'callback called'
     callback_name = request.query.callback
     ldata = get_leaguedata()
     ldata_divinfo = ldata['leaguedivinfo']

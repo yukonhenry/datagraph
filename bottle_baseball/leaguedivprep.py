@@ -30,29 +30,50 @@ league_div = [
   'fields':[8,9,10],
   'gamedaysperweek':2, 'gameinterval':90}
 ]
+field_info = [
+    {'_id':1, 'age_group_main':['U6'], 'age_group_backup':['U8']},
+    {'_id':2, 'age_group_main':['U6'], 'age_group_backup':['U8']},
+    {'_id':3, 'age_group_main':['U8'], 'age_group_backup':['U6']},
+    {'_id':4, 'age_group_main':['U8'], 'age_group_backup':['U6']},
+    {'_id':5, 'age_group_main':['U8'], 'age_group_backup':['U6']},
+    {'_id':6, 'age_group_main':['U10'], 'age_group_backup':['U12']},
+    {'_id':7, 'age_group_main':['U10'], 'age_group_backup':['U12']},
+    {'_id':8, 'age_group_main':['U10'], 'age_group_backup':['U12']},
+    {'_id':9, 'age_group_main':['U12'], 'age_group_backup':None},
+    {'_id':10, 'age_group_main':['U12'], 'age_group_backup':None},
+    {'_id':11, 'age_group_main':['U12'], 'age_group_backup':None}
+]
 coach_conflict_info = [
     {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})}
 ]
-jsonstr = json.dumps({"creation_time":time.asctime(),
-                      "leaguedivinfo":league_div,
-                      "conflict_info":coach_conflict_info})
-f = open('leaguediv_json.txt','w')
-f.write(jsonstr)
 
 # using networkx
 G = nx.Graph()
 index = 0
+# find inter-related divsions by finding out if there are fields
+# that are shared between divisions.
+# To discover shared fields, do intersection of sets using  set(array1).intersection(array2)
 max_index = len(league_div)-1
+# loop through each division in division list
 for division in league_div:
     div_id = division['_id']
     G.add_node(div_id)
     field_set = set(division['fields'])
+    # and do set intersection with other divisions
+    # only need to do set intersection with 'remaining' divisions
     for other_div in league_div[index+1:]:
         if field_set.intersection(other_div['fields']):
             G.add_edge(div_id, other_div['_id'])
-            print div_id, other_div['_id']," overlaps"
     index += 1
-data = json_graph.node_link_data(G)
+#data = json_graph.node_link_data(G)
 connected_list = connected_components(G)
 print connected_list
+jsonstr = json.dumps({"creation_time":time.asctime(),
+                      "leaguedivinfo":league_div,
+                      "conflict_info":coach_conflict_info,
+                      "connected_divisions":connected_list,
+                      "field_info":field_info})
+f = open('leaguediv_json.txt','w')
+f.write(jsonstr)
+
 f.close()
