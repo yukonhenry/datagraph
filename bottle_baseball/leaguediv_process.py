@@ -11,12 +11,14 @@ from pymongo import  *
 client = MongoClient()
 testschedule_db = client.testschedule_db
 div_schedule_collect = testschedule_db.div_schedule
+# create collection in db for storing metrics
+metrics_collect = testschedule_db.metrics
 
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
     json_file = open(fname)
     ldata = json.load(json_file)
-    pprint(ldata)
+    #pprint(ldata)
     json_file.close()
     return ldata
 
@@ -48,10 +50,13 @@ def leaguedivinfo(tid):
             gender = div['gender']
             division_data = div_schedule_collect.find_one({'age':age, 'gender':gender})
             game_list = division_data['game_list']
-            scheduler = ScheduleGenerator(nt, nv, interval)
+
+            metrics_data = metrics_collect.find_one({'age':age, 'gender':gender})
+            metrics_list = metrics_data['metrics_list']
+            print metrics_list
+            #scheduler = ScheduleGenerator(nt, nv, interval)
             #game_list = scheduler.generateRRSchedule()
-            ha_counter = getattr(scheduler, 'metrics_list')
-            print ha_counter
+            #ha_counter = getattr(scheduler, 'metrics_list')
             a = json.dumps({"game_list":game_list, "numFields":nv})
             return callback_name+'('+a+')'
     else:
@@ -79,10 +84,11 @@ def get_alldivSchedule():
         gender = div['gender']
         # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
         # ref http://docs.mongodb.org/manual/core/create/
-        db_id = div_schedule_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'game_list':game_list}, safe=True, upsert=True)
-        print 'db_id=', db_id
-        #ha_counter = getattr(scheduler, 'metrics_list')
-        #print ha_counter
+        sched_id = div_schedule_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'game_list':game_list}, safe=True, upsert=True)
+
+        metrics_list = getattr(scheduler, 'metrics_list')
+        metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
+        print 'sched_id=', sched_id
     a = ""
     #a = json.dumps({"game_list":game_list, "numFields":nv})
     return callback_name+'('+a+')'
