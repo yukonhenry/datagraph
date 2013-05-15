@@ -7,6 +7,9 @@ gameday_data_key_CONST = 'GAMEDAY_DATA'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 homeaway_key_CONST = 'HOMEAWAY'
 venue_count_key_CONST = 'VCNT'
+home_index_CONST = 0
+away_index_CONST = 1
+
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class ScheduleGenerator:
     def __init__(self, nt, nv, ginterval):
@@ -21,7 +24,10 @@ class ScheduleGenerator:
             # dictionary key is team id, which is 1-based
             # can't use tuple because tuple does not support assignment
             # try array here
-            self.metrics_list.append({homeaway_key_CONST:[0,0], venue_count_key_CONST:[0]*nv})
+            # _id key added, but check if properly used later
+            self.metrics_list.append({'_id':i+1, # id is one-based
+                                      homeaway_key_CONST:[0,0],
+                                      venue_count_key_CONST:[0]*nv})
 
     def generateRRSchedule(self):
         if (self.numTeams % 2):
@@ -76,8 +82,8 @@ class ScheduleGenerator:
             if (not bye_flag):
                 round_list = [(circletop_team, circlecenter_team)]
                 # increment home-away counters (team-id, 1-based)
-                self.metrics_list[circletop_team-1][homeaway_key_CONST][0] += 1
-                self.metrics_list[circlecenter_team-1][homeaway_key_CONST][1] += 1
+                self.metrics_list[circletop_team-1][homeaway_key_CONST][home_index_CONST] += 1
+                self.metrics_list[circlecenter_team-1][homeaway_key_CONST][away_index_CONST] += 1
             else:
                 round_list = []
             for j in range(1, half_n):
@@ -96,8 +102,9 @@ class ScheduleGenerator:
                 # then increment by one to get 1-based index (team number)
                 CCW_team = (((circletop_team-1)-j) % circle_total_pos)+1
                 CW_team = (((circletop_team-1)+j) % circle_total_pos) + 1
-                self.metrics_list[CCW_team-1][homeaway_key_CONST][0] += 1
-                self.metrics_list[CW_team-1][homeaway_key_CONST][1] += 1
+
+                self.metrics_list[CCW_team-1][homeaway_key_CONST][home_index_CONST] += 1
+                self.metrics_list[CW_team-1][homeaway_key_CONST][away_index_CONST] += 1
                 round_list.append((CCW_team, CW_team))
 
             # Given the list of the games for a single game cycle, break up the list into
