@@ -44,7 +44,6 @@ def leaguedivinfo(tid):
     for div in ldata_divinfo:
         if div['_id'] == tid:
             nt = div['totalteams']
-            nv = len(div['fields'])
             interval = div['gameinterval']
             age = div['agediv']
             gender = div['gender']
@@ -57,7 +56,7 @@ def leaguedivinfo(tid):
             #scheduler = ScheduleGenerator(nt, nv, interval)
             #game_list = scheduler.generateRRSchedule()
             #ha_counter = getattr(scheduler, 'metrics_list')
-            a = json.dumps({"game_list":game_list, "numFields":nv})
+            a = json.dumps({"game_list":game_list, "fields":div['fields']})
             return callback_name+'('+a+')'
     else:
         return False
@@ -75,9 +74,9 @@ def get_alldivSchedule():
     #div_schedule_collect.create_index([('age', ASCENDING),('gender',ASCENDING)], unique=True, dropDups=True)
     for div in ldata_divinfo:
         nt = div['totalteams']
-        nv = len(div['fields'])
+        fields = div['fields']
         interval = div['gameinterval']
-        scheduler = ScheduleGenerator(nt, nv, interval)
+        scheduler = ScheduleGenerator(nt, fields, interval)
         game_list = scheduler.generateRRSchedule()
 
         age = div['agediv']

@@ -41,17 +41,18 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		script.get(constant.SERVER_PREFIX+"leaguedivinfo/"+idnum,{
     			jsonp:"callback"
     		}).then(function(sdata){
-				var numFields = sdata.numFields;
+				var field_array = sdata.fields;
 				// create columns dictionary
 				var time_column_key_CONST = 'time';
 				var gameday_column_key_CONST = 'cycle';
 				var game_columns = {};
 				game_columns[gameday_column_key_CONST] = 'GameDay#'
 				game_columns[time_column_key_CONST] = 'GameTime';
-				for (var i = 0; i < numFields; i++) {
-					var field_i = i+1;  // field names are 1-indexed
-					game_columns[field_i] = 'field '+field_i;
-				}
+				arrayUtil.forEach(field_array, function(item, index) {
+					// fields names are keys to the column dictionary
+					game_columns[item] = 'field '+item;
+				});
+
 				var game_array = sdata.game_list;				
 				var game_grid_list = new Array();
 				listindex = 0;
@@ -65,7 +66,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						game_grid_row[time_column_key_CONST] = item2.START_TIME;
 						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
 							// iterate amongst fields and fill in matches
-							game_grid_row[index3+1] = item3;
+							game_grid_row[item3.VENUE] = item3.GAME_LIST;
 						})
 						game_grid_list[listindex] = game_grid_row;
 						listindex++;
