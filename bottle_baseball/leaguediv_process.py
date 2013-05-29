@@ -3,6 +3,8 @@ import simplejson as json
 from pprint import pprint
 from bottle import route, request
 from scheduler import ScheduleGenerator
+import networkx as nx
+from networkx.readwrite import json_graph
 
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
@@ -65,8 +67,10 @@ def leaguedivinfo(tid):
 def get_alldivSchedule():
     callback_name = request.query.callback
     ldata = get_leaguedata()
-    ldata_divinfo = ldata['leaguedivinfo']
+    #get list of connected divisions through field constraints
+    connectedG = json_graph.node_link_graph(ldata['connected_graph'])
 
+    ldata_divinfo = ldata['leaguedivinfo']
     # http://docs.mongodb.org/manual/tutorial/create-a-unique-index/
     # and pymango doc http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.ensure_index
     # http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.create_index

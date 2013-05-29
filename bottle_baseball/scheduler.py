@@ -99,7 +99,7 @@ class ScheduleGenerator:
             # round id is 1-index based, equivalent to team# at top of circle
             self.games_by_round_list.append({round_id_key_CONST:circletop_team,
                                              game_list_key_CONST:round_list})
-        print self.games_by_round_list
+        #print self.games_by_round_list
 
     def generateRRSchedule(self):
         self.generateRoundMatchList()

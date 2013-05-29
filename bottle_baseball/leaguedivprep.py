@@ -30,23 +30,85 @@ league_div = [
   'fields':[8,9,10],
   'gamedaysperweek':2, 'gameinterval':90}
 ]
+#assign team numbers
+team_id_start = 1
+for div in league_div:
+    next_team_id_start = team_id_start + div['totalteams']
+    div['team_id_range'] = (team_id_start, next_team_id_start-1)
+    team_id_start = next_team_id_start
+
+# primary key identifies age groups that have priority for the fields.
+# identified by _id from league_div dictionary elements
 field_info = [
-    {'_id':1, 'age_group_main':['U6'], 'age_group_backup':['U8']},
-    {'_id':2, 'age_group_main':['U6'], 'age_group_backup':['U8']},
-    {'_id':3, 'age_group_main':['U8'], 'age_group_backup':['U6']},
-    {'_id':4, 'age_group_main':['U8'], 'age_group_backup':['U6']},
-    {'_id':5, 'age_group_main':['U8'], 'age_group_backup':['U6']},
-    {'_id':6, 'age_group_main':['U10'], 'age_group_backup':['U12']},
-    {'_id':7, 'age_group_main':['U10'], 'age_group_backup':['U12']},
-    {'_id':8, 'age_group_main':['U10'], 'age_group_backup':['U12']},
-    {'_id':9, 'age_group_main':['U12'], 'age_group_backup':None},
-    {'_id':10, 'age_group_main':['U12'], 'age_group_backup':None},
-    {'_id':11, 'age_group_main':['U12'], 'age_group_backup':None}
+    {'_id':1, 'primary':[1,2], 'secondary':['U8']},
+    {'_id':2, 'primary':[1,2], 'secondary':['U8']},
+    {'_id':3, 'primary':[3,4], 'secondary':['U6']},
+    {'_id':4, 'primary':[3,4], 'secondary':['U6']},
+    {'_id':5, 'primary':[3,4], 'secondary':['U6']},
+    {'_id':6, 'primary':[5,6], 'secondary':['U12']},
+    {'_id':7, 'primary':[5,6], 'secondary':['U12']},
+    {'_id':8, 'primary':[5,6], 'secondary':['U12']},
+    {'_id':9, 'primary':[7,8], 'secondary':None},
+    {'_id':10, 'primary':[7,8], 'secondary':None},
+    {'_id':11, 'primary':[7,8], 'secondary':None}
 ]
 coach_conflict_info = [
     {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})}
 ]
 
+def getDivID(agediv, gender):
+    if agediv == 'U6':
+        if 'gender' == 'B':
+            div_id = 1
+        else:
+            div_id = 2
+    elif agediv == 'U8':
+        if 'gender' == 'B':
+            div_id = 3
+        else:
+            div_id = 4
+    elif agediv == 'U10':
+        if 'gender' == 'B':
+            div_id = 5
+        else:
+            div_id = 6
+    elif agediv == 'U12':
+        if 'gender' == 'B':
+            div_id = 7
+        else:
+            div_id = 8
+    elif agediv == 'U14':
+        if 'gender' == 'B':
+            div_id = 9
+        else:
+            div_id = 10
+    else:
+        div_id = 0
+    return div_id
+
+def getTeamID(agediv, gender, team_id):
+    div_id = getDivID(agediv, gender)
+    for div in league_div:
+        if div[_id] == div_id:
+            id_range = div['team_id_range']
+            overall_id = id_range[0]+team_id-1
+            break
+    else:
+        overall_id = False
+    return overall_id
+
+#find inter-related divisions through the field_info list
+# this should be simplier than the method below whith utilize the division info list
+G = nx.Graph()
+for field in field_info:
+    prev_node = None
+    for div_id in field['primary']:
+        if not G.has_node(div_id):
+            G.add_node(div_id)
+        if prev_node is not None and not G.has_edge(prev_node, div_id):
+            G.add_edge(prev_node, div_id)
+        prev_node = div_id
+'''
 # using networkx
 G = nx.Graph()
 index = 0
@@ -65,13 +127,17 @@ for division in league_div:
         if field_set.intersection(other_div['fields']):
             G.add_edge(div_id, other_div['_id'])
     index += 1
-#data = json_graph.node_link_data(G)
+
 connected_list = connected_components(G)
 print connected_list
+'''
+#serialize field-connected divisions as graph and save it (instead of saving list of connected components)
+#used by leaguediv_process to determine schedule allocation of connected divisions
+connected_graph = json_graph.node_link_data(G)
 jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":league_div,
                       "conflict_info":coach_conflict_info,
-                      "connected_divisions":connected_list,
+                      "connected_graph":connected_graph,
                       "field_info":field_info})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
