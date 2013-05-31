@@ -15,7 +15,7 @@ venue_key_CONST = 'VENUE'
 
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class ScheduleGenerator:
-    def __init__(self, nt, fields, ginterval):
+    def __init__(self, nt, fields, ginterval, conflict_competes):
         self.numTeams = nt
         self.venues = fields
         self.numVenues = len(self.venues)
@@ -36,6 +36,9 @@ class ScheduleGenerator:
         # see also python-in-nutshell
         # convert gameinterval into datetime.timedelta object
         self.game_interval = timedelta(0,0,0,0,ginterval)
+        # teams competing in conflicts, including self; i.e. value is 1 means there are no
+        # other teams competing for same resource (field, time, etc.)
+        self.gap_on_field = self.game_interval * conflict_competes
         self.games_by_round_list = []
         self.metrics_list = []
         for i in range(nt):
@@ -101,7 +104,7 @@ class ScheduleGenerator:
                                              game_list_key_CONST:round_list})
         #print self.games_by_round_list
 
-    def generateRRSchedule(self):
+    def generateRRSchedule(self, conflict_ind=0):
         self.generateRoundMatchList()
         # if there is no bye, then the number of games per cycle equals half_n
         # if there is a bye, then the number of games equals half_n minus 1
@@ -128,7 +131,11 @@ class ScheduleGenerator:
             # Do the list-sublist partition after the games have been determined above, as dealing
             # with the first game (top of circle vs center of circle/bye) presents too many special cases
             single_gameday_list = []
-            gametime = firstgame_starttime_CONST
+            if conflict_ind == 0:
+                gametime = firstgame_starttime_CONST
+            else:
+                # offset start time
+                gametime = firstgame_starttime_CONST + self.game_interval * conflict_ind
             ind = 0;
             for timeslot in range(num_time_slots):
                 timeslot_dict = {}
@@ -143,7 +150,7 @@ class ScheduleGenerator:
                 # format is 12-hour hour:minutes
                 timeslot_dict[start_time_key_CONST] = gametime.strftime('%I:%M')
                 timeslot_dict[venue_game_list_key_CONST] = timeslot_game_list
-                gametime += self.game_interval
+                gametime += self.gap_on_field
                 single_gameday_list.append(timeslot_dict)
 
             if (num_in_last_slot):
@@ -170,5 +177,5 @@ class ScheduleGenerator:
             # append that dict element to the total round list
             total_game_list.append(single_gameday_dict)
 
-        print "total round list=",total_game_list
+        #print "total round list=",total_game_list
         return total_game_list
