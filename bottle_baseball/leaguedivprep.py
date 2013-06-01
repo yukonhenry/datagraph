@@ -138,13 +138,13 @@ connected_graph = json_graph.node_link_data(G)
 # create coach conflict graph
 conflictG = nx.Graph()
 for coach in coach_conflict_info:
-    divid_list = []
+    prev_node = None
     for team in coach['conflict']:
         a = team['agediv']
         g = team['gender']
         divid = getDivID(a,g)
         conflictG.add_node(divid)
-        divid_list.append(divid)
+        prev_node = divid
 
 jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":league_div,
