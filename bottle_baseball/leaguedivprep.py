@@ -134,6 +134,18 @@ print connected_list
 #serialize field-connected divisions as graph and save it (instead of saving list of connected components)
 #used by leaguediv_process to determine schedule allocation of connected divisions
 connected_graph = json_graph.node_link_data(G)
+
+# create coach conflict graph
+conflictG = nx.Graph()
+for coach in coach_conflict_info:
+    divid_list = []
+    for team in coach['conflict']:
+        a = team['agediv']
+        g = team['gender']
+        divid = getDivID(a,g)
+        conflictG.add_node(divid)
+        divid_list.append(divid)
+
 jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":league_div,
                       "conflict_info":coach_conflict_info,

@@ -31,6 +31,7 @@ class ScheduleGenerator:
         # half_n denotes number of positions on the scheduling circle, so it is independent
         # whether there is a bye or not
         self.half_n = self.eff_numTeams/2
+        self.timeslots_per_day = 0
 
         #http://docs.python.org/2/library/datetime.html#timedelta-objects
         # see also python-in-nutshell
@@ -116,6 +117,12 @@ class ScheduleGenerator:
         # number of games in time slot determined by number of venues,
         # but in last time slot not all venues may be used
         num_in_last_slot = numgames_per_cycle % self.numVenues
+
+        # fill in timeslots
+        if (num_in_last_slot):
+            self.timeslots_per_day = num_time_slots
+        else:
+            self.timeslots_per_day = num_time_slots + 1
 
         total_game_list = []
         for round_dict in self.games_by_round_list:

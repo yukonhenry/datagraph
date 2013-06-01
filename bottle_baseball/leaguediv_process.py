@@ -79,6 +79,7 @@ def get_alldivSchedule():
     connected_divisions = connected_components(connectedG)
     print connected_divisions
     for connecteddiv_list in connected_divisions:
+        # conflict_num are field conflicts - number of div's sharing field
         conflict_num = len(connecteddiv_list)
 
         for (connecteddiv,conflict_ind) in zip(connecteddiv_list, range(conflict_num)):
@@ -98,6 +99,7 @@ def get_alldivSchedule():
 
             metrics_list = getattr(scheduler, 'metrics_list')
             metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
+    coach_conflict_list = ldata['conflict_info']
     a = ""
     #a = json.dumps({"game_list":game_list, "numFields":nv})
     return callback_name+'('+a+')'
