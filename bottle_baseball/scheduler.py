@@ -6,6 +6,8 @@ gameday_id_key_CONST = 'GAMEDAY_ID'
 gameday_data_key_CONST = 'GAMEDAY_DATA'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 homeaway_key_CONST = 'HOMEAWAY'
+home_CONST = 'HOME'
+away_CONST = 'AWAY'
 venue_count_key_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
@@ -74,7 +76,7 @@ class ScheduleGenerator:
 
             # first game pairing
             if (not self.bye_flag):
-                round_list = [(circletop_team, circlecenter_team)]
+                round_list = [{home_CONST:circletop_team, away_CONST:circlecenter_team}]
                 # increment home-away counters (team-id, 1-based)
                 self.metrics_list[circletop_team-1][homeaway_key_CONST][home_index_CONST] += 1
                 self.metrics_list[circlecenter_team-1][homeaway_key_CONST][away_index_CONST] += 1
@@ -99,7 +101,7 @@ class ScheduleGenerator:
 
                 self.metrics_list[CCW_team-1][homeaway_key_CONST][home_index_CONST] += 1
                 self.metrics_list[CW_team-1][homeaway_key_CONST][away_index_CONST] += 1
-                round_list.append((CCW_team, CW_team))
+                round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
             # round id is 1-index based, equivalent to team# at top of circle
             self.games_by_round_list.append({round_id_key_CONST:circletop_team,
                                              game_list_key_CONST:round_list})
@@ -150,8 +152,8 @@ class ScheduleGenerator:
                 for v in range(self.numVenues):
                     timeslot_game_list.append({venue_key_CONST:self.venues[v],
                                                game_list_key_CONST:game_list[ind]})
-                    self.metrics_list[game_list[ind][0]-1][venue_count_key_CONST][v] += 1
-                    self.metrics_list[game_list[ind][1]-1][venue_count_key_CONST][v] += 1
+                    self.metrics_list[game_list[ind][home_CONST]-1][venue_count_key_CONST][v] += 1
+                    self.metrics_list[game_list[ind][away_CONST]-1][venue_count_key_CONST][v] += 1
                     ind += 1
                 # create dictionary entries for formatted game time as string and venue game list
                 # format is 12-hour hour:minutes
@@ -167,8 +169,8 @@ class ScheduleGenerator:
                 for v in range(num_in_last_slot):
                     timeslot_game_list.append({venue_key_CONST:self.venues[v],
                                                game_list_key_CONST:game_list[ind]})
-                    self.metrics_list[game_list[ind][0]-1][venue_count_key_CONST][v] += 1
-                    self.metrics_list[game_list[ind][1]-1][venue_count_key_CONST][v] += 1
+                    self.metrics_list[game_list[ind][home_CONST]-1][venue_count_key_CONST][v] += 1
+                    self.metrics_list[game_list[ind][away_CONST]-1][venue_count_key_CONST][v] += 1
                     ind += 1
                 timeslot_dict[start_time_key_CONST] = gametime.strftime('%I:%M')
                 timeslot_dict[venue_game_list_key_CONST] = timeslot_game_list

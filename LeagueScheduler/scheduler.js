@@ -67,7 +67,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						game_grid_row[time_column_key_CONST] = item2.START_TIME;
 						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
 							// iterate amongst fields and fill in matches
-							game_grid_row[item3.VENUE] = item3.GAME_LIST;
+							game_grid_row[item3.VENUE] = item3.GAME_LIST.HOME + 'v' +
+															item3.GAME_LIST.AWAY;
 						})
 						game_grid_list[listindex] = game_grid_row;
 						listindex++;
@@ -142,9 +143,12 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			// Report the item from the selected row to the console.
     			// Note the last field is an element of the row.
     			var rowid = event.rows[0].data.team_id;
-    			console.log("div page Row selected: ", rowid);
+				var div_age = registry.byId("divisionSelect").get("value");
+				//
+				
     			script.get(constant.SERVER_PREFIX+"teamdata/"+rowid,{
-    				jsonp:"callback"
+    				jsonp:"callback",
+    				query:{division_code:divisioncode}
     			}).then(function(sdata){
     			});
 			});
