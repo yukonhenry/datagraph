@@ -118,8 +118,21 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var getDivisionTeamData = function(evt) {
 			var divisioncode = registry.byId("divisionSelect").get("value");
 			var divisionDiv = dom.byId("divisionInfoGridLinkTeams");
-			divisionDiv.innerHTML = "test1"+divisioncode;
-			
+
+			var customGrid2 = declare([ Grid, Selection ]);
+			var divgrid = new customGrid2({
+				columns: {
+					team_id:"Team ID",
+				},
+				selectionMode: "single"		
+			}, "divisionInfoGrid2");
+			script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
+				jsonp:"callback"
+			}).then(function(ldata){
+				ldata_array = ldata.leaguedivinfo;
+				grid.renderArray(ldata_array);
+
+			});			
 			/*
 	        script.get(constant.SERVER_PREFIX+"getteamschedule", {
 	        	jsonp:"callback"

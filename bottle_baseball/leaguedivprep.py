@@ -53,32 +53,35 @@ field_info = [
     {'_id':11, 'primary':[7,8], 'secondary':None}
 ]
 coach_conflict_info = [
-    {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})}
+    {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},
+    {'coach_id':2, 'conflict':({'agediv':'U8','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},
+    {'coach_id':3, 'conflict':({'agediv':'U8','gender':'G', 'team_id':7},{'agediv':'U8','gender':'B', 'team_id':9})}
+
 ]
 
 def getDivID(agediv, gender):
     if agediv == 'U6':
-        if 'gender' == 'B':
+        if gender == 'B':
             div_id = 1
         else:
             div_id = 2
     elif agediv == 'U8':
-        if 'gender' == 'B':
+        if gender == 'B':
             div_id = 3
         else:
             div_id = 4
     elif agediv == 'U10':
-        if 'gender' == 'B':
+        if gender == 'B':
             div_id = 5
         else:
             div_id = 6
     elif agediv == 'U12':
-        if 'gender' == 'B':
+        if gender == 'B':
             div_id = 7
         else:
             div_id = 8
     elif agediv == 'U14':
-        if 'gender' == 'B':
+        if gender == 'B':
             div_id = 9
         else:
             div_id = 10
@@ -135,16 +138,27 @@ print connected_list
 #used by leaguediv_process to determine schedule allocation of connected divisions
 connected_graph = json_graph.node_link_data(G)
 
-# create coach conflict graph
+# create coach conflict graph to find conflict metrics
 conflictG = nx.Graph()
 for coach in coach_conflict_info:
     prev_node = None
     for team in coach['conflict']:
         a = team['agediv']
         g = team['gender']
-        divid = getDivID(a,g)
-        conflictG.add_node(divid)
-        prev_node = divid
+        div_id = getDivID(a,g)
+        if not conflictG.has_node(div_id):
+            conflictG.add_node(div_id)
+        if prev_node is not None:
+            if not conflictG.has_edge(prev_node, div_id):
+                conflictG.add_edge(prev_node, div_id, weight=1.0)
+            else:
+                # if edge already exists, increase weight
+                conflictG.edge[prev_node][div_id]['weight'] += 1
+        prev_node = div_id
+# for printing edge attributes
+# http://networkx.github.io/documentation/latest/reference/classes.graph.html#overview
+a = [ (u,v,edata['weight']) for u,v,edata in conflictG.edges(data=True) if 'weight' in edata ]
+print a
 
 jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":league_div,
