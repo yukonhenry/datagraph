@@ -115,10 +115,25 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 */
 			});
 		}
+		var getDivisionTeamData = function(evt) {
+			var divisioncode = registry.byId("divisionSelect").get("value");
+			var divisionDiv = dom.byId("divisionInfoGridLinkTeams");
+			divisionDiv.innerHTML = "test1"+divisioncode;
+			
+			/*
+	        script.get(constant.SERVER_PREFIX+"getteamschedule", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {
+			});
+			*/
+		}
 
+		// events for widgets should be in one js file; trying to split it up into two or more modules
+		// does not work - registry.byId cannot find the widget
 		ready(function() {
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
+			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
  		}); 
 	}
 );
