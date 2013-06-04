@@ -14,6 +14,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var numTeams = 0; numVenues =0; divnum = "U5";
 		var gamesGrid = null;
+		var divisionGrid = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -117,29 +118,38 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		}
 		var getDivisionTeamData = function(evt) {
 			var divisioncode = registry.byId("divisionSelect").get("value");
-			var divisionDiv = dom.byId("divisionInfoGridLinkTeams");
-
-			var customGrid2 = declare([ Grid, Selection ]);
-			var divgrid = new customGrid2({
+			if (divisionGrid) {
+				// clear grid by clearing dom node
+				dom.byId("divisionGridLinkTeams").innerHTML = "";
+			}
+			divisionGrid = new CustomGrid({
 				columns: {
 					team_id:"Team ID",
 				},
 				selectionMode: "single"		
-			}, "divisionInfoGrid2");
-			script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
+			}, "divisionGridLinkTeams");
+			script.get(constant.SERVER_PREFIX+"divisiondata/"+divisioncode, {
 				jsonp:"callback"
 			}).then(function(ldata){
-				ldata_array = ldata.leaguedivinfo;
-				grid.renderArray(ldata_array);
-
-			});			
-			/*
-	        script.get(constant.SERVER_PREFIX+"getteamschedule", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {
+				var totalteams = ldata.totalteams;
+				var division_list = new Array();
+				for (var i=0; i < totalteams; i++) {
+					division_list[i] = {'team_id':i+1};
+				}
+				divisionGrid.renderArray(division_list);
 			});
-			*/
+			divisionGrid.on("dgrid-select", function(event){
+    			// Report the item from the selected row to the console.
+    			// Note the last field is an element of the row.
+    			var rowid = event.rows[0].data.team_id;
+    			console.log("div page Row selected: ", rowid);
+    			script.get(constant.SERVER_PREFIX+"teamdata/"+rowid,{
+    				jsonp:"callback"
+    			}).then(function(sdata){
+    			});
+			});
 		}
+
 
 		// events for widgets should be in one js file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget

@@ -122,3 +122,18 @@ def get_alldivSchedule():
         metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
         #print 'sched_id=', sched_id
 '''
+@route('/divisiondata/<did:int>', method='GET')
+def divisiondata(did):
+    callback_name = request.query.callback
+    ldata = get_leaguedata()
+    numTeams = ldata['leaguedivinfo'][did]['totalteams']
+    a = json.dumps({'totalteams':numTeams})
+    return callback_name+'('+a+')'
+
+@route('/teamdata/<tid:int>', method='GET')
+def teamdata(tid):
+    callback_name = request.query.callback
+    ldata = get_leaguedata()
+    numTeams = ldata['leaguedivinfo'][did]['totalteams']
+    a = json.dumps({'totalteams':numTeams})
+    return callback_name+'('+a+')'
