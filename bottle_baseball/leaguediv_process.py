@@ -133,7 +133,14 @@ def divisiondata(did):
 @route('/teamdata/<tid:int>', method='GET')
 def teamdata(tid):
     callback_name = request.query.callback
-    divcode = request.query.division_code
-    print 'age,gender=',divcode
+    divcode = int(request.query.division_code)
+    ldata = get_leaguedata()
+    divdata = ldata['leaguedivinfo'][divcode]
+    age = divdata['agediv']
+    gender = divdata['gender']
+    teamdata = div_schedule_collect.find({'age':age, 'gender':gender,'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.HOME':1})
+
+
+    print 'age,gender=',age,gender,teamdata
     a = ""
     return callback_name+'('+a+')'

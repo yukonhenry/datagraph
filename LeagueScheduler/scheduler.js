@@ -143,9 +143,6 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			// Report the item from the selected row to the console.
     			// Note the last field is an element of the row.
     			var rowid = event.rows[0].data.team_id;
-				var div_age = registry.byId("divisionSelect").get("value");
-				//
-				
     			script.get(constant.SERVER_PREFIX+"teamdata/"+rowid,{
     				jsonp:"callback",
     				query:{division_code:divisioncode}
