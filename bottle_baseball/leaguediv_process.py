@@ -95,7 +95,9 @@ def get_alldivSchedule():
             gender = div['gender']
             # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
             # ref http://docs.mongodb.org/manual/core/create/
-            sched_id = div_schedule_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'game_list':game_list}, safe=True, upsert=True)
+            # also ref 'common mongodb and python patterns' in O'reilly mongodb and python
+            sched_id = div_schedule_collect.update({'age':age, 'gender':gender},
+                                                   {"$set":{'game_list':game_list}}, safe=True, upsert=True)
 
             metrics_list = getattr(scheduler, 'metrics_list')
             metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
