@@ -13,7 +13,7 @@ from pymongo import  *
 # prep for connecting to db
 client = MongoClient()
 testschedule_db = client.testschedule_db
-div_schedule_collect = testschedule_db.div_schedule
+div_schedule_col = testschedule_db.div_schedule
 # create collection in db for storing metrics
 metrics_collect = testschedule_db.metrics
 
@@ -50,7 +50,7 @@ def leaguedivinfo(tid):
             interval = div['gameinterval']
             age = div['agediv']
             gender = div['gender']
-            division_data = div_schedule_collect.find_one({'age':age, 'gender':gender})
+            division_data = div_schedule_col.find_one({'age':age, 'gender':gender})
             game_list = division_data['game_list']
 
             metrics_data = metrics_collect.find_one({'age':age, 'gender':gender})
@@ -70,7 +70,7 @@ def get_alldivSchedule():
     # and pymango doc http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.ensure_index
     # http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.create_index
     # apparently the need to create a unique index is not needed if an upsert (see below) call is made.
-    # div_schedule_collect.create_index([('age', ASCENDING),('gender',ASCENDING)], unique=True, dropDups=True)
+    # div_schedule_col.create_index([('age', ASCENDING),('gender',ASCENDING)], unique=True, dropDups=True)
     callback_name = request.query.callback
     ldata = get_leaguedata()
     ldata_divinfo = ldata['leaguedivinfo']
@@ -96,7 +96,7 @@ def get_alldivSchedule():
             # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
             # ref http://docs.mongodb.org/manual/core/create/
             # also ref 'common mongodb and python patterns' in O'reilly mongodb and python
-            sched_id = div_schedule_collect.update({'age':age, 'gender':gender},
+            sched_id = div_schedule_col.update({'age':age, 'gender':gender},
                                                    {"$set":{'game_list':game_list}}, safe=True, upsert=True)
 
             metrics_list = getattr(scheduler, 'metrics_list')
@@ -118,7 +118,7 @@ def get_alldivSchedule():
         gender = div['gender']
         # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
         # ref http://docs.mongodb.org/manual/core/create/
-        sched_id = div_schedule_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'game_list':game_list}, safe=True, upsert=True)
+        sched_id = div_schedule_col.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'game_list':game_list}, safe=True, upsert=True)
 
         metrics_list = getattr(scheduler, 'metrics_list')
         metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
@@ -140,9 +140,22 @@ def teamdata(tid):
     divdata = ldata['leaguedivinfo'][divcode]
     age = divdata['agediv']
     gender = divdata['gender']
-    teamdata = div_schedule_collect.find({'age':age, 'gender':gender,'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.HOME':1})
+    # http://stackoverflow.com/questions/13708857/mongodb-aggregation-framework-nested-arrays-subtract-expression
+    # http://docs.mongodb.org/manual/reference/aggregation/
+    #col.aggregate({$match:{age:'U12',gender:'G'}},{$project:{game_list:1}},{$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},{$match:{$or:[{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.HOME':1},{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.AWAY':1}]}})
+    result_list = div_schedule_col.aggregate([{"$match":{'age':age,'gender':gender}},
+                                            {"$project":{'game_list':1}},
+                                            {"$unwind":"$game_list"},
+                                            {"$unwind":"$game_list.GAMEDAY_DATA"},
+                                            {"$unwind":"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},
+                                            {"$match":{"$or":[{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_TEAM.HOME':tid},
+                                                              {'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_TEAM.AWAY':tid}]}}])
 
+    print 'age,gender=',age,gender,result_list['result']
+    teamdata_list = []
+    for result in result_list['result']:
+        game_list = result['game_list']
+        teamdata_list.append({'GAMEDAY_ID':game_list['GAMEDAY_ID']})
 
-    print 'age,gender=',age,gender,teamdata
     a = ""
     return callback_name+'('+a+')'

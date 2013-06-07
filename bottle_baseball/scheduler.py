@@ -12,7 +12,7 @@ venue_count_key_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
 round_id_key_CONST = 'ROUND_ID'
-game_list_key_CONST = 'GAME_LIST'
+game_team_key_CONST = 'GAME_TEAM'
 venue_key_CONST = 'VENUE'
 
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
@@ -104,7 +104,7 @@ class ScheduleGenerator:
                 round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
             # round id is 1-index based, equivalent to team# at top of circle
             self.games_by_round_list.append({round_id_key_CONST:circletop_team,
-                                             game_list_key_CONST:round_list})
+                                             game_team_key_CONST:round_list})
         #print self.games_by_round_list
 
     def generateRRSchedule(self, conflict_ind=0):
@@ -128,7 +128,7 @@ class ScheduleGenerator:
 
         total_game_list = []
         for round_dict in self.games_by_round_list:
-            game_list = round_dict[game_list_key_CONST]
+            game_list = round_dict[game_team_key_CONST]
             round_id = round_dict[round_id_key_CONST]
             # initialize dictionary that will contain data on the current game cycle's matches.
             # Game cycle number (week number if there is only one game per week)
@@ -151,7 +151,7 @@ class ScheduleGenerator:
                 timeslot_game_list = []
                 for v in range(self.numVenues):
                     timeslot_game_list.append({venue_key_CONST:self.venues[v],
-                                               game_list_key_CONST:game_list[ind]})
+                                               game_team_key_CONST:game_list[ind]})
                     self.metrics_list[game_list[ind][home_CONST]-1][venue_count_key_CONST][v] += 1
                     self.metrics_list[game_list[ind][away_CONST]-1][venue_count_key_CONST][v] += 1
                     ind += 1
@@ -168,7 +168,7 @@ class ScheduleGenerator:
                 timeslot_game_list = []
                 for v in range(num_in_last_slot):
                     timeslot_game_list.append({venue_key_CONST:self.venues[v],
-                                               game_list_key_CONST:game_list[ind]})
+                                               game_team_key_CONST:game_list[ind]})
                     self.metrics_list[game_list[ind][home_CONST]-1][venue_count_key_CONST][v] += 1
                     self.metrics_list[game_list[ind][away_CONST]-1][venue_count_key_CONST][v] += 1
                     ind += 1
