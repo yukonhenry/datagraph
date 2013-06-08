@@ -16,6 +16,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var gamesGrid = null;
 		var divisionGrid = null;
 		var divisionGridHandle = null;
+		var teamDataGrid = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -29,12 +30,20 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			selectionMode: "single"		
 		}, "divisionInfoGrid");
 		
+		var fieldInfoGrid = new CustomGrid({
+			columns: {
+				field_id:"Field ID",
+				name:"Name"
+			},
+			selectionMode:"single"
+		}, "fieldInfoGrid");    // div ID
 		script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
 			jsonp:"callback"
 		}).then(function(ldata){
 			ldata_array = ldata.leaguedivinfo;
+			fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
-
+			fieldInfoGrid.renderArray(fdata_array);
 		});
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
@@ -93,6 +102,61 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		console.log("Row de-selected: ", event.rows[0].data);
 		});
 		
+		fieldInfoGrid.on("dgrid-select", function(event){
+    	// Report the item from the selected row to the console.
+    		var fidnum = event.rows[0].data.field_id;
+    		console.log("field id selected "+fidnum);
+    		script.get(constant.SERVER_PREFIX+"fieldschedule/"+fidnum,{
+    			jsonp:"callback"
+    		}).then(function(fdata){
+    			/*
+				var field_array = sdata.fields;
+				// create columns dictionary
+				var time_column_key_CONST = 'time';
+				var gameday_column_key_CONST = 'cycle';
+				var game_columns = {};
+				game_columns[gameday_column_key_CONST] = 'GameDay#'
+				game_columns[time_column_key_CONST] = 'GameTime';
+				arrayUtil.forEach(field_array, function(item, index) {
+					// fields names are keys to the column dictionary
+					game_columns[item] = 'field '+item;
+				});
+
+				var game_array = sdata.game_list;				
+				var game_grid_list = new Array();
+				listindex = 0;
+				arrayUtil.forEach(game_array, function(item,index) {
+					var gameday_id = item.GAMEDAY_ID;
+					var gameday_data = item.GAMEDAY_DATA; 
+					arrayUtil.forEach(gameday_data, function(item2, index2) {
+						var game_grid_row = {};
+						// fill in the game day number and start time
+						game_grid_row[gameday_column_key_CONST] = gameday_id;
+						game_grid_row[time_column_key_CONST] = item2.START_TIME;
+						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
+							// iterate amongst fields and fill in matches
+							game_grid_row[item3.VENUE] = item3.GAME_TEAM.HOME + 'v' +
+															item3.GAME_TEAM.AWAY;
+						})
+						game_grid_list[listindex] = game_grid_row;
+						listindex++;
+					});
+				});
+				
+				// this will define number of columns (games per day)
+				if (gamesGrid) {
+					// clear grid by clearing dom node
+					dom.byId("scheduleInfoGrid").innerHTML = "";
+					delete gamesGrid;
+					
+				}
+    			gamesGrid = new CustomGrid({
+    				columns:game_columns,
+    			},"scheduleInfoGrid");
+    			gamesGrid.renderArray(game_grid_list);
+    			*/    			
+    		});
+		});
 		var getAllDivSchedule = function(evt) {
 	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
 	        	jsonp:"callback"
@@ -152,6 +216,11 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			// Report the item from the selected row to the console.
     			// Note the last field is an element of the row.
     			var rowid = event.rows[0].data.team_id;
+    			if (teamDataGrid) {
+					dom.byId("teamDataGrid").innerHTML = "";
+					// delete reference to obj
+					delete teamDataGrid;    				
+    			}
     			teamDataGrid = new CustomGrid({
     				columns: {
     					GAMEDAY_ID:'Game Day ID',
@@ -160,11 +229,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     					HOME:'Home',
     					AWAY:'Away'
     				}
-    			},"teamDataDiv");
+    			},"teamDataGrid");
     			script.get(constant.SERVER_PREFIX+"teamdata/"+rowid,{
     				jsonp:"callback",
     				query:{division_code:divisioncode}
-    			}).then(function(sdata){
+    			}).then(function(tdata){
+    				tdata_array = tdata.teamdata_list
+    				teamDataGrid.renderArray(tdata_array);
     			});
 			});
 		}

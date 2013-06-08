@@ -2,7 +2,10 @@
 import simplejson as json
 from pprint import pprint
 from bottle import route, request
-from scheduler import ScheduleGenerator
+from scheduler import (ScheduleGenerator,
+                       start_time_CONST, venue_game_list_CONST, gameday_id_CONST,
+                       gameday_data_CONST, venue_CONST,
+                       game_team_CONST, home_CONST, away_CONST)
 import networkx as nx
 from networkx.readwrite import json_graph
 from networkx import connected_components
@@ -151,11 +154,27 @@ def teamdata(tid):
                                             {"$match":{"$or":[{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_TEAM.HOME':tid},
                                                               {'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_TEAM.AWAY':tid}]}}])
 
-    print 'age,gender=',age,gender,result_list['result']
+    print 'age,gender=',age,gender,result_list
     teamdata_list = []
     for result in result_list['result']:
         game_list = result['game_list']
-        teamdata_list.append({'GAMEDAY_ID':game_list['GAMEDAY_ID']})
+        # look at structure of game_list in scheduler.py
+        gameday_data = game_list[gameday_data_CONST]
+        venue_game_list = gameday_data[venue_game_list_CONST]
+        game_team = venue_game_list[game_team_CONST]
+        teamdata_list.append({gameday_id_CONST:game_list[gameday_id_CONST],
+                              start_time_CONST:gameday_data[start_time_CONST],
+                              venue_CONST:venue_game_list[venue_CONST],
+                              home_CONST:game_team[home_CONST],
+                              away_CONST:game_team[away_CONST]})
 
+    a = json.dumps({'teamdata_list':teamdata_list})
+    return callback_name+'('+a+')'
+
+@route('/fieldschedule/<fid:int>', method='GET')
+def fieldschedule(fid):
+    callback_name = request.query.callback
+    # mongo shell aggregate command
+    # col.aggregate({$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"}, {$match:{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':8}})
     a = ""
     return callback_name+'('+a+')'
