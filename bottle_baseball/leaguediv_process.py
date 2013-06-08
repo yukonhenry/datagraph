@@ -176,5 +176,25 @@ def fieldschedule(fid):
     callback_name = request.query.callback
     # mongo shell aggregate command
     # col.aggregate({$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"}, {$match:{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':8}})
-    a = ""
+    result_list = div_schedule_col.aggregate([{"$unwind":"$game_list"},
+                                              {"$unwind":"$game_list.GAMEDAY_DATA"},
+                                              {"$unwind":"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},
+                                              {"$match":{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':fid}},
+                                              {"$sort":{'game_list.GAMEDAY_ID':1,'game_list.GAMEDAY_DATA.START_TIME':1}}])
+    print result_list
+    fieldschedule_list = []
+    for result in result_list['result']:
+        gender = result['gender']
+        age = result['age']
+        game_list = result['game_list']
+        gameday_data = game_list[gameday_data_CONST]
+        game_team = gameday_data[venue_game_list_CONST][game_team_CONST]
+        fieldschedule_list.append({gameday_id_CONST:game_list[gameday_id_CONST],
+                                   start_time_CONST:gameday_data[start_time_CONST],
+                                   'age':age,
+                                   'gender':gender,
+                                   home_CONST:game_team[home_CONST],
+                                   away_CONST:game_team[away_CONST]})
+    #print fieldschedule_list
+    a = json.dumps({'fieldschedule_list':fieldschedule_list})
     return callback_name+'('+a+')'

@@ -17,6 +17,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var divisionGrid = null;
 		var divisionGridHandle = null;
 		var teamDataGrid = null;
+		var fieldScheduleGrid = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -106,55 +107,26 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     	// Report the item from the selected row to the console.
     		var fidnum = event.rows[0].data.field_id;
     		console.log("field id selected "+fidnum);
+			if (fieldScheduleGrid) {
+				// clear grid by clearing dom node
+				dom.byId("fieldScheduleGrid").innerHTML = "";
+				delete fieldScheduleGrid;
+			}
+    		fieldScheduleGrid = new CustomGrid({
+    			columns:{
+    				GAMEDAY_ID:'Game Day ID',
+    				START_TIME:'Start Time',
+    				age:'Age Group',
+    				gender:'Boy/Girl',
+    				HOME:'Home Team#',
+    				AWAY:'Away Team#'
+    			}
+    		},"fieldScheduleGrid");
     		script.get(constant.SERVER_PREFIX+"fieldschedule/"+fidnum,{
     			jsonp:"callback"
     		}).then(function(fdata){
-    			/*
-				var field_array = sdata.fields;
-				// create columns dictionary
-				var time_column_key_CONST = 'time';
-				var gameday_column_key_CONST = 'cycle';
-				var game_columns = {};
-				game_columns[gameday_column_key_CONST] = 'GameDay#'
-				game_columns[time_column_key_CONST] = 'GameTime';
-				arrayUtil.forEach(field_array, function(item, index) {
-					// fields names are keys to the column dictionary
-					game_columns[item] = 'field '+item;
-				});
-
-				var game_array = sdata.game_list;				
-				var game_grid_list = new Array();
-				listindex = 0;
-				arrayUtil.forEach(game_array, function(item,index) {
-					var gameday_id = item.GAMEDAY_ID;
-					var gameday_data = item.GAMEDAY_DATA; 
-					arrayUtil.forEach(gameday_data, function(item2, index2) {
-						var game_grid_row = {};
-						// fill in the game day number and start time
-						game_grid_row[gameday_column_key_CONST] = gameday_id;
-						game_grid_row[time_column_key_CONST] = item2.START_TIME;
-						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
-							// iterate amongst fields and fill in matches
-							game_grid_row[item3.VENUE] = item3.GAME_TEAM.HOME + 'v' +
-															item3.GAME_TEAM.AWAY;
-						})
-						game_grid_list[listindex] = game_grid_row;
-						listindex++;
-					});
-				});
-				
-				// this will define number of columns (games per day)
-				if (gamesGrid) {
-					// clear grid by clearing dom node
-					dom.byId("scheduleInfoGrid").innerHTML = "";
-					delete gamesGrid;
-					
-				}
-    			gamesGrid = new CustomGrid({
-    				columns:game_columns,
-    			},"scheduleInfoGrid");
-    			gamesGrid.renderArray(game_grid_list);
-    			*/    			
+    			fieldschedule_array = fdata.fieldschedule_list
+    			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
 		});
 		var getAllDivSchedule = function(evt) {
