@@ -14,6 +14,7 @@ away_index_CONST = 1
 round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
+# http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class ScheduleGenerator:
@@ -156,7 +157,6 @@ class ScheduleGenerator:
                     self.metrics_list[game_list[ind][away_CONST]-1][venue_count_CONST][v] += 1
                     ind += 1
                 # create dictionary entries for formatted game time as string and venue game list
-                # format is 12-hour hour:minutes
                 timeslot_dict[start_time_CONST] = gametime.strftime(time_format_CONST)
                 timeslot_dict[venue_game_list_CONST] = timeslot_game_list
                 gametime += self.gap_on_field

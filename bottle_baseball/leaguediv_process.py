@@ -80,7 +80,6 @@ def get_alldivSchedule():
     # get list of connected divisions through field constraints
     connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     connected_divisions = connected_components(connectedG)
-    print connected_divisions
     for connecteddiv_list in connected_divisions:
         # conflict_num are field conflicts - number of div's sharing field
         conflict_num = len(connecteddiv_list)

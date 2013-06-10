@@ -40,14 +40,14 @@ for div in league_div:
 # primary key identifies age groups that have priority for the fields.
 # identified by _id from league_div dictionary elements
 field_info = [
-    {'field_id':1, 'primary':[1,2], 'secondary':['U8'], 'name':'Sequoia Elementary'},
-    {'field_id':2, 'primary':[1,2], 'secondary':['U8'], 'name':'Rodgers Smith Park'},
-    {'field_id':3, 'primary':[3,4], 'secondary':['U6'], 'name':'Pleasant Hill Elementary'},
-    {'field_id':4, 'primary':[3,4], 'secondary':['U6'], 'name':'Mountain View Park'},
-    {'field_id':5, 'primary':[3,4], 'secondary':['U6'], 'name':'Hidden Valley Park'},
-    {'field_id':6, 'primary':[5,6], 'secondary':['U12'], 'name':'Pleasant Oaks Park'},
-    {'field_id':7, 'primary':[5,6], 'secondary':['U12'], 'name':'Golden Hills Park'},
-    {'field_id':8, 'primary':[5,6], 'secondary':['U12'], 'name':'Nancy Boyd Park'},
+    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary'},
+    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park'},
+    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary'},
+    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park'},
+    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park'},
+    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park'},
+    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park'},
+    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park'},
     {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary'},
     {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary'},
     {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary'}
