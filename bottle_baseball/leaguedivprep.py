@@ -5,28 +5,28 @@ import networkx as nx
 from networkx import connected_components
 from networkx.readwrite import json_graph
 league_div = [
-{ '_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
+{ 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
   'fields':[1,2],
   'gamedaysperweek':1, 'gameinterval':50},
-{ '_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':20,
+{ 'div_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':20,
   'fields':[1,2],
   'gamedaysperweek':1, 'gameinterval':50},
-{ '_id':3, 'agediv':'U8', 'gender':'B', 'totalteams':35,
+{ 'div_id':3, 'agediv':'U8', 'gender':'B', 'totalteams':35,
   'fields':[3,4,5],
   'gamedaysperweek':1, 'gameinterval':60},
-{ '_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':30,
+{ 'div_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':30,
   'fields':[3,4,5],
   'gamedaysperweek':1, 'gameinterval':60},
-{ '_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':34,
+{ 'div_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':34,
   'fields':[6,7,8],
   'gamedaysperweek':2, 'gameinterval':75},
-{ '_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':38,
+{ 'div_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':38,
   'fields':[6,7,8],
   'gamedaysperweek':2, 'gameinterval':75},
-{ '_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':8,
+{ 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':8,
   'fields':[9,10,11],
   'gamedaysperweek':2, 'gameinterval':90},
-{ '_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':4,
+{ 'div_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':4,
   'fields':[9,10,11],
   'gamedaysperweek':2, 'gameinterval':90}
 ]
@@ -40,17 +40,17 @@ for div in league_div:
 # primary key identifies age groups that have priority for the fields.
 # identified by _id from league_div dictionary elements
 field_info = [
-    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary'},
-    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park'},
-    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary'},
-    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park'},
-    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park'},
-    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park'},
-    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park'},
-    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park'},
-    {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary'},
-    {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary'},
-    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary'}
+    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary', 'start_time':'08:00'},
+    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park', 'start_time':'08:00'},
+    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary', 'start_time':'08:00'},
+    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park', 'start_time':'08:00'},
+    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park', 'start_time':'08:00'},
+    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park', 'start_time':'08:00'},
+    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park', 'start_time':'08:00'},
+    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park', 'start_time':'08:00'},
+    {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary', 'start_time':'08:00'},
+    {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary', 'start_time':'08:00'},
+    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00'}
 ]
 coach_conflict_info = [
     {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},

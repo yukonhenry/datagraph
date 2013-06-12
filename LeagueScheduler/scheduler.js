@@ -48,7 +48,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		});
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
-    		var idnum = event.rows[0].data._id;
+    		var idnum = event.rows[0].data.div_id;
     		console.log("Row selected: ", idnum);
     		script.get(constant.SERVER_PREFIX+"leaguedivinfo/"+idnum,{
     			jsonp:"callback"

@@ -9,7 +9,7 @@ from scheduler import (ScheduleGenerator,
 import networkx as nx
 from networkx.readwrite import json_graph
 from networkx import connected_components
-
+from matchgenerator import MatchGenerator
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
 
@@ -48,7 +48,7 @@ def leaguedivinfo(tid):
     ldata = get_leaguedata()
     ldata_divinfo = ldata['leaguedivinfo']
     for div in ldata_divinfo:
-        if div['_id'] == tid:
+        if div['div_id'] == tid:
             nt = div['totalteams']
             interval = div['gameinterval']
             age = div['agediv']
@@ -77,9 +77,16 @@ def get_alldivSchedule():
     callback_name = request.query.callback
     ldata = get_leaguedata()
     ldata_divinfo = ldata['leaguedivinfo']
+    match_list = []
+    for division in ldata_divinfo:
+        nt = division['totalteams']
+        match = MatchGenerator(nt)
+        match_list.append({division['div_id']:match.generateMatchList()})
     # get list of connected divisions through field constraints
     connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     connected_divisions = connected_components(connectedG)
+    fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'], connected_divisions)
+    fieldtimeSchedule.generateSchedule(match_list)
     for connecteddiv_list in connected_divisions:
         # conflict_num are field conflicts - number of div's sharing field
         conflict_num = len(connecteddiv_list)
@@ -93,6 +100,10 @@ def get_alldivSchedule():
             scheduler = ScheduleGenerator(nt, fields, interval, conflict_num)
             # first generate list of matches for the particular division
             game_list = scheduler.generateRRSchedule(conflict_ind)
+            # generate match list only
+            #scheduler.generateRoundMatchList()
+            #match_list.append(getattr(scheduler, 'games_by_round_list'))
+
             age = div['agediv']
             gender = div['gender']
             # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
@@ -103,6 +114,8 @@ def get_alldivSchedule():
 
             metrics_list = getattr(scheduler, 'metrics_list')
             metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
+
+        ##game_list_test = fieldTimeScheduler(match_list)
     coach_conflict_list = ldata['conflict_info']
     a = ""
     #a = json.dumps({"game_list":game_list, "numFields":nv})
