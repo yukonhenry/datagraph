@@ -1,6 +1,7 @@
 from datetime import  datetime, timedelta
 firstgame_starttime_CONST = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
 start_time_CONST = 'START_TIME'
+from itertools import cycle
 venue_game_list_CONST = 'VENUE_GAME_LIST'
 gameday_id_CONST = 'GAMEDAY_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
@@ -18,48 +19,32 @@ venue_CONST = 'VENUE'
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class FieldTimeScheduleGenerator:
-    def __init__(self, leaguedivinfo, fieldinfo, connected_divs):
+    def __init__(self, leaguedivinfo, fieldinfo, connected_comp):
         self.leaguedivinfo = leaguedivinfo
-        self.fieldinfo = fieldinfo
-        self.connected_divisions = connected_divs
+        self.connected_div_components = connected_comp
+        self.scheduleMatrix = []
+        # list hold per-field data structure of available time slots for scheduling
+        # assume greeday algorithm for now
+        for field in fieldinfo:
+            self.scheduleMatrix.append({'field_id':field['field_id'],
+                                        'next_available':field['start_time']})
 
-
-        self.numTeams = nt
-        self.venues = fields
-        self.numVenues = len(self.venues)
-        self.bye_flag = False
-        if (self.numTeams % 2):
-            self.eff_numTeams = self.numTeams+1
-            self.bye_flag = True
-        else:
-            self.eff_numTeams = self.numTeams
-            self.bye_flag = False
-        # half_n, num_time_slots, num_in_last_slot are variables relevant for schedule making
-        # within a game day
-        # half_n denotes number of positions on the scheduling circle, so it is independent
-        # whether there is a bye or not
-        self.half_n = self.eff_numTeams/2
-        self.timeslots_per_day = 0
-
-        #http://docs.python.org/2/library/datetime.html#timedelta-objects
-        # see also python-in-nutshell
-        # convert gameinterval into datetime.timedelta object
-        self.game_interval = timedelta(0,0,0,0,ginterval)
-        # teams competing in conflicts, including self; i.e. value is 1 means there are no
-        # other teams competing for same resource (field, time, etc.)
-        self.gap_on_field = self.game_interval * conflict_competes
-        self.games_by_round_list = []
-        self.metrics_list = []
-        for i in range(nt):
-            # dictionary key is team id, which is 1-based
-            # can't use tuple because tuple does not support assignment
-            # try array here
-            # _id key added, but check if properly used later
-            self.metrics_list.append({'_id':i+1, # id is one-based
-                                      homeaway_CONST:[0,0],
-                                      venue_count_CONST:[0]*len(fields)})
-
-    def generateSchedule(match_list):
+    def generateSchedule(total_match_list):
+        # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
+        # for finding index of dictionary key in array of dictionaries
+        # use indexer so that we don't depend on order of divisions in total_match_list
+        # alternate method http://stackoverflow.com/questions/3179106/python-select-subset-from-list-based-on-index-set
+        match_list_indexer = dict((p['div_id'],i) for i,p in enumerate(total_match_list))
+        for connected_div_list in self.connected_div_components:
+            fset = set() # set of shared fields
+            sub_match_list = []
+            for division in connected_div_list:
+                fset.update(division['fields'])  #incremental union
+                index = match_list_indexer.get(division)
+                sub_match_list.append(total_match_list[index])
+            flist = list(fset)
+            flist.sort()  # default ordering, use it for now
+            flist_citer = cycle(flist)
 
     def generateRRSchedule(self, conflict_ind=0):
         self.generateRoundMatchList()

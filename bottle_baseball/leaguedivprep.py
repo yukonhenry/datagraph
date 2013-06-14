@@ -6,28 +6,20 @@ from networkx import connected_components
 from networkx.readwrite import json_graph
 league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
-  'fields':[1,2],
   'gamedaysperweek':1, 'gameinterval':50},
 { 'div_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':20,
-  'fields':[1,2],
   'gamedaysperweek':1, 'gameinterval':50},
 { 'div_id':3, 'agediv':'U8', 'gender':'B', 'totalteams':35,
-  'fields':[3,4,5],
   'gamedaysperweek':1, 'gameinterval':60},
 { 'div_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':30,
-  'fields':[3,4,5],
   'gamedaysperweek':1, 'gameinterval':60},
 { 'div_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':34,
-  'fields':[6,7,8],
   'gamedaysperweek':2, 'gameinterval':75},
 { 'div_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':38,
-  'fields':[6,7,8],
   'gamedaysperweek':2, 'gameinterval':75},
 { 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':8,
-  'fields':[9,10,11],
   'gamedaysperweek':2, 'gameinterval':90},
 { 'div_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':4,
-  'fields':[9,10,11],
   'gamedaysperweek':2, 'gameinterval':90}
 ]
 #assign team numbers
@@ -52,6 +44,23 @@ field_info = [
     {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary', 'start_time':'08:00'},
     {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00'}
 ]
+
+# assigned fields attribute for each division
+# ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
+# for finding index of dictionary key in array of dictionaries
+# use indexer so that we don't depend on order of divisions in league_div list
+div_indexer = dict((p['div_id'],i) for i,p in enumerate(league_div))
+for field in field_info:
+    f_id = field['field_id']
+    for d_id in field['primary']:
+        index = div_indexer.get(d_id)
+        division = league_div[index]
+        # check existence of key 'fields' - if it exists, append to list of fields, if not create
+        if 'fields' in division:
+            division['fields'].append(f_id)
+        else:
+            division['fields'] = [f_id]
+
 coach_conflict_info = [
     {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},
     {'coach_id':2, 'conflict':({'agediv':'U8','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},

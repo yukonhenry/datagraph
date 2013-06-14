@@ -77,16 +77,16 @@ def get_alldivSchedule():
     callback_name = request.query.callback
     ldata = get_leaguedata()
     ldata_divinfo = ldata['leaguedivinfo']
-    match_list = []
+    total_match_list = []
     for division in ldata_divinfo:
         nt = division['totalteams']
         match = MatchGenerator(nt)
-        match_list.append({division['div_id']:match.generateMatchList()})
+        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList()})
     # get list of connected divisions through field constraints
     connectedG = json_graph.node_link_graph(ldata['connected_graph'])
-    connected_divisions = connected_components(connectedG)
-    fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'], connected_divisions)
-    fieldtimeSchedule.generateSchedule(match_list)
+    connected_div_components = connected_components(connectedG)
+    fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'], connected_div_components)
+    fieldtimeSchedule.generateSchedule(total_match_list)
     for connecteddiv_list in connected_divisions:
         # conflict_num are field conflicts - number of div's sharing field
         conflict_num = len(connecteddiv_list)
