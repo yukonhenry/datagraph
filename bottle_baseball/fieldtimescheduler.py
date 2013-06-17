@@ -29,23 +29,29 @@ class FieldTimeScheduleGenerator:
             self.scheduleMatrix.append({'field_id':field['field_id'],
                                         'next_available':field['start_time']})
 
-    def generateSchedule(total_match_list):
+    def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
         # for finding index of dictionary key in array of dictionaries
         # use indexer so that we don't depend on order of divisions in total_match_list
         # alternate method http://stackoverflow.com/questions/3179106/python-select-subset-from-list-based-on-index-set
         match_list_indexer = dict((p['div_id'],i) for i,p in enumerate(total_match_list))
+        leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(self.leaguedivinfo))
         for connected_div_list in self.connected_div_components:
             fset = set() # set of shared fields
             sub_match_list = []
             for division in connected_div_list:
-                fset.update(division['fields'])  #incremental union
+                divindex = leaguediv_indexer.get(division)
+                fset.update(self.leaguedivinfo[divindex]['fields'])  #incremental union
                 index = match_list_indexer.get(division)
                 sub_match_list.append(total_match_list[index])
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
-            flist_citer = cycle(flist)
-
+            fieldlist_iter = cycle(flist)
+            matches_left_flag = True
+            matchdiv_list_iter = cycle(sub_match_list)
+            while (matches_left_flag):
+                matchdiv = matchdiv_list_iter.next()
+                field = fieldlist_iter.next()
     def generateRRSchedule(self, conflict_ind=0):
         self.generateRoundMatchList()
         # if there is no bye, then the number of games per cycle equals half_n

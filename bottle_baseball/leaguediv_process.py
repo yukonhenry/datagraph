@@ -10,6 +10,7 @@ import networkx as nx
 from networkx.readwrite import json_graph
 from networkx import connected_components
 from matchgenerator import MatchGenerator
+from fieldtimescheduler import FieldTimeScheduleGenerator
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
 
@@ -87,7 +88,7 @@ def get_alldivSchedule():
     connected_div_components = connected_components(connectedG)
     fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'], connected_div_components)
     fieldtimeSchedule.generateSchedule(total_match_list)
-    for connecteddiv_list in connected_divisions:
+    for connecteddiv_list in connected_div_components:
         # conflict_num are field conflicts - number of div's sharing field
         conflict_num = len(connecteddiv_list)
 
