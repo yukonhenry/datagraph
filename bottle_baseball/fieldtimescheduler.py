@@ -52,6 +52,9 @@ class FieldTimeScheduleGenerator:
             while (matches_left_flag):
                 matchdiv = matchdiv_list_iter.next()
                 field = fieldlist_iter.next()
+                print 'match', matchdiv
+                print 'field', field
+                matches_left_flag = False
     def generateRRSchedule(self, conflict_ind=0):
         self.generateRoundMatchList()
         # if there is no bye, then the number of games per cycle equals half_n

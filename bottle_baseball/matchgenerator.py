@@ -54,7 +54,6 @@ class MatchGenerator:
         for rotation_ind in range(circle_total_pos):
             # each rotation_ind corresponds to a single game cycle (a week if there is one game per week)
             circletop_team = rotation_ind + 1   # top of circle
-
             # first game pairing
             if (not self.bye_flag):
                 round_list = [{home_CONST:circletop_team, away_CONST:circlecenter_team}]
@@ -85,5 +84,5 @@ class MatchGenerator:
                 round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
             # round id is 1-index based, equivalent to team# at top of circle
             match_by_round_list.append({round_id_CONST:circletop_team, game_team_CONST:round_list})
-            return match_by_round_list
+        return match_by_round_list
         #print self.games_by_round_list
