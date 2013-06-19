@@ -38,23 +38,32 @@ class FieldTimeScheduleGenerator:
         leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(self.leaguedivinfo))
         for connected_div_list in self.connected_div_components:
             fset = set() # set of shared fields
-            sub_match_list = []
+            submatch_list = []
+            submatch_len_list = []
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
                 fset.update(self.leaguedivinfo[divindex]['fields'])  #incremental union
                 index = match_list_indexer.get(division)
-                sub_match_list.append(total_match_list[index])
+                submatch_list.append(total_match_list[index])
+                submatch_len_list.append(len(total_match_list[index]['match_list']))
+            print 'submatch', submatch_len_list
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
             fieldlist_iter = cycle(flist)
-            matches_left_flag = True
-            matchdiv_list_iter = cycle(sub_match_list)
-            while (matches_left_flag):
-                matchdiv = matchdiv_list_iter.next()
+            for round_index in xrange(max(submatch_len_list)):
+                round_match_list = []
+                for division_dict in submatch_list:
+                    div_id = division_dict['div_id']
+                    match_list = division_dict['match_list'][round_index]
+                    round_match_list.append({'div_id':div_id, 'match_list':match_list})
+                #http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
+                # http://stackoverflow.com/questions/7529376/pythonic-way-to-mix-two-lists
+                print 'round match list',round_match_list
+                #matchdiv = matchdiv_list_iter.next()
                 field = fieldlist_iter.next()
-                print 'match', matchdiv
-                print 'field', field
-                matches_left_flag = False
+                #print 'match', matchdiv
+                #print 'field', field
+
     def generateRRSchedule(self, conflict_ind=0):
         self.generateRoundMatchList()
         # if there is no bye, then the number of games per cycle equals half_n

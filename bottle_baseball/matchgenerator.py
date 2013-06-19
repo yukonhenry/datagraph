@@ -8,8 +8,9 @@ round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class MatchGenerator:
-    def __init__(self, nt):
+    def __init__(self, nt, ng):
         self.numTeams = nt
+        self.numGames = ng  # number games per team per season
         self.bye_flag = False
         if (self.numTeams % 2):
             self.eff_numTeams = self.numTeams+1
@@ -34,25 +35,13 @@ class MatchGenerator:
             self.metrics_list.append({'_id':i+1, # id is one-based
                                       homeaway_CONST:[0,0]})
 
-    def generateMatchList(self):
-
-        '''
-        Implement circle method.  Circle iterates from 0 to one less than
-        total number of effective teams.  Virtual team used if there is a bye.
-        Outer loop emulates circle rotation (CCW)
-        http://en.wikipedia.org/wiki/Round-robin_tournament
-        http://mat.tepper.cmu.edu/trick/banff.ppt
-        '''
-        # define center (of circle) team - this will be fixed
-        if (not self.bye_flag):
-            circlecenter_team = self.eff_numTeams
-
-        # outer loop emulates circle rotation there will be eff_numTeams-1 iterations
-        # corresponds to number of game rotations, i.e. weeks (assuming there is one week per game)
-        circle_total_pos = self.eff_numTeams - 1
-        match_by_round_list = []
+    def generateCirclePairing(self, circle_total_pos, circlecenter_team, game_count, match_by_round_list):
         for rotation_ind in range(circle_total_pos):
-            # each rotation_ind corresponds to a single game cycle (a week if there is one game per week)
+            if game_count >= self.numGames:
+                break
+            else:
+                game_count += 1
+                # each rotation_ind corresponds to a single game cycle (a week if there is one game per week)
             circletop_team = rotation_ind + 1   # top of circle
             # first game pairing
             if (not self.bye_flag):
@@ -83,6 +72,31 @@ class MatchGenerator:
                 self.metrics_list[CW_team-1][homeaway_CONST][away_index_CONST] += 1
                 round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
             # round id is 1-index based, equivalent to team# at top of circle
-            match_by_round_list.append({round_id_CONST:circletop_team, game_team_CONST:round_list})
+            match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
+        return game_count
+
+    def generateMatchList(self):
+
+        '''
+        Implement circle method.  Circle iterates from 0 to one less than
+        total number of effective teams.  Virtual team used if there is a bye.
+        Outer loop emulates circle rotation (CCW)
+        http://en.wikipedia.org/wiki/Round-robin_tournament
+        http://mat.tepper.cmu.edu/trick/banff.ppt
+        '''
+        # define center (of circle) team - this will be fixed
+        if (not self.bye_flag):
+            circlecenter_team = self.eff_numTeams
+        else:
+            circlecenter_team = 0
+
+        # outer loop emulates circle rotation there will be eff_numTeams-1 iterations
+        # corresponds to number of game rotations, i.e. weeks (assuming there is one week per game)
+        circle_total_pos = self.eff_numTeams - 1
+        match_by_round_list = []
+        game_count = 0
+        while (game_count < self.numGames):
+            game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count, match_by_round_list)
         return match_by_round_list
-        #print self.games_by_round_list
+
+

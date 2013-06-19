@@ -81,7 +81,8 @@ def get_alldivSchedule():
     total_match_list = []
     for division in ldata_divinfo:
         nt = division['totalteams']
-        match = MatchGenerator(nt)
+        ng = division['gamesperseason']
+        match = MatchGenerator(nt, ng)
         total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList()})
     # get list of connected divisions through field constraints
     connectedG = json_graph.node_link_graph(ldata['connected_graph'])
@@ -93,7 +94,6 @@ def get_alldivSchedule():
         conflict_num = len(connecteddiv_list)
 
         for (connecteddiv,conflict_ind) in zip(connecteddiv_list, range(conflict_num)):
-            print 'connecteddiv=',connecteddiv
             div = ldata_divinfo[connecteddiv-1]  # array is 0-index based, connecteddiv is 1-index
             nt = div['totalteams']
             fields = div['fields']

@@ -26,7 +26,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				totalteams:"Total#",
 				fields:"Fields",
 				gamedaysperweek:"Weekly Games#",
-				gameinterval:"Game Interval(min)"				
+				gameinterval:"Game Interval(min)",
+				gamesperseason:"Games in Season"				
 			},
 			selectionMode: "single"		
 		}, "divisionInfoGrid");
