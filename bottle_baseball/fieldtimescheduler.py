@@ -2,6 +2,7 @@ from datetime import  datetime, timedelta
 firstgame_starttime_CONST = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
 start_time_CONST = 'START_TIME'
 from itertools import cycle
+from schedule_util import roundrobin
 venue_game_list_CONST = 'VENUE_GAME_LIST'
 gameday_id_CONST = 'GAMEDAY_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
@@ -50,15 +51,24 @@ class FieldTimeScheduleGenerator:
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
             fieldlist_iter = cycle(flist)
+            # max below is not sufficient
             for round_index in xrange(max(submatch_len_list)):
-                round_match_list = []
+                combined_match_list = []
                 for division_dict in submatch_list:
                     div_id = division_dict['div_id']
                     match_list = division_dict['match_list'][round_index]
-                    round_match_list.append({'div_id':div_id, 'match_list':match_list})
+                    round_id = match_list[round_id_CONST]
+                    game_list = match_list[game_team_CONST]
+                    round_match_list = []
+                    for game in game_list:
+                        round_match_list.append({'div_id':div_id, 'game':game})
+                    combined_match_list.append(round_match_list)
                 #http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
                 # http://stackoverflow.com/questions/7529376/pythonic-way-to-mix-two-lists
-                print 'round match list',round_match_list
+                print 'combined match list',combined_match_list
+                testobj = roundrobin(mlist for mlist in combined_match_list)
+                for i in testobj:
+                    print 'rr',i
                 #matchdiv = matchdiv_list_iter.next()
                 field = fieldlist_iter.next()
                 #print 'match', matchdiv
