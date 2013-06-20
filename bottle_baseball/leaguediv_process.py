@@ -14,6 +14,7 @@ from fieldtimescheduler import FieldTimeScheduleGenerator
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
 
+
 # prep for connecting to db
 client = MongoClient()
 testschedule_db = client.testschedule_db

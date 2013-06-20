@@ -4,6 +4,9 @@ import time
 import networkx as nx
 from networkx import connected_components
 from networkx.readwrite import json_graph
+# ref http://stackoverflow.com/questions/2970608/what-are-named-tuples-in-python for namedtuples
+from collections import namedtuple
+
 league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
   'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':10},
@@ -108,6 +111,43 @@ def getTeamID(agediv, gender, team_id):
     else:
         overall_id = False
     return overall_id
+
+def getAgeGenderDivision(div_id):
+    Division = namedtuple('Division', 'age gender')
+    if div_id == 1:
+        Division.age = 'U6'
+        Division.gender = 'B'
+    elif div_id == 2:
+        Division.age = 'U6'
+        Division.gender = 'G'
+    elif div_id == 3:
+        Division.age = 'U8'
+        Division.gender = 'B'
+    elif div_id == 4:
+        Division.age = 'U8'
+        Division.gender = 'G'
+    elif div_id == 5:
+        Division.age = 'U10'
+        Division.gender = 'B'
+    elif div_id == 6:
+        Division.age = 'U10'
+        Division.gender = 'G'
+    elif div_id == 7:
+        Division.age = 'U12'
+        Division.gender = 'B'
+    elif div_id == 8:
+        Division.age = 'U12'
+        Division.gender = 'G'
+    elif div_id == 9:
+        Division.age = 'U14'
+        Division.gender = 'B'
+    elif div_id == 10:
+        Division.age = 'U14'
+        Division.gender = 'G'
+    else:
+        Division.age = 'NA'
+        Division.gender = 'NA'
+    return Division
 
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list

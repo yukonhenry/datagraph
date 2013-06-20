@@ -3,6 +3,7 @@ from itertools import cycle
 from schedule_util import roundrobin, all_same
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
+from leaguedivprep import getAgeGenderDivision
 firstgame_starttime_CONST = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
 start_time_CONST = 'START_TIME'
 venue_game_list_CONST = 'VENUE_GAME_LIST'
@@ -27,7 +28,11 @@ class FieldTimeScheduleGenerator:
         self.connected_div_components = connected_comp
         self.scheduleMatrix = []
         self.fieldinfo = fieldinfo
-        # list hold per-field data structure of available time slots for scheduling
+        self.total_game_dict = {}
+        # initialize dictionary (div_id is key)
+        for i in range(1,len(self.leaguedivinfo)+1):
+            self.total_game_dict[i] = []
+
         # assume greeday algorithm for now
         for field in fieldinfo:
             self.scheduleMatrix.append({'field_id':field['field_id'],
@@ -43,6 +48,7 @@ class FieldTimeScheduleGenerator:
         match_list_indexer = dict((p['div_id'],i) for i,p in enumerate(total_match_list))
         leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(self.leaguedivinfo))
         fieldinfo_indexer = dict((p['field_id'],i) for i,p in enumerate(self.fieldinfo))
+
         for connected_div_list in self.connected_div_components:
             fset = set() # set of shared fields
             submatch_list = []
@@ -81,11 +87,13 @@ class FieldTimeScheduleGenerator:
             # within the divisions that share fields
             for round_index in xrange(max(submatch_len_list)):
                 combined_match_list = []
+                gameday_dict = {}
                 for division_dict in submatch_list:
                     div_id = division_dict['div_id']
                     match_list = division_dict['match_list'][round_index]
                     round_id = match_list[round_id_CONST]
                     print 'round id', round_id
+                    gameday_dict[div_id] = []
                     game_list = match_list[game_team_CONST]
                     round_match_list = []
                     for game in game_list:
@@ -100,11 +108,19 @@ class FieldTimeScheduleGenerator:
                 field = field_list_iter.next()
                 for rrgame in rrgenobj:
                     print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
+                    div = getAgeGenderDivision(rrgame['div_id'])
+                    print 'division', div.age, div.gender
+                    gameday_dict[rrgame['div_id']].append({game_team_CONST:rrgame['game'],
+                                                           start_time_CONST:field['next_time'].strftime(time_format_CONST),
+                                                           venue_CONST:field['field_id']})
+                    # update next available time for the field
                     field['next_time'] += rrgame['gameinterval']
                     field = field_list_iter.next()
-                # reset start time for next round of games
+                self.total_game_dict[div_id].append({gameday_id_CONST:round_id, gameday_data_CONST:gameday_data_list})
+                # reset next available time for new round
                 for f in field_list:
                     f['next_time'] = initialstarttime_dict[field['field_id']]
+        print self.total_game_dict
 
     def generateRRSchedule(self, conflict_ind=0):
         self.generateRoundMatchList()
