@@ -74,7 +74,6 @@ class FieldTimeScheduleGenerator:
             field_list = []
             initialstarttime_dict = {}
             for f_id in flist:
-                # instead of creating indexer, be lazy and assume fields are in order of field_id
                 # field_id is 0-index based
                 findex = fieldinfo_indexer.get(f_id)
                 # note convert start time string to datetime obj
