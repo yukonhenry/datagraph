@@ -11,17 +11,16 @@ from networkx.readwrite import json_graph
 from networkx import connected_components
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
+'''
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
-
-
 # prep for connecting to db
 client = MongoClient()
 testschedule_db = client.testschedule_db
 div_schedule_col = testschedule_db.div_schedule
 # create collection in db for storing metrics
 metrics_collect = testschedule_db.metrics
-
+'''
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
     json_file = open(fname)
@@ -90,6 +89,7 @@ def get_alldivSchedule():
     connected_div_components = connected_components(connectedG)
     fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'], connected_div_components)
     fieldtimeSchedule.generateSchedule(total_match_list)
+'''
     for connecteddiv_list in connected_div_components:
         # conflict_num are field conflicts - number of div's sharing field
         conflict_num = len(connecteddiv_list)
@@ -122,24 +122,6 @@ def get_alldivSchedule():
     a = ""
     #a = json.dumps({"game_list":game_list, "numFields":nv})
     return callback_name+'('+a+')'
-
-'''
-    for div in ldata_divinfo:
-        nt = div['totalteams']
-        fields = div['fields']
-        interval = div['gameinterval']
-        scheduler = ScheduleGenerator(nt, fields, interval)
-        game_list = scheduler.generateRRSchedule()
-
-        age = div['agediv']
-        gender = div['gender']
-        # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
-        # ref http://docs.mongodb.org/manual/core/create/
-        sched_id = div_schedule_col.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'game_list':game_list}, safe=True, upsert=True)
-
-        metrics_list = getattr(scheduler, 'metrics_list')
-        metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
-        #print 'sched_id=', sched_id
 '''
 @route('/divisiondata/<did:int>', method='GET')
 def divisiondata(did):

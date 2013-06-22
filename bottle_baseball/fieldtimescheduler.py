@@ -6,13 +6,9 @@ from dateutil import parser
 from leaguedivprep import getAgeGenderDivision
 from dbinterface import DBInterface
 
-firstgame_starttime_CONST = datetime(2013,9,1,8,0,0)   # 8am on a dummy date
 start_time_CONST = 'START_TIME'
-venue_game_list_CONST = 'VENUE_GAME_LIST'
 gameday_id_CONST = 'GAMEDAY_ID'
-gameday_data_CONST = 'GAMEDAY_DATA'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
-homeaway_CONST = 'HOMEAWAY'
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 venue_count_CONST = 'VCNT'
@@ -21,6 +17,8 @@ away_index_CONST = 1
 round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
+age_CONST = 'AGE'
+gen_CONST = 'GEN'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
@@ -52,11 +50,13 @@ class FieldTimeScheduleGenerator:
         leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(self.leaguedivinfo))
         fieldinfo_indexer = dict((p['field_id'],i) for i,p in enumerate(self.fieldinfo))
 
+        # work with each set of connected divisions w. shared field
         for connected_div_list in self.connected_div_components:
             fset = set() # set of shared fields
             submatch_list = []
             submatch_len_list = []
             gameinterval_dict = {}
+            # take one of those connected divisions and iterate through each division
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
                 fset.update(self.leaguedivinfo[divindex]['fields'])  #incremental union
@@ -66,8 +66,10 @@ class FieldTimeScheduleGenerator:
                 ginterval = self.leaguedivinfo[divindex]['gameinterval']
                 gameinterval_dict[division] = timedelta(0,0,0,0,ginterval)
                 index = match_list_indexer.get(division)
-                submatch_list.append(total_match_list[index])
-                submatch_len_list.append(len(total_match_list[index]['match_list']))
+                # get match list for indexed division
+                div_match_list = total_match_list[index]
+                submatch_list.append(div_match_list)
+                submatch_len_list.append(len(div_match_list['match_list']))  #gives num rounds
             if not all_same(submatch_len_list):
                 print 'different number of games per season amongst shared field NOT SUPPORTED'
                 return None
@@ -89,17 +91,15 @@ class FieldTimeScheduleGenerator:
             # within the divisions that share fields
             for round_index in xrange(max(submatch_len_list)):
                 combined_match_list = []
-                gameday_dict = {}
                 for division_dict in submatch_list:
                     div_id = division_dict['div_id']
                     match_list = division_dict['match_list'][round_index]
                     round_id = match_list[round_id_CONST]
                     print 'round id', round_id
-                    gameday_dict[div_id] = []
                     game_list = match_list[game_team_CONST]
                     round_match_list = []
                     for game in game_list:
-                        round_match_list.append({'div_id':div_id, 'game':game,
+                        round_match_list.append({'div_id':div_id, 'game':game, 'round_id':round_id,
                                                  'gameinterval':gameinterval_dict[div_id]})
                     combined_match_list.append(round_match_list)
                 # mutliplex the divisions that are sharing fields; user itertools round robin utility
@@ -111,96 +111,18 @@ class FieldTimeScheduleGenerator:
                 for rrgame in rrgenobj:
                     print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
                     div = getAgeGenderDivision(rrgame['div_id'])
-                    print 'division', div.age, div.gender
-                    gameday_dict[rrgame['div_id']].append({game_team_CONST:rrgame['game'],
-                                                           start_time_CONST:field['next_time'].strftime(time_format_CONST),
-                                                           venue_CONST:field['field_id']})
+                    game_dict = {age_CONST:div.age,
+                                 gen_CONST:div.gender,
+                                 round_id_CONST:rrgame['round_id'],
+                                 start_time_CONST:field['next_time'].strftime(time_format_CONST),
+                                 venue_CONST:field['field_id'],
+                                 home_CONST:rrgame['game'][home_CONST],
+                                 away_CONST:rrgame['game'][away_CONST]}
+                    print 'game_dict', game_dict
+
                     # update next available time for the field
                     field['next_time'] += rrgame['gameinterval']
                     field = field_list_iter.next()
-                self.total_game_dict[div_id].append({gameday_id_CONST:round_id, gameday_data_CONST:gameday_data_list})
                 # reset next available time for new round
                 for f in field_list:
                     f['next_time'] = initialstarttime_dict[field['field_id']]
-        print self.total_game_dict
-
-    def generateRRSchedule(self, conflict_ind=0):
-        self.generateRoundMatchList()
-        # if there is no bye, then the number of games per cycle equals half_n
-        # if there is a bye, then the number of games equals half_n minus 1
-        if (not self.bye_flag):
-            numgames_per_cycle = self.half_n
-        else:
-            numgames_per_cycle = self.half_n - 1
-        num_time_slots = numgames_per_cycle / self.numVenues  # number of time slots per day
-        # number of games in time slot determined by number of venues,
-        # but in last time slot not all venues may be used
-        num_in_last_slot = numgames_per_cycle % self.numVenues
-
-        # fill in timeslots
-        if (num_in_last_slot):
-            self.timeslots_per_day = num_time_slots
-        else:
-            self.timeslots_per_day = num_time_slots + 1
-
-        total_game_list = []
-        for round_dict in self.games_by_round_list:
-            game_list = round_dict[game_team_CONST]
-            round_id = round_dict[round_id_CONST]
-            # initialize dictionary that will contain data on the current game cycle's matches.
-            # Game cycle number (week number if there is only one game per week)
-            # is the same as the circletop_team number
-            single_gameday_dict = {gameday_id_CONST:round_id}
-
-            # Given the list of the games for a single game cycle, break up the list into
-            # sublists.  Each sublist represent games that are played at a particular time.
-            # Do the list-sublist partition after the games have been determined above, as dealing
-            # with the first game (top of circle vs center of circle/bye) presents too many special cases
-            single_gameday_list = []
-            if conflict_ind == 0:
-                gametime = firstgame_starttime_CONST
-            else:
-                # offset start time
-                gametime = firstgame_starttime_CONST + self.game_interval * conflict_ind
-            ind = 0;
-            for timeslot in range(num_time_slots):
-                timeslot_dict = {}
-                timeslot_game_list = []
-                for v in range(self.numVenues):
-                    timeslot_game_list.append({venue_CONST:self.venues[v],
-                                               game_team_CONST:game_list[ind]})
-                    self.metrics_list[game_list[ind][home_CONST]-1][venue_count_CONST][v] += 1
-                    self.metrics_list[game_list[ind][away_CONST]-1][venue_count_CONST][v] += 1
-                    ind += 1
-                # create dictionary entries for formatted game time as string and venue game list
-                timeslot_dict[start_time_CONST] = gametime.strftime(time_format_CONST)
-                timeslot_dict[venue_game_list_CONST] = timeslot_game_list
-                gametime += self.gap_on_field
-                single_gameday_list.append(timeslot_dict)
-
-            if (num_in_last_slot):
-                # if there are games to be played in the last slot (less than number of venues)
-                timeslot_dict = {}
-                timeslot_game_list = []
-                for v in range(num_in_last_slot):
-                    timeslot_game_list.append({venue_CONST:self.venues[v],
-                                               game_team_CONST:game_list[ind]})
-                    self.metrics_list[game_list[ind][home_CONST]-1][venue_count_CONST][v] += 1
-                    self.metrics_list[game_list[ind][away_CONST]-1][venue_count_CONST][v] += 1
-                    ind += 1
-                timeslot_dict[start_time_CONST] = gametime.strftime(time_format_CONST)
-                timeslot_dict[venue_game_list_CONST] = timeslot_game_list
-                single_gameday_list.append(timeslot_dict)
-
-            single_gameday_dict[gameday_data_CONST] = single_gameday_list
-            if (self.bye_flag):
-                # if bye flag is enabled, then team at the top of 'circle' has bye.
-                # Note we are sending over the bye team info, but currently the UI is not
-                # displaying it (need to figure out where to display it)
-                single_gameday_dict[bye_CONST] = round_id
-            # once dictionary element containing all data for the game cycle is created,
-            # append that dict element to the total round list
-            total_game_list.append(single_gameday_dict)
-
-        #print "total round list=",total_game_list
-        return total_game_list
