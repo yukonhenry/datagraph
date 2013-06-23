@@ -46,6 +46,7 @@ def leaguedivinfo_all():
     a = json.dumps(ldata)
     return callback_name+'('+a+')'
 
+# Get per-division schedule
 @route('/leaguedivinfo/<tid:int>', method='GET')
 def leaguedivinfo(tid):
     callback_name = request.query.callback
@@ -56,17 +57,15 @@ def leaguedivinfo(tid):
     divindex = leaguediv_indexer.get(tid)
     if divindex is not None:
         div = ldata_divinfo[divindex]
-        nt = div['totalteams']
-        interval = div['gameinterval']
         age = div['agediv']
         gender = div['gender']
-        game_list = dbInterface.findDivisionSchedule(age, gender)
+        game_list = dbInterface.findDivisionSchedule(age, gender, div['gamesperseason'])
         #division_data = div_schedule_col.find_one({'age':age, 'gender':gender})
         #game_list = division_data['game_list']
 
         #metrics_data = metrics_collect.find_one({'age':age, 'gender':gender})
         #metrics_list = metrics_data['metrics_list']
-        print metrics_list
+        #print metrics_list
         a = json.dumps({"game_list":game_list, "fields":div['fields']})
         return callback_name+'('+a+')'
     else:
@@ -94,6 +93,8 @@ def get_alldivSchedule():
     fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'],
                                                    connected_div_components, dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
+    a = ""
+    return callback_name+'('+a+')'
 '''
     for connecteddiv_list in connected_div_components:
         # conflict_num are field conflicts - number of div's sharing field
@@ -124,9 +125,6 @@ def get_alldivSchedule():
 
         ##game_list_test = fieldTimeScheduler(match_list)
     coach_conflict_list = ldata['conflict_info']
-    a = ""
-    #a = json.dumps({"game_list":game_list, "numFields":nv})
-    return callback_name+'('+a+')'
 '''
 @route('/divisiondata/<did:int>', method='GET')
 def divisiondata(did):

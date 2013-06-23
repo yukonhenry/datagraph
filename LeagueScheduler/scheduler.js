@@ -77,11 +77,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						// fill in the game day number and start time
 						game_grid_row[gameday_column_key_CONST] = gameday_id;
 						game_grid_row[time_column_key_CONST] = item2.START_TIME;
+						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
+						/*
 						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
 							// iterate amongst fields and fill in matches
 							game_grid_row[item3.VENUE] = item3.GAME_TEAM.HOME + 'v' +
 															item3.GAME_TEAM.AWAY;
-						})
+						}) */
 						game_grid_list[listindex] = game_grid_row;
 						listindex++;
 					});

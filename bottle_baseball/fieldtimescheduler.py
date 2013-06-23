@@ -49,6 +49,8 @@ class FieldTimeScheduleGenerator:
         leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(self.leaguedivinfo))
         fieldinfo_indexer = dict((p['field_id'],i) for i,p in enumerate(self.fieldinfo))
 
+        self.dbinterface.dropGameCollection()  # reset game schedule collection
+
         # work with each set of connected divisions w. shared field
         for connected_div_list in self.connected_div_components:
             fset = set() # set of shared fields
