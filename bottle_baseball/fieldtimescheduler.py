@@ -4,7 +4,6 @@ from schedule_util import roundrobin, all_same
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision
-from dbinterface import DBInterface
 
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
@@ -23,7 +22,7 @@ gen_CONST = 'GEN'
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class FieldTimeScheduleGenerator:
-    def __init__(self, leaguedivinfo, fieldinfo, connected_comp):
+    def __init__(self, leaguedivinfo, fieldinfo, connected_comp, dbinterface):
         self.leaguedivinfo = leaguedivinfo
         self.connected_div_components = connected_comp
         self.scheduleMatrix = []
@@ -37,7 +36,7 @@ class FieldTimeScheduleGenerator:
         for field in fieldinfo:
             self.scheduleMatrix.append({'field_id':field['field_id'],
                                         'next_available':field['start_time']})
-        self.dbinterface = DBInterface()
+        self.dbinterface = dbinterface
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -111,15 +110,11 @@ class FieldTimeScheduleGenerator:
                 for rrgame in rrgenobj:
                     print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
                     div = getAgeGenderDivision(rrgame['div_id'])
-                    game_dict = {age_CONST:div.age,
-                                 gen_CONST:div.gender,
-                                 round_id_CONST:rrgame['round_id'],
-                                 start_time_CONST:field['next_time'].strftime(time_format_CONST),
-                                 venue_CONST:field['field_id'],
-                                 home_CONST:rrgame['game'][home_CONST],
-                                 away_CONST:rrgame['game'][away_CONST]}
-                    print 'game_dict', game_dict
-
+                    self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
+                                                    field['next_time'].strftime(time_format_CONST),
+                                                    field['field_id'],
+                                                    rrgame['game'][home_CONST],
+                                                    rrgame['game'][away_CONST])
                     # update next available time for the field
                     field['next_time'] += rrgame['gameinterval']
                     field = field_list_iter.next()

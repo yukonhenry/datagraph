@@ -11,6 +11,7 @@ from networkx.readwrite import json_graph
 from networkx import connected_components
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
+from dbinterface import MongoDBInterface
 '''
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
@@ -21,6 +22,8 @@ div_schedule_col = testschedule_db.div_schedule
 # create collection in db for storing metrics
 metrics_collect = testschedule_db.metrics
 '''
+dbInterface = MongoDBInterface()
+
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
     json_file = open(fname)
@@ -48,23 +51,24 @@ def leaguedivinfo(tid):
     callback_name = request.query.callback
     ldata = get_leaguedata()
     ldata_divinfo = ldata['leaguedivinfo']
-    for div in ldata_divinfo:
-        if div['div_id'] == tid:
-            nt = div['totalteams']
-            interval = div['gameinterval']
-            age = div['agediv']
-            gender = div['gender']
-            division_data = div_schedule_col.find_one({'age':age, 'gender':gender})
-            game_list = division_data['game_list']
+    # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
+    leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(ldata_divinfo))
+    divindex = leaguediv_indexer.get(tid)
+    if divindex is not None:
+        div = ldata_divinfo[divindex]
+        nt = div['totalteams']
+        interval = div['gameinterval']
+        age = div['agediv']
+        gender = div['gender']
+        game_list = dbInterface.findDivisionSchedule(age, gender)
+        #division_data = div_schedule_col.find_one({'age':age, 'gender':gender})
+        #game_list = division_data['game_list']
 
-            metrics_data = metrics_collect.find_one({'age':age, 'gender':gender})
-            metrics_list = metrics_data['metrics_list']
-            print metrics_list
-            #scheduler = ScheduleGenerator(nt, nv, interval)
-            #game_list = scheduler.generateRRSchedule()
-            #ha_counter = getattr(scheduler, 'metrics_list')
-            a = json.dumps({"game_list":game_list, "fields":div['fields']})
-            return callback_name+'('+a+')'
+        #metrics_data = metrics_collect.find_one({'age':age, 'gender':gender})
+        #metrics_list = metrics_data['metrics_list']
+        print metrics_list
+        a = json.dumps({"game_list":game_list, "fields":div['fields']})
+        return callback_name+'('+a+')'
     else:
         return False
 
@@ -87,7 +91,8 @@ def get_alldivSchedule():
     # get list of connected divisions through field constraints
     connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     connected_div_components = connected_components(connectedG)
-    fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'], connected_div_components)
+    fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'],
+                                                   connected_div_components, dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
 '''
     for connecteddiv_list in connected_div_components:
