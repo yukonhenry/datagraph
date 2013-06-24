@@ -18,6 +18,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var divisionGridHandle = null;
 		var teamDataGrid = null;
 		var fieldScheduleGrid = null;
+		var metricsGrid = null;
+		
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -79,12 +81,6 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					game_grid_row[time_column_key_CONST] = start_time;
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
-						/*
-						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {
-							// iterate amongst fields and fill in matches
-							game_grid_row[item3.VENUE] = item3.GAME_TEAM.HOME + 'v' +
-															item3.GAME_TEAM.AWAY;
-						}) */
 						game_grid_list[listindex] = game_grid_row;
 						listindex++;
 					});
@@ -120,8 +116,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			columns:{
     				GAMEDAY_ID:'Game Day ID',
     				START_TIME:'Start Time',
-    				age:'Age Group',
-    				gender:'Boy/Girl',
+    				AGE:'Age Group',
+    				GEN:'Boy/Girl',
     				HOME:'Home Team#',
     				AWAY:'Away Team#'
     			}
@@ -215,14 +211,40 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			});
 			});
 		}
-
-
-		// events for widgets should be in one js file; trying to split it up into two or more modules
+		var getTeamMetrics = function(evt) {
+			var division_id = registry.byId("divisionSelectForMetrics").get("value");
+    		script.get(constant.SERVER_PREFIX+"schedulemetrics/"+division_id,{
+    			jsonp:"callback"
+    		}).then(function(mdata){
+				var field_array = mdata.fields;
+				var metrics_array = mdata.metrics;
+				var metrics_columns = {};
+				metrics_columns['TEAM_ID'] = "Team ID";
+				metrics_columns['HOMERATIO'] = "Home ratio(%)";
+				arrayUtil.forEach(field_array, function(item, index) {
+					// fields names are keys to the column dictionary
+					metrics_columns[item] = 'field '+item;
+				});
+				// this will define number of columns (games per day)
+				if (metricsGrid) {
+					// clear grid by clearing dom node
+					dom.byId("metricsGrid").innerHTML = "";
+					delete metricsGrid;
+				}
+				var metricsGrid_list = new Array();
+    			metricsGrid = new CustomGrid({
+    				columns:metrics_columns,
+    			},"metricsGrid");
+    			metricsGrid.renderArray(metricsGrid_list); 			
+    		});  
+		};
+		// events for widgets should be in one file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget
 		ready(function() {
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
+			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
  		}); 
 	}
 );

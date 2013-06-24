@@ -34,23 +34,38 @@
         			<option value="" selected="selected">Select division</option>
         			<!-- value fields are 0-indexed as they map into array positions of the returned
         				division info array returned from server -->			
-         			<option value=0>U6B</option>
-        			<option value=1>U6G</option>
-        			<option value=2>U8B</option>
-        			<option value=3>U8G</option>
-        			<option value=4>U10B</option>
-        			<option value=5>U10G</option>
-        			<option value=6>U12B</option>
-        			<option value=7>U12G</option>
+         			<option value=1>U6B</option>
+        			<option value=2>U6G</option>
+        			<option value=3>U8B</option>
+        			<option value=4>U8G</option>
+        			<option value=5>U10B</option>
+        			<option value=6>U10G</option>
+        			<option value=7>U12B</option>
+        			<option value=8>U12G</option>
     			</select>
-    			
     			<div id="divisionGridLinkTeams"></div>
-    			<div id="teamDataGrid"></div>
-    			
+    			<div id="teamDataGrid"></div>    			
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Fields">
     			<div id="fieldInfoGrid"></div>
     			<div id="fieldScheduleGrid"></div>
+    		</div>
+    		<div data-dojo-type="dijit/layout/ContentPane" title="Metrics">
+    			<label for="divisionSelectForMetrics">Select Division</label>
+    			<select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">	
+        			<option value="" selected="selected">Select division</option>
+        			<!-- value fields are 0-indexed as they map into array positions of the returned
+        				division info array returned from server -->			
+         			<option value=1>U6B</option>
+        			<option value=2>U6G</option>
+        			<option value=3>U8B</option>
+        			<option value=4>U8G</option>
+        			<option value=5>U10B</option>
+        			<option value=6>U10G</option>
+        			<option value=7>U12B</option>
+        			<option value=8>U12G</option>
+    			</select>
+    			<div id="metricsGrid"></div>
     		</div>
     	</div>
     </body>

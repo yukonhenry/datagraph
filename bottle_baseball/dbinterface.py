@@ -16,6 +16,8 @@ game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
+homeratio_CONST = 'HOMERATIO'
+team_id_CONST = 'TEAM_ID'
 
 class MongoDBInterface:
     def __init__(self):
@@ -60,24 +62,45 @@ class MongoDBInterface:
                               gameday_data_CONST:gameday_data})
         return game_list
 
-        '''
-        # second dictionary is a projection operator that removed _id from the returned cursor
-        for round_id in range(1, numgames+1):
-            gameday_games = self.games_col.find({age_CONST:age, gen_CONST:gender,
-                                                 gameday_id_CONST:round_id },
-                                                {'_id':0, age_CONST:0, gen_CONST:0, gameday_id_CONST:0})
-            print 'gameday games', gameday_games
-            times = gameday_games.distinct(start_time_CONST)
-            for time in times:
-                print 'distinct time', round_id, time
-            #print 'distinct',division_games.distinct(gameday_id_CONST)
+    def findTeamSchedule(self, age, gender, team_id):
+        team_game_curs = self.games_col.find({age_CONST:age, gen_CONST:gender,
+                                            "$or":[{home_CONST:team_id},{away_CONST:team_id}]},
+                                            {'_id':0, age_CONST:0, gen_CONST:0})
+        team_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
+        team_game_list = []
+        for team_game in team_game_curs:
+            team_game_list.append({gameday_id_CONST:team_game[gameday_id_CONST],
+                                   start_time_CONST:team_game[start_time_CONST],
+                                   venue_CONST:team_game[venue_CONST],
+                                   home_CONST:team_game[home_CONST],
+                                   away_CONST:team_game[away_CONST]})
+        return team_game_list
 
-            gameday_list = []
-            for item in gameday_games:
-                gameday_list.append(item)
-            game_list.append({gameday_id_CONST:round_id, gameday_data_CONST:gameday_list})
-        #print 'game_list',game_list
-'''
+    def findFieldSchedule(self, venue_id):
+        field_game_curs = self.games_col.find({venue_CONST:venue_id},
+                                              {'_id':0, venue_CONST:0})
+        field_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
+        field_game_list = []
+        for field_game in field_game_curs:
+            field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST],
+                                    start_time_CONST:field_game[start_time_CONST],
+                                    age_CONST:field_game[age_CONST],
+                                    gen_CONST:field_game[gen_CONST],
+                                    home_CONST:field_game[home_CONST],
+                                    away_CONST:field_game[away_CONST]})
+        return field_game_list
+
+    def getMetrics(self, age, gender, numTeams):
+        metrics_list = []
+        for team_id in range(1, numTeams+1):
+            numGames = self.games_col.find({age_CONST:age,gen_CONST:gender,
+                                            "$or":[{home_CONST:team_id},{away_CONST:team_id}]
+                                            }).count()
+            numHomeGames = self.games_col.find({age_CONST:age,gen_CONST:gender,home_CONST:team_id}).count()
+            homeratio = float(numHomeGames)/float(numGames)
+            metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio})
+        return metrics_list
+
 
     def dropGameCollection(self):
         self.games_col.drop()

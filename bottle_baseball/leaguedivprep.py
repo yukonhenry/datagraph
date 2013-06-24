@@ -149,6 +149,12 @@ def getAgeGenderDivision(div_id):
         Division.gender = 'NA'
     return Division
 
+def getDivisionData(div_id):
+    div_indexer = dict((p['div_id'],i) for i,p in enumerate(league_div))
+    index = div_indexer.get(div_id)
+    division = league_div[index]
+    return division
+
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list
 G = nx.Graph()
