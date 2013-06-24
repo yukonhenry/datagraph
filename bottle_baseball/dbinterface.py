@@ -18,6 +18,8 @@ age_CONST = 'AGE'
 gen_CONST = 'GEN'
 homeratio_CONST = 'HOMERATIO'
 team_id_CONST = 'TEAM_ID'
+venue_count_CONST = 'VENUE_COUNT'
+venue_count_list_CONST = 'VENUE_COUNT_LIST'
 
 class MongoDBInterface:
     def __init__(self):
@@ -53,7 +55,7 @@ class MongoDBInterface:
                                                 {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
-            print 'result',result
+            #print 'result',result
             sortkeys = result['_id']
             gameday_id = sortkeys[gameday_id_CONST]
             start_time = sortkeys[start_time_CONST]
@@ -90,7 +92,7 @@ class MongoDBInterface:
                                     away_CONST:field_game[away_CONST]})
         return field_game_list
 
-    def getMetrics(self, age, gender, numTeams):
+    def getMetrics(self, age, gender, numTeams, fields):
         metrics_list = []
         for team_id in range(1, numTeams+1):
             numGames = self.games_col.find({age_CONST:age,gen_CONST:gender,
@@ -98,7 +100,15 @@ class MongoDBInterface:
                                             }).count()
             numHomeGames = self.games_col.find({age_CONST:age,gen_CONST:gender,home_CONST:team_id}).count()
             homeratio = float(numHomeGames)/float(numGames)
-            metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio})
+            field_count_list = []
+            for venue in fields:
+                venue_count = self.games_col.find({age_CONST:age,gen_CONST:gender,venue_CONST:venue,
+                                                "$or":[{home_CONST:team_id},{away_CONST:team_id}]
+                                                }).count()
+                field_count_list.append({venue_CONST:venue, venue_count_CONST:venue_count})
+            metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio,
+                                 venue_count_list_CONST:field_count_list})
+        print 'metrics', metrics_list
         return metrics_list
 
 

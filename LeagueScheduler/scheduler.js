@@ -70,7 +70,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 
 				var game_array = sdata.game_list;				
 				var game_grid_list = new Array();
-				listindex = 0;
+				var listindex = 0;
 				arrayUtil.forEach(game_array, function(item,index) {
 					var gameday_id = item.GAMEDAY_ID;
 					var gameday_data = item.GAMEDAY_DATA;
@@ -106,7 +106,6 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		fieldInfoGrid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var fidnum = event.rows[0].data.field_id;
-    		console.log("field id selected "+fidnum);
 			if (fieldScheduleGrid) {
 				// clear grid by clearing dom node
 				dom.byId("fieldScheduleGrid").innerHTML = "";
@@ -219,11 +218,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var field_array = mdata.fields;
 				var metrics_array = mdata.metrics;
 				var metrics_columns = {};
-				metrics_columns['TEAM_ID'] = "Team ID";
-				metrics_columns['HOMERATIO'] = "Home ratio(%)";
+				var team_id_CONST = 'TEAM_ID';
+				var homeratio_CONST = 'HOMERATIO';
+				metrics_columns[team_id_CONST] = "Team ID";
+				metrics_columns[homeratio_CONST] = "Home ratio";
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
-					metrics_columns[item] = 'field '+item;
+					metrics_columns[item] = '# games field '+item;
 				});
 				// this will define number of columns (games per day)
 				if (metricsGrid) {
@@ -232,12 +233,50 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					delete metricsGrid;
 				}
 				var metricsGrid_list = new Array();
+				var listindex = 0;
+				arrayUtil.forEach(metrics_array, function(item,index) {
+					var team_id = item.TEAM_ID;
+					var homeratio = item.HOMERATIO;
+					var venue_count_array = item.VENUE_COUNT_LIST;
+					var metrics_grid_row = {};
+					// fill in the game day number and start time
+					metrics_grid_row[team_id_CONST] = team_id;
+					metrics_grid_row[homeratio_CONST] = homeratio;
+					arrayUtil.forEach(venue_count_array, function(item2, index2) {
+						metrics_grid_row[item2.VENUE] = item2.VENUE_COUNT;
+					});
+					metricsGrid_list[listindex] = metrics_grid_row;
+					listindex++;
+				});
     			metricsGrid = new CustomGrid({
     				columns:metrics_columns,
     			},"metricsGrid");
     			metricsGrid.renderArray(metricsGrid_list); 			
     		});  
 		};
+		// resize dgrid's if there is a show event on the content pane
+		// see https://github.com/SitePen/dgrid/issues/63
+		var resizeGeneratePaneGrids = function(evt) {
+			grid.resize();
+			if (gamesGrid)
+				gamesGrid.resize();
+		}
+		var resizeTeamsPaneGrids = function(evt) {
+			if (divisionGrid)
+				divisionGrid.resize();
+			if (teamDataGrid)
+				teamDataGrid.resize();
+		}		
+		var resizeFieldsPaneGrids = function(evt) {
+			fieldInfoGrid.resize();
+			if (fieldScheduleGrid)
+				fieldScheduleGrid.resize();
+		}
+		var resizeMetricsPaneGrids = function(evt) {
+			if (metricsGrid)
+				metricsGrid.resize();
+		}
+
 		// events for widgets should be in one file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget
 		ready(function() {
@@ -245,6 +284,10 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
+			on(registry.byId("generatePane"),"show",resizeGeneratePaneGrids);
+			on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
+			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
+			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
  		}); 
 	}
 );

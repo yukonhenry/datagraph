@@ -133,9 +133,7 @@ def teamdata(tid):
     callback_name = request.query.callback
     # divcode is 0-index based; see html and js code
     divcode = int(request.query.division_code)
-    ldata = get_leaguedata()
-
-    divdata = ldata['leaguedivinfo'][divcode]
+    divdata = getDivisionData(divcode)
     age = divdata['agediv']
     gender = divdata['gender']
     teamdata_list = dbInterface.findTeamSchedule(age, gender, tid)
@@ -174,11 +172,12 @@ def fieldschedule(fid):
 
 @route('/schedulemetrics/<div_id:int>', method='GET')
 def schedulemetrics(div_id):
-    print 'div_id', div_id
     callback_name = request.query.callback
     divisionData = getDivisionData(div_id)
     numTeams = divisionData['totalteams']
     div_tuple = getAgeGenderDivision(div_id)
-    metrics_list = dbInterface.getMetrics(div_tuple.age, div_tuple.gender, numTeams)
-    a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
+    fields = divisionData['fields']
+    metrics_list = dbInterface.getMetrics(div_tuple.age, div_tuple.gender, numTeams, fields)
+    a = json.dumps({'fields':fields, 'metrics':metrics_list})
+    return callback_name+'('+a+')'
 
