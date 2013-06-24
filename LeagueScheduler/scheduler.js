@@ -71,12 +71,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				listindex = 0;
 				arrayUtil.forEach(game_array, function(item,index) {
 					var gameday_id = item.GAMEDAY_ID;
-					var gameday_data = item.GAMEDAY_DATA; 
+					var gameday_data = item.GAMEDAY_DATA;
+					var start_time = item.START_TIME; 
+					var game_grid_row = {};
+					// fill in the game day number and start time
+					game_grid_row[gameday_column_key_CONST] = gameday_id;
+					game_grid_row[time_column_key_CONST] = start_time;
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
-						var game_grid_row = {};
-						// fill in the game day number and start time
-						game_grid_row[gameday_column_key_CONST] = gameday_id;
-						game_grid_row[time_column_key_CONST] = item2.START_TIME;
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
 						/*
 						arrayUtil.forEach(item2.VENUE_GAME_LIST, function(item3, index3) {

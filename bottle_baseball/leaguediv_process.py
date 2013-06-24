@@ -59,7 +59,7 @@ def leaguedivinfo(tid):
         div = ldata_divinfo[divindex]
         age = div['agediv']
         gender = div['gender']
-        game_list = dbInterface.findDivisionSchedule(age, gender, div['gamesperseason'])
+        game_list = dbInterface.findDivisionSchedule(age, gender)
         #division_data = div_schedule_col.find_one({'age':age, 'gender':gender})
         #game_list = division_data['game_list']
 
