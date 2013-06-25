@@ -103,9 +103,17 @@ class MongoDBInterface:
             field_count_list = []
             for venue in fields:
                 venue_count = self.games_col.find({age_CONST:age,gen_CONST:gender,venue_CONST:venue,
-                                                "$or":[{home_CONST:team_id},{away_CONST:team_id}]
-                                                }).count()
+                                                   "$or":[{home_CONST:team_id},{away_CONST:team_id}]
+                                                   }).count()
                 field_count_list.append({venue_CONST:venue, venue_count_CONST:venue_count})
+
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender,
+                                                               "$or":[{home_CONST:team_id},{away_CONST:team_id}]}},
+                                                    {"$group":{'_id':0,
+                                                               'latest_start_time':{"$max":"$START_TIME"},
+                                                               'earliest_start_time':{"$min":"$START_TIME"}}}])
+
+            print 'metrics result',result_list
             metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio,
                                  venue_count_list_CONST:field_count_list})
         print 'metrics', metrics_list
