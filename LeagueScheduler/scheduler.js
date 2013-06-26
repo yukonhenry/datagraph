@@ -81,9 +81,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					game_grid_row[time_column_key_CONST] = start_time;
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
-						game_grid_list[listindex] = game_grid_row;
-						listindex++;
 					});
+					game_grid_list[listindex] = game_grid_row;
+					listindex++;
 				});
 				
 				// this will define number of columns (games per day)

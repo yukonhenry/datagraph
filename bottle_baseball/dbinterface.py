@@ -20,7 +20,7 @@ homeratio_CONST = 'HOMERATIO'
 team_id_CONST = 'TEAM_ID'
 venue_count_CONST = 'VENUE_COUNT'
 venue_count_list_CONST = 'VENUE_COUNT_LIST'
-
+import pdb
 class MongoDBInterface:
     def __init__(self):
         client = MongoClient()
@@ -62,6 +62,7 @@ class MongoDBInterface:
             gameday_data = result[gameday_data_CONST]
             game_list.append({gameday_id_CONST:gameday_id, start_time_CONST:start_time,
                               gameday_data_CONST:gameday_data})
+        #pdb.set_trace()
         return game_list
 
     def findTeamSchedule(self, age, gender, team_id):
@@ -92,7 +93,26 @@ class MongoDBInterface:
                                     away_CONST:field_game[away_CONST]})
         return field_game_list
 
-    def getMetrics(self, age, gender, numTeams, fields):
+    def getMetrics(self, age, gender, divisionData):
+        numTeams = divisionData['totalteams']
+        fields = divisionData['fields']
+        numGames = divisionData['gamesperseason']
+        max_min_start_dict = {}
+        # find max min start time for each gameday
+        # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
+        #col.aggregate({$match:{AGE:'U10',GEN:'B',GAMEDAY_ID:1}},{$group:{_id:"$START_TIME",samestart:{$push:{HOME:"$HOME",AWAY:"$AWAY"}}}},{$sort:{_id:-1}},{$group:{_id:0,max:{$first:{samestart:"$samestart"}},min:{$last:{samestart:"$samestart"}}}})
+        for gameday_id in range(1,numGames+1):
+            res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender,
+                                                            gameday_id_CONST:gameday_id}},
+                                                 {"$group":{'_id':"$START_TIME",
+                                                            'samestart':{"$push":{home_CONST:"$HOME",
+                                                                                  away_CONST:"$AWAY",
+                                                                                  start_time_CONST:"$START_TIME"}}}},
+                                                 {"$sort":{'_id':-1}},
+                                                 {"$group":{'_id':0,
+                                                            'maxteams':{"$first":{'samestart':"$samestart"}},
+                                                            'minteams':{"$last":{'samestart':"$samestart"}}}}])
+            print 'res_list', res_list
         metrics_list = []
         for team_id in range(1, numTeams+1):
             numGames = self.games_col.find({age_CONST:age,gen_CONST:gender,
@@ -113,10 +133,8 @@ class MongoDBInterface:
                                                                'latest_start_time':{"$max":"$START_TIME"},
                                                                'earliest_start_time':{"$min":"$START_TIME"}}}])
 
-            print 'metrics result',result_list
             metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio,
                                  venue_count_list_CONST:field_count_list})
-        print 'metrics', metrics_list
         return metrics_list
 
 
