@@ -10,7 +10,12 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
 	function(dom, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil) {
-		var constant = {'SERVER_PREFIX':"http://127.0.0.1:8080/"}
+		var constant = {'SERVER_PREFIX':"http://127.0.0.1:8080/"};
+		var team_id_CONST = 'TEAM_ID';
+		var homeratio_CONST = 'HOMERATIO';
+		var earliest_count_CONST = 'EARLIEST_COUNT';
+		var latest_count_CONST = 'LATEST_COUNT';
+		
 		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var numTeams = 0; numVenues =0; divnum = "U5";
 		var gamesGrid = null;
@@ -218,14 +223,15 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var field_array = mdata.fields;
 				var metrics_array = mdata.metrics;
 				var metrics_columns = {};
-				var team_id_CONST = 'TEAM_ID';
-				var homeratio_CONST = 'HOMERATIO';
 				metrics_columns[team_id_CONST] = "Team ID";
 				metrics_columns[homeratio_CONST] = "Home ratio";
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
 					metrics_columns[item] = '# games field '+item;
 				});
+				metrics_columns[earliest_count_CONST] = '# Earliest Games';
+				metrics_columns[latest_count_CONST] = '# Latest Games';
+				
 				// this will define number of columns (games per day)
 				if (metricsGrid) {
 					// clear grid by clearing dom node
@@ -245,6 +251,9 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					arrayUtil.forEach(venue_count_array, function(item2, index2) {
 						metrics_grid_row[item2.VENUE] = item2.VENUE_COUNT;
 					});
+					metrics_grid_row[earliest_count_CONST] = item.EARLIEST_COUNT;
+					metrics_grid_row[latest_count_CONST] = item.LATEST_COUNT;
+					
 					metricsGrid_list[listindex] = metrics_grid_row;
 					listindex++;
 				});

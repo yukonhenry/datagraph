@@ -2,6 +2,7 @@
 import simplejson as json
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
+from collections import Counter
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
@@ -101,18 +102,38 @@ class MongoDBInterface:
         # find max min start time for each gameday
         # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
         #col.aggregate({$match:{AGE:'U10',GEN:'B',GAMEDAY_ID:1}},{$group:{_id:"$START_TIME",samestart:{$push:{HOME:"$HOME",AWAY:"$AWAY"}}}},{$sort:{_id:-1}},{$group:{_id:0,max:{$first:{samestart:"$samestart"}},min:{$last:{samestart:"$samestart"}}}})
+        latest_teams = []
+        earliest_teams = []
         for gameday_id in range(1,numGames+1):
+            # ref http://docs.mongodb.org/manual/tutorial/aggregation-examples/
+            # pipeline description: match on age,gender,gamday_id; group results based on start_time; then sort (descending);
+            # take first and last entries to correspond with earliest and latest times
+            # elements consist of home and away team lists that can be concatenated later to make a generic team list
             res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender,
                                                             gameday_id_CONST:gameday_id}},
                                                  {"$group":{'_id':"$START_TIME",
-                                                            'samestart':{"$push":{home_CONST:"$HOME",
-                                                                                  away_CONST:"$AWAY",
-                                                                                  start_time_CONST:"$START_TIME"}}}},
+                                                            'hometeam_id_list':{"$push":"$HOME"},
+                                                            'awayteam_id_list':{"$push":"$AWAY"}}},
                                                  {"$sort":{'_id':-1}},
                                                  {"$group":{'_id':0,
-                                                            'maxteams':{"$first":{'samestart':"$samestart"}},
-                                                            'minteams':{"$last":{'samestart':"$samestart"}}}}])
-            print 'res_list', res_list
+                                                            'latest_data':{"$first":{'hometeam_id_list':"$hometeam_id_list",
+                                                                                     'awayteam_id_list':"$awayteam_id_list",
+                                                                                     'time':"$_id"}},
+                                                            'earliest_data':{"$last":{'hometeam_id_list':"$hometeam_id_list",
+                                                                                      'awayteam_id_list':"$awayteam_id_list",
+                                                                                      'time':"$_id"}}}},
+                                                 {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
+            result = res_list['result'][0] # there should only be one element which includes the latest and earliest team data
+            latest_data = result['latest_data']
+            earliest_data = result['earliest_data']
+            latest_teams += latest_data['hometeam_id_list']+latest_data['awayteam_id_list']
+            earliest_teams += earliest_data['hometeam_id_list']+earliest_data['awayteam_id_list']
+        # ref http://stackoverflow.com/questions/2600191/how-to-count-the-occurrences-of-a-list-item-in-python
+        latest_counter_dict = Counter(latest_teams)
+        earliest_counter_dict = Counter(earliest_teams)
+        print 'earliest counter',earliest_teams, earliest_counter_dict
+        print 'latest counter',latest_teams, latest_counter_dict
+
         metrics_list = []
         for team_id in range(1, numTeams+1):
             numGames = self.games_col.find({age_CONST:age,gen_CONST:gender,
@@ -127,14 +148,10 @@ class MongoDBInterface:
                                                    }).count()
                 field_count_list.append({venue_CONST:venue, venue_count_CONST:venue_count})
 
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender,
-                                                               "$or":[{home_CONST:team_id},{away_CONST:team_id}]}},
-                                                    {"$group":{'_id':0,
-                                                               'latest_start_time':{"$max":"$START_TIME"},
-                                                               'earliest_start_time':{"$min":"$START_TIME"}}}])
-
             metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio,
-                                 venue_count_list_CONST:field_count_list})
+                                 venue_count_list_CONST:field_count_list,
+                                 'EARLIEST_COUNT':earliest_counter_dict[team_id],
+                                 'LATEST_COUNT':latest_counter_dict[team_id]})
         return metrics_list
 
 
