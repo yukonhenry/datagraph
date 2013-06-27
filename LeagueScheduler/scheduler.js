@@ -25,6 +25,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var fieldScheduleGrid = null;
 		var metricsGrid = null;
 		
+		var ldata_array = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -232,6 +233,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				metrics_columns[earliest_count_CONST] = '# Earliest Games';
 				metrics_columns[latest_count_CONST] = '# Latest Games';
 				
+				dom.byId("metricsHeader").innerHTML = 
+					"Total games per season: <b>"+ldata_array[division_id-1].gamesperseason+"</b>";
 				// this will define number of columns (games per day)
 				if (metricsGrid) {
 					// clear grid by clearing dom node
