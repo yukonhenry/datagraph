@@ -20,7 +20,7 @@ league_div = [
   'gamedaysperweek':2, 'gameinterval':75, 'gamesperseason':12},
 { 'div_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':38,
   'gamedaysperweek':2, 'gameinterval':75, 'gamesperseason':12},
-{ 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':8,
+{ 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':9,
   'gamedaysperweek':2, 'gameinterval':90, 'gamesperseason':14},
 { 'div_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':4,
   'gamedaysperweek':2, 'gameinterval':90, 'gamesperseason':14}
@@ -45,9 +45,9 @@ field_info = [
     {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park', 'start_time':'08:00'},
     {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary', 'start_time':'08:00'},
     {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary', 'start_time':'08:00'},
-    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00'}
+    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00',
+     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
-
 # assigned fields attribute for each division
 # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
 # for finding index of dictionary key in array of dictionaries

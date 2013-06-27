@@ -24,7 +24,7 @@ class MatchGenerator:
         # whether there is a bye or not
         self.half_n = self.eff_numTeams/2
         self.timeslots_per_day = 0
-
+        self.homeaway_flag = False
         #self.games_by_round_list = []
         self.metrics_list = []
         for i in range(nt):
@@ -45,7 +45,11 @@ class MatchGenerator:
             circletop_team = rotation_ind + 1   # top of circle
             # first game pairing
             if (not self.bye_flag):
-                round_list = [{home_CONST:circletop_team, away_CONST:circlecenter_team}]
+                (hometeam,awayteam) = (circletop_team,circlecenter_team) if self.homeaway_flag else (circlecenter_team,circletop_team)
+                #round_list = [{home_CONST:circletop_team, away_CONST:circlecenter_team}]
+                self.homeaway_flag = not self.homeaway_flag
+                round_list = [{home_CONST:hometeam, away_CONST:awayteam}]
+                self.homeaway_flag = not self.homeaway_flag
                 # increment home-away counters (team-id, 1-based)
                 self.metrics_list[circletop_team-1][homeaway_CONST][home_index_CONST] += 1
                 self.metrics_list[circlecenter_team-1][homeaway_CONST][away_index_CONST] += 1
@@ -70,13 +74,15 @@ class MatchGenerator:
 
                 self.metrics_list[CCW_team-1][homeaway_CONST][home_index_CONST] += 1
                 self.metrics_list[CW_team-1][homeaway_CONST][away_index_CONST] += 1
-                round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
+                #round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
+                (hometeam,awayteam) = (CCW_team,CW_team) if self.homeaway_flag else (CW_team,CCW_team)
+                round_list.append({home_CONST:hometeam, away_CONST:awayteam})
+                self.homeaway_flag = not self.homeaway_flag
             # round id is 1-index based, equivalent to team# at top of circle
             match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
         return game_count
 
     def generateMatchList(self):
-
         '''
         Implement circle method.  Circle iterates from 0 to one less than
         total number of effective teams.  Virtual team used if there is a bye.
@@ -98,5 +104,3 @@ class MatchGenerator:
         while (game_count < self.numGames):
             game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count, match_by_round_list)
         return match_by_round_list
-
-
