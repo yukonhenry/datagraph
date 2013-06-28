@@ -40,7 +40,6 @@ class MatchGenerator:
         else:
             gamematch = {home_CONST:team2_id, away_CONST:team1_id}
             self.metrics_list[t2_ind][home_CONST] += 1
-        print 'pairing', gamematch
         return gamematch
 
     def generateCirclePairing(self, circle_total_pos, circlecenter_team, game_count, match_by_round_list):
