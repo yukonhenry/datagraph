@@ -110,7 +110,7 @@ class FieldTimeScheduleGenerator:
                 field_list_iter = cycle(field_list)
                 field = field_list_iter.next()
                 for rrgame in rrgenobj:
-                    print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
+                    #print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
                     div = getAgeGenderDivision(rrgame['div_id'])
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     field['next_time'].strftime(time_format_CONST),

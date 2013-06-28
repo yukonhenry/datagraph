@@ -1,5 +1,4 @@
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
-homeaway_CONST = 'HOMEAWAY'
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 home_index_CONST = 0
@@ -24,16 +23,25 @@ class MatchGenerator:
         # whether there is a bye or not
         self.half_n = self.eff_numTeams/2
         self.timeslots_per_day = 0
-        self.homeaway_flag = False
         #self.games_by_round_list = []
         self.metrics_list = []
         for i in range(nt):
-            # dictionary key is team id, which is 1-based
-            # can't use tuple because tuple does not support assignment
-            # try array here
-            # _id key added, but check if properly used later
-            self.metrics_list.append({'_id':i+1, # id is one-based
-                                      homeaway_CONST:[0,0]})
+            # metrics_list is array of counter dictionaries.
+            # position in array corresponds to team_id-1 (since team_id is one-index based)
+            self.metrics_list.append({home_CONST:0})
+
+    def getBalancedHomeAwayTeams(self, team1_id, team2_id):
+        # team id's are 1-indexed so decrement to get 0-index-based list position
+        t1_ind = team1_id - 1
+        t2_ind = team2_id - 1
+        if (self.metrics_list[t1_ind][home_CONST] <= self.metrics_list[t2_ind][home_CONST]):
+            gamematch = {home_CONST:team1_id, away_CONST:team2_id}
+            self.metrics_list[t1_ind][home_CONST] += 1
+        else:
+            gamematch = {home_CONST:team2_id, away_CONST:team1_id}
+            self.metrics_list[t2_ind][home_CONST] += 1
+        print 'pairing', gamematch
+        return gamematch
 
     def generateCirclePairing(self, circle_total_pos, circlecenter_team, game_count, match_by_round_list):
         for rotation_ind in range(circle_total_pos):
@@ -45,14 +53,8 @@ class MatchGenerator:
             circletop_team = rotation_ind + 1   # top of circle
             # first game pairing
             if (not self.bye_flag):
-                (hometeam,awayteam) = (circletop_team,circlecenter_team) if self.homeaway_flag else (circlecenter_team,circletop_team)
-                #round_list = [{home_CONST:circletop_team, away_CONST:circlecenter_team}]
-                self.homeaway_flag = not self.homeaway_flag
-                round_list = [{home_CONST:hometeam, away_CONST:awayteam}]
-                self.homeaway_flag = not self.homeaway_flag
-                # increment home-away counters (team-id, 1-based)
-                self.metrics_list[circletop_team-1][homeaway_CONST][home_index_CONST] += 1
-                self.metrics_list[circlecenter_team-1][homeaway_CONST][away_index_CONST] += 1
+                gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team, circlecenter_team)
+                round_list = [gamematch_dict]
             else:
                 round_list = []
             for j in range(1, self.half_n):
@@ -69,15 +71,10 @@ class MatchGenerator:
                 # we are on the left or right side of the circle
                 # get modulus
                 # then increment by one to get 1-based index (team number)
-                CCW_team = (((circletop_team-1)-j) % circle_total_pos)+1
+                CCW_team = (((circletop_team-1)-j) % circle_total_pos) + 1
                 CW_team = (((circletop_team-1)+j) % circle_total_pos) + 1
-
-                self.metrics_list[CCW_team-1][homeaway_CONST][home_index_CONST] += 1
-                self.metrics_list[CW_team-1][homeaway_CONST][away_index_CONST] += 1
-                #round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
-                (hometeam,awayteam) = (CCW_team,CW_team) if self.homeaway_flag else (CW_team,CCW_team)
-                round_list.append({home_CONST:hometeam, away_CONST:awayteam})
-                self.homeaway_flag = not self.homeaway_flag
+                gamematch_dict = self.getBalancedHomeAwayTeams(CCW_team, CW_team)
+                round_list.append(gamematch_dict)
             # round id is 1-index based, equivalent to team# at top of circle
             match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
         return game_count
