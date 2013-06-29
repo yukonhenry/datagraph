@@ -96,7 +96,6 @@ class FieldTimeScheduleGenerator:
                     div_id = division_dict['div_id']
                     match_list = division_dict['match_list'][round_index]
                     round_id = match_list[round_id_CONST]
-                    print 'round id', round_id
                     game_list = match_list[game_team_CONST]
                     round_match_list = []
                     for game in game_list:
