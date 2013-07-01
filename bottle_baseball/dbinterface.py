@@ -19,6 +19,7 @@ age_CONST = 'AGE'
 gen_CONST = 'GEN'
 homeratio_CONST = 'HOMERATIO'
 team_id_CONST = 'TEAM_ID'
+totalgames_CONST = 'TOTALGAMES'
 venue_count_CONST = 'VENUE_COUNT'
 venue_count_list_CONST = 'VENUE_COUNT_LIST'
 import pdb
@@ -97,14 +98,14 @@ class MongoDBInterface:
     def getMetrics(self, age, gender, divisionData):
         numTeams = divisionData['totalteams']
         fields = divisionData['fields']
-        numGames = divisionData['gamesperseason']
+        numgameslots = divisionData['gamesperseason']
         max_min_start_dict = {}
         # find max min start time for each gameday
         # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
         #col.aggregate({$match:{AGE:'U10',GEN:'B',GAMEDAY_ID:1}},{$group:{_id:"$START_TIME",samestart:{$push:{HOME:"$HOME",AWAY:"$AWAY"}}}},{$sort:{_id:-1}},{$group:{_id:0,max:{$first:{samestart:"$samestart"}},min:{$last:{samestart:"$samestart"}}}})
         latest_teams = []
         earliest_teams = []
-        for gameday_id in range(1,numGames+1):
+        for gameday_id in range(1,numgameslots+1):
             # ref http://docs.mongodb.org/manual/tutorial/aggregation-examples/
             # pipeline description: match on age,gender,gamday_id; group results based on start_time; then sort (descending);
             # take first and last entries to correspond with earliest and latest times
@@ -148,7 +149,8 @@ class MongoDBInterface:
                                                    }).count()
                 field_count_list.append({venue_CONST:venue, venue_count_CONST:venue_count})
 
-            metrics_list.append({team_id_CONST:team_id, homeratio_CONST:homeratio,
+            metrics_list.append({team_id_CONST:team_id, totalgames_CONST:numGames,
+                                 homeratio_CONST:homeratio,
                                  venue_count_list_CONST:field_count_list,
                                  'EARLIEST_COUNT':earliest_counter_dict[team_id],
                                  'LATEST_COUNT':latest_counter_dict[team_id]})

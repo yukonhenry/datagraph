@@ -15,7 +15,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var homeratio_CONST = 'HOMERATIO';
 		var earliest_count_CONST = 'EARLIEST_COUNT';
 		var latest_count_CONST = 'LATEST_COUNT';
-		
+		var totalgames_CONST = 'TOTALGAMES'
 		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var numTeams = 0; numVenues =0; divnum = "U5";
 		var gamesGrid = null;
@@ -156,7 +156,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 							var match = d[j];
 							matchstr += match[0]+"vs"+match[1]+" ";
 						}
-						return matchstr;
+						return matchstr;スイミー 
 					});
 */
 			});
@@ -225,6 +225,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var metrics_array = mdata.metrics;
 				var metrics_columns = {};
 				metrics_columns[team_id_CONST] = "Team ID";
+				metrics_columns[totalgames_CONST] = "Total Games"
 				metrics_columns[homeratio_CONST] = "Home ratio";
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
@@ -234,7 +235,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				metrics_columns[latest_count_CONST] = '# Latest Games';
 				
 				dom.byId("metricsHeader").innerHTML = 
-					"Total games per season: <b>"+ldata_array[division_id-1].gamesperseason+"</b>";
+					"Total game slots per team: <b>"+ldata_array[division_id-1].gamesperseason+"</b>";
 				// this will define number of columns (games per day)
 				if (metricsGrid) {
 					// clear grid by clearing dom node
@@ -245,11 +246,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var listindex = 0;
 				arrayUtil.forEach(metrics_array, function(item,index) {
 					var team_id = item.TEAM_ID;
+					var totalgames = item.TOTALGAMES;
 					var homeratio = item.HOMERATIO;
 					var venue_count_array = item.VENUE_COUNT_LIST;
 					var metrics_grid_row = {};
 					// fill in the game day number and start time
 					metrics_grid_row[team_id_CONST] = team_id;
+					metrics_grid_row[totalgames_CONST] = totalgames;
 					metrics_grid_row[homeratio_CONST] = homeratio;
 					arrayUtil.forEach(venue_count_array, function(item2, index2) {
 						metrics_grid_row[item2.VENUE] = item2.VENUE_COUNT;

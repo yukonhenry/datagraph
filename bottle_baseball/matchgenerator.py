@@ -88,6 +88,17 @@ class MatchGenerator:
         minhome_count = min(self.metrics_list)
         print 'max and min homecount', maxhome_count, minhome_count
         count = 1;
+        if not self.bye_flag:
+            half_games = self.numGames / 2
+            targethome_count = half_games if self.numGames%2 == 0 else [half_games, half_games+1]
+        else:
+            leftoverGames = self.numGames % self.numTeams
+            count_list = self.numTeams*[self.numGames - 1]
+            count_list[0:leftoverGames] = [c-1 for c in count_list[0:leftoverGames]]
+            targethome_count = [c/2 if c%2==0 else [c/2,c/2+1] for c in count_list]
+        print targethome_count
+        pdb.set_trace()
+
         while abs(maxhome_count - minhome_count) > 1:
             # if difference between max and min home game count is greater than 0 or 1
             # (depending on whether there are even or odd number of total games)
