@@ -98,15 +98,22 @@ class MatchGenerator:
             # or one(1) added to the minimum
             # number of teams that have the max number of byes is numGameSlots/numTeams (modulo)
             # otherwise remainder teams have the minimum number of byes
-            minNumByesPerTeam = self.numGames / self.numTeams
-            maxNumByesPerTeam = minNumByesPerTeam+1
-            numTeams_MaxNumByes = self.numGames % self.numTeams
-            numTeams_MinNumBypes = self.numTeams - numTeams_MaxNumByes
+            # each team has either the minNumByes or maxNumByes
+            # total games for each team can be computed by the number of game slots
+            # minus the min or max number of byes
+            minNumByes = self.numGames / self.numTeams
+            maxGamesPossible = self.numGames - minNumByes
+            maxNumByes = minNumByesPerTeam+1
+            minGamesPossible = self.numGames - maxNumByes
 
-            count_list = self.numTeams*[self.numGames - 1]
-            count_list[0:leftoverGames] = [c-1 for c in count_list[0:leftoverGames]]
+            numTeams_minGamesPossible = self.numGames % self.numTeams
+            numTeams_maxGamesPossible = self.numTeams - numTeams_minGamesPossible
+
+            mingames_list = numTeams_minGamesPossible*[minGamesPossible]
+            maxgames_list = numTeams_maxGamesPossible*[maxGamesPossible]
+            count_list = mingames_list + maxgames_list
             targethome_count = [c/2 if c%2==0 else [c/2,c/2+1] for c in count_list]
-        print targethome_count
+        print 'target home count', targethome_count
         pdb.set_trace()
         while abs(maxhome_count - minhome_count) > 1:
             # if difference between max and min home game count is greater than 0 or 1
