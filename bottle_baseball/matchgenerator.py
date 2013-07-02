@@ -89,16 +89,25 @@ class MatchGenerator:
         print 'max and min homecount', maxhome_count, minhome_count
         count = 1;
         if not self.bye_flag:
+            # if there are no bye games for a team, then target number of home game is half the number
+            # of total games.
             half_games = self.numGames / 2
             targethome_count = half_games if self.numGames%2 == 0 else [half_games, half_games+1]
         else:
-            leftoverGames = self.numGames % self.numTeams
+            # the number of bye games per team is either numGameSlots/numTeams (integer div)
+            # or one(1) added to the minimum
+            # number of teams that have the max number of byes is numGameSlots/numTeams (modulo)
+            # otherwise remainder teams have the minimum number of byes
+            minNumByesPerTeam = self.numGames / self.numTeams
+            maxNumByesPerTeam = minNumByesPerTeam+1
+            numTeams_MaxNumByes = self.numGames % self.numTeams
+            numTeams_MinNumBypes = self.numTeams - numTeams_MaxNumByes
+
             count_list = self.numTeams*[self.numGames - 1]
             count_list[0:leftoverGames] = [c-1 for c in count_list[0:leftoverGames]]
             targethome_count = [c/2 if c%2==0 else [c/2,c/2+1] for c in count_list]
         print targethome_count
         pdb.set_trace()
-
         while abs(maxhome_count - minhome_count) > 1:
             # if difference between max and min home game count is greater than 0 or 1
             # (depending on whether there are even or odd number of total games)
@@ -168,5 +177,5 @@ class MatchGenerator:
         while (game_count < self.numGames):
             game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count)
         print 'metrics_list', self.numTeams, self.metrics_list
-        self.adjustHomeAwayTeams()
+        #self.adjustHomeAwayTeams()
         return self.match_by_round_list
