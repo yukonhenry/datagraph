@@ -29,6 +29,8 @@ class MatchGenerator:
         # position in array corresponds to team_id-1 (since team_id is one-index based)
         self.metrics_list = nt*[0]
         self.match_by_round_list = []
+        self.targethome_count_list = []
+        self.targethome_count_dict = {}
 
     def getBalancedHomeAwayTeams(self, team1_id, team2_id):
         # assign home away teams based on current home game counters for the two teams
@@ -43,18 +45,21 @@ class MatchGenerator:
             self.metrics_list[t2_ind] += 1
         return gamematch
 
-    def findandSwap(self, maxhome_count, minhome_count):
+    def findandSwap(self, decrement_max=0, increment_min=0):
+        diff_list = [z-x for (x,y) in zip(self.metrics_list, self.targethome_count_list)]
+        diff_list = [z-x for (x,y) in zip(self.metrics_list, self.targethome_count_list)]
+        maxdiff = max(diff_list)-decrement_max
+        mindiff = min(diff_list)+increment_min
+        maxdiff_ind_list = [i for i,j in enumerate(diff_list) if j==maxdiff]
+        mindiff_ind_list = [i for i,j in enumerate(diff_list) if j==mindiff]
+        print 'max min diff list', maxdiff_ind_list, mindiff_ind_list
         # get all indices that correspond to the max or min home count
-        max_ind_list = [i for i,j in enumerate(self.metrics_list) if j==maxhome_count]
-        min_ind_list = [i for i,j in enumerate(self.metrics_list) if j==minhome_count]
-        print 'max min list', max_ind_list, min_ind_list
-        # below doesn't work if numteams is greater than number of games per season:
-        # just get index for first occurrence
-        #max_team_ind = self.metrics_list.index(max(self.metrics_list)) + 1
-        #min_team_ind = self.metrics_list.index(min(self.metrics_list)) + 1
+        #max_ind_list = [i for i,j in enumerate(self.metrics_list) if j==maxhome_count]
+        #min_ind_list = [i for i,j in enumerate(self.metrics_list) if j==minhome_count]
+        #print 'max min list', max_ind_list, min_ind_list
         # ref http://stackoverflow.com/questions/2597104/break-the-nested-double-loop-in-python
         # for breaking out of double loops
-        for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, max_ind_list, min_ind_list):
+        for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, maxdiff_ind_list, mindiff_ind_list):
             round_list = match_by_round[game_team_CONST]
             max_team_id = max_ind + 1
             min_team_id = min_ind + 1
@@ -73,13 +78,11 @@ class MatchGenerator:
                 break;
         else:
             print 'Something may be wrong, max and min teams not found, do it again'
-            midpoint = float(self.numGames)/2
-            if (maxhome_count-midpoint >= midpoint-minhome_count):
-                maxhome_count -= 1
+            if maxdiff >= mindiff:
+                decrement_max += 1
             else:
-                minhome_count += 1
-            print 'adjusted max and min homecount', maxhome_count, minhome_count
-            self.findandSwap(maxhome_count, minhome_count)
+                increment_min += 1
+            self.findandSwap(decrement_max, increment_min)
 
     def adjustHomeAwayTeams(self):
         # make adjustments to the home away assignments by looking at the homeaway counters and looking
@@ -92,7 +95,11 @@ class MatchGenerator:
             # if there are no bye games for a team, then target number of home game is half the number
             # of total games.
             half_games = self.numGames / 2
-            targethome_count = half_games if self.numGames%2 == 0 else [half_games, half_games+1]
+            targethome_count_set = {half_games} if self.numGames%2 == 0 else {half_games, half_games+1}
+            targethome_count = [half_games] if self.numGames%2 == 0 else [half_games, half_games+1]
+            self.targethome_count_list = self.numTeams*[targethome_count]
+            self.targethome_count_dict = {id+1:count for (id, count_list) in zip(range(self.numTeams),targethome_count) for count in count_list}
+            # or use enumerate above
         else:
             # the number of bye games per team is either numGameSlots/numTeams (integer div)
             # or one(1) added to the minimum
@@ -102,23 +109,34 @@ class MatchGenerator:
             # total games for each team can be computed by the number of game slots
             # minus the min or max number of byes
             minNumByes = self.numGames / self.numTeams
-            maxGamesPossible = self.numGames - minNumByes
-            maxNumByes = minNumByesPerTeam+1
-            minGamesPossible = self.numGames - maxNumByes
+            maxGames = self.numGames - minNumByes
+            maxNumByes = minNumByes+1
+            minGames = self.numGames - maxNumByes
 
-            numTeams_minGamesPossible = self.numGames % self.numTeams
-            numTeams_maxGamesPossible = self.numTeams - numTeams_minGamesPossible
+            numTeams_minGames = self.numGames % self.numTeams
+            numTeams_maxGames = self.numTeams - numTeams_minGames
 
-            mingames_list = numTeams_minGamesPossible*[minGamesPossible]
-            maxgames_list = numTeams_maxGamesPossible*[maxGamesPossible]
+            mingames_list = numTeams_minGames*[minGames]
+            maxgames_list = numTeams_maxGames*[maxGames]
+
+            halfMinGames = minGames/2
+            targethome_count_set = {halfMinGames} if minGames%2==0 else {halfMinGames, halfMinGames+1}
+            halfMaxGames = maxGames/2
+            if maxGames%2 == 0:
+                targethome_count_set.add(halfMaxGames)
+            else:
+                targethome_count_set.update([halfMaxGames, halfMaxGames+1])
+
             count_list = mingames_list + maxgames_list
-            targethome_count = [c/2 if c%2==0 else [c/2,c/2+1] for c in count_list]
-        print 'target home count', targethome_count
+            self.targethome_count_list = [[c/2] if c%2==0 else [c/2,c/2+1] for c in count_list]
+        print 'target home count', self.targethome_count_list
         pdb.set_trace()
-        while abs(maxhome_count - minhome_count) > 1:
+
+        while not all([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]):
+        #while {maxhome_count,minhome_count}.difference(targethome_count_set):
             # if difference between max and min home game count is greater than 0 or 1
             # (depending on whether there are even or odd number of total games)
-            self.findandSwap(maxhome_count, minhome_count)
+            self.findandSwap()
             maxhome_count = max(self.metrics_list)
             minhome_count = min(self.metrics_list)
             print 'after ', count, 'max and min homecount', maxhome_count, minhome_count
@@ -184,5 +202,5 @@ class MatchGenerator:
         while (game_count < self.numGames):
             game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count)
         print 'metrics_list', self.numTeams, self.metrics_list
-        #self.adjustHomeAwayTeams()
+        self.adjustHomeAwayTeams()
         return self.match_by_round_list

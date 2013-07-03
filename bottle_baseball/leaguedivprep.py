@@ -9,9 +9,9 @@ from collections import namedtuple
 
 league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
-  'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':10},
+  'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':11},
 { 'div_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':20,
-  'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':10},
+  'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':11},
 { 'div_id':3, 'agediv':'U8', 'gender':'B', 'totalteams':35,
   'gamedaysperweek':1, 'gameinterval':60, 'gamesperseason':10},
 { 'div_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':30,
