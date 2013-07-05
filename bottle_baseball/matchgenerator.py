@@ -45,28 +45,14 @@ class MatchGenerator:
             self.metrics_list[t2_ind] += 1
         return gamematch
 
-    def findandSwap(self, decrement_max=0, increment_min=0):
-        # ref for nested list comprehension applicable to below
-        # http://stackoverflow.com/questions/3766711/python-advanced-nested-list-comprehension-syntax
-        #diff_list = []
-        #for (m,t) in zip(self.metrics_list, self.targethome_count_list):
-        #    difftemp_list = []
-        #    for t2 in t:
-        #        difftemp_list.append(abs(m-t2))
-        #    diff_list.append(max(difftemp_list))
-        diff_list = [[m-t2 if m not in t else 0 for t2 in t] for (m,t) in zip(self.metrics_list, self.targethome_count_list)]
-        maxdiff_list = [max(elem_list) for elem_list in diff_list]
-        mindiff_list = [min(elem_list) for elem_list in diff_list]
-        print 'diff_list decmax incmin', maxdiff_list, mindiff_list, decrement_max, increment_min
-        maxdiff = max(maxdiff_list)-decrement_max
-        mindiff = min(mindiff_list)+increment_min
-        maxdiff_ind_list = [i for i,j in enumerate(maxdiff_list) if j==maxdiff]
-        mindiff_ind_list = [i for i,j in enumerate(mindiff_list) if j==mindiff]
+    def findMatch(self, diff_list, maxdiff, mindiff):
+        # then find indices of team_id that matches the max and min averages
+        maxdiff_ind_list = [i for i,j in enumerate(diff_list) if j==maxdiff]
+        mindiff_ind_list = [i for i,j in enumerate(diff_list) if j==mindiff]
         print 'max min diff list', maxdiff_ind_list, mindiff_ind_list
         # get all indices that correspond to the max or min home count
         #max_ind_list = [i for i,j in enumerate(self.metrics_list) if j==maxhome_count]
         #min_ind_list = [i for i,j in enumerate(self.metrics_list) if j==minhome_count]
-        #print 'max min list', max_ind_list, min_ind_list
         # ref http://stackoverflow.com/questions/2597104/break-the-nested-double-loop-in-python
         # for breaking out of double loops
         for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, maxdiff_ind_list, mindiff_ind_list):
@@ -76,24 +62,61 @@ class MatchGenerator:
             try:
                 match_ind = round_list.index({home_CONST:max_team_id, away_CONST:min_team_id})
             except ValueError:
+                # if index is not found
                 continue
             else:
                 # do swap
                 round_list[match_ind] = {home_CONST:min_team_id, away_CONST:max_team_id}
                 self.metrics_list[max_ind] -= 1
                 self.metrics_list[min_ind] += 1
-                print 'home away swapped', min_team_id, max_team_id
+                print '--------------------'
+                print 'home away SWAPPED', min_team_id, max_team_id
                 print 'new metrics list', self.metrics_list
+                print 'targethome',self.targethome_count_list
                 #pdb.set_trace()
+                foundFlag = True
                 break;
         else:
-            print 'Something may be wrong, max and min teams not found, do it again'
-            #pdb.set_trace()
-            if maxdiff >= mindiff:
-                decrement_max += 1
+            foundFlag = False
+        return foundFlag
+
+    def findandSwap(self):
+        # ref for nested list comprehension applicable to below
+        # http://stackoverflow.com/questions/3766711/python-advanced-nested-list-comprehension-syntax
+        #diff_list = []
+        #for (m,t) in zip(self.metrics_list, self.targethome_count_list):
+        #    difftemp_list = []
+        #    for t2 in t:
+        #        difftemp_list.append(abs(m-t2))
+        #    diff_list.append(max(difftemp_list))
+        #diff_list = [[m-t2 if m not in t else 0 for t2 in t] for (m,t) in zip(self.metrics_list, self.targethome_count_list)]
+        # Calculate for each team_id the difference between the home metric and the target home
+        # count value.  The target home count value may be a set (represented by a list) if there
+        # are an odd number of games for example
+        diff_list = [[m-t2 for t2 in t] for (m,t) in zip(self.metrics_list, self.targethome_count_list)]
+        # for each team_id determine the average difference betwee metric and target home count
+        # average is a reasonable metric especially if the target home count is a set
+        avgdiff_list = [sum(elem_list)/float(len(elem_list)) for elem_list in diff_list]
+        maxdiff_list = [max(elem_list) for elem_list in diff_list]
+        mindiff_list = [min(elem_list) for elem_list in diff_list]
+        print 'diff_list, avgdiff_list', diff_list, avgdiff_list
+
+        # find the max and min of average difference
+        maxdiff = max(avgdiff_list)
+        mindiff = min(avgdiff_list)
+        matchcounter = 0
+        while not self.findMatch(avgdiff_list, maxdiff, mindiff):
+            matchcounter += 1
+            print 'attempt:', matchcounter, ' Something may be wrong, max and min teams not found, do it again'
+            setavg_list = list(set(avgdiff_list))
+            changeMaxFlag = True if abs(maxdiff) < abs(mindiff) else False
+            if changeMaxFlag:
+                sorted_setavg_list = sorted(setavg_list, reverse=changeMaxFlag)
+                # grab second element as the new maxdiff
+                maxdiff = sorted_setavg_list[1]
             else:
-                increment_min += 1
-            self.findandSwap(decrement_max, increment_min)
+                sorted_setavg_list = sorted(setavg_list)
+                mindiff = sorted_setavg_list[1]
 
     def adjustHomeAwayTeams(self):
         # make adjustments to the home away assignments by looking at the homeaway counters and looking
@@ -153,6 +176,7 @@ class MatchGenerator:
             count += 1
         else:
             print "home and away games already balanced"
+            print '----------------------------------------'
 
 
     def generateCirclePairing(self, circle_total_pos, circlecenter_team, game_count):
@@ -211,6 +235,7 @@ class MatchGenerator:
         game_count = 0
         while (game_count < self.numGames):
             game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count)
+        print '****************************************'
         print 'metrics_list', self.numTeams, self.metrics_list
         self.adjustHomeAwayTeams()
         return self.match_by_round_list
