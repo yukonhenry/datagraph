@@ -1,4 +1,5 @@
 from itertools import product
+import networkx as nx
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
@@ -30,13 +31,14 @@ class MatchGenerator:
         self.metrics_list = nt*[0]
         self.match_by_round_list = []
         self.targethome_count_list = []
-        #self.targethome_count_dict = {}
+        self.matchG = nx.Graph()
 
     def getBalancedHomeAwayTeams(self, team1_id, team2_id):
         # assign home away teams based on current home game counters for the two teams
         # team id's are 1-indexed so decrement to get 0-index-based list position
         t1_ind = team1_id - 1
         t2_ind = team2_id - 1
+        self.matchG.add_edge(team1_id, team2_id)
         if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
             gamematch = {home_CONST:team1_id, away_CONST:team2_id}
             self.metrics_list[t1_ind] += 1
@@ -77,6 +79,12 @@ class MatchGenerator:
                 foundFlag = True
                 break;
         else:
+            for (max_ind, min_ind) in product(maxdiff_ind_list, mindiff_ind_list):
+                max_team_id = max_ind+1
+                min_team_id = min_ind+1
+                if nx.has_path(self.matchG, max_team_id, min_team_id):
+                    print 'OK THERE IS SOME PATH between', max_team_id, min_team_id
+                    break
             foundFlag = False
         return foundFlag
 
@@ -129,7 +137,6 @@ class MatchGenerator:
             # if there are no bye games for a team, then target number of home game is half the number
             # of total games.
             half_games = self.numGames / 2
-            targethome_count_set = {half_games} if self.numGames%2 == 0 else {half_games, half_games+1}
             targethome_count = [half_games] if self.numGames%2 == 0 else [half_games, half_games+1]
             self.targethome_count_list = self.numTeams*[targethome_count]
             #self.targethome_count_dict = {id+1:count for (id, count_list) in zip(range(self.numTeams),targethome_count) for count in count_list}
@@ -155,12 +162,7 @@ class MatchGenerator:
             maxgames_list = numTeams_maxGames*[maxGames]
 
             halfMinGames = minGames/2
-            targethome_count_set = {halfMinGames} if minGames%2==0 else {halfMinGames, halfMinGames+1}
             halfMaxGames = maxGames/2
-            if maxGames%2 == 0:
-                targethome_count_set.add(halfMaxGames)
-            else:
-                targethome_count_set.update([halfMaxGames, halfMaxGames+1])
 
             count_list = mingames_list + maxgames_list
             self.targethome_count_list = [[c/2] if c%2==0 else [c/2,c/2+1] for c in count_list]
