@@ -1,5 +1,6 @@
 from itertools import product
 import networkx as nx
+from math import sqrt
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
@@ -31,21 +32,37 @@ class MatchGenerator:
         self.metrics_list = nt*[0]
         self.match_by_round_list = []
         self.targethome_count_list = []
-        self.matchG = nx.Graph()
+        self.matchG = nx.DiGraph()
 
-    def getBalancedHomeAwayTeams(self, team1_id, team2_id):
+    def getBalancedHomeAwayTeams(self, team1_id, team2_id, gamecount_id):
         # assign home away teams based on current home game counters for the two teams
         # team id's are 1-indexed so decrement to get 0-index-based list position
         t1_ind = team1_id - 1
         t2_ind = team2_id - 1
-        self.matchG.add_edge(team1_id, team2_id)
         if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
             gamematch = {home_CONST:team1_id, away_CONST:team2_id}
+            self.matchG.add_edge(team1_id, team2_id, gamecount_id=gamecount_id)
             self.metrics_list[t1_ind] += 1
         else:
             gamematch = {home_CONST:team2_id, away_CONST:team1_id}
+            self.matchG.add_edge(team2_id, team1_id, gamecount_id=gamecount_id)
             self.metrics_list[t2_ind] += 1
         return gamematch
+
+    # calculate cost function - euclidean distance between metrics_list and
+    # targethome_count_list (if targethome_count is a list itself, then distance is defined
+    # as the minimum distance to that list (closest element)
+    # prototype for calculating list of absoute value differences (before calculating sqrt of sum sq)
+    # list1 = []
+    # for (a1,b1) in zip(a,b):
+	#    list2 = []
+    #    for b2 in b1:
+    #	    list2.append(abs(a1-b2) if a1 not in b1 else 0)
+	#    list1.append(min(list2))
+    def computeCostFunction(self, metrics_list):
+        absdiff_list = [min([abs(m-t2) if m not in t else 0 for t2 in t]) for (m,t) in zip(metrics_list, self.targethome_count_list)]
+        euclidean_norm = sqrt(sum([x*x for x in absdiff_list]))
+        return euclidean_norm
 
     def findMatch(self, diff_list, maxdiff, mindiff):
         # then find indices of team_id that matches the max and min averages
@@ -79,12 +96,49 @@ class MatchGenerator:
                 foundFlag = True
                 break;
         else:
+            gamecount_id_attrib = nx.get_edge_attributes(self.matchG,'gamecount_id')
+            current_cost = self.computeCostFunction(self.metrics_list)
+            cost_diff = 1e6
+            print '+++++No simple pair to swap found, going to search for multiple edges++++++++++++++++++'
+            print 'current cost for self metrics =',self.metrics_list, current_cost
             for (max_ind, min_ind) in product(maxdiff_ind_list, mindiff_ind_list):
                 max_team_id = max_ind+1
                 min_team_id = min_ind+1
                 if nx.has_path(self.matchG, max_team_id, min_team_id):
-                    print 'OK THERE IS SOME PATH between', max_team_id, min_team_id
-                    break
+                    print 'OK there is some path between', max_team_id, min_team_id
+                    paths_gen = nx.all_shortest_paths(self.matchG, max_team_id, min_team_id)
+                    for path in paths_gen:
+                        # for each path, we are going to emulate how cost function
+                        # would change if home and away teams were swapped
+                        # note that the path itself begins with the home team
+                        # in the directed graph, but after the emulated swap, the
+                        # first team_id in the path is the away team
+                        # i.e.  if path is [10,5,8] which is H-A 10-5, H-A 5-8
+                        # after the swap H-A 8-5, H-A 5-10
+                        # we won't be doing the actual swap, but for metrics calculation
+                        # the away team is considered the 'new' home team.
+                        tempmetrics_list = list(self.metrics_list)
+                        print 'Path=',path
+                        path_it = iter(path)
+                        away_id = next(path_it, 0)
+                        while True:
+                            home_id = away_id
+                            away_id = next(path_it,0)
+                            if away_id == 0:
+                                break
+                            else:
+                                tempmetrics_list[home_id-1] -= 1
+                                tempmetrics_list[away_id-1] += 1
+                                print 'home_id away_id', home_id, away_id
+                        temp_cost = computeCostFunction(tempmetrics_list)
+                        temp_diff = temp_cost - current_cost
+                        if temp_diff < cost_diff:
+                            cost_diff = temp_diff
+                            bestpath = path
+
+                        print 'temp metrics and cost', tempmetrics_list, tempCost
+
+
             foundFlag = False
         return foundFlag
 
@@ -191,7 +245,8 @@ class MatchGenerator:
             circletop_team = rotation_ind + 1   # top of circle
             # first game pairing
             if (not self.bye_flag):
-                gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team, circlecenter_team)
+                gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team, circlecenter_team,
+                                                               game_count)
                 round_list = [gamematch_dict]
             else:
                 round_list = []
@@ -211,7 +266,7 @@ class MatchGenerator:
                 # then increment by one to get 1-based index (team number)
                 CCW_team = (((circletop_team-1)-j) % circle_total_pos) + 1
                 CW_team = (((circletop_team-1)+j) % circle_total_pos) + 1
-                gamematch_dict = self.getBalancedHomeAwayTeams(CCW_team, CW_team)
+                gamematch_dict = self.getBalancedHomeAwayTeams(CCW_team, CW_team, game_count)
                 round_list.append(gamematch_dict)
             # round id is 1-index based, equivalent to team# at top of circle
             self.match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
