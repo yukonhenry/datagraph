@@ -8,6 +8,7 @@ home_index_CONST = 0
 away_index_CONST = 1
 round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
+large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class MatchGenerator:
@@ -34,18 +35,46 @@ class MatchGenerator:
         self.targethome_count_list = []
         self.matchG = nx.DiGraph()
 
+    def removeGraphEdgeAttribute(self, source_id, sink_id, gamecount_id):
+        # delete edge from matchG graph
+        edge_dict = self.matchG.get_edge_data(source_id, sink_id, default=None)
+        if (edge_dict):
+            gamecount_id_list = edge_dict['gamecount_id']
+            if len(gamecount_id_list) <= 1:
+                # this is the only match with the home away game, remove edge
+                self.matchG.remove_edge(source_id, sink_id)
+            else:
+                # there are two or more games with this homeaway match,
+                # remove only relevant attrib entry
+                gamecount_id_list.remove(gamecount_id)
+                # re-insert attribute list (based on original home away team id's)
+                self.matchG.edge[source_id][sink_id]['gamecount_id'] = gamecount_id_list
+            return True
+        else:
+            return False
+
+    def addGraphEdgeAttribute(self, source_id, sink_id, gamecount_id):
+        if not self.matchG.has_edge(source_id, sink_id):
+            # check if directed edge already exists, then if not
+            self.matchG.add_edge(source_id, sink_id, gamecount_id=[gamecount_id])
+        else:
+            # if directed edge already exists
+            self.matchG[source_id][sink_id]['gamecount_id'].append(gamecount_id)
+
     def getBalancedHomeAwayTeams(self, team1_id, team2_id, gamecount_id):
         # assign home away teams based on current home game counters for the two teams
         # team id's are 1-indexed so decrement to get 0-index-based list position
         t1_ind = team1_id - 1
         t2_ind = team2_id - 1
         if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
+            # if team1 should be the home team
             gamematch = {home_CONST:team1_id, away_CONST:team2_id}
-            self.matchG.add_edge(team1_id, team2_id, gamecount_id=gamecount_id)
+            self.addGraphEdgeAttribute(team1_id, team2_id, gamecount_id)
             self.metrics_list[t1_ind] += 1
         else:
+            # team2 should be the home team
             gamematch = {home_CONST:team2_id, away_CONST:team1_id}
-            self.matchG.add_edge(team2_id, team1_id, gamecount_id=gamecount_id)
+            self.addGraphEdgeAttribute(team2_id, team1_id, gamecount_id)
             self.metrics_list[t2_ind] += 1
         return gamematch
 
@@ -76,29 +105,40 @@ class MatchGenerator:
         # for breaking out of double loops
         for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, maxdiff_ind_list, mindiff_ind_list):
             round_list = match_by_round[game_team_CONST]
+            round_id = match_by_round[round_id_CONST]
             max_team_id = max_ind + 1
             min_team_id = min_ind + 1
             try:
+                # note match_ind is just the position in the round_list, and not the
+                # round_id/game_count_id
                 match_ind = round_list.index({home_CONST:max_team_id, away_CONST:min_team_id})
             except ValueError:
                 # if index is not found
                 continue
             else:
+                print '===='
+                print 'matchG edge list attributes before swap',nx.get_edge_attributes(self.matchG,'gamecount_id')
+                # first delete edge from matchG graph before adding new edge based on swap
+                if not removeGraphEdgeAttribute(max_team_id, min_team_id, round_id):
+                    print 'Possible Error: Not able to remove graph edge between', max_team_id, min_team_id, round_id
                 # do swap
                 round_list[match_ind] = {home_CONST:min_team_id, away_CONST:max_team_id}
                 self.metrics_list[max_ind] -= 1
                 self.metrics_list[min_ind] += 1
+                # add swapped edge to directed graph
+                self.addGraphEdgeAttribute(min_team_id, max_team_id, round_id)
                 print '--------------------'
                 print 'home away SWAPPED', min_team_id, max_team_id
                 print 'new metrics list', self.metrics_list
                 print 'targethome',self.targethome_count_list
+                print 'matchG edge list attributes AFTER swap',nx.get_edge_attributes(self.matchG,'gamecount_id')
                 #pdb.set_trace()
                 foundFlag = True
                 break;
         else:
             gamecount_id_attrib = nx.get_edge_attributes(self.matchG,'gamecount_id')
             current_cost = self.computeCostFunction(self.metrics_list)
-            cost_diff = 1e6
+            bestcost = large_CONST  # specify a very large number
             print '+++++No simple pair to swap found, going to search for multiple edges++++++++++++++++++'
             print 'current cost for self metrics =',self.metrics_list, current_cost
             for (max_ind, min_ind) in product(maxdiff_ind_list, mindiff_ind_list):
@@ -121,25 +161,42 @@ class MatchGenerator:
                         print 'Path=',path
                         path_it = iter(path)
                         away_id = next(path_it, 0)
+                        temporig_list = []
+                        tempswapped_list = []
                         while True:
                             home_id = away_id
                             away_id = next(path_it,0)
                             if away_id == 0:
                                 break
                             else:
+                                # do emulated swap and adjust metrics
                                 tempmetrics_list[home_id-1] -= 1
                                 tempmetrics_list[away_id-1] += 1
-                                print 'home_id away_id', home_id, away_id
-                        temp_cost = computeCostFunction(tempmetrics_list)
-                        temp_diff = temp_cost - current_cost
-                        if temp_diff < cost_diff:
-                            cost_diff = temp_diff
-                            bestpath = path
+                                temporig_list.append({home_CONST:home_id,
+                                                      away_CONST:away_id})
+                                # keep track of swapped teams
+                                tempswapped_list.append({home_CONST:away_id,
+                                                         away_CONST:home_id})
+                        tempcost = self.computeCostFunction(tempmetrics_list)
+                        print 'temp metrics and cost w list', tempmetrics_list, tempcost,tempswapped_list
+                        if tempcost < bestcost:
+                            bestcost = tempcost
+                            bestorig_list = temporig_list
+                            bestswapped_list = tempswapped_list
+                    print 'best path for teams, cost', max_team_id, min_team_id, bestswapped_list, bestcost
+                    foundFlag = True
+                else:
+                    print 'no path between', max_team_id, min_team_id
+                    foundFlag = False
+            if foundFlag:
+                print '@@@@'
+                print 'best path found between', max_team_id, min_team_id, bestswapped_list
+                for edgematch in bestorig_list:
+                    if not removeGraphEdgeAttribute(edgematch[home_CONST],
+                                                    edgematch[away_CONST],
+                                                    round_id):
+                    print 'Possible Error(2): Not able to remove graph edge between', max_team_id, min_team_id
 
-                        print 'temp metrics and cost', tempmetrics_list, tempCost
-
-
-            foundFlag = False
         return foundFlag
 
     def findandSwap(self):
@@ -169,7 +226,7 @@ class MatchGenerator:
         matchcounter = 0
         while not self.findMatch(avgdiff_list, maxdiff, mindiff):
             matchcounter += 1
-            print 'attempt:', matchcounter, ' Something may be wrong, max and min teams not found, do it again'
+            print 'attempt:', matchcounter, ' Even multihop path not found, resorting to heuristics'
             setavg_list = list(set(avgdiff_list))
             changeMaxFlag = True if abs(maxdiff) < abs(mindiff) else False
             if changeMaxFlag:
@@ -215,13 +272,9 @@ class MatchGenerator:
             mingames_list = numTeams_minGames*[minGames]
             maxgames_list = numTeams_maxGames*[maxGames]
 
-            halfMinGames = minGames/2
-            halfMaxGames = maxGames/2
-
             count_list = mingames_list + maxgames_list
             self.targethome_count_list = [[c/2] if c%2==0 else [c/2,c/2+1] for c in count_list]
         print 'target home count', self.targethome_count_list
-        #pdb.set_trace()
 
 #        while not all([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]):
         while sum([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]) < self.numTeams-1:
