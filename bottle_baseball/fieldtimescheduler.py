@@ -4,7 +4,7 @@ from schedule_util import roundrobin, all_same
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision
-
+import logging
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
@@ -37,6 +37,7 @@ class FieldTimeScheduleGenerator:
             self.scheduleMatrix.append({'field_id':field['field_id'],
                                         'next_available':field['start_time']})
         self.dbinterface = dbinterface
+        self.metrics_list = []
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
