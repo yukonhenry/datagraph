@@ -19,3 +19,6 @@ def roundrobin(iterable_list):
 # ref http://stackoverflow.com/questions/3787908/python-determine-if-all-items-of-a-list-are-the-same-item
 def all_same(items):
     return all(x == items[0] for x in items)
+
+def all_value(items, value):
+    return all(x == value for x in items)

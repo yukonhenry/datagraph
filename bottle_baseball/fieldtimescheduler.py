@@ -1,6 +1,6 @@
 from datetime import  datetime, timedelta
 from itertools import cycle
-from schedule_util import roundrobin, all_same
+from schedule_util import roundrobin, all_same, all_value
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision
@@ -37,7 +37,6 @@ class FieldTimeScheduleGenerator:
             self.scheduleMatrix.append({'field_id':field['field_id'],
                                         'next_available':field['start_time']})
         self.dbinterface = dbinterface
-        self.metrics_list = []
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -73,13 +72,14 @@ class FieldTimeScheduleGenerator:
                 submatch_list.append(div_match_list)
                 submatch_len_list.append(len(div_match_list['match_list']))  #gives num rounds
             if not all_same(submatch_len_list):
-                print 'different number of games per season amongst shared field NOT SUPPORTED'
+                logging.warning('different number of games per season amongst shared field NOT SUPPORTED')
                 return None
 
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
             field_list = []
             initialstarttime_dict = {}
+            fieldmetrics_list = []
             for f_id in flist:
                 # field_id is 0-index based
                 findex = fieldinfo_indexer.get(f_id)
@@ -88,7 +88,10 @@ class FieldTimeScheduleGenerator:
                 field_list.append({'field_id':f_id,
                                    'next_time':nexttime_dtime})
                 initialstarttime_dict[f_id] = nexttime_dtime  #use for resetting time to beginning of day
-            print 'fieldlist', field_list
+                fieldmetrics_list.append({'field_id':f_id, 'count':0})
+                fieldmetrics_max = 0
+            fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(fieldmetrics_list))
+
             # max below is not sufficient if there are differences in season per games
             # within the divisions that share fields
             for round_index in xrange(max(submatch_len_list)):
@@ -110,11 +113,26 @@ class FieldTimeScheduleGenerator:
                 field_list_iter = cycle(field_list)
                 field = field_list_iter.next()
                 for rrgame in rrgenobj:
+                    field_id = field['field_id']
+                    if all_value([x['count'] for x in fieldmetrics_list], fieldmetrics_max):
+                        fieldmetrics_max += 1
+                        metindex = fieldmetrics_indexer.get(field_id)
+                    else:
+                        while True:
+                            metindex = fieldmetrics_indexer.get(field_id)
+                            fcount = fieldmetrics_list[metindex]['count']
+                            if fcount < fieldmetrics_max:
+                                break
+                            else:
+                                field = field_list_iter.next()
+                                field_id = field['field_id']
+                    fieldmetrics_list[metindex]['count'] += 1
                     #print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
                     div = getAgeGenderDivision(rrgame['div_id'])
+                    logging.info('field assigned=%d for %s%s new fieldmetrics=%s', field_id, div.age, div.gender, fieldmetrics_list)
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     field['next_time'].strftime(time_format_CONST),
-                                                    field['field_id'],
+                                                    field_id,
                                                     rrgame['game'][home_CONST],
                                                     rrgame['game'][away_CONST])
                     # update next available time for the field

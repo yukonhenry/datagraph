@@ -10,6 +10,7 @@ from mlb_util import getMLBteam_details, getMLBteamname_list, getMLBStoveInfoJSO
 from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqTweets
 from cacooparse import getCacooDesignJSON
 import time
+import logging
 # see comment below on OO implementation for scheduler
 # from scheduler import generateRRSchedule
 from leaguediv_process import *
@@ -108,5 +109,9 @@ def getschedule():
     a = json.dumps({"game_list":game_list})
     return callback_name+'('+a+');'
 '''
-run(host='localhost', port=8080, debug=True)
+def main():
+    logging.basicConfig(level=logging.DEBUG)
+    run(host='localhost', port=8080, debug=True)
 
+if __name__ == '__main__':
+    main()
