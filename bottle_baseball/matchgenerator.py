@@ -1,6 +1,7 @@
 from itertools import product
 import networkx as nx
 from math import sqrt
+import logging
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
@@ -14,7 +15,10 @@ large_CONST = 1e7
 class MatchGenerator:
     def __init__(self, nt, ng):
         self.numTeams = nt
-        self.numGames = ng  # number games per team per season
+        self.numGameSlots = ng  # num gameslots per team per season
+        # actual number of games per team (determined by counter), init to 0 to start
+        # position in list is team_id-1
+        self.numGames_list = nt*[0]
         self.bye_flag = False
         if (self.numTeams % 2):
             self.eff_numTeams = self.numTeams+1
@@ -66,6 +70,9 @@ class MatchGenerator:
         # team id's are 1-indexed so decrement to get 0-index-based list position
         t1_ind = team1_id - 1
         t2_ind = team2_id - 1
+        # update game number (per team) counter
+        self.numGames_list[t1_ind] += 1
+        self.numGames_list[t2_ind] += 1
         if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
             # if team1 should be the home team
             gamematch = {home_CONST:team1_id, away_CONST:team2_id}
@@ -90,7 +97,6 @@ class MatchGenerator:
     #    list1.append(min(list2))
     def computeCostFunction(self, metrics_list):
         absdiff_list = [min([abs(m-t2) if m not in t else 0 for t2 in t]) for (m,t) in zip(metrics_list, self.targethome_count_list)]
-        print 'absdiff_list w sum',absdiff_list, sum(absdiff_list)
         euclidean_norm = sqrt(sum([x*x for x in absdiff_list]))
         return euclidean_norm
 
@@ -99,9 +105,6 @@ class MatchGenerator:
         maxdiff_ind_list = [i for i,j in enumerate(diff_list) if j==maxdiff]
         mindiff_ind_list = [i for i,j in enumerate(diff_list) if j==mindiff]
         print 'max min diff list', maxdiff_ind_list, mindiff_ind_list
-        # get all indices that correspond to the max or min home count
-        #max_ind_list = [i for i,j in enumerate(self.metrics_list) if j==maxhome_count]
-        #min_ind_list = [i for i,j in enumerate(self.metrics_list) if j==minhome_count]
         # ref http://stackoverflow.com/questions/2597104/break-the-nested-double-loop-in-python
         # for breaking out of double loops
         for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, maxdiff_ind_list, mindiff_ind_list):
@@ -262,8 +265,8 @@ class MatchGenerator:
         if not self.bye_flag:
             # if there are no bye games for a team, then target number of home game is half the number
             # of total games.
-            half_games = self.numGames / 2
-            targethome_count = [half_games] if self.numGames%2 == 0 else [half_games, half_games+1]
+            half_games = self.numGameSlots / 2
+            targethome_count = [half_games] if self.numGameSlots%2 == 0 else [half_games, half_games+1]
             self.targethome_count_list = self.numTeams*[targethome_count]
             #self.targethome_count_dict = {id+1:count for (id, count_list) in zip(range(self.numTeams),targethome_count) for count in count_list}
             #self.targethome_count_dict = {id+1:count for id,count_list in enumerate(self.targethome_count_list) for count in count_list }
@@ -276,12 +279,12 @@ class MatchGenerator:
             # each team has either the minNumByes or maxNumByes
             # total games for each team can be computed by the number of game slots
             # minus the min or max number of byes
-            minNumByes = self.numGames / self.numTeams
-            maxGames = self.numGames - minNumByes
+            minNumByes = self.numGameSlots / self.numTeams
+            maxGames = self.numGameSlots - minNumByes
             maxNumByes = minNumByes+1
-            minGames = self.numGames - maxNumByes
+            minGames = self.numGameSlots - maxNumByes
 
-            numTeams_minGames = self.numGames % self.numTeams
+            numTeams_minGames = self.numGameSlots % self.numTeams
             numTeams_maxGames = self.numTeams - numTeams_minGames
 
             mingames_list = numTeams_minGames*[minGames]
@@ -305,7 +308,7 @@ class MatchGenerator:
 
     def generateCirclePairing(self, circle_total_pos, circlecenter_team, game_count):
         for rotation_ind in range(circle_total_pos):
-            if game_count >= self.numGames:
+            if game_count >= self.numGameSlots:
                 break
             else:
                 game_count += 1
@@ -358,7 +361,7 @@ class MatchGenerator:
         # corresponds to number of game rotations, i.e. weeks (assuming there is one week per game)
         circle_total_pos = self.eff_numTeams - 1
         game_count = 0
-        while (game_count < self.numGames):
+        while (game_count < self.numGameSlots):
             game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count)
         print '****************************************'
         print 'metrics_list', self.numTeams, self.metrics_list

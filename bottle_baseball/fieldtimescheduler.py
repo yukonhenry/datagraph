@@ -57,6 +57,7 @@ class FieldTimeScheduleGenerator:
             submatch_list = []
             submatch_len_list = []
             gameinterval_dict = {}
+            numteamgames_list = []
             # take one of those connected divisions and iterate through each division
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
@@ -69,12 +70,13 @@ class FieldTimeScheduleGenerator:
                 index = match_list_indexer.get(division)
                 # get match list for indexed division
                 div_match_list = total_match_list[index]
+                numteamgames_list.append({'div_id':division,'numgames_list':div_match_list['numgames_list']})
                 submatch_list.append(div_match_list)
                 submatch_len_list.append(len(div_match_list['match_list']))  #gives num rounds
             if not all_same(submatch_len_list):
                 logging.warning('different number of games per season amongst shared field NOT SUPPORTED')
                 return None
-
+            logging.info('numgames_list=%s',numteamgames_list)
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
             field_list = []
@@ -129,7 +131,7 @@ class FieldTimeScheduleGenerator:
                     fieldmetrics_list[metindex]['count'] += 1
                     #print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
                     div = getAgeGenderDivision(rrgame['div_id'])
-                    logging.info('field assigned=%d for %s%s new fieldmetrics=%s', field_id, div.age, div.gender, fieldmetrics_list)
+                    logging.debug('field assigned=%d for %s%s new fieldmetrics=%s', field_id, div.age, div.gender, fieldmetrics_list)
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     field['next_time'].strftime(time_format_CONST),
                                                     field_id,
