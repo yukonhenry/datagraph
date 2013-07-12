@@ -340,7 +340,8 @@ class MatchGenerator:
                 gamematch_dict = self.getBalancedHomeAwayTeams(CCW_team, CW_team, game_count)
                 round_list.append(gamematch_dict)
             # round id is 1-index based, equivalent to team# at top of circle
-            self.match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
+            self.match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list,
+                                             'roundtotal':len(round_list)})
         return game_count
 
     def generateMatchList(self):

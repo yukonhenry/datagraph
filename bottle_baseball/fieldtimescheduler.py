@@ -25,7 +25,7 @@ class FieldTimeScheduleGenerator:
     def __init__(self, leaguedivinfo, fieldinfo, connected_comp, dbinterface):
         self.leaguedivinfo = leaguedivinfo
         self.connected_div_components = connected_comp
-        self.scheduleMatrix = []
+        self.scheduleStatusMatrix = []
         self.fieldinfo = fieldinfo
         self.total_game_dict = {}
         # initialize dictionary (div_id is key)
@@ -34,7 +34,7 @@ class FieldTimeScheduleGenerator:
 
         # assume greeday algorithm for now
         for field in fieldinfo:
-            self.scheduleMatrix.append({'field_id':field['field_id'],
+            self.scheduleStatusMatrix.append({'field_id':field['field_id'],
                                         'next_available':field['start_time']})
         self.dbinterface = dbinterface
 
@@ -62,11 +62,10 @@ class FieldTimeScheduleGenerator:
             # take one of those connected divisions and iterate through each division
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
-                # check on the logic below - probably all
                 divfields = self.leaguedivinfo[divindex]['fields']
                 numteams = self.leaguedivinfo[divindex]['totalteams']
+
                 fset.update(divfields)  #incremental union to set of shareable fields
-                numdivfields = len(divfields)
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
                 # convert gameinterval into datetime.timedelta object
@@ -75,6 +74,10 @@ class FieldTimeScheduleGenerator:
                 index = match_list_indexer.get(division)
                 # get match list for indexed division
                 div_match_list = total_match_list[index]
+                submatch_list.append(div_match_list)
+
+                # describe target fair field usage cout
+                numdivfields = len(divfields)
                 # get number of games scheduled for each team in dvision
                 numgames_list = div_match_list['numgames_list']
                 logging.debug("divsion=%d numgames_list=%s",division,numgames_list)
@@ -84,11 +87,14 @@ class FieldTimeScheduleGenerator:
                 # the target number of games per fields is the same for each field
                 numgamesperfield_list = [[n/numdivfields] if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1] for n in numgames_list]
                 targetfieldcount_list.append({'div_id':division, 'targetperfield':numgamesperfield_list})
+
                 fmetrics_list = numteams*[[{'field_id':x, 'count':0}]]
                 fieldmetrics_list.append({'div_id':division, 'fmetrics':fmetrics_list})
 
-                submatch_list.append(div_match_list)
-                submatch_len_list.append(len(div_match_list['match_list']))  #gives num rounds
+                round_match_list = div_match_list['match_list']
+                for roundi in round_match_list:
+                    print roundi
+                submatch_len_list.append(len(round_match_list))  #gives num rounds
             if not all_same(submatch_len_list):
                 logging.warning('different number of games per season amongst shared field NOT SUPPORTED')
                 return None
@@ -100,7 +106,6 @@ class FieldTimeScheduleGenerator:
             flist.sort()  # default ordering, use it for now
             field_list = []
             initialstarttime_dict = {}
-            fieldmetrics_list = []
             for f_id in flist:
                 # field_id is 0-index based
                 findex = fieldinfo_indexer.get(f_id)
@@ -109,7 +114,6 @@ class FieldTimeScheduleGenerator:
                 field_list.append({'field_id':f_id,
                                    'next_time':nexttime_dtime})
                 initialstarttime_dict[f_id] = nexttime_dtime  #use for resetting time to beginning of day
-                fieldmetrics_list.append({'field_id':f_id, 'count':0})
                 fieldmetrics_max = 0
             fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(fieldmetrics_list))
 
