@@ -57,11 +57,14 @@ class FieldTimeScheduleGenerator:
             submatch_list = []
             submatch_len_list = []
             gameinterval_dict = {}
-            numteamgames_list = []
+            targetfieldcount_list = []
             # take one of those connected divisions and iterate through each division
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
-                fset.update(self.leaguedivinfo[divindex]['fields'])  #incremental union
+                # check on the logic below - probably all
+                divfields = self.leaguedivinfo[divindex]['fields']
+                fset.update(divfields)  #incremental union
+                numdivfields = len(divfields)
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
                 # convert gameinterval into datetime.timedelta object
@@ -70,13 +73,21 @@ class FieldTimeScheduleGenerator:
                 index = match_list_indexer.get(division)
                 # get match list for indexed division
                 div_match_list = total_match_list[index]
-                numteamgames_list.append({'div_id':division,'numgames_list':div_match_list['numgames_list']})
+                # get number of games scheduled for each team in dvision
+                numgames_list = div_match_list['numgames_list']
+                logging.debug("divsion=%d numgames_list=%s",division,numgames_list)
+                # for each team, number of games targeted for each field.
+                # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
+                # or it can be a two element range (floor(#teams/#fields), same floor+1)
+                # the target number of games per fields is the same for each field
+                numgamesperfield_list = [[n/numdivfields] if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1] for n in numgames_list]
+                targetfieldcount_list.append({'div_id':division, 'targetperfield':numgamesperfield_list})
                 submatch_list.append(div_match_list)
                 submatch_len_list.append(len(div_match_list['match_list']))  #gives num rounds
             if not all_same(submatch_len_list):
                 logging.warning('different number of games per season amongst shared field NOT SUPPORTED')
                 return None
-            logging.info('numgames_list=%s',numteamgames_list)
+            logging.debug('target num games per fields=%s',targetfieldcount_list)
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
             field_list = []
