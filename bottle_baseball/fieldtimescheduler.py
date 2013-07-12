@@ -58,12 +58,14 @@ class FieldTimeScheduleGenerator:
             submatch_len_list = []
             gameinterval_dict = {}
             targetfieldcount_list = []
+            fieldmetrics_list = []
             # take one of those connected divisions and iterate through each division
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
                 # check on the logic below - probably all
                 divfields = self.leaguedivinfo[divindex]['fields']
-                fset.update(divfields)  #incremental union
+                numteams = self.leaguedivinfo[divindex]['totalteams']
+                fset.update(divfields)  #incremental union to set of shareable fields
                 numdivfields = len(divfields)
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
@@ -82,12 +84,18 @@ class FieldTimeScheduleGenerator:
                 # the target number of games per fields is the same for each field
                 numgamesperfield_list = [[n/numdivfields] if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1] for n in numgames_list]
                 targetfieldcount_list.append({'div_id':division, 'targetperfield':numgamesperfield_list})
+                fmetrics_list = numteams*[[{'field_id':x, 'count':0}]]
+                fieldmetrics_list.append({'div_id':division, 'fmetrics':fmetrics_list})
+
                 submatch_list.append(div_match_list)
                 submatch_len_list.append(len(div_match_list['match_list']))  #gives num rounds
             if not all_same(submatch_len_list):
                 logging.warning('different number of games per season amongst shared field NOT SUPPORTED')
                 return None
             logging.debug('target num games per fields=%s',targetfieldcount_list)
+            # we are assuming still below that all fields in fset are shared by the field-sharing
+            # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
+            # and div2 is using fields[2,3] (field 2 is shared but not 1 and 3)
             flist = list(fset)
             flist.sort()  # default ordering, use it for now
             field_list = []
