@@ -35,17 +35,17 @@ for div in league_div:
 # primary key identifies age groups that have priority for the fields.
 # identified by _id from league_div dictionary elements
 field_info = [
-    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary', 'start_time':'08:00'},
-    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park', 'start_time':'08:00'},
-    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary', 'start_time':'08:00'},
-    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park', 'start_time':'08:00'},
-    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park', 'start_time':'08:00'},
-    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park', 'start_time':'08:00'},
-    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park', 'start_time':'08:00'},
-    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park', 'start_time':'08:00'},
-    {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary', 'start_time':'08:00'},
-    {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary', 'start_time':'08:00'},
-    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00',
+    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary', 'start_time':'08:00', 'hours':8},
+    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park', 'start_time':'08:00', 'hours':8},
+    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary', 'start_time':'08:00', 'hours':8 },
+    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park', 'start_time':'08:00', 'hours':8},
+    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park', 'start_time':'08:00', 'hours':8},
+    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park', 'start_time':'08:00', 'hours':8},
+    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park', 'start_time':'08:00', 'hours':8},
+    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park', 'start_time':'08:00', 'hours':8},
+    {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary', 'start_time':'08:00', 'hours':8},
+    {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary', 'start_time':'08:00', 'hours':8},
+    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00', 'hours':8,
      'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
 # assigned fields attribute for each division
@@ -63,6 +63,30 @@ for field in field_info:
             division['fields'].append(f_id)
         else:
             division['fields'] = [f_id]
+
+def getFieldSeasonStatus_list():
+    # routine to return initialized list of field status slots -
+    # which are all initially set to False
+    # each entry of list is a dictionary with two elemnts - (1)field_id
+    # (2) - two dimensional matrix of True/False status (outer dimension is
+    # round_id, inner dimenstion is time slot)
+    fieldseason_status_list = []
+    for f in field_info:
+        f_id = f['field_id']
+        interval_list = []
+        numgames_list = []
+        for p in f['primary']:
+            divinfo = league_div[div_indexer.get(p)]
+            interval_list.append(divinfo['gameinterval'])
+            numgames_list.append(divinfo['gamesperseason'])
+        interval = max(interval_list)
+        numgames = max(numgames_list)
+        numslots = f['hours']*60/interval
+        slotstatus_list = numslots*[False]
+
+        fieldseason_status_list.append({'field_id':f['field_id'],
+                                        'slotstatus_list':numgames*[slotstatus_list]})
+    return fieldseason_status_list
 
 coach_conflict_info = [
     {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},
@@ -166,29 +190,7 @@ for field in field_info:
         if prev_node is not None and not G.has_edge(prev_node, div_id):
             G.add_edge(prev_node, div_id)
         prev_node = div_id
-'''
-# using networkx
-G = nx.Graph()
-index = 0
-# find inter-related divsions by finding out if there are fields
-# that are shared between divisions.
-# To discover shared fields, do intersection of sets using  set(array1).intersection(array2)
-max_index = len(league_div)-1
-# loop through each division in division list
-for division in league_div:
-    div_id = division['_id']
-    G.add_node(div_id)
-    field_set = set(division['fields'])
-    # and do set intersection with other divisions
-    # only need to do set intersection with 'remaining' divisions
-    for other_div in league_div[index+1:]:
-        if field_set.intersection(other_div['fields']):
-            G.add_edge(div_id, other_div['_id'])
-    index += 1
 
-connected_list = connected_components(G)
-print connected_list
-'''
 #serialize field-connected divisions as graph and save it (instead of saving list of connected components)
 #used by leaguediv_process to determine schedule allocation of connected divisions
 connected_graph = json_graph.node_link_data(G)

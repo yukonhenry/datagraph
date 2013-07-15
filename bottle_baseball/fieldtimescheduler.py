@@ -3,7 +3,7 @@ from itertools import cycle
 from schedule_util import roundrobin, all_same, all_value
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
-from leaguedivprep import getAgeGenderDivision
+from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list
 import logging
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
@@ -25,17 +25,13 @@ class FieldTimeScheduleGenerator:
     def __init__(self, leaguedivinfo, fieldinfo, connected_comp, dbinterface):
         self.leaguedivinfo = leaguedivinfo
         self.connected_div_components = connected_comp
-        self.scheduleStatusMatrix = []
+        self.fieldSeasonStatus = getFieldSeasonStatus_list()
+        print 'fieldseasonstatus',self.fieldSeasonStatus
         self.fieldinfo = fieldinfo
         self.total_game_dict = {}
         # initialize dictionary (div_id is key)
         for i in range(1,len(self.leaguedivinfo)+1):
             self.total_game_dict[i] = []
-
-        # assume greeday algorithm for now
-        for field in fieldinfo:
-            self.scheduleStatusMatrix.append({'field_id':field['field_id'],
-                                        'next_available':field['start_time']})
         self.dbinterface = dbinterface
 
     def generateSchedule(self, total_match_list):
@@ -62,14 +58,15 @@ class FieldTimeScheduleGenerator:
             # take one of those connected divisions and iterate through each division
             for division in connected_div_list:
                 divindex = leaguediv_indexer.get(division)
-                divfields = self.leaguedivinfo[divindex]['fields']
-                numteams = self.leaguedivinfo[divindex]['totalteams']
+                divinfo = self.leaguedivinfo[divindex]
+                divfields = divinfo['fields']
+                numteams = divinfo['totalteams']
 
                 fset.update(divfields)  #incremental union to set of shareable fields
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
                 # convert gameinterval into datetime.timedelta object
-                ginterval = self.leaguedivinfo[divindex]['gameinterval']
+                ginterval = divinfo['gameinterval']
                 gameinterval_dict[division] = timedelta(0,0,0,0,ginterval)
                 index = match_list_indexer.get(division)
                 # get match list for indexed division
@@ -88,12 +85,10 @@ class FieldTimeScheduleGenerator:
                 numgamesperfield_list = [[n/numdivfields] if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1] for n in numgames_list]
                 targetfieldcount_list.append({'div_id':division, 'targetperfield':numgamesperfield_list})
 
-                fmetrics_list = numteams*[[{'field_id':x, 'count':0}]]
+                fmetrics_list = numteams*[[{'field_id':x, 'count':0} for x in divfields]]
                 fieldmetrics_list.append({'div_id':division, 'fmetrics':fmetrics_list})
 
                 round_match_list = div_match_list['match_list']
-                for roundi in round_match_list:
-                    print roundi
                 submatch_len_list.append(len(round_match_list))  #gives num rounds
             if not all_same(submatch_len_list):
                 logging.warning('different number of games per season amongst shared field NOT SUPPORTED')
