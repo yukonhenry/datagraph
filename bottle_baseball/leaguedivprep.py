@@ -79,9 +79,10 @@ def getFieldSeasonStatus_list():
             divinfo = league_div[div_indexer.get(p)]
             interval_list.append(divinfo['gameinterval'])
             numgames_list.append(divinfo['gamesperseason'])
+        #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
         interval = max(interval_list)
         numgames = max(numgames_list)
-        numslots = f['hours']*60/interval
+        numslots = f['hours']*60/interval  #number of game slots per day
         slotstatus_list = numslots*[False]
 
         fieldseason_status_list.append({'field_id':f['field_id'],
