@@ -34,18 +34,18 @@ class FieldTimeScheduleGenerator:
         self.dbinterface = dbinterface
 
     def findMinimumCountField(self, homemetrics_list, awaymetrics_list):
-        homemetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(homemetrics_list))
-        awaymetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(awaymetrics_list))
         home_field_list = [x['field_id'] for x in homemetrics_list]
         away_field_list = [x['field_id'] for x in awaymetrics_list]
         if (set(home_field_list) != set(away_field_list)):
             logging.error("home and away teams have different field lists %s %s",home_field_list, away_field_list)
             return False
-        else:
-            # we need to first sort the lists
-            sumcount_list = [x+y for (x,y) in zip([i['count'] for i in homemetrics_list],
-                                                  [j['count'] for j in awaymetrics_list])]
-            # refer to http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
+        # get min
+        sumcount_list = [x+y for (x,y) in zip([i['count'] for i in homemetrics_list],
+                                              [j['count'] for j in awaymetrics_list])]
+        # refer to http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
+        maxsum = max(sumcount_list)
+        maxind = [i for i, j in enumerate(a) if j == maxsum]
+        return maxind
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -157,10 +157,6 @@ class FieldTimeScheduleGenerator:
                     dindex = fieldmetrics_indexer.get(div_id)
                     teamfieldmetrics_list = fieldmetrics_list[dindex]['fmetrics']
 
-                    field_id = field['field_id']
-                    fsindex = fieldstatus_indexer.get(field_id)
-                    fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list']
-
                     gameinfo = rrgame['game']
                     home_id = gameinfo[home_CONST]
                     away_id = gameinfo[away_CONST]
@@ -168,7 +164,17 @@ class FieldTimeScheduleGenerator:
                     home_fieldmetrics_list = teamfieldmetrics_list[home_id-1]
                     away_fieldmetrics_list = teamfieldmetrics_list[away_id-1]
 
-                    home_fieldcount = home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count']
+                    fieldcand_list = findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list)
+                    fieldearliestslot_list = []
+                    for field_id in fieldcand_list:
+                        fsindex = fieldstatus_indexer.get(field_id)
+                        # find status list for this round
+                        fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
+                        # find first open time slot in round
+                        index = fieldslotstatus_list.index(False)
+                        fieldearliestslot_list.append((field_id, index))
+
+                    home_fieldcount = home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['coun t']
                     away_fieldcount = away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count']
 
 
