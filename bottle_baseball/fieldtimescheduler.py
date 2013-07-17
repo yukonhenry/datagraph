@@ -5,6 +5,7 @@ from schedule_util import roundrobin, all_same, all_value
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list
 import logging
+from operator import itemgetter
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
@@ -44,7 +45,7 @@ class FieldTimeScheduleGenerator:
                                               [j['count'] for j in awaymetrics_list])]
         # refer to http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
         maxsum = max(sumcount_list)
-        maxind = [i for i, j in enumerate(a) if j == maxsum]
+        maxind = [i for i, j in enumerate(sumcount_list) if j == maxsum]
         return maxind
 
     def generateSchedule(self, total_match_list):
@@ -93,33 +94,20 @@ class FieldTimeScheduleGenerator:
                 numdivfields = len(divfields)
                 # get number of games scheduled for each team in dvision
                 numgames_list = divmatch_dict['numgames_list']
-                logging.debug("divsion=%d numgames_list=%s",division,numgames_list)
+                logging.debug("divsion=%d numgames_list=%s",div_id,numgames_list)
                 # for each team, number of games targeted for each field.
                 # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
                 numgamesperfield_list = [[n/numdivfields] if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1] for n in numgames_list]
-                targetfieldcount_list.append({'div_id':division, 'targetperfield':numgamesperfield_list})
+                targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
                 fmetrics_list = numteams*[[{'field_id':x, 'count':0} for x in divfields]]
-                fieldmetrics_list.append({'div_id':division, 'fmetrics':fmetrics_list})
+                fieldmetrics_list.append({'div_id':div_id, 'fmetrics':fmetrics_list})
             logging.debug('target num games per fields=%s',targetfieldcount_list)
             # we are assuming still below that all fields in fset are shared by the field-sharing
             # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
             # and div2 is using fields[2,3] (field 2 is shared but not 1 and 3)
-            flist = list(fset)
-            flist.sort()  # default ordering, use it for now
-            field_list = []
-            initialstarttime_dict = {}
-            for f_id in flist:
-                # field_id is 0-index based
-                findex = fieldinfo_indexer.get(f_id)
-                # note convert start time string to datetime obj
-                nexttime_dtime = parser.parse(self.fieldinfo[findex]['start_time'])
-                field_list.append({'field_id':f_id,
-                                   'next_time':nexttime_dtime})
-                initialstarttime_dict[f_id] = nexttime_dtime  #use for resetting time to beginning of day
-                fieldmetrics_max = 0
 
             fieldstatus_indexer = dict((p['field_id'],i) for i,p in enumerate(self.fieldSeasonStatus))
             fieldmetrics_indexer = dict((p['div_id'],i) for i,p in enumerate(fieldmetrics_list))
@@ -132,7 +120,7 @@ class FieldTimeScheduleGenerator:
                 for div_dict in submatch_list:
                     divmatch_list = div_dict['match_list']
                     matchlist_indexer = dict((p[round_id_CONST],i) for i,p in enumerate(divmatch_list))
-                    rindex = matchlist_indexer.get[round_id]
+                    rindex = matchlist_indexer.get(round_id)
                     if rindex:
                         div_id = div_dict['div_id']
                         match_list = divmatch_list[rindex]
@@ -149,9 +137,6 @@ class FieldTimeScheduleGenerator:
                 #http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
                 # http://stackoverflow.com/questions/7529376/pythonic-way-to-mix-two-lists
                 rrgenobj = roundrobin(combined_match_list)
-                field_list_iter = cycle(field_list)
-                field = field_list_iter.next()
-                fieldroundstatus_list = fieldstatus_list[round_id-1]
                 for rrgame in rrgenobj:
                     div_id = rrgame['div_id']
                     dindex = fieldmetrics_indexer.get(div_id)
@@ -164,44 +149,36 @@ class FieldTimeScheduleGenerator:
                     home_fieldmetrics_list = teamfieldmetrics_list[home_id-1]
                     away_fieldmetrics_list = teamfieldmetrics_list[away_id-1]
 
-                    fieldcand_list = findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list)
-                    fieldearliestslot_list = []
-                    for field_id in fieldcand_list:
+                    fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list)
+                    logging.debug("divid=%d homemetrics=%s awaymetrics=%s minimum count fields=%s",
+                                  div_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
+                    if len(fieldcand_list) > 1:
+                        earliestslot_list = [(x,[y.isgame for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]].index(False)) for x in fieldcand_list]
+                        # http://docs.python.org/2/howto/sorting.html
+                        sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
+                        field_id = sorted_earliestslot_list[0][0]
+                        slot_index = sorted_earliestslot_list[0][1]
+                    else:
+                        field_id = fieldcand_list[0]
                         fsindex = fieldstatus_indexer.get(field_id)
                         # find status list for this round
                         fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
                         # find first open time slot in round
-                        index = fieldslotstatus_list.index(False)
-                        fieldearliestslot_list.append((field_id, index))
+                        slot_index = [y.isgame for y in fieldslotstatus_list].index(False)
 
-                    home_fieldcount = home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['coun t']
-                    away_fieldcount = away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count']
+                    selected_ftstatus = self.fieldSeasonStatus[fieldstatus_indexer.get(field_id)]['slotstatus_list'][round_id-1][slot_index]
+                    selected_ftstatus.isgame = True
+                    gametime = selected_ftstatus.start_time
 
+                    home_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list))
+                    away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))
+                    home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count'] += 1
+                    away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
 
-                    if all_value([x['count'] for x in fieldmetrics_list], fieldmetrics_max):
-                        fieldmetrics_max += 1
-                        metindex = fieldmetrics_indexer.get(field_id)
-                    else:
-                        while True:
-                            metindex = fieldmetrics_indexer.get(field_id)
-                            fcount = fieldmetrics_list[metindex]['count']
-                            if fcount < fieldmetrics_max:
-                                break
-                            else:
-                                field = field_list_iter.next()
-                                field_id = field['field_id']
-                    fieldmetrics_list[metindex]['count'] += 1
-                    #print 'rr',rrgame, field, field['next_time'].strftime(time_format_CONST)
                     div = getAgeGenderDivision(div_id)
                     logging.debug('field assigned=%d for %s%s new fieldmetrics=%s', field_id, div.age, div.gender, fieldmetrics_list)
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
-                                                    field['next_time'].strftime(time_format_CONST),
+                                                    gametime.strftime(time_format_CONST),
                                                     field_id,
                                                     rrgame['game'][home_CONST],
                                                     rrgame['game'][away_CONST])
-                    # update next available time for the field
-                    field['next_time'] += rrgame['gameinterval']
-                    field = field_list_iter.next()
-                # reset next available time for new round
-                for f in field_list:
-                    f['next_time'] = initialstarttime_dict[field['field_id']]

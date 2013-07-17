@@ -6,6 +6,8 @@ from networkx import connected_components
 from networkx.readwrite import json_graph
 # ref http://stackoverflow.com/questions/2970608/what-are-named-tuples-in-python for namedtuples
 from collections import namedtuple
+from datetime import timedelta
+from dateutil import parser
 
 league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
@@ -34,18 +36,29 @@ for div in league_div:
 
 # primary key identifies age groups that have priority for the fields.
 # identified by _id from league_div dictionary elements
-field_info = [
-    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary', 'start_time':'08:00', 'hours':8},
-    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park', 'start_time':'08:00', 'hours':8},
-    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary', 'start_time':'08:00', 'hours':8 },
-    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park', 'start_time':'08:00', 'hours':8},
-    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park', 'start_time':'08:00', 'hours':8},
-    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park', 'start_time':'08:00', 'hours':8},
-    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park', 'start_time':'08:00', 'hours':8},
-    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park', 'start_time':'08:00', 'hours':8},
-    {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary', 'start_time':'08:00', 'hours':8},
-    {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary', 'start_time':'08:00', 'hours':8},
-    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary', 'start_time':'08:00', 'hours':8,
+_field_info = [
+    {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary',
+     'start_time':'08:00', 'end_time':'17:00' },
+    {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary',
+     'start_time':'08:00', 'end_time':'17:00'},
+    {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary',
+     'start_time':'08:00', 'end_time':'17:00',
      'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
 # assigned fields attribute for each division
@@ -53,7 +66,7 @@ field_info = [
 # for finding index of dictionary key in array of dictionaries
 # use indexer so that we don't depend on order of divisions in league_div list
 div_indexer = dict((p['div_id'],i) for i,p in enumerate(league_div))
-for field in field_info:
+for field in _field_info:
     f_id = field['field_id']
     for d_id in field['primary']:
         index = div_indexer.get(d_id)
@@ -71,7 +84,7 @@ def getFieldSeasonStatus_list():
     # (2) - two dimensional matrix of True/False status (outer dimension is
     # round_id, inner dimenstion is time slot)
     fieldseason_status_list = []
-    for f in field_info:
+    for f in _field_info:
         f_id = f['field_id']
         interval_list = []
         numgames_list = []
@@ -81,9 +94,17 @@ def getFieldSeasonStatus_list():
             numgames_list.append(divinfo['gamesperseason'])
         #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
         interval = max(interval_list)
+        gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
         numgames = max(numgames_list)
-        numslots = f['hours']*60/interval  #number of game slots per day
-        slotstatus_list = numslots*[False]
+        FieldTimeStatus = namedtuple('FieldTimeStatus', 'start_time isgame')
+        gamestart = parser.parse(f['start_time'])
+        end_time = parser.parse(f['end_time'])
+        # slotstatus_list has a list of statuses, one for each gameslot
+        # each status is a namedtuple - (starttime, true/false filled flag)
+        slotstatus_list = []
+        while gamestart <= end_time:
+            slotstatus_list.append(FieldTimeStatus(gamestart, False))
+            gamestart += gameinterval
 
         fieldseason_status_list.append({'field_id':f['field_id'],
                                         'slotstatus_list':numgames*[slotstatus_list]})
@@ -183,7 +204,7 @@ def getDivisionData(div_id):
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list
 G = nx.Graph()
-for field in field_info:
+for field in _field_info:
     prev_node = None
     for div_id in field['primary']:
         if not G.has_node(div_id):
@@ -222,7 +243,7 @@ jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":league_div,
                       "conflict_info":coach_conflict_info,
                       "connected_graph":connected_graph,
-                      "field_info":field_info})
+                      "field_info":_field_info})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
 
