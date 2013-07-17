@@ -35,18 +35,28 @@ class FieldTimeScheduleGenerator:
         self.dbinterface = dbinterface
 
     def findMinimumCountField(self, homemetrics_list, awaymetrics_list):
-        home_field_list = [x['field_id'] for x in homemetrics_list]
-        away_field_list = [x['field_id'] for x in awaymetrics_list]
+        # return field_id(s) (can be more than one) that corresponds to the minimum
+        # count in the two metrics list.  the minimum should map to the same fied in both
+        # metric lists, but to take into account cases where field_id with min count is different
+        # between two lists, use sum of counts as metric.
+        # return field_id(s) - not indices
+
+        # first ensure both lists are sorted according to field
+        sorted_homemetrics_list = sorted(homemetrics_list, key=itemgetter('field_id'))
+        sorted_awaymetrics_list = sorted(awaymetrics_list, key=itemgetter('field_id'))
+        home_field_list = [x['field_id'] for x in sorted_homemetrics_list]
+        away_field_list = [x['field_id'] for x in sorted_awaymetrics_list]
         if (set(home_field_list) != set(away_field_list)):
             logging.error("home and away teams have different field lists %s %s",home_field_list, away_field_list)
             return False
         # get min
-        sumcount_list = [x+y for (x,y) in zip([i['count'] for i in homemetrics_list],
-                                              [j['count'] for j in awaymetrics_list])]
+        sumcount_list = [x+y for (x,y) in zip([i['count'] for i in sorted_homemetrics_list],
+                                              [j['count'] for j in sorted_awaymetrics_list])]
         # refer to http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
-        maxsum = max(sumcount_list)
-        maxind = [i for i, j in enumerate(sumcount_list) if j == maxsum]
-        return maxind
+        minsum = min(sumcount_list)
+        minind = [i for i, j in enumerate(sumcount_list) if j == minsum]
+        mincount_fields = [home_field_list[i] for i in minind]
+        return mincount_fields
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -153,8 +163,10 @@ class FieldTimeScheduleGenerator:
                     logging.debug("divid=%d homemetrics=%s awaymetrics=%s minimum count fields=%s",
                                   div_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
                     if len(fieldcand_list) > 1:
-                        earliestslot_list = [(x,[y.isgame for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]].index(False)) for x in fieldcand_list]
+                        earliestslot_list = [(x,[y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]].index(False)) for x in fieldcand_list]
                         # http://docs.python.org/2/howto/sorting.html
+                        # sort based on first index of isgame 'False' which maps to earliest time
+                        # game that needs to be filled.
                         sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
                         field_id = sorted_earliestslot_list[0][0]
                         slot_index = sorted_earliestslot_list[0][1]
@@ -164,19 +176,19 @@ class FieldTimeScheduleGenerator:
                         # find status list for this round
                         fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
                         # find first open time slot in round
-                        slot_index = [y.isgame for y in fieldslotstatus_list].index(False)
+                        slot_index = [y['isgame'] for y in fieldslotstatus_list].index(False)
 
                     selected_ftstatus = self.fieldSeasonStatus[fieldstatus_indexer.get(field_id)]['slotstatus_list'][round_id-1][slot_index]
-                    selected_ftstatus.isgame = True
-                    gametime = selected_ftstatus.start_time
-
+                    selected_ftstatus['isgame'] = True
+                    gametime = selected_ftstatus['start_time']
+                    logging.debug("div=%d field=%d gametime=%s",div_id, field_id, gametime)
                     home_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list))
                     away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))
                     home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count'] += 1
                     away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
 
                     div = getAgeGenderDivision(div_id)
-                    logging.debug('field assigned=%d for %s%s new fieldmetrics=%s', field_id, div.age, div.gender, fieldmetrics_list)
+                    logging.debug('field assigned=%d for %s%s', field_id, div.age, div.gender)
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     gametime.strftime(time_format_CONST),
                                                     field_id,

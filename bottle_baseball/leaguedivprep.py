@@ -38,27 +38,27 @@ for div in league_div:
 # identified by _id from league_div dictionary elements
 _field_info = [
     {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Rodgers Smith Park',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary',
-     'start_time':'08:00', 'end_time':'17:00' },
+     'start_time':'08:00', 'end_time':'22:00' },
     {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Hidden Valley Park',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':6, 'primary':[5,6], 'secondary':[7,8], 'name':'Pleasant Oaks Park',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':7, 'primary':[5,6], 'secondary':[7,8], 'name':'Golden Hills Park',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':8, 'primary':[5,6], 'secondary':[7,8], 'name':'Nancy Boyd Park',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':9, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':10, 'primary':[7,8], 'secondary':None, 'name':'Strandwood Elementary',
-     'start_time':'08:00', 'end_time':'17:00'},
+     'start_time':'08:00', 'end_time':'22:00'},
     {'field_id':11, 'primary':[7,8], 'secondary':None, 'name':'Las Juntas Elementary',
-     'start_time':'08:00', 'end_time':'17:00',
+     'start_time':'08:00', 'end_time':'22:00',
      'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
 # assigned fields attribute for each division
@@ -103,7 +103,8 @@ def getFieldSeasonStatus_list():
         # each status is a namedtuple - (starttime, true/false filled flag)
         slotstatus_list = []
         while gamestart <= end_time:
-            slotstatus_list.append(FieldTimeStatus(gamestart, False))
+            #slotstatus_list.append(FieldTimeStatus(gamestart, False))
+            slotstatus_list.append({'start_time':gamestart, 'isgame':False})
             gamestart += gameinterval
 
         fieldseason_status_list.append({'field_id':f['field_id'],
