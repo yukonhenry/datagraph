@@ -23,9 +23,12 @@ class MatchGenerator:
         if (self.numTeams % 2):
             self.eff_numTeams = self.numTeams+1
             self.bye_flag = True
+            # used by fieldtime scheduler to ensure there are enough fields/timeslots per game
+            self.gameslotsperday = (self.numTeams-1)/2
         else:
             self.eff_numTeams = self.numTeams
             self.bye_flag = False
+            self.gameslotsperday = self.numTeams/2
         # half_n, num_time_slots, num_in_last_slot are variables relevant for schedule making
         # within a game day
         # half_n denotes number of positions on the scheduling circle, so it is independent

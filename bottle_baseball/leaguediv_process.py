@@ -80,7 +80,7 @@ def get_alldivSchedule():
         nt = division['totalteams']
         ng = division['gamesperseason']
         match = MatchGenerator(nt, ng)
-        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_list':match.numGames_list})
+        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
     # get list of connected divisions through field constraints
     connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     connected_div_components = connected_components(connectedG)

@@ -8,6 +8,7 @@ from networkx.readwrite import json_graph
 from collections import namedtuple
 from datetime import timedelta
 from dateutil import parser
+from copy import deepcopy
 
 league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
@@ -96,19 +97,19 @@ def getFieldSeasonStatus_list():
         interval = max(interval_list)
         gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
         numgames = max(numgames_list)
-        FieldTimeStatus = namedtuple('FieldTimeStatus', 'start_time isgame')
         gamestart = parser.parse(f['start_time'])
         end_time = parser.parse(f['end_time'])
         # slotstatus_list has a list of statuses, one for each gameslot
-        # each status is a namedtuple - (starttime, true/false filled flag)
-        slotstatus_list = []
+        sstatus_list = []
         while gamestart <= end_time:
             #slotstatus_list.append(FieldTimeStatus(gamestart, False))
-            slotstatus_list.append({'start_time':gamestart, 'isgame':False})
+            sstatus_list.append({'start_time':gamestart, 'isgame':False})
             gamestart += gameinterval
-
+        sstatus_len = len(sstatus_list)
+        slotstatus_list = [deepcopy(sstatus_list) for i in range(numgames)]
         fieldseason_status_list.append({'field_id':f['field_id'],
-                                        'slotstatus_list':numgames*[slotstatus_list]})
+                                        'slotstatus_list':slotstatus_list,
+                                        'gameslotsperday':sstatus_len})
     return fieldseason_status_list
 
 coach_conflict_info = [

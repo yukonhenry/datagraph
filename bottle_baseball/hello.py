@@ -110,7 +110,7 @@ def getschedule():
     return callback_name+'('+a+');'
 '''
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
     run(host='localhost', port=8080, debug=True)
 
 if __name__ == '__main__':
