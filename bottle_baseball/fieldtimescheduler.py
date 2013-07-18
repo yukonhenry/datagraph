@@ -189,26 +189,19 @@ class FieldTimeScheduleGenerator:
                     logging.debug("divid=%d round_id=%d home=%d away=%d homemetrics=%s awaymetrics=%s minimum count fields=%s",
                                   div_id, round_id, home_id, away_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
                     if len(fieldcand_list) > 1:
-                        try:
-                            earliestslot_list = [(x,[y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]].index(False)) for x in fieldcand_list]
-                        except ValueError:
-                            logging.exception("rrgame fieldstatus: False Flag index detection error: %s",
-                                              [self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1] for x in fieldcand_list])
-                            logging.exception("possible True flag buried in subsequent field_id list, search")
-                            isgame_list = [(x,y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]) for x in fieldcand_list]
-                            for alist in isgame_list:
-                                if not all_value(alist, True):
-                                    break;
-                            else:
-                                return None
-                            #*****************something here
-                        finally:
-                            # http://docs.python.org/2/howto/sorting.html
-                            # sort based on first index of isgame 'False' which maps to earliest time
-                            # game that needs to be filled.
-                            sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
-                            field_id = sorted_earliestslot_list[0][0]
-                            slot_index = sorted_earliestslot_list[0][1]
+                        isgame_list = [(x,[y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]]) for x in fieldcand_list]
+                        earliestslot_list = [(x[0],x[1].index(False)) for x in isgame_list if not all_value(x[1],True)]
+                        # first get the list of field/status dictionaries before searching for the False field
+                        if all_value(earliestslot_list, None):
+                            logging.debug("fieldtimescheduler: fields %s are full",[x[0] for x in isgame_list])
+                            submin += 1
+                            continue
+                        # http://docs.python.org/2/howto/sorting.html
+                        # sort based on first index of isgame 'False' which maps to earliest time
+                        # game that needs to be filled.
+                        sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
+                        field_id = sorted_earliestslot_list[0][0]
+                        slot_index = sorted_earliestslot_list[0][1]
                     else:
                         field_id = fieldcand_list[0]
                         fsindex = fieldstatus_indexer.get(field_id)
