@@ -1,3 +1,3 @@
 #b matchgenerator.py:302
-b fieldtimescheduler.py:200
+b fieldtimescheduler.py:234, (max([x['count'] for x in home_fieldmetrics_list])-min([x['count'] for x in home_fieldmetrics_list]) > 1 or max([x['count'] for x in away_fieldmetrics_list])-min([x['count'] for x in away_fieldmetrics_list]) > 1) and (home_id==21 or away_id==21)
 #b leaguediv_process.py:87

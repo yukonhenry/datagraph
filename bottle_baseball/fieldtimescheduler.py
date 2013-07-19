@@ -7,6 +7,7 @@ from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list
 import logging
 from operator import itemgetter
 from copy import deepcopy
+from sched_exceptions import FieldAvailabilityError
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
@@ -128,6 +129,8 @@ class FieldTimeScheduleGenerator:
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(numteams)]
                 fieldmetrics_list.append({'div_id':div_id, 'tfmetrics':tfmetrics_list})
 
+                required_earlylate_list = [{'early':numdivfields*x/numteams, 'late':numdivfields*x/numteams} for x in numgames_list]
+                print 'div_id requiredearlylate',div_id, required_earlylate_list
             logging.debug('target num games per fields=%s',targetfieldcount_list)
             # we are assuming still below that all fields in fset are shared by the field-sharing
             # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
@@ -184,37 +187,44 @@ class FieldTimeScheduleGenerator:
                     home_fieldmetrics_list = teamfieldmetrics_list[home_id-1]
                     away_fieldmetrics_list = teamfieldmetrics_list[away_id-1]
 
-                    fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list)
-                    logging.debug("----------------------")
-                    logging.debug("divid=%d round_id=%d home=%d away=%d homemetrics=%s awaymetrics=%s minimum count fields=%s",
-                                  div_id, round_id, home_id, away_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
-                    if len(fieldcand_list) > 1:
-                        isgame_list = [(x,[y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]]) for x in fieldcand_list]
-                        earliestslot_list = [(x[0],x[1].index(False)) for x in isgame_list if not all_value(x[1],True)]
-                        # first get the list of field/status dictionaries before searching for the False field
-                        if all_value(earliestslot_list, None):
-                            logging.debug("fieldtimescheduler: fields %s are full",[x[0] for x in isgame_list])
-                            submin += 1
-                            continue
-                        # http://docs.python.org/2/howto/sorting.html
-                        # sort based on first index of isgame 'False' which maps to earliest time
-                        # game that needs to be filled.
-                        sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
-                        field_id = sorted_earliestslot_list[0][0]
-                        slot_index = sorted_earliestslot_list[0][1]
-                    else:
-                        field_id = fieldcand_list[0]
-                        fsindex = fieldstatus_indexer.get(field_id)
-                        # find status list for this round
-                        fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
-                        #logging.debug("fieldslotstatus_list=%s", fieldslotstatus_list)
-                        # find first open time slot in round
-                        try:
-                            slot_index = [y['isgame'] for y in fieldslotstatus_list].index(False)
-                        except ValueError:
-                            logging.exception("rrgame fieldstatus: no False Flags left in: %s",
-                                              [y['isgame'] for y in fieldslotstatus_list])
-                            return None
+                    submin = 0
+                    while True:
+                        fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list, submin)
+                        if fieldcand_list is None:
+                            raise FieldAvailabilityError(div_id)
+                        logging.debug("----------------------")
+                        logging.debug("divid=%d round_id=%d home=%d away=%d homemetrics=%s awaymetrics=%s minimum count fields=%s",
+                                      div_id, round_id, home_id, away_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
+                        if len(fieldcand_list) > 1:
+                            isgame_list = [(x,[y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]]) for x in fieldcand_list]
+                            earliestslot_list = [(x[0],x[1].index(False)) for x in isgame_list if not all_value(x[1],True)]
+                            # first get the list of field/status dictionaries before searching for the False field
+                            if all_value(earliestslot_list, None):
+                                logging.info("fieldtimescheduler: fields %s are full",[x[0] for x in isgame_list])
+                                submin += 1
+                                continue
+                            # http://docs.python.org/2/howto/sorting.html
+                            # sort based on first index of isgame 'False' which maps to earliest time
+                            # game that needs to be filled.
+                            sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
+                            field_id = sorted_earliestslot_list[0][0]
+                            slot_index = sorted_earliestslot_list[0][1]
+                            break
+                        else:
+                            field_id = fieldcand_list[0]
+                            fsindex = fieldstatus_indexer.get(field_id)
+                            # find status list for this round
+                            fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
+                            # find first open time slot in round
+                            isgame_list = [y['isgame'] for y in fieldslotstatus_list]
+                            if not all_value(isgame_list, True):
+                                slot_index = isgame_list.index(False)
+                                break
+                            else:
+                                submin += 1
+                                logging.info("fieldtimescheduler: current minimum count field is all field, try another %d",
+                                             submin)
+                                continue
 
                     selected_ftstatus = self.fieldSeasonStatus[fieldstatus_indexer.get(field_id)]['slotstatus_list'][round_id-1][slot_index]
                     selected_ftstatus['isgame'] = True
@@ -223,7 +233,6 @@ class FieldTimeScheduleGenerator:
                     away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))
                     home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count'] += 1
                     away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
-
                     div = getAgeGenderDivision(div_id)
                     logging.debug("div=%s%s round_id=%d, field=%d gametime=%s slotindex=%d",
                                   div.age, div.gender, round_id, field_id, gametime, slot_index)
