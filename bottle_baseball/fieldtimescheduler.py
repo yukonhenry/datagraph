@@ -92,6 +92,7 @@ class FieldTimeScheduleGenerator:
             targetfieldcount_list = []
             fieldmetrics_list = []
             max_submatchrounds = 0
+            target_earlylate_list = []
             # take one of those connected divisions and iterate through each division
             for div_id in connected_div_list:
                 divindex = leaguediv_indexer.get(div_id)
@@ -129,8 +130,8 @@ class FieldTimeScheduleGenerator:
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(numteams)]
                 fieldmetrics_list.append({'div_id':div_id, 'tfmetrics':tfmetrics_list})
 
-                required_earlylate_list = [{'early':numdivfields*x/numteams, 'late':numdivfields*x/numteams} for x in numgames_list]
-                print 'div_id requiredearlylate',div_id, required_earlylate_list
+                earlylate_list = [{'early':numdivfields*x/numteams, 'late':numdivfields*x/numteams} for x in numgames_list]
+                target_earlylate_list.append({'div_id':div_id, 'earlylate_list':earlylate_list})
             logging.debug('target num games per fields=%s',targetfieldcount_list)
             # we are assuming still below that all fields in fset are shared by the field-sharing
             # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
