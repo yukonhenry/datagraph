@@ -86,9 +86,16 @@ ref http://networkx.github.io/documentation/latest/reference/algorithms.bipartit
 def getDivFieldRelation_graph():
     df_biparG = nx.Graph()
     df_biparG.add_nodes_from([x['div_id'] for x in _league_div], bipartite=0)
-    df_biparG.add_nodes_from([x['field_id'] for x in _field_info], bipartite=1)
-    df_biparG.add_edges_from([(x,[y['field_id'] for y in _field_info] for x in y['primary'])])
+    # even through we are using a bipartite graph structure, node names between
+    # the column nodes need to be distinct, or else edge (1,2) and (2,1) are not distinguished.
+    # instead use edge (1, f2), (2, f1) - use 'f' prefix for field nodes
+    df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in _league_div for y in x['fields']])
     logging.debug("div fields bipartite graph %s %s",df_biparG.nodes(), df_biparG.edges())
+    div_nodes, field_nodes = bipartite.sets(df_biparG)
+    deg_fnodes = {f:df_biparG.degree(f) for f in field_nodes}
+    weight_divnodes = [sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)]) for d in div_nodes]
+    print deg_fnodes, weight_divnodes
+    return weight_divnodes
 
 def getFieldSeasonStatus_list():
     # routine to return initialized list of field status slots -
