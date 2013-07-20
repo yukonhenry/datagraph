@@ -3,14 +3,16 @@ import simplejson as json
 import time
 import networkx as nx
 from networkx import connected_components
+from networkx.algorithms import bipartite
 from networkx.readwrite import json_graph
 # ref http://stackoverflow.com/questions/2970608/what-are-named-tuples-in-python for namedtuples
 from collections import namedtuple
 from datetime import timedelta
 from dateutil import parser
 from copy import deepcopy
+import logging
 
-league_div = [
+_league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
   'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':11},
 { 'div_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':20,
@@ -30,13 +32,13 @@ league_div = [
 ]
 #assign team numbers
 team_id_start = 1
-for div in league_div:
+for div in _league_div:
     next_team_id_start = team_id_start + div['totalteams']
     div['team_id_range'] = (team_id_start, next_team_id_start-1)
     team_id_start = next_team_id_start
 
 # primary key identifies age groups that have priority for the fields.
-# identified by _id from league_div dictionary elements
+# identified by _id from _league_div dictionary elements
 _field_info = [
     {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary',
      'start_time':'08:00', 'end_time':'22:00'},
@@ -66,17 +68,27 @@ _field_info = [
 # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
 # for finding index of dictionary key in array of dictionaries
 # use indexer so that we don't depend on order of divisions in league_div list
-div_indexer = dict((p['div_id'],i) for i,p in enumerate(league_div))
+div_indexer = dict((p['div_id'],i) for i,p in enumerate(_league_div))
 for field in _field_info:
     f_id = field['field_id']
     for d_id in field['primary']:
         index = div_indexer.get(d_id)
-        division = league_div[index]
+        division = _league_div[index]
         # check existence of key 'fields' - if it exists, append to list of fields, if not create
         if 'fields' in division:
             division['fields'].append(f_id)
         else:
             division['fields'] = [f_id]
+
+''' create bipartite graph - one column is division, other column is fields
+used to define relationship between division and fields
+ref http://networkx.github.io/documentation/latest/reference/algorithms.bipartite.html'''
+def getDivFieldRelation_graph():
+    df_biparG = nx.Graph()
+    df_biparG.add_nodes_from([x['div_id'] for x in _league_div], bipartite=0)
+    df_biparG.add_nodes_from([x['field_id'] for x in _field_info], bipartite=1)
+    df_biparG.add_edges_from([(x,[y['field_id'] for y in _field_info] for x in y['primary'])])
+    logging.debug("div fields bipartite graph %s %s",df_biparG.nodes(), df_biparG.edges())
 
 def getFieldSeasonStatus_list():
     # routine to return initialized list of field status slots -
@@ -90,7 +102,7 @@ def getFieldSeasonStatus_list():
         interval_list = []
         numgames_list = []
         for p in f['primary']:
-            divinfo = league_div[div_indexer.get(p)]
+            divinfo = _league_div[div_indexer.get(p)]
             interval_list.append(divinfo['gameinterval'])
             numgames_list.append(divinfo['gamesperseason'])
         #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
@@ -151,7 +163,7 @@ def getDivID(agediv, gender):
 
 def getTeamID(agediv, gender, team_id):
     div_id = getDivID(agediv, gender)
-    for div in league_div:
+    for div in _league_div:
         if div[_id] == div_id:
             id_range = div['team_id_range']
             overall_id = id_range[0]+team_id-1
@@ -198,9 +210,9 @@ def getAgeGenderDivision(div_id):
     return Division
 
 def getDivisionData(div_id):
-    div_indexer = dict((p['div_id'],i) for i,p in enumerate(league_div))
+    div_indexer = dict((p['div_id'],i) for i,p in enumerate(_league_div))
     index = div_indexer.get(div_id)
-    division = league_div[index]
+    division = _league_div[index]
     return division
 
 #find inter-related divisions through the field_info list
@@ -242,7 +254,7 @@ a = [ (u,v,edata['weight']) for u,v,edata in conflictG.edges(data=True) if 'weig
 print a
 
 jsonstr = json.dumps({"creation_time":time.asctime(),
-                      "leaguedivinfo":league_div,
+                      "leaguedivinfo":_league_div,
                       "conflict_info":coach_conflict_info,
                       "connected_graph":connected_graph,
                       "field_info":_field_info})
