@@ -22,3 +22,7 @@ def all_same(items):
 
 def all_value(items, value):
     return all(x == value for x in items)
+
+''' ref for enums http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python'''
+def enum(**enums):
+    return type('Enum', (), enums)

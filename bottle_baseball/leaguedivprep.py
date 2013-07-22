@@ -83,19 +83,19 @@ for field in _field_info:
 ''' create bipartite graph - one column is division, other column is fields
 used to define relationship between division and fields
 ref http://networkx.github.io/documentation/latest/reference/algorithms.bipartite.html'''
-def getDivFieldRelation_graph():
+def getDivFieldEdgeWeight_list():
     df_biparG = nx.Graph()
     df_biparG.add_nodes_from([x['div_id'] for x in _league_div], bipartite=0)
     # even through we are using a bipartite graph structure, node names between
     # the column nodes need to be distinct, or else edge (1,2) and (2,1) are not distinguished.
     # instead use edge (1, f2), (2, f1) - use 'f' prefix for field nodes
     df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in _league_div for y in x['fields']])
-    logging.debug("div fields bipartite graph %s %s",df_biparG.nodes(), df_biparG.edges())
     div_nodes, field_nodes = bipartite.sets(df_biparG)
     deg_fnodes = {f:df_biparG.degree(f) for f in field_nodes}
-    weight_divnodes = [sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)]) for d in div_nodes]
-    print deg_fnodes, weight_divnodes
-    return weight_divnodes
+    effective_edgesum_list = [sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)]) for d in div_nodes]
+    logging.debug("div fields bipartite graph %s %s effective edge sum for each node %s",
+                  df_biparG.nodes(), df_biparG.edges(), effective_edgesum_list)
+    return effective_edgesum_list
 
 def getFieldSeasonStatus_list():
     # routine to return initialized list of field status slots -
