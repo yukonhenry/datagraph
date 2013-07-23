@@ -7,7 +7,7 @@ from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list
 import logging
 from operator import itemgetter
 from copy import deepcopy
-from sched_exceptions import FieldAvailabilityError
+from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError
 from leaguedivprep import getDivFieldEdgeWeight_list
 from math import ceil
 start_time_CONST = 'START_TIME'
@@ -301,6 +301,7 @@ class FieldTimeScheduleGenerator:
                             else:
                                 logging.debug("ftscheduler: !!!!!!!!!!!!!!!!!!")
                                 logging.debug("ftscheduler: openslot_list exhausted, should have just assigned slot 0")
+                                raise TimeSlotAvailabilityError(div_id)
                             break
                         else:
                             field_id = fieldcand_list[0]
@@ -316,13 +317,14 @@ class FieldTimeScheduleGenerator:
                                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                                     break
                             if not all_value(isgame_list, True):
-                                slot_index = isgame_list.index(False)
+                                openslot_list = [i for i,j in enumerate(isgame_list) if j==False]
+                                slot_index = openslot_list[0]
                                 if slot_index == 0:
                                     if el_state == EL_enum.EARLY:
                                         self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                     else:
-                                        if len(isgame_list) > 2:
-                                            slot_index = 1
+                                        if len(openslot_list) > 2:
+                                            slot_index = openslot_list[1]
                                         else:
                                             logging.debug("~~~~~~~~~~~~")
                                             logging.debug("ftschedule single fieldcand going back to assign slot 0")

@@ -5,3 +5,9 @@ class FieldAvailabilityError(Exception):
     def __init__(self, div_id):
         Exception.__init__(self)
         self.div_id = div_id
+
+class TimeSlotAvailabilityError(Exception):
+    '''A user-defined exception class.'''
+    def __init__(self, div_id):
+        Exception.__init__(self)
+        self.div_id = div_id
