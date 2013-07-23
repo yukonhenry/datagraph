@@ -226,7 +226,8 @@ class FieldTimeScheduleGenerator:
                         el_state = EL_enum.NORMAL
 
                     logging.debug("----------------------")
-                    logging.debug("fieldtimescheduler: rrgenobj loop")
+                    logging.debug("fieldtimescheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
+                                  div_id, round_id, home_id, away_id)
                     logging.debug("early late hometarget=%s awaytarget=%s homecurrent=%s awaycurrent=%s",
                                   home_targetel_dict, away_targetel_dict, home_currentel_dict, away_currentel_dict)
                     submin = 0
@@ -237,7 +238,8 @@ class FieldTimeScheduleGenerator:
                         logging.debug("rrgenobj while True loop: divid=%d round_id=%d home=%d away=%d homemetrics=%s awaymetrics=%s mincount fields=%s",
                                       div_id, round_id, home_id, away_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
                         if len(fieldcand_list) > 1:
-                            isgame_list = [(x,[y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]])
+                            isgame_list = [(x,
+                                            [y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]['slotstatus_list'][round_id-1]])
                                            for x in fieldcand_list]
                             if el_state == EL_enum.LATE:
                                 # if we are looking for last time slot, first get a list for available last time slot
@@ -332,7 +334,10 @@ class FieldTimeScheduleGenerator:
                                 logging.info("fieldtimescheduler: current minimum count field is all filled, try another %d",
                                              submin)
                                 continue
-
+                    logging.debug("ftscheduler: after timeslot assign div=%d round_id=%d home_id=%d away_id=%d",
+                                  div_id, round_id, home_id, away_id)
+                    logging.debug("ftscheduler: slotind=%d home_currentel=%s away_currentel=%s",
+                                  slot_index, home_currentel_dict, away_currentel_dict)
                     selected_ftstatus = self.fieldSeasonStatus[fieldstatus_indexer.get(field_id)]['slotstatus_list'][round_id-1][slot_index]
                     selected_ftstatus['isgame'] = True
                     gametime = selected_ftstatus['start_time']
