@@ -182,8 +182,8 @@ class MongoDBInterface:
         # ref http://stackoverflow.com/questions/2600191/how-to-count-the-occurrences-of-a-list-item-in-python
         latest_counter_dict = Counter(latest_teams)
         earliest_counter_dict = Counter(earliest_teams)
-        logging.debug("dbinterface:getMetrics earliest_teams=%s, earliest_counter_dict=%s",
-                      earliest_teams, earliest_counter_dict)
+        logging.debug("dbinterface:getMetrics div_id=%d earliest_teams=%s, earliest_counter_dict=%s",
+                      div_id, earliest_teams, earliest_counter_dict)
         logging.debug("dbinterface:getMetrics latest_teams=%s, latest_counter_dict=%s",
                       latest_teams, latest_counter_dict)
 
