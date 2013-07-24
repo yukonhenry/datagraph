@@ -103,13 +103,47 @@ class MongoDBInterface:
         # find max min start time for each gameday
         # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
         #col.aggregate({$match:{AGE:'U10',GEN:'B',GAMEDAY_ID:1}},{$group:{_id:"$START_TIME",samestart:{$push:{HOME:"$HOME",AWAY:"$AWAY"}}}},{$sort:{_id:-1}},{$group:{_id:0,max:{$first:{samestart:"$samestart"}},min:{$last:{samestart:"$samestart"}}}})
+        #### bug with above aggregate query - above query gets the metrics for earliest / latest games in each division,
+        # but what we want is the metrics for each division, but earliest/latest is defined as the earliest/latest in Each Field
+        # i.e. with the buggy version we counted earliest games if it was the earliest game for that division, but there could have
+        # been an earlier game on the same field, but played by teams from a different division.  We count it only if it is the
+        # very first (or last) game in the field
+        # aggregate both fields at once; pipeline will give results for each field (and robust against situations where first/last
+        # games might be different for each field)
+        # col.aggregate({$match:{GAMEDAY_ID:1, VENUE:{$in:[1,2]}}},{$group:{_id:{starttime:"$START_TIME",venue:"$VENUE"}, samestart:{$push:{HOME:"$HOME", AWAY:"$AWAY",VENUE:"$VENUE", GEN:"$GEN"}}}},{$sort:{"_id.starttime":-1}},{$group:{_id:"$_id.venue",max:{$first:{samestart:"$samestart",time:"$_id.starttime"}},min:{$last:{samestart:"$samestart",time:"$_id.starttime"}}}})
+        ############ if we want to take away the gameday_id for loop below:
+        # col.aggregate({$match:{VENUE:{$in:[1,2]}}},{$group:{_id:{starttime:"$START_TIME",venue:"$VENUE", gameday_id:"$GAMEDAY_ID"}, samestart:{$push:{HOME:"$HOME", AWAY:"$AWAY",VENUE:"$VENUE", GEN:"$GEN"}}}},{$sort:{"_id.starttime":-1}},{$group:{_id:{venue:"$_id.venue",gameday_id:"$_id.gameday_id"},max:{$first:{samestart:"$samestart",time:"$_id.starttime"}},min:{$last:{samestart:"$samestart",time:"$_id.starttime"}}}})
         latest_teams = []
         earliest_teams = []
         for gameday_id in range(1,numgameslots+1):
-            # ref http://docs.mongodb.org/manual/tutorial/aggregation-examples/
-            # pipeline description: match on age,gender,gamday_id; group results based on start_time; then sort (descending);
+            # note for now we will do a query for each gameday_id - issue is that for each gameday, the earliest (less likely)
+            # and latest (more likely) game times may change, complicating aggregation $first and $last aggregation queries
+            # if we decide to do one single aggreagation pipeline
+            # ref http://docs.mongodb.org/manual/tutorial/aggregation-examples/  <--- read and understand
+            # OLD, Buggy: pipeline description: match on age,gender,gamday_id; group results based on start_time; then sort (descending);
             # take first and last entries to correspond with earliest and latest times
             # elements consist of home and away team lists that can be concatenated later to make a generic team list
+            # NEW: pipeline description: match on field and gameday_id, group results based on starttime and venue, while defining
+            # group to consist of teams (home and away), agegroup; sort based on starttime; group sorted results based on field
+            # and define group output based on earliest and latest of prev sort operation (but for every field);
+            # and carry along latest group operation output with team info, along with time
+            res_list = self.games_col.aggregate([{"$match":{venue_CONST:{"$in":fields},
+                                                           gameday_id_CONST:gameday_id}},
+                                                 {"$group":{'_id':{'start_time':"$START_TIME",
+                                                                   'venue':"$VENUE"},
+                                                            'data':{"$push":{'home':"$HOME",
+                                                                             'away':"$AWAY",
+                                                                             'gen':"$GEN",
+                                                                             'age':"$AGE"}}}},
+                                                 {"$sort":{'_id.start_time':1}},
+                                                 {"$group":{'_id':"$_id.venue",
+                                                            'earliest':{"$first":{'data':"$data",
+                                                                                'time':"$_id.start_time"}},
+                                                            'latest':{"$last":{'data':"$data",
+                                                                               'time':"$_id.start_time"}}}},
+                                                 {"$project":{'_id':0, 'venue':"$_id",
+                                                              'earliest':1, 'latest':1}}])
+            '''
             res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender,
                                                             gameday_id_CONST:gameday_id}},
                                                  {"$group":{'_id':"$START_TIME",
@@ -124,7 +158,9 @@ class MongoDBInterface:
                                                                                       'awayteam_id_list':"$awayteam_id_list",
                                                                                       'time':"$_id"}}}},
                                                  {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
-            result = res_list['result'][0] # there should only be one element which includes the latest and earliest team data
+        '''
+            result = res_list['result'] # there should only be one element which includes the latest and earliest team data
+            print result
             latest_data = result['latest_data']
             earliest_data = result['earliest_data']
             latest_teams += latest_data['hometeam_id_list']+latest_data['awayteam_id_list']
