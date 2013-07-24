@@ -3,6 +3,8 @@ import simplejson as json
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
 from collections import Counter
+from leaguedivprep import getDivID
+import logging
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
@@ -22,7 +24,6 @@ team_id_CONST = 'TEAM_ID'
 totalgames_CONST = 'TOTALGAMES'
 venue_count_CONST = 'VENUE_COUNT'
 venue_count_list_CONST = 'VENUE_COUNT_LIST'
-import pdb
 class MongoDBInterface:
     def __init__(self):
         client = MongoClient()
@@ -95,7 +96,7 @@ class MongoDBInterface:
                                     away_CONST:field_game[away_CONST]})
         return field_game_list
 
-    def getMetrics(self, age, gender, divisionData):
+    def getMetrics(self, div_id, age, gender, divisionData):
         numTeams = divisionData['totalteams']
         fields = divisionData['fields']
         numgameslots = divisionData['gamesperseason']
@@ -142,7 +143,7 @@ class MongoDBInterface:
                                                             'latest':{"$last":{'data':"$data",
                                                                                'time':"$_id.start_time"}}}},
                                                  {"$project":{'_id':0, 'venue':"$_id",
-                                                              'earliest':1, 'latest':1}}])
+                                                              'earliest':1,'latest':1}}])
             '''
             res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender,
                                                             gameday_id_CONST:gameday_id}},
@@ -160,16 +161,31 @@ class MongoDBInterface:
                                                  {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
         '''
             result = res_list['result'] # there should only be one element which includes the latest and earliest team data
-            print result
-            latest_data = result['latest_data']
-            earliest_data = result['earliest_data']
-            latest_teams += latest_data['hometeam_id_list']+latest_data['awayteam_id_list']
-            earliest_teams += earliest_data['hometeam_id_list']+earliest_data['awayteam_id_list']
+            earliest_home = [x['earliest']['data'][0]['home']
+                             for x in result
+                             if x['earliest']['data'][0]['age']==age and x['earliest']['data'][0]['gen']==gender]
+            earliest_away = [x['earliest']['data'][0]['away']
+                             for x in result
+                             if x['earliest']['data'][0]['age']==age and x['earliest']['data'][0]['gen']==gender]
+            latest_home = [x['latest']['data'][0]['home']
+                           for x in result
+                           if x['latest']['data'][0]['age']==age and x['latest']['data'][0]['gen']==gender]
+            latest_away = [x['latest']['data'][0]['away']
+                           for x in result
+                           if x['latest']['data'][0]['age']==age and x['latest']['data'][0]['gen']==gender]
+            logging.debug("dbinterface:getMetrics:query result=%s earliest home=%s earliest away=%s",
+                          result, earliest_home, earliest_away)
+            logging.debug("dbinterface:getMetrics: latest home=%s latest away=%s",
+                          latest_home, latest_away)
+            earliest_teams += earliest_home + earliest_away
+            latest_teams += latest_home + latest_away
         # ref http://stackoverflow.com/questions/2600191/how-to-count-the-occurrences-of-a-list-item-in-python
         latest_counter_dict = Counter(latest_teams)
         earliest_counter_dict = Counter(earliest_teams)
-        print 'earliest counter',earliest_teams, earliest_counter_dict
-        print 'latest counter',latest_teams, latest_counter_dict
+        logging.debug("dbinterface:getMetrics earliest_teams=%s, earliest_counter_dict=%s",
+                      earliest_teams, earliest_counter_dict)
+        logging.debug("dbinterface:getMetrics latest_teams=%s, latest_counter_dict=%s",
+                      latest_teams, latest_counter_dict)
 
         metrics_list = []
         for team_id in range(1, numTeams+1):

@@ -77,6 +77,8 @@ class FieldTimeScheduleGenerator:
     def incrementEL_counters(self, homecounter_dict, awaycounter_dict, el_str):
         homecounter_dict[el_str] += 1
         awaycounter_dict[el_str] += 1
+        logging.debug("ftscheduler:incrementELcounter: %s h=%s a=%s",
+                      el_str, homecounter_dict, awaycounter_dict)
 
 
     def generateSchedule(self, total_match_list):

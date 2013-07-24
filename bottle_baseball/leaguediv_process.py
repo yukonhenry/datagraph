@@ -175,6 +175,7 @@ def schedulemetrics(div_id):
     callback_name = request.query.callback
     divisionData = getDivisionData(div_id)
     div_tuple = getAgeGenderDivision(div_id)
-    metrics_list = dbInterface.getMetrics(div_tuple.age, div_tuple.gender, divisionData)
+    metrics_list = dbInterface.getMetrics(div_id, div_tuple.age, div_tuple.gender,
+                                          divisionData)
     a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
     return callback_name+'('+a+')'
