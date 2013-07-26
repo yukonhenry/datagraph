@@ -309,6 +309,15 @@ class FieldTimeScheduleGenerator:
                                 # sort based on first index of isgame 'False' which maps to earliest time
                                 # game that needs to be filled amongst available fields
                                 sorted_earliestslot_list = sorted(earliestslot_list, key=itemgetter(1))
+                                logging.debug("ftscheduler:while openslotlist=%s: div=%d, earliestslot=%s sorted=%s",
+                                              openslot_list, div_id, earliestslot_list, sorted_earliestslot_list)
+                                if (all_value([len(x[1]) for x in openslot_list], 1) and
+                                    all_value([x[1] for x in sorted_earliestslot_list], 0)):
+                                    field_id = sorted_earliestslot_list[0][0]
+                                    slot_index = sorted_earliestslot_list[0][1]
+                                    self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                                    logging.debug("ftscheduler:while openslot, default to 0 index because it is only choice")
+                                    break  # from openslot_list
                                 #loop through the sorted list - only time we don't break is
                                 #when slot_index is 0 but that el_state is not EARLY
                                 for el in sorted_earliestslot_list:
@@ -330,13 +339,26 @@ class FieldTimeScheduleGenerator:
                                     # earliestslot_list (or its sorted version)
                                     # and then continue to beginning of while loop
                                     # we should only go through this once
+                                    logging.debug("$$$$$$$$$$$$$$$$")
+                                    logging.debug("ftscheduler:while openslotlist for else removing from %s",
+                                                  openslot_list)
                                     openslot_indexer =  dict((p[0],i) for i,p in enumerate(openslot_list))
                                     for sel in sorted_earliestslot_list:
                                         sind = openslot_indexer.get(sel[0])
+                                        logging.debug("ftscheduler:while openslot for sel=%s ind=%d",sel, sind)
                                         openslot_list[sind][1].remove(sel[1])
+                                        if not openslot_list[sind][1]:
+                                            logging.debug("ftscheduler:while openslotlist for else remove index %d",
+                                                          sind)
+                                            del openslot_list[sind]
+                                            # import to re-define indexer because we deleted one index
+                                            openslot_indexer =  dict((p[0],i) for i,p in enumerate(openslot_list))
+
+
                                     logging.info("^^^^^^^^^^^^^^^^^^^^")
                                     logging.info("ftscheduler: while openslolist: removed %s from openslot list, new list= %s",
                                                  sorted_earliestslot_list, openslot_list)
+                                    continue
                                 logging.info("ftscheduler: >1 fieldcandlist elstate=%d  fieldid=%d timeslot=%d selected",
                                              el_state, field_id, slot_index)
                                 break # break out of while openslot_list
@@ -344,7 +366,7 @@ class FieldTimeScheduleGenerator:
                                 logging.debug("ftscheduler: !!!!!!!!!!!!!!!!!!")
                                 logging.debug("ftscheduler: openslot_list exhausted, should have just assigned slot 0")
                                 raise TimeSlotAvailabilityError(div_id)
-                            break
+                            break # break out of while True
                         else:
                             field_id = fieldcand_list[0]
                             fsindex = fieldstatus_indexer.get(field_id)
@@ -359,19 +381,14 @@ class FieldTimeScheduleGenerator:
                                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                                     break
                             if not all_value(isgame_list, True):
-                                openslot_list = [i for i,j in enumerate(isgame_list) if j==False]
-                                slot_index = openslot_list[0]
+                                openslotone_list = [i for i,j in enumerate(isgame_list) if not j]
+                                slot_index = openslotone_list[0]
                                 if slot_index == 0:
-                                    if el_state & EL_enum.EARLY_TEAM and el_state & EL_enum.EARLY_DIVTOTAL:
+                                    if ((el_state & EL_enum.EARLY_TEAM and el_state & EL_enum.EARLY_DIVTOTAL) or
+                                        len(openslotone_list)==1):
                                         self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                     else:
-                                        if len(openslot_list) > 2:
-                                            slot_index = openslot_list[1]
-                                        else:
-                                            logging.debug("~~~~~~~~~~~~")
-                                            logging.debug("ftschedule single fieldcand going back to assign slot 0")
-                                            self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
-                                            slot_index = 0
+                                        slot_index = openslotone_list[1]
                                 break
                             else:
                                 submin += 1
