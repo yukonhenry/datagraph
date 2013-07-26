@@ -8,7 +8,7 @@ import logging
 from operator import itemgetter
 from copy import deepcopy
 from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError
-from leaguedivprep import getDivFieldEdgeWeight_list
+from leaguedivprep import getDivFieldEdgeWeight_list, getConnectedDivisions
 from math import ceil, floor
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
@@ -27,9 +27,9 @@ gen_CONST = 'GEN'
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class FieldTimeScheduleGenerator:
-    def __init__(self, leaguedivinfo, fieldinfo, connected_comp, dbinterface):
+    def __init__(self, leaguedivinfo, fieldinfo, dbinterface):
         self.leaguedivinfo = leaguedivinfo
-        self.connected_div_components = connected_comp
+        self.connected_div_components = getConnectedDivisions()
         self.fieldSeasonStatus = getFieldSeasonStatus_list()
         #logging.debug("fieldseasonstatus init=%s",self.fieldSeasonStatus)
         self.fieldinfo = fieldinfo
@@ -95,7 +95,7 @@ class FieldTimeScheduleGenerator:
         self.dbinterface.dropGameCollection()  # reset game schedule collection
 
         # used for calaculating time balancing metrics
-        eff_edgeweight_list = getDivFieldEdgeWeight_list()
+        ew_list_indexer = getDivFieldEdgeWeight_list()
         #enum defined in sched_util.py
         EL_enum = enum(NORMAL=0x0, EARLY_DIVTOTAL=0x1, LATE_DIVTOTAL=0x2, EARLY_TEAM=0x4, LATE_TEAM=0x8)
 
@@ -142,7 +142,8 @@ class FieldTimeScheduleGenerator:
                 # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
-                numgamesperfield_list = [[n/numdivfields] if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1]
+                numgamesperfield_list = [[n/numdivfields]
+                                         if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1]
                                          for n in numgames_list]
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
@@ -156,7 +157,9 @@ class FieldTimeScheduleGenerator:
                 # eff_edgeweight represents 'fair share' of fields
                 # factor of 2 comes in because each time slots gets credited to two teams
                 # (home and away)
-                divtarget_el = 2*numgameslots*eff_edgeweight_list[div_id-1]
+                ew_list = ew_list_indexer.dict_list
+                ew_indexerGet = ew_list_indexer.indexerGet
+                divtarget_el = 2*numgameslots*ew_list[ew_indexerGet(div_id)]['ratio']
                 # per team fair share of early or late time slots
                 teamtarget_el = int(ceil(divtarget_el/numteams))  # float value
                 # calculate each team's target share of early and late games

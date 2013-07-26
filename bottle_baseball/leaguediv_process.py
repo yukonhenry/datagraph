@@ -82,10 +82,10 @@ def get_alldivSchedule():
         match = MatchGenerator(nt, ng)
         total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
     # get list of connected divisions through field constraints
-    connectedG = json_graph.node_link_graph(ldata['connected_graph'])
-    connected_div_components = connected_components(connectedG)
+    #connectedG = json_graph.node_link_graph(ldata['connected_graph'])
+    #connected_div_components = connected_components(connectedG)
     fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'],
-                                                   connected_div_components, dbInterface)
+                                                   dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
     a = ""
     return callback_name+'('+a+')'

@@ -64,15 +64,16 @@ _field_info = [
      'start_time':'08:00', 'end_time':'22:00',
      'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
+
 # assigned fields attribute for each division
 # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
 # for finding index of dictionary key in array of dictionaries
 # use indexer so that we don't depend on order of divisions in league_div list
-div_indexer = dict((p['div_id'],i) for i,p in enumerate(_league_div))
+_div_indexer = dict((p['div_id'],i) for i,p in enumerate(_league_div))
 for field in _field_info:
     f_id = field['field_id']
     for d_id in field['primary']:
-        index = div_indexer.get(d_id)
+        index = _div_indexer.get(d_id)
         division = _league_div[index]
         # check existence of key 'fields' - if it exists, append to list of fields, if not create
         if 'fields' in division:
@@ -92,10 +93,35 @@ def getDivFieldEdgeWeight_list():
     df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in _league_div for y in x['fields']])
     div_nodes, field_nodes = bipartite.sets(df_biparG)
     deg_fnodes = {f:df_biparG.degree(f) for f in field_nodes}
+    # effective edge sum lists for each division, the sum of the weights of the connected fields;
+    # the weights of the associated fields, which are represented as field nodes,
+    # are in turn determined by it's degree.  The inverse of the degree for the connected division is
+    # taken, which becomes the weight of the particular field associated with the division.  The weights
+    # of each field are summed for each division.  The weights also represent the 'total fairness share'
+    # of fields associated with a division.
+    # Bipartite graph representations, with divisions as one set of nodes, and fields as the other set
+    # are used.  Thus a neighbor of a division is always a field.
     effective_edgesum_list = [sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)]) for d in div_nodes]
     logging.debug("div fields bipartite graph %s %s effective edge sum for each node %s",
                   df_biparG.nodes(), df_biparG.edges(), effective_edgesum_list)
-    return effective_edgesum_list
+
+    # depending on the number of teams in each division, the 'fairness share' for each division is adjusted;
+    # i.e. a division with more teams is expected to contribute a larger amount to field sharing obligations,
+    # such as the number of expected early/late start times for a particular division.  (If one div has 20 teams
+    # and the other connected div has only 10 teams, the 20-team division should have a larger share of filling
+    # early and late start time games.
+    div_indexer = dict((p['div_id'],i) for i,p in enumerate(_league_div))
+    # ratio is represented as factor that is multiplied against the 'expected' fair share, which is the 1-inverse
+    # of the number of divisions in the connected group - (dividing by the 1-inverse is equiv to multiple by the
+    # number of teams - len(connected_list) as shown below)
+    divratio_list = [{'div_id':x, 'ratio': len(connected_list)*float(_league_div[div_indexer.get(x)]['totalteams'])/
+                     sum(_league_div[div_indexer.get(y)]['totalteams'] for y in connected_list)}
+                     for connected_list in getConnectedDivisions() for x in connected_list]
+    print effective_edgesum_list, divratio_list
+    # define indexer function
+    ratio_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divratio_list)).get(x)
+    List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+    return List_Indexer(divratio_list, ratio_indexerGet)
 
 def getFieldSeasonStatus_list():
     # routine to return initialized list of field status slots -
@@ -109,7 +135,7 @@ def getFieldSeasonStatus_list():
         interval_list = []
         numgames_list = []
         for p in f['primary']:
-            divinfo = _league_div[div_indexer.get(p)]
+            divinfo = _league_div[_div_indexer.get(p)]
             interval_list.append(divinfo['gameinterval'])
             numgames_list.append(divinfo['gamesperseason'])
         #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
@@ -224,19 +250,22 @@ def getDivisionData(div_id):
 
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list
-G = nx.Graph()
-for field in _field_info:
-    prev_node = None
-    for div_id in field['primary']:
-        if not G.has_node(div_id):
-            G.add_node(div_id)
-        if prev_node is not None and not G.has_edge(prev_node, div_id):
-            G.add_edge(prev_node, div_id)
-        prev_node = div_id
-
-#serialize field-connected divisions as graph and save it (instead of saving list of connected components)
-#used by leaguediv_process to determine schedule allocation of connected divisions
-connected_graph = json_graph.node_link_data(G)
+def getConnectedDivisions():
+    G = nx.Graph()
+    for field in _field_info:
+        prev_node = None
+        for div_id in field['primary']:
+            if not G.has_node(div_id):
+                G.add_node(div_id)
+            if prev_node is not None and not G.has_edge(prev_node, div_id):
+                G.add_edge(prev_node, div_id)
+            prev_node = div_id
+    connected_div_components = connected_components(G)
+    #serialize field-connected divisions as graph and save it
+    #(instead of saving list of connected components); used by leaguediv_process to
+    #determine schedule allocation of connected divisions
+    #connected_graph = json_graph.node_link_data(G)
+    return connected_div_components
 
 # create coach conflict graph to find conflict metrics
 conflictG = nx.Graph()
@@ -263,7 +292,6 @@ print a
 jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":_league_div,
                       "conflict_info":coach_conflict_info,
-                      "connected_graph":connected_graph,
                       "field_info":_field_info})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
