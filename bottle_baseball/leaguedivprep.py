@@ -118,7 +118,7 @@ def getDivFieldEdgeWeight_list():
                      sum(_league_div[div_indexer.get(y)]['totalteams'] for y in connected_list)}
                      for connected_list in getConnectedDivisions() for x in connected_list]
     print effective_edgesum_list, divratio_list
-    # define indexer function
+    # define indexer function object
     ratio_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divratio_list)).get(x)
     List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
     return List_Indexer(divratio_list, ratio_indexerGet)
@@ -155,7 +155,9 @@ def getFieldSeasonStatus_list():
         fieldseason_status_list.append({'field_id':f['field_id'],
                                         'slotstatus_list':slotstatus_list,
                                         'gameslotsperday':sstatus_len})
-    return fieldseason_status_list
+        fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
+        List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+    return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
 coach_conflict_info = [
     {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},

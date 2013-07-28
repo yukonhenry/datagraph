@@ -30,7 +30,9 @@ class FieldTimeScheduleGenerator:
     def __init__(self, leaguedivinfo, fieldinfo, dbinterface):
         self.leaguedivinfo = leaguedivinfo
         self.connected_div_components = getConnectedDivisions()
-        self.fieldSeasonStatus = getFieldSeasonStatus_list()
+        fstatus_tuple = getFieldSeasonStatus_list()
+        self.fieldSeasonStatus = fstatus_tuple.dict_list
+        self.fstatus_indexerGet = fstatus_tuple.indexerGet
         #logging.debug("fieldseasonstatus init=%s",self.fieldSeasonStatus)
         self.fieldinfo = fieldinfo
         self.total_game_dict = {}
@@ -180,7 +182,6 @@ class FieldTimeScheduleGenerator:
             # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
             # and div2 is using fields[2,3] (field 2 is shared but not 1 and 3)
 
-            fieldstatus_indexer = dict((p['field_id'],i) for i,p in enumerate(self.fieldSeasonStatus))
             fieldmetrics_indexer = dict((p['div_id'],i) for i,p in enumerate(fieldmetrics_list))
             targetfieldcount_indexer = dict((p['div_id'],i) for i,p in enumerate(targetfieldcount_list))
             targetearlylate_indexer =  dict((p['div_id'],i) for i,p in enumerate(target_earlylate_list))
@@ -191,7 +192,7 @@ class FieldTimeScheduleGenerator:
             # http://www.python.org/dev/peps/pep-0289/
             required_gameslotsperday = sum(total_match_list[match_list_indexer.get(d)]['gameslotsperday']
                                            for d in connected_div_list)
-            available_gameslotsperday = sum(self.fieldSeasonStatus[fieldstatus_indexer.get(f)]['gameslotsperday'] for f in fset)
+            available_gameslotsperday = sum(self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['gameslotsperday'] for f in fset)
             logging.debug("for divs=%s fset=%s required slots=%d available=%d",
                           connected_div_list, fset, required_gameslotsperday, available_gameslotsperday)
             if available_gameslotsperday < required_gameslotsperday:
@@ -276,7 +277,7 @@ class FieldTimeScheduleGenerator:
                         logging.debug("fieldcandlist=%s",fieldcand_list)
                         if len(fieldcand_list) > 1:
                             isgame_list = [(x,
-                                            [y['isgame'] for y in self.fieldSeasonStatus[fieldstatus_indexer.get(x)]
+                                            [y['isgame'] for y in self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
                                              ['slotstatus_list'][round_id-1]])
                                            for x in fieldcand_list]
                             if el_state & EL_enum.LATE_TEAM and el_state & EL_enum.LATE_DIVTOTAL:
@@ -369,7 +370,7 @@ class FieldTimeScheduleGenerator:
                             break # break out of while True
                         else:
                             field_id = fieldcand_list[0]
-                            fsindex = fieldstatus_indexer.get(field_id)
+                            fsindex = self.fstatus_indexerGet(field_id)
                             # find status list for this round
                             fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
                             # find first open time slot in round
@@ -379,7 +380,7 @@ class FieldTimeScheduleGenerator:
                                 if lastslot_state is False:
                                     slot_index = len(isgame_list)-1
                                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
-                                    break
+                                    break # out of while true
                             if not all_value(isgame_list, True):
                                 openslotone_list = [i for i,j in enumerate(isgame_list) if not j]
                                 slot_index = openslotone_list[0]
@@ -389,17 +390,19 @@ class FieldTimeScheduleGenerator:
                                         self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                     else:
                                         slot_index = openslotone_list[1]
-                                break
+                                break # out of while True
                             else:
                                 submin += 1
                                 logging.info("fieldtimescheduler: current minimum count field is all filled, try another %d",
                                              submin)
-                                continue
+                                continue # w. while True
+
+                    # these get exected after while True breaks
                     logging.debug("ftscheduler: after timeslot assign div=%d round_id=%d home_id=%d away_id=%d",
                                   div_id, round_id, home_id, away_id)
                     logging.debug("ftscheduler: slotind=%d home_currentel=%s away_currentel=%s",
                                   slot_index, home_currentel_dict, away_currentel_dict)
-                    selected_ftstatus = self.fieldSeasonStatus[fieldstatus_indexer.get(field_id)]['slotstatus_list'][round_id-1][slot_index]
+                    selected_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][round_id-1][slot_index]
                     selected_ftstatus['isgame'] = True
                     gametime = selected_ftstatus['start_time']
                     home_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list))
@@ -412,3 +415,21 @@ class FieldTimeScheduleGenerator:
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     gametime.strftime(time_format_CONST),
                                                     field_id, home_id, away_id)
+        # executes after entire schedule for all divisions is generated
+        self.compactTimeSchedule()
+
+    def compactTimeSchedule(self):
+        ''' compact time schedule by identifying scheduling gaps through False statueses in the 'isgame' field '''
+        for fieldstatus in self.fieldSeasonStatus:
+            field_id = fieldstatus['field_id']
+            round_index = 0
+            for fieldstatus_round in fieldstatus['slotstatus_list']:
+                isgame_list = [x['isgame'] for x in fieldstatus_round]
+                print "compactSchedule: field_id, isgame_list", fieldstatus['field_id'], isgame_list
+                # http://stackoverflow.com/questions/522372/finding-first-and-last-index-of-some-value-in-a-list-in-python
+                # first find if there are any gamedays where the first game is not held on the first
+                # available time slot for that field
+                # catch index errors below
+                if isgame_list.index(True) != 0:
+                    print 'beginning too late', field_id, round_index
+                round_index += 1
