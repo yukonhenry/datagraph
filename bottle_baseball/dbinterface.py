@@ -36,6 +36,13 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document)
 
+    def updateGameTime(self, venue, gameday_id, old_start_time, new_start_time):
+        query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
+                 start_time_CONST:old_start_time}
+        updatefields = {start_time_CONST:new_start_time}
+        docID = self.games_col.update(query, updatefields)
+
+
     def findDivisionSchedule(self,age, gender):
         # use mongodb aggregation framework to group results by shared gametime.
         # query for all rounds at once - alternate way is to loop query based

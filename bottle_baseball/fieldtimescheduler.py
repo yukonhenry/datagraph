@@ -1,6 +1,6 @@
 from datetime import  datetime, timedelta
 from itertools import cycle
-from schedule_util import roundrobin, all_same, all_value, enum
+from schedule_util import roundrobin, all_same, all_value, enum, shift_list
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list
@@ -422,14 +422,31 @@ class FieldTimeScheduleGenerator:
         ''' compact time schedule by identifying scheduling gaps through False statueses in the 'isgame' field '''
         for fieldstatus in self.fieldSeasonStatus:
             field_id = fieldstatus['field_id']
-            round_index = 0
+            gameday_ind = 0
             for fieldstatus_round in fieldstatus['slotstatus_list']:
                 isgame_list = [x['isgame'] for x in fieldstatus_round]
-                print "compactSchedule: field_id, isgame_list", fieldstatus['field_id'], isgame_list
+                #print "compactSchedule: field_id, isgame_list", fieldstatus['field_id'], isgame_list
                 # http://stackoverflow.com/questions/522372/finding-first-and-last-index-of-some-value-in-a-list-in-python
                 # first find if there are any gamedays where the first game is not held on the first
                 # available time slot for that field
                 # catch index errors below
-                if isgame_list.index(True) != 0:
-                    print 'beginning too late', field_id, round_index
-                round_index += 1
+                try:
+                    firstgame_ind = isgame_list.index(True)
+                except ValueError:
+                    logging.error("ftscheduler:compactTimeScheduler: No games scheduled on field %d gameday %d",
+                                  field_id, gameday_ind)
+                    continue
+                else:
+                    if firstgame_ind != 0:
+                        fieldstatus_len = len(fieldstatus_round)
+                        for i in range(firstgame_ind, fieldstatus_len):
+                            oldslot = fieldstatus_round[i-firstgame]
+                            new slot = fieldstatus_round[i]
+                            fieldstatus_round[i-firstgame_ind]['isgame'] = fieldstatus_round[i]['isgame']
+                        for i in range(fieldstatus_len-firstgame_ind, fieldstatus_len):
+                            fieldstatus_round[i]['isgame'] = False
+                        # shifted_isgame_list = shift_list(isgame_list, -firstgame_ind, False)
+                        logging.info("ftscheduler:compactScheduler field=%d gameday=%d isgame=%s new status=%s",
+                                     field_id, gameday_ind, isgame_list, fieldstatus_round)
+                finally:
+                    gameday_ind += 1
