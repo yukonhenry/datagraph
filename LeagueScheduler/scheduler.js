@@ -135,9 +135,14 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		});
 		});
 		var getAllDivSchedule = function(evt) {
+			//dom.byId("status").innerHTML = "";
+			console.log("getting all div schedule");
 	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
+	        	//console.log("getalldiv schedule status"+adata.status);
+				dom.byId("status").innerHTML = "!Done!";
+
 /*					        	if (game_listP) {
 	        		d3.select(schedulerDiv).selectAll("p").remove();
 	        	}

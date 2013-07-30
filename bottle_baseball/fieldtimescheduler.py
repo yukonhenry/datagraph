@@ -418,11 +418,26 @@ class FieldTimeScheduleGenerator:
         # executes after entire schedule for all divisions is generated
         self.compactTimeSchedule()
 
+    def shiftGameDaySlots(self, fieldstatus_round, baseoffset, firstTrue_ind, fieldstatus_len, field_id, gameday_id):
+        ''' shift gameday timeslots '''
+        for i in range(baseoffset+firstTrue_ind, fieldstatus_len):
+            newslot = fieldstatus_round[i-firstTrue_ind]
+            oldslot = fieldstatus_round[i]
+            newslot['isgame'] = oldslot['isgame']
+            if newslot['isgame']:
+                # if newslot has a game (True field), then write to db
+                self.dbinterface.updateGameTime(field_id, gameday_id,
+                                                oldslot['start_time'].strftime(time_format_CONST),
+                                                newslot['start_time'].strftime(time_format_CONST))
+        for k in range(fieldstatus_len-firstTrue_ind, fieldstatus_len):
+            fieldstatus_round[k]['isgame'] = False
+            # shifted_isgame_list = shift_list(isgame_list, -firstTrue_ind, False)
+
     def compactTimeSchedule(self):
         ''' compact time schedule by identifying scheduling gaps through False statueses in the 'isgame' field '''
         for fieldstatus in self.fieldSeasonStatus:
             field_id = fieldstatus['field_id']
-            gameday_ind = 0
+            gameday_id = 1
             for fieldstatus_round in fieldstatus['slotstatus_list']:
                 isgame_list = [x['isgame'] for x in fieldstatus_round]
                 #print "compactSchedule: field_id, isgame_list", fieldstatus['field_id'], isgame_list
@@ -434,19 +449,38 @@ class FieldTimeScheduleGenerator:
                     firstgame_ind = isgame_list.index(True)
                 except ValueError:
                     logging.error("ftscheduler:compactTimeScheduler: No games scheduled on field %d gameday %d",
-                                  field_id, gameday_ind)
+                                  field_id, gameday_id)
                     continue
                 else:
+                    fieldstatus_len = len(fieldstatus_round)
                     if firstgame_ind != 0:
-                        fieldstatus_len = len(fieldstatus_round)
-                        for i in range(firstgame_ind, fieldstatus_len):
-                            oldslot = fieldstatus_round[i-firstgame]
-                            new slot = fieldstatus_round[i]
-                            fieldstatus_round[i-firstgame_ind]['isgame'] = fieldstatus_round[i]['isgame']
-                        for i in range(fieldstatus_len-firstgame_ind, fieldstatus_len):
-                            fieldstatus_round[i]['isgame'] = False
-                        # shifted_isgame_list = shift_list(isgame_list, -firstgame_ind, False)
+                        self.shiftGameDaySlots(fieldstatus_round, 0, firstgame_ind, fieldstatus_len, field_id, gameday_id)
+                        # no game at early time slot, shift all games so schedule for day begins at earliest slot
+                        # (note defaulting first game to earliest time slot may change in the future)
                         logging.info("ftscheduler:compactScheduler field=%d gameday=%d isgame=%s new status=%s",
-                                     field_id, gameday_ind, isgame_list, fieldstatus_round)
+                                     field_id, gameday_id, isgame_list, fieldstatus_round)
+                        isgame_list = [x['isgame'] for x in fieldstatus_round]
+                    try:
+                        firstoff_ind = isgame_list.index(False)
+                    except ValueError:
+                        logging.error("ftscheduler:compaction:field=%d gameday=%d is full", field_id, gameday_id)
+                        # all slots filled w. games, no False state
+                        continue
+                    else:
+                        if firstoff_ind == 0:
+                            # this should not happen based on list shifting operations above
+                            raise TimeCompactionError(field_id, gameday_id)
+                        try:
+                            secondon_ind = isgame_list[firstoff_ind:].index(True)
+                        except ValueError:
+                            logging.error("ftscheduler:compaction:field=%d gameday=%d gameday schedule is continuous and good",
+                                          field_id, gameday_id)
+                            # all slots filled w. games, no False state
+                            continue
+                        else:
+                            self.shiftGameDaySlots(fieldstatus_round, firstoff_ind, secondon_ind, fieldstatus_len, field_id, gameday_id)
+                            logging.debug("ftscheduler:compaction:blockshift for field=%d gameday=%d from ind=%d to %d",
+                                          field_id, gameday_id, secondon_ind, firstoff_ind)
+
                 finally:
-                    gameday_ind += 1
+                    gameday_id += 1

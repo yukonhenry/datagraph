@@ -87,39 +87,10 @@ def get_alldivSchedule():
     fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'],
                                                    dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
-    a = ""
+    print 'aok'
+    a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
-'''
-    for connecteddiv_list in connected_div_components:
-        # conflict_num are field conflicts - number of div's sharing field
-        conflict_num = len(connecteddiv_list)
 
-        for (connecteddiv,conflict_ind) in zip(connecteddiv_list, range(conflict_num)):
-            div = ldata_divinfo[connecteddiv-1]  # array is 0-index based, connecteddiv is 1-index
-            nt = div['totalteams']
-            fields = div['fields']
-            interval = div['gameinterval']
-            scheduler = ScheduleGenerator(nt, fields, interval, conflict_num)
-            # first generate list of matches for the particular division
-            game_list = scheduler.generateRRSchedule(conflict_ind)
-            # generate match list only
-            #scheduler.generateRoundMatchList()
-            #match_list.append(getattr(scheduler, 'games_by_round_list'))
-
-            age = div['agediv']
-            gender = div['gender']
-            # use upsert with upsert flag enabled so that first call will create insert, but subsequent calls will over-write
-            # ref http://docs.mongodb.org/manual/core/create/
-            # also ref 'common mongodb and python patterns' in O'reilly mongodb and python
-            sched_id = div_schedule_col.update({'age':age, 'gender':gender},
-                                                   {"$set":{'game_list':game_list}}, safe=True, upsert=True)
-
-            metrics_list = getattr(scheduler, 'metrics_list')
-            metrics_id = metrics_collect.update({'age':age, 'gender':gender}, {'age':age, 'gender':gender, 'metrics_list':metrics_list}, safe=True, upsert=True)
-
-        ##game_list_test = fieldTimeScheduler(match_list)
-    coach_conflict_list = ldata['conflict_info']
-'''
 @route('/divisiondata/<did:int>', method='GET')
 def divisiondata(did):
     callback_name = request.query.callback

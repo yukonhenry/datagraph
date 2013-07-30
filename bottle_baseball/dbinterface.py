@@ -39,7 +39,8 @@ class MongoDBInterface:
     def updateGameTime(self, venue, gameday_id, old_start_time, new_start_time):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
                  start_time_CONST:old_start_time}
-        updatefields = {start_time_CONST:new_start_time}
+        updatefields = {"$set":{start_time_CONST:new_start_time}}
+        logging.debug("dbinterface:updateGameTime: query=%s, update=%s", query, updatefields)
         docID = self.games_col.update(query, updatefields)
 
 

@@ -155,8 +155,8 @@ def getFieldSeasonStatus_list():
         fieldseason_status_list.append({'field_id':f['field_id'],
                                         'slotstatus_list':slotstatus_list,
                                         'gameslotsperday':sstatus_len})
-        fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
-List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+    fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
+    List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
     return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
 coach_conflict_info = [

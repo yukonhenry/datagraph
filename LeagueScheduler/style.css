@@ -51,6 +51,7 @@ div.bar {
 }
 
 /* following are from http://bl.ocks.org/4063550 */
+/*
 .node circle {
   fill: #fff;
   stroke: steelblue;
@@ -70,5 +71,9 @@ div.bar {
   stroke: #ccc;
   stroke-width: 1.5px;
 }
-
+*/
 .claro .numberTextBoxClass {width:4em;}
+.dijitButtonNode {
+        background-color: red;
+        border: 2px solid black;
+} 
