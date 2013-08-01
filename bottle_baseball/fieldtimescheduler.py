@@ -81,6 +81,7 @@ class FieldTimeScheduleGenerator:
                 return None
         # refer to http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
         minind = [i for i, j in enumerate(sumcount_list) if j == minsum]
+        # doesn't matter below if we use home_field_list or away_field_list - should produce same results
         mincount_fields = [home_field_list[i] for i in minind]
         return mincount_fields
 
@@ -206,9 +207,10 @@ class FieldTimeScheduleGenerator:
                 logging.error("!!!!Either add more time slots or fields!!!")
 
             for round_id in range(1,max_submatchrounds+1):
+                # counters below count how many time each field is used for every gameday
+                # reset for each round/gameday
                 gameday_fieldcount = [{'field_id':y, 'count':0} for y in fset]
-                print 'connected_div, gameday_fieldcount', gameday_fieldcount
-                gd_fieldcount_indexerGet =  lambda x: dict((p['div_id'],i) for i,p in enumerate(gameday_fieldcount)).get(x)
+                gd_fieldcount_indexerGet =  lambda x: dict((p['field_id'],i) for i,p in enumerate(gameday_fieldcount)).get(x)
                 # create combined list of matches so that it can be passed to the multiplexing
                 # function 'roundrobin' below
                 combined_match_list = []
@@ -416,12 +418,15 @@ class FieldTimeScheduleGenerator:
                     away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))
                     home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count'] += 1
                     away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
+
+                    gameday_fieldcount[gd_fieldcount_indexerGet(field_id)]['count'] += 1
                     div = getAgeGenderDivision(div_id)
                     logging.debug("div=%s%s round_id=%d, field=%d gametime=%s slotindex=%d",
                                   div.age, div.gender, round_id, field_id, gametime, slot_index)
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     gametime.strftime(time_format_CONST),
                                                     field_id, home_id, away_id)
+                logging.debug("ftscheduler: end of round=%d gameday_fieldcount=%s", round_id, gameday_fieldcount)
         # executes after entire schedule for all divisions is generated
         self.compactTimeSchedule()
         divlist = [x['div_id'] for x in self.leaguediv]
