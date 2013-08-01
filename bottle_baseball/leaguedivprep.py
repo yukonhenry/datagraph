@@ -12,6 +12,8 @@ from dateutil import parser
 from copy import deepcopy
 import logging
 
+_List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
+
 _league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':25,
   'gamedaysperweek':1, 'gameinterval':50, 'gamesperseason':11},
@@ -80,6 +82,15 @@ for field in _field_info:
             division['fields'].append(f_id)
         else:
             division['fields'] = [f_id]
+
+def getLeagueDivInfo():
+    # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
+    l_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_league_div)).get(x)
+    return _List_Indexer(_league_div, l_indexerGet)
+
+def getFieldInfo():
+    f_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_field_info)).get(x)
+    return _List_Indexer(_field_info, f_indexerGet)
 
 ''' create bipartite graph - one column is division, other column is fields
 used to define relationship between division and fields

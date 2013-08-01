@@ -8,7 +8,7 @@ from networkx import connected_components
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface
-from leaguedivprep import getAgeGenderDivision, getDivisionData
+from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo
 '''
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
@@ -47,19 +47,15 @@ def leaguedivinfo_all():
 @route('/leaguedivinfo/<tid:int>', method='GET')
 def leaguedivinfo(tid):
     callback_name = request.query.callback
-    ldata = get_leaguedata()
-    ldata_divinfo = ldata['leaguedivinfo']
-    # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
-    leaguediv_indexer = dict((p['div_id'],i) for i,p in enumerate(ldata_divinfo))
-    divindex = leaguediv_indexer.get(tid)
+    ldata_tuple = getLeagueDivInfo()
+    ldata_divinfo = ldata_tuple.dict_list
+    leaguediv_indexerGet = ldata_tuple.indexerGet
+    divindex = leaguediv_indexerGet(tid)
     if divindex is not None:
         div = ldata_divinfo[divindex]
         age = div['agediv']
         gender = div['gender']
         game_list = dbInterface.findDivisionSchedule(age, gender)
-        #metrics_data = metrics_collect.find_one({'age':age, 'gender':gender})
-        #metrics_list = metrics_data['metrics_list']
-        #print metrics_list
         a = json.dumps({"game_list":game_list, "fields":div['fields']})
         return callback_name+'('+a+')'
     else:
@@ -73,21 +69,19 @@ def get_alldivSchedule():
     # apparently the need to create a unique index is not needed if an upsert (see below) call is made.
     # div_schedule_col.create_index([('age', ASCENDING),('gender',ASCENDING)], unique=True, dropDups=True)
     callback_name = request.query.callback
-    ldata = get_leaguedata()
-    ldata_divinfo = ldata['leaguedivinfo']
+    ldata_divinfo = getLeagueDivInfo().dict_list
     total_match_list = []
     for division in ldata_divinfo:
         nt = division['totalteams']
         ng = division['gamesperseason']
         match = MatchGenerator(nt, ng)
-        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
+        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(),
+                                 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
     # get list of connected divisions through field constraints
     #connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     #connected_div_components = connected_components(connectedG)
-    fieldtimeSchedule = FieldTimeScheduleGenerator(ldata_divinfo, ldata['field_info'],
-                                                   dbInterface)
+    fieldtimeSchedule = FieldTimeScheduleGenerator(dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
-    print 'aok'
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 

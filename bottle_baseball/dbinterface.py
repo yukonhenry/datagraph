@@ -2,7 +2,7 @@
 import simplejson as json
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
-from collections import Counter
+from collections import Counter, namedtuple
 from leaguedivprep import getDivID
 import logging
 start_time_CONST = 'START_TIME'
@@ -104,12 +104,8 @@ class MongoDBInterface:
                                     away_CONST:field_game[away_CONST]})
         return field_game_list
 
-    def getMetrics(self, div_id, age, gender, divisionData):
-        numTeams = divisionData['totalteams']
-        fields = divisionData['fields']
-        numgameslots = divisionData['gamesperseason']
-        max_min_start_dict = {}
-        # find max min start time for each gameday
+    def getTimeSlotMetrics(self, div_id, age, gender, fields, numgameslots):
+        # find max min start time for each gameday/field and provide summary stats for how many earliest/latest games each team has
         # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
         #col.aggregate({$match:{AGE:'U10',GEN:'B',GAMEDAY_ID:1}},{$group:{_id:"$START_TIME",samestart:{$push:{HOME:"$HOME",AWAY:"$AWAY"}}}},{$sort:{_id:-1}},{$group:{_id:0,max:{$first:{samestart:"$samestart"}},min:{$last:{samestart:"$samestart"}}}})
         #### bug with above aggregate query - above query gets the metrics for earliest / latest games in each division,
@@ -194,7 +190,16 @@ class MongoDBInterface:
                       div_id, earliest_teams, earliest_counter_dict)
         logging.debug("dbinterface:getMetrics latest_teams=%s, latest_counter_dict=%s",
                       latest_teams, latest_counter_dict)
+        EL_counter = namedtuple('EL_counter','earliest latest')
+        return EL_counter(earliest_counter_dict, latest_counter_dict)
 
+    def getMetrics(self, div_id, age, gender, divisionData):
+        numTeams = divisionData['totalteams']
+        fields = divisionData['fields']
+        numgameslots = divisionData['gamesperseason']
+        ELcounter_tuple = self.getTimeSlotMetrics(div_id, age, gender, fields, numgameslots)
+        earliest_counter_dict = ELcounter_tuple.earliest
+        latest_counter_dict = ELcounter_tuple.latest
         metrics_list = []
         for team_id in range(1, numTeams+1):
             numGames = self.games_col.find({age_CONST:age,gen_CONST:gender,
