@@ -60,11 +60,20 @@ class FieldTimeScheduleGenerator:
         #return the 2nd-most minimum count fields
         requiredslots_perfield = int(ceil(float(totalneeded_slots)/len(gd_fieldcount)))
         maxedout_field = None
+        almostmaxed_field = None
         for gd in gd_fieldcount:
-            if gd['count'] >= requiredslots_perfield:
+            diff = gd['count'] - requiredslots_perfield
+            if diff >= 0:
                 # 1 is a slack term, arbitrary
                 maxedout_field = gd['field_id']
-                penalty = (gd['count'] - requiredslots_perfield + 1)*2
+                penalty = (diff + 1)*2
+            elif diff >= -2:
+                almostmaxed_field = gd['field_id']
+                if diff == -2:
+                    penalty = 1  # give small additive penalty
+                else:
+                    # it can only be -1 here based on above logic
+                    penalty = 2
         # first ensure both lists are sorted according to field
         # note when calling the sorted function, the list is only shallow-copied.
         # changing a field in the dictionary element in the sorted list also changes the dict
@@ -90,6 +99,19 @@ class FieldTimeScheduleGenerator:
                          maxedout_field, requiredslots_perfield, maxedout_ind, penalty)
             logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
                          homecount_list, awaycount_list)
+        elif almostmaxed_field:
+            # if the current field count is almost (one less than) the target count, then incrementally
+            # the home/away count list for the field as a penalty - this will incrementally 'slow down'
+            # target count from being reached
+            almost_ind = home_field_list.index(almostmaxed_field)
+            # if count is approaching the limit, give an additive penalty
+            homecount_list[almost_ind] += penalty
+            awaycount_list[almost_ind] += penalty
+            logging.info("ftscheduler:findMinCountField: field=%d Almost Target, required=%d ind=%d",
+                         almostmaxed_field, requiredslots_perfield, almost_ind)
+            logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
+                         homecount_list, awaycount_list)
+
        # get min
         sumcount_list = [x+y for (x,y) in zip(homecount_list, awaycount_list)]
         if (submin == 0):
