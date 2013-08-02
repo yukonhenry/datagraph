@@ -19,3 +19,10 @@ class TimeCompactionError(Exception):
         Exception.__init__(self)
         self.field_id = field_id
         self.gameday_id = gameday_id
+
+class FieldConsistencyError(Exception):
+    '''Raised if there is some unexpected inconsistency for allocated fields for a division'''
+    def __init__(self, field_list1, field_list2):
+        Exception.__init__(self)
+        self.field_list1 = field_list1
+        self.field_list2 = field_list2

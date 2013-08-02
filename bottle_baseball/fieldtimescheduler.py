@@ -50,7 +50,7 @@ class FieldTimeScheduleGenerator:
         self.current_earlylate_list = []
         self.target_earlylate_list = []
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, submin=0):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, totalneeded_slots, submin=0):
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
         # metric lists, but to take into account cases where field_id with min count is different
@@ -58,18 +58,40 @@ class FieldTimeScheduleGenerator:
         # return field_id(s) - not indices
         #optional parameter submin is used when the submin-th minimum is required, i.e. is submin=1
         #return the 2nd-most minimum count fields
-
+        requiredslots_perfield = int(ceil(float(totalneeded_slots)/len(gd_fieldcount)))
+        maxedout_field = None
+        for gd in gd_fieldcount:
+            if gd['count'] >= requiredslots_perfield:
+                # 1 is a slack term, arbitrary
+                maxedout_field = gd['field_id']
+                penalty = (gd['count'] - requiredslots_perfield + 1)*2
         # first ensure both lists are sorted according to field
+        # note when calling the sorted function, the list is only shallow-copied.
+        # changing a field in the dictionary element in the sorted list also changes the dict
+        # in the original list
+        # we should make a copy of the list first before sorting
         sorted_homemetrics_list = sorted(homemetrics_list, key=itemgetter('field_id'))
         sorted_awaymetrics_list = sorted(awaymetrics_list, key=itemgetter('field_id'))
+
+        homecount_list = [x['count'] for x in sorted_homemetrics_list]
+        awaycount_list = [x['count'] for x in sorted_awaymetrics_list]
         home_field_list = [x['field_id'] for x in sorted_homemetrics_list]
         away_field_list = [x['field_id'] for x in sorted_awaymetrics_list]
+
         if (set(home_field_list) != set(away_field_list)):
             logging.error("home and away teams have different field lists %s %s",home_field_list, away_field_list)
-            return None
-        # get min
-        sumcount_list = [x+y for (x,y) in zip([i['count'] for i in sorted_homemetrics_list],
-                                              [j['count'] for j in sorted_awaymetrics_list])]
+            raise FieldConsistencyError(home_field_list, away_field_list)
+        if maxedout_field:
+            maxedout_ind = home_field_list.index(maxedout_field)
+            # when scaling, increment by 1 as fieldcount maybe 0
+            homecount_list[maxedout_ind] = (homecount_list[maxedout_ind]+1)*penalty
+            awaycount_list[maxedout_ind] = (awaycount_list[maxedout_ind]+1)*penalty
+            logging.info("ftscheduler:findMinCountField: field=%d maxed out, required=%d ind=%d penalty=%d",
+                         maxedout_field, requiredslots_perfield, maxedout_ind, penalty)
+            logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
+                         homecount_list, awaycount_list)
+       # get min
+        sumcount_list = [x+y for (x,y) in zip(homecount_list, awaycount_list)]
         if (submin == 0):
             minsum = min(sumcount_list)
         else:
@@ -92,6 +114,17 @@ class FieldTimeScheduleGenerator:
         logging.debug("ftscheduler:incrementELcounter: %s h=%s a=%s",
                       el_str, homecounter_dict, awaycounter_dict)
 
+    def ReFieldBalance(self, connected_div_list, fieldmetrics_list, indexerGet):
+        rebalance_count = 0
+        for div_id in connected_div_list:
+            tfmetrics = fieldmetrics_list[indexerGet(div_id)]['tfmetrics']
+            team_id = 1
+            for team_metrics in tfmetrics:
+                maxuse = max(team_metrics, key=itemgetter('count'))
+                minuse = min(team_metrics, key=itemgetter('count'))
+                if maxuse['count']-minuse['count'] > 1:
+                    print div_id, team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id']
+                team_id += 1
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -187,7 +220,7 @@ class FieldTimeScheduleGenerator:
             # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
             # and div2 is using fields[2,3] (field 2 is shared but not 1 and 3)
 
-            fieldmetrics_indexer = dict((p['div_id'],i) for i,p in enumerate(fieldmetrics_list))
+            fieldmetrics_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(fieldmetrics_list)).get(x)
             targetfieldcount_indexer = dict((p['div_id'],i) for i,p in enumerate(targetfieldcount_list))
             divtotalel_indexer =  dict((p['div_id'],i) for i,p in enumerate(divtotal_el_list))
             cel_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.current_earlylate_list)).get(x)
@@ -236,7 +269,7 @@ class FieldTimeScheduleGenerator:
                 rrgenobj = roundrobin(combined_match_list)
                 for rrgame in rrgenobj:
                     div_id = rrgame['div_id']
-                    dindex = fieldmetrics_indexer.get(div_id)
+                    dindex = fieldmetrics_indexerGet(div_id)
                     teamfieldmetrics_list = fieldmetrics_list[dindex]['tfmetrics']
 
                     gameinfo = rrgame['game']
@@ -277,7 +310,8 @@ class FieldTimeScheduleGenerator:
                                   home_targetel_dict, away_targetel_dict, home_currentel_dict, away_currentel_dict)
                     submin = 0
                     while True:
-                        fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list, submin)
+                        fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list,
+                                                                    gameday_fieldcount, required_gameslotsperday, submin)
                         if fieldcand_list is None:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
@@ -426,7 +460,10 @@ class FieldTimeScheduleGenerator:
                     self.dbinterface.insertGameData(div.age, div.gender, rrgame['round_id'],
                                                     gametime.strftime(time_format_CONST),
                                                     field_id, home_id, away_id)
-                logging.debug("ftscheduler: end of round=%d gameday_fieldcount=%s", round_id, gameday_fieldcount)
+                logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
+                              connected_div_list, round_id, gameday_fieldcount)
+            rebalance_count = self.ReFieldBalance(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
+
         # executes after entire schedule for all divisions is generated
         self.compactTimeSchedule()
         divlist = [x['div_id'] for x in self.leaguediv]
