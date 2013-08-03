@@ -8,7 +8,7 @@ from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDi
 import logging
 from operator import itemgetter
 from copy import deepcopy
-from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError
+from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError
 from math import ceil, floor
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
@@ -147,6 +147,7 @@ class FieldTimeScheduleGenerator:
                 if maxuse['count']-minuse['count'] > 1:
                     print div_id, team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id']
                 team_id += 1
+        return rebalance_count
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -214,14 +215,14 @@ class FieldTimeScheduleGenerator:
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(numteams)]
                 fieldmetrics_list.append({'div_id':div_id, 'tfmetrics':tfmetrics_list})
                 # metrics and counters for time balancing:
-                numgameslots = divinfo['gamesperseason']
+                numgamesperseason = divinfo['gamesperseason']
                 # expected total fair share of number of early OR late games for each division
                 # eff_edgeweight represents 'fair share' of fields
                 # factor of 2 comes in because each time slots gets credited to two teams
                 # (home and away)
                 ew_list = ew_list_indexer.dict_list
                 ew_indexerGet = ew_list_indexer.indexerGet
-                divtarget_el = 2*numgameslots*ew_list[ew_indexerGet(div_id)]['ratio']
+                divtarget_el = 2*numgamesperseason*ew_list[ew_indexerGet(div_id)]['prodratio']
                 # per team fair share of early or late time slots
                 teamtarget_el = int(ceil(divtarget_el/numteams))  # float value
                 # calculate each team's target share of early and late games
@@ -230,8 +231,12 @@ class FieldTimeScheduleGenerator:
                 # each division's target share of early and late games
                 # we have this metric because we are using 'ceil' for the team target so not every team
                 # will have to meet requirements
-                divtotal_el_list.append({'div_id':div_id, 'early':int(floor(divtarget_el)),
-                                                'late':int(floor(divtarget_el))})
+                # Changed, 8/2/13 to 'round' - as round better preserves the divtotal requirements for the
+                # connected divisions group.
+                # we want #numdivision*gamesperseason*2*totalnumfield_in_connected_div
+                # factor 2 above is due to double credit because each game involves two teams
+                divtotal_el_list.append({'div_id':div_id, 'early':int(round(divtarget_el)),
+                                                'late':int(round(divtarget_el))})
                 #initialize early late slot counter
                 counter_list = [{'early':0, 'late':0} for i in range(numteams)]
                 self.current_earlylate_list.append({'div_id':div_id, 'counter_list':counter_list})
@@ -260,7 +265,7 @@ class FieldTimeScheduleGenerator:
                 logging.error("Not enough game slots, need %d slots, but only %d available",
                               required_gameslotsperday, available_gameslotsperday)
                 logging.error("!!!!Either add more time slots or fields!!!")
-
+                raise FieldTimeAvailabilityError(connected_div_list)
             for round_id in range(1,max_submatchrounds+1):
                 # counters below count how many time each field is used for every gameday
                 # reset for each round/gameday
@@ -491,12 +496,20 @@ class FieldTimeScheduleGenerator:
         divlist = [x['div_id'] for x in self.leaguediv]
         divlist.sort()  # note assignment b=a.sort() returns None
         for div_id in divlist:
-            celdiv_list = self.current_earlylate_list[cel_indexerGet(div_id)]['counter_list']
-            celearly_list = [x['early'] for x in celdiv_list]
-            cellate_list = [x['late'] for x in celdiv_list]
-            teldiv_list = self.target_earlylate_list[tel_indexerGet(div_id)]['target_list']
-            #print div_id, celearly_list, cellate_list, teldiv_list
-
+            # gets stats from the db - note current_earlylate_list is not a good stat counter after
+            # time scheduling has completed because a first game at 8:50 (instead of 8:00 for example)
+            # does not get counted.  It is possible to detect an early game after compaction, but
+            # db interface gives reliable stat counts
+            div = getAgeGenderDivision(div_id)
+            divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
+            divfields = divinfo['fields']
+            numgamesperseason = divinfo['gamesperseason']
+            ELcounter_tuple = self.dbinterface.getTimeSlotMetrics(div.age, div.gender,
+                                                                  divfields, numgamesperseason)
+            earliest_counter = ELcounter_tuple.earliest
+            latest_counter = ELcounter_tuple.latest
+            print div_id, earliest_counter, latest_counter
+            print 'max min earliest', earliest_counter.most_common(1)
 
     def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, gameday_id,
                           src_begin, dst_begin, shift_len):

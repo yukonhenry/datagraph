@@ -10,6 +10,7 @@ from collections import namedtuple
 from datetime import timedelta
 from dateutil import parser
 from copy import deepcopy
+from operator import itemgetter
 import logging
 
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
@@ -112,9 +113,11 @@ def getDivFieldEdgeWeight_list():
     # of fields associated with a division.
     # Bipartite graph representations, with divisions as one set of nodes, and fields as the other set
     # are used.  Thus a neighbor of a division is always a field.
-    effective_edgesum_list = [sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)]) for d in div_nodes]
+    edgesum_list = [{'div_id':d, 'edgesum': sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)])}
+                    for d in div_nodes]
+    sorted_edgesum_list = sorted(edgesum_list, key=itemgetter('div_id'))
     logging.debug("div fields bipartite graph %s %s effective edge sum for each node %s",
-                  df_biparG.nodes(), df_biparG.edges(), effective_edgesum_list)
+                  df_biparG.nodes(), df_biparG.edges(), sorted_edgesum_list)
 
     # depending on the number of teams in each division, the 'fairness share' for each division is adjusted;
     # i.e. a division with more teams is expected to contribute a larger amount to field sharing obligations,
@@ -128,11 +131,19 @@ def getDivFieldEdgeWeight_list():
     divratio_list = [{'div_id':x, 'ratio': len(connected_list)*float(_league_div[div_indexer.get(x)]['totalteams'])/
                      sum(_league_div[div_indexer.get(y)]['totalteams'] for y in connected_list)}
                      for connected_list in getConnectedDivisions() for x in connected_list]
-    print effective_edgesum_list, divratio_list
+    sorted_divratio_list = sorted(divratio_list, key=itemgetter('div_id'))
+    # multiply sorted edgesum list elements w. sorted divratio list elements
+    # because of the sort all dictionary elements in the list should be sorted according to div_id and obviating
+    # need to create an indexerGet function
+    # x['div_id'] could have been y['div_id'] in the list comprehension below
+    prod_list = [{'div_id': x['div_id'], 'prodratio': x['edgesum']*y['ratio']}
+                 for (x,y) in zip(sorted_edgesum_list, sorted_divratio_list)]
+    logging.debug("getDivFieldEdgeWeight: sorted_edge=%s, sorted_ratio=%s, prod=%s",
+                  sorted_edgesum_list, sorted_divratio_list, prod_list)
     # define indexer function object
-    ratio_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divratio_list)).get(x)
+    prod_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(prod_list)).get(x)
     List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
-    return List_Indexer(divratio_list, ratio_indexerGet)
+    return List_Indexer(prod_list, prod_indexerGet)
 
 def getFieldSeasonStatus_list():
     # routine to return initialized list of field status slots -

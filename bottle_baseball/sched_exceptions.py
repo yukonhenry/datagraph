@@ -26,3 +26,9 @@ class FieldConsistencyError(Exception):
         Exception.__init__(self)
         self.field_list1 = field_list1
         self.field_list2 = field_list2
+
+class FieldTimeAvailabilityError(Exception):
+    ''' Raised if there is a general lack of fields or time to service required number of games'''
+    def __init__(self, div_list):
+        Exception.__init__(self)
+        self.div_list = div_list
