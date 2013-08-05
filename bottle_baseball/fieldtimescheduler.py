@@ -162,7 +162,8 @@ class FieldTimeScheduleGenerator:
         # used for calaculating time balancing metrics
         ew_list_indexer = getDivFieldEdgeWeight_list()
         #enum defined in sched_util.py
-        EL_enum = enum(NORMAL=0x0, EARLY_DIVTOTAL=0x1, LATE_DIVTOTAL=0x2, EARLY_TEAM=0x4, LATE_TEAM=0x8)
+        EL_enum = enum(NORMAL=0x0, EARLY_DIVTOTAL_NOTMET=0x1, LATE_DIVTOTAL_NOTMET=0x2,
+                       EARLY_TEAM_NOTMET=0x4, LATE_TEAM_NOTMET=0x8)
 
         # work with each set of connected divisions w. shared field
         for connected_div_list in self.connected_div_components:
@@ -320,15 +321,15 @@ class FieldTimeScheduleGenerator:
                     divlate_count = sum(current_el_list[x]['late'] for x in range(len(current_el_list)))
                     el_state = EL_enum.NORMAL
                     if (divearly_count < divtotal_el_dict['early']):
-                        el_state |= EL_enum.EARLY_DIVTOTAL
+                        el_state |= EL_enum.EARLY_DIVTOTAL_NOTMET
                     if (divlate_count < divtotal_el_dict['late']):
-                        el_state |= EL_enum.LATE_DIVTOTAL
+                        el_state |= EL_enum.LATE_DIVTOTAL_NOTMET
                     if (home_currentel_dict['early'] < home_targetel_dict['early'] and
                         away_currentel_dict['early'] < away_targetel_dict['early']):
-                        el_state |= EL_enum.EARLY_TEAM
+                        el_state |= EL_enum.EARLY_TEAM_NOTMET
                     if (home_currentel_dict['late'] < home_targetel_dict['late'] and
                           away_currentel_dict['late'] < away_targetel_dict['late']):
-                        el_state |= EL_enum.LATE_TEAM
+                        el_state |= EL_enum.LATE_TEAM_NOTMET
 
                     logging.debug("----------------------")
                     logging.debug("fieldtimescheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
@@ -350,7 +351,22 @@ class FieldTimeScheduleGenerator:
                                             [y['isgame'] for y in self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
                                              ['slotstatus_list'][round_id-1]])
                                            for x in fieldcand_list]
-                            if el_state & EL_enum.LATE_TEAM and el_state & EL_enum.LATE_DIVTOTAL:
+                            if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
+                                # find fields that have the first slot open
+                                firstslotopenfield_list = [x[0] for x in isgame_list if x[1][0] is False]
+                                if firstslotopenfield_list:
+                                    field_id = firslotopenfield_list[0] # take first field element
+                                    slot_index = 0
+                                else:
+                                    firstslotscheduled_list = [x[0] for x in isgame_list if x[1][0]]
+                                    match_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
+                                                  ['slotstatus_list'][round_id-1]['teams']
+                                                  for x in firstslotscheduled_list]
+                                    for match in match_list:
+                                        # first slot is already taken, find counters for current slot 0 elements
+                                        hel_dict = current_el_list[match[home_CONST]-1]
+                                        ael_dict = current_el_list[match[away_CONST]-1]
+                            if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
                                 # only look for last element, if el_state dictates so; if div totals are already met, skip
                                 # if we are looking for last time slot, first get a list for available last time slot
                                 # across all fields
@@ -395,8 +411,8 @@ class FieldTimeScheduleGenerator:
                                     field_id = el[0]
                                     slot_index = el[1]
                                     if slot_index == 0:
-                                        if el_state & EL_enum.EARLY_TEAM and el_state & EL_enum.EARLY_DIVTOTAL:
-                                            # if div totals are already met (EARLY_DIVTOTAL bit will be off), ok to assign
+                                        if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
+                                            # if div totals are already met (EARLY_DIVTOTAL_NOTMET bit will be off), ok to assign
                                             # slot 0 even if EL_enum.EARLY has not been satisfied
                                             self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                             break # break out of for loop
@@ -445,7 +461,7 @@ class FieldTimeScheduleGenerator:
                             fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
                             # find first open time slot in round
                             isgame_list = [y['isgame'] for y in fieldslotstatus_list]
-                            if el_state & EL_enum.LATE_TEAM and el_state & EL_enum.LATE_DIVTOTAL:
+                            if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
                                 lastslot_state = isgame_list[-1]
                                 if lastslot_state is False:
                                     slot_index = len(isgame_list)-1
@@ -455,7 +471,8 @@ class FieldTimeScheduleGenerator:
                                 openslotone_list = [i for i,j in enumerate(isgame_list) if not j]
                                 slot_index = openslotone_list[0]
                                 if slot_index == 0:
-                                    if ((el_state & EL_enum.EARLY_TEAM and el_state & EL_enum.EARLY_DIVTOTAL) or
+                                    if ((el_state & EL_enum.EARLY_TEAM_NOTMET
+                                         and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET) or
                                         len(openslotone_list)==1):
                                         self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                     else:
@@ -474,6 +491,7 @@ class FieldTimeScheduleGenerator:
                                   slot_index, home_currentel_dict, away_currentel_dict)
                     selected_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][round_id-1][slot_index]
                     selected_ftstatus['isgame'] = True
+                    selected_ftstatus['teams'] = {home_CONST:home_id, away_CONST:away_id}
                     gametime = selected_ftstatus['start_time']
                     home_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list))
                     away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))

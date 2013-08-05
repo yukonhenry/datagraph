@@ -163,7 +163,7 @@ def getFieldSeasonStatus_list():
         #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
         interval = max(interval_list)
         gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
-        numgames = max(numgames_list)
+        numgamesperseason = max(numgames_list)
         gamestart = parser.parse(f['start_time'])
         end_time = parser.parse(f['end_time'])
         # slotstatus_list has a list of statuses, one for each gameslot
@@ -173,7 +173,7 @@ def getFieldSeasonStatus_list():
             sstatus_list.append({'start_time':gamestart, 'isgame':False})
             gamestart += gameinterval
         sstatus_len = len(sstatus_list)
-        slotstatus_list = [deepcopy(sstatus_list) for i in range(numgames)]
+        slotstatus_list = [deepcopy(sstatus_list) for i in range(numgamesperseason)]
         fieldseason_status_list.append({'field_id':f['field_id'],
                                         'slotstatus_list':slotstatus_list,
                                         'gameslotsperday':sstatus_len})
