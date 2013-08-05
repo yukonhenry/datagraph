@@ -41,6 +41,7 @@ class MatchGenerator:
         self.match_by_round_list = []
         self.targethome_count_list = []
         self.matchG = nx.DiGraph()
+        self.gameID = 1
 
     def removeGraphEdgeAttribute(self, source_id, sink_id, gamecount_id):
         # delete edge from matchG graph
@@ -86,6 +87,9 @@ class MatchGenerator:
             gamematch = {home_CONST:team2_id, away_CONST:team1_id}
             self.addGraphEdgeAttribute(team2_id, team1_id, gamecount_id)
             self.metrics_list[t2_ind] += 1
+        # unique identifier for game
+        #gamematch['gameID'] = self.gameID
+        self.gameID += 1
         return gamematch
 
     # calculate cost function - euclidean distance between metrics_list and
