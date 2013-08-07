@@ -23,6 +23,7 @@ game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
+firstslot_CONST = 0
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
@@ -148,6 +149,11 @@ class FieldTimeScheduleGenerator:
                     print div_id, team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id']
                 team_id += 1
         return rebalance_count
+
+    def shiftFSStatus_list(self, field_id, round_id):
+        ''' shift self.fieldSeasonStatus struct for a given field and gameday_id when a new match
+        is scheduled for slot 0 '''
+        gameday_list = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][round_id-1]
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -355,17 +361,31 @@ class FieldTimeScheduleGenerator:
                                 # find fields that have the first slot open
                                 firstslotopenfield_list = [x[0] for x in isgame_list if x[1][0] is False]
                                 if firstslotopenfield_list:
-                                    field_id = firslotopenfield_list[0] # take first field element
+                                    field_id = firstslotopenfield_list[0] # take first field element
                                     slot_index = 0
                                 else:
-                                    firstslotscheduled_list = [x[0] for x in isgame_list if x[1][0]]
-                                    match_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
-                                                  ['slotstatus_list'][round_id-1]['teams']
+                                    firstslotscheduled_list = [x[0] for x in isgame_list if x[1][firstslot_CONST]]
+                                    match_list = [(x,self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
+                                                  ['slotstatus_list'][round_id-1][firstslot_CONST]['teams'])
                                                   for x in firstslotscheduled_list]
-                                    for match in match_list:
+                                    for field_match in match_list:
+                                        match = field_match[1]
                                         # first slot is already taken, find counters for current slot 0 elements
-                                        hel_dict = current_el_list[match[home_CONST]-1]
-                                        ael_dict = current_el_list[match[away_CONST]-1]
+                                        home_early = current_el_list[match[home_CONST]-1]['early']
+                                        away_early = current_el_list[match[away_CONST]-1]['early']
+                                        if (home_early > home_targetel_dict['early'] and
+                                            away_early > away_targetel_dict['early']):
+                                            # if the current home and away early counts are both greater than
+                                            # the target amount, they can afford to be bumped out the earliest
+                                            # slots; current match will take its place at slot 0
+                                            field_id = field_match[0]
+                                            slot_index = firstslot_CONST
+                                            self.shiftFSstatus_list(field_id, round_id)
+                                            break
+                                    else:
+                                        pass
+
+
                             if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
                                 # only look for last element, if el_state dictates so; if div totals are already met, skip
                                 # if we are looking for last time slot, first get a list for available last time slot
