@@ -29,7 +29,9 @@ def enum(**enums):
     return type('Enum', (), enums)
 
 def shift_list(l, shift, empty=0):
-    '''http://stackoverflow.com/questions/9209999/python-shift-elements-in-a-list-with-constant-length '''
+    '''http://stackoverflow.com/questions/9209999/python-shift-elements-in-a-list-with-constant-length
+    first param l is the list, shift is the number of positions (positive shift is to right, negative
+    to left), empty is the fill-in value'''
     src_index = max(-shift, 0)
     dst_index = max(shift, 0)
     length = max(len(l) - abs(shift), 0)

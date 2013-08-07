@@ -150,7 +150,7 @@ class FieldTimeScheduleGenerator:
                 team_id += 1
         return rebalance_count
 
-    def shiftFSStatus_list(self, field_id, round_id):
+    def shiftFSstatus_list(self, field_id, round_id):
         ''' shift self.fieldSeasonStatus struct for a given field and gameday_id when a new match
         is scheduled for slot 0 '''
         gameday_list = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][round_id-1]
