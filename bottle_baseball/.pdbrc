@@ -1,7 +1,8 @@
 # call python -m pdb hello.py
 #b matchgenerator.py:302
 #b fieldtimescheduler.py:234, (max([x['count'] for x in home_fieldmetrics_list])-min([x['count'] for x in home_fieldmetrics_list]) > 1 or max([x['count'] for x in away_fieldmetrics_list])-min([x['count'] for x in away_fieldmetrics_list]) > 1) and (home_id==21 or away_id==21)
-b fieldtimescheduler.py:367
+b fieldtimescheduler.py:368
+#b fieldtimescheduler.py:375
 #b fieldtimescheduler.py:351, home_currentel_dict['early'] > 1 or away_currentel_dict['early'] > 1
 #b leaguediv_process.py:87
 #b fieldtimescheduler.py:245, div_id==1 and round_id==11 and home_id==9 and away_id==13
