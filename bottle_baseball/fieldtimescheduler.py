@@ -159,6 +159,7 @@ class FieldTimeScheduleGenerator:
         firstTrue = isgame_list.index(True)
         if firstTrue != 0:
             return False
+        # see above reference for getting last index of a specified value in a list
         lastTrue = len(isgame_list)-1-isgame_list[::-1].index(True)
         index = lastTrue
         while index >= firstTrue:
@@ -371,6 +372,23 @@ class FieldTimeScheduleGenerator:
                                             [y['isgame'] for y in self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
                                              ['slotstatus_list'][round_id-1]])
                                            for x in fieldcand_list]
+                            # first make sure that not all game slots for all candidate fields have not
+                            # been scheduled.
+                            for fieldsched in isgame_list:
+                                if not all_value(fieldsched[1], True):
+                                    # if there is at least one False, then we have space to schedule a game
+                                    # ok to break out of the for loop
+                                    break
+                                else:
+                                    raise FieldAvailabilityError(div_id)
+
+                            # take care of the case where a field is completely unscheduled - if it is,
+                            # assign a game and credit both early and late game counters
+                            fieldempty_list = [x[0] for x in isgame_list if all_value(x[1], False)]
+                            field_id = fieldempty_list[0]
+                            slot_index = 0
+                            break
+
                             if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
                                 # if we have not met the early slot criteria, try to fill slot 0
                                 # first create list of fields from candidate field list that has slot 0 open if any
@@ -379,17 +397,8 @@ class FieldTimeScheduleGenerator:
                                     # if slot 0 is open, take it
                                     field_id = firstslotopenfield_list[0] # take first field element
                                     slot_index = 0
-                                    break
+                                    break # break out of while True loop
                                 else:
-                                    # first make sure that not all game slots for all candidate fields have not
-                                    # been scheduled.
-                                    for fieldsched in isgame_list:
-                                        if not all_value(fieldsched[1], True):
-                                            # if there is at least one False, then we have space to schedule a game
-                                            # ok to break out of the for loop
-                                            break
-                                    else:
-                                        raise FieldAvailabilityError(div_id)
                                     # if slot 0 is not open, first see if it makes sense to shift other scheduled slots
                                     # to open up slot 0
                                     # get list of fields that have games scheduled in slot 0
@@ -401,6 +410,7 @@ class FieldTimeScheduleGenerator:
                                     match_list = [(x,self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
                                                   ['slotstatus_list'][round_id-1][firstslot_CONST]['teams'])
                                                   for x in firstslotscheduled_list]
+                                    rflag = False
                                     for field_match in match_list:
                                         match = field_match[1]
                                         did = match['div_id']  # get div_id
@@ -427,6 +437,7 @@ class FieldTimeScheduleGenerator:
                                             slot_index = firstslot_CONST
                                             # shift the current scheduled games to the right one spot
                                             self.shiftFSstatus_list(field_id, round_id)
+                                            rflag = True
                                             break # break out of for loop; need to break out of While True also
                                         else:
                                             continue # go to next iteration in for loop through fields
@@ -434,8 +445,33 @@ class FieldTimeScheduleGenerator:
                                         # we iterated through fields but found out that replacing slot 0 is not prudent
                                         # check if it makes sense to replace last element
                                         pass # do nothing for now and see if el_state matches any other condition
+                                    if rflag:
+                                        # break out of while True loop
+                                        break
 
                             if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
+                                # if last slot should be scheduled, then find the last open slot in the currently scheduled set
+                                # and insert this current match at that open slot - note that we are not necessarily
+                                # scheduling at the very last slot of the day
+                                # Note to prevent index value exceptions, don't add a list element if all of the 1-element list
+                                # is true or the last element in the 1-element list is True (game already scheduled in the very
+                                # last slot)
+                                # note on handling exceptions within list comprehension - basically can't do
+                                # http://stackoverflow.com/questions/1528237/how-can-i-handle-exceptions-in-a-list-comprehension-in-python
+                                openslotfield_list = [(x[0], x[1].index(False)) for x in isgame_list
+                                                      if not all_value(x[1], True)]
+                                # find any fields that only have one element
+                                # use http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
+                                # modified for tuples
+
+                                # ref http://stackoverflow.com/questions/3282823/python-get-key-with-the-least-value-from-a-dictionary
+                                # but modified to work wit list of tuples - use itemgetter to get min based on 1-index element
+                                # note we don't have to do any shifting
+                                minelem =  min(openslotfield_list, key=itemgetter(1))
+                                field_id = minelem[0]
+                                slot_index = minelem[1]
+                                break
+
                                 # only look for last element, if el_state dictates so; if div totals are already met, skip
                                 # if we are looking for last time slot, first get a list for available last time slot
                                 # across all fields
