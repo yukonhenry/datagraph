@@ -137,6 +137,13 @@ class FieldTimeScheduleGenerator:
         logging.debug("ftscheduler:incrementELcounter: %s h=%s a=%s",
                       el_str, homecounter_dict, awaycounter_dict)
 
+    ''' function to decrement timeslot counters'''
+    def decrementEL_counters(self, homecounter_dict, awaycounter_dict, el_str):
+        homecounter_dict[el_str] -= 1
+        awaycounter_dict[el_str] -= 1
+        logging.debug("ftscheduler:decrementELcounter: %s h=%s a=%s",
+                      el_str, homecounter_dict, awaycounter_dict)
+
     def ReFieldBalance(self, connected_div_list, fieldmetrics_list, indexerGet):
         rebalance_count = 0
         for div_id in connected_div_list:
@@ -167,6 +174,39 @@ class FieldTimeScheduleGenerator:
             # reference copy of dict should be sufficient below, but need to confirm
             gameday_list[index+1]['teams'] = gameday_list[index]['teams']
             index -= 1
+
+    def compareCounterToTarget(self, match_list, cel_indexerGet, tel_indexerGet, el_str):
+        rflag = False
+        for field_match in match_list:
+            match = field_match[1]
+            did = match['div_id']  # get div_id
+            home_ind = match[home_CONST]-1  # list index index so subtract 1
+            away_ind = match[away_CONST]-1
+            # find early late counters for home/away teams
+            cel_index = cel_indexerGet(did)
+            cel_list = self.current_earlylate_list[cel_index]['counter_list']
+            home_el = cel_list[home_ind][el_str]
+            away_el = cel_list[away_ind][el_str]
+
+            # also find out target early/late count values
+            tel_index = tel_indexerGet(did)
+            tel_list = self.target_earlylate_list[tel_index]['target_list']
+            home_el_target = tel_list[home_ind][el_str]
+            away_el_target = tel_list[away_ind][el_str]
+
+            if (home_el > home_el_target and
+                away_el > away_el_target):
+                # if the current home and away early counts are both greater than
+                # the target amount, they can afford to be bumped out the earliest
+                # slots; current match will take its place at slot 0
+                field_id = field_match[0]
+                slot_index = field_match[2]
+                rflag = True
+                break
+        else:
+            return None
+        FieldSlotTuple = namedtuple('FieldSlotTuple', 'field_id slot_index')
+        return FieldSlotTuple(field_id, slot_index)
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -375,7 +415,7 @@ class FieldTimeScheduleGenerator:
                             # first make sure that not all game slots for all candidate fields have not
                             # been scheduled.
                             for fieldsched in isgame_list:
-                                if not all_value(fieldsched[1], True):
+                                if not all(fieldsched[1]):
                                     # if there is at least one False, then we have space to schedule a game
                                     # ok to break out of the for loop
                                     break
@@ -387,6 +427,8 @@ class FieldTimeScheduleGenerator:
                             fieldempty_list = [x[0] for x in isgame_list if all_value(x[1], False)]
                             field_id = fieldempty_list[0]
                             slot_index = 0
+                            self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                            self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                             break
 
                             if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
@@ -397,6 +439,7 @@ class FieldTimeScheduleGenerator:
                                     # if slot 0 is open, take it
                                     field_id = firstslotopenfield_list[0] # take first field element
                                     slot_index = 0
+                                    self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                     break # break out of while True loop
                                 else:
                                     # if slot 0 is not open, first see if it makes sense to shift other scheduled slots
@@ -408,45 +451,24 @@ class FieldTimeScheduleGenerator:
                                         raise FieldConsistencyError(firstslotscheduled_list, fieldcand_list)
                                     # find out div and teams that are already scheduled for slot 0
                                     match_list = [(x,self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
-                                                  ['slotstatus_list'][round_id-1][firstslot_CONST]['teams'])
+                                                  ['slotstatus_list'][round_id-1][firstslot_CONST]['teams'],
+                                                   firstslot_CONST)
                                                   for x in firstslotscheduled_list]
-                                    rflag = False
-                                    for field_match in match_list:
-                                        match = field_match[1]
-                                        did = match['div_id']  # get div_id
-                                        home_ind = match[home_CONST]-1  # list index index so subtract 1
-                                        away_ind = match[away_CONST]-1
-                                        # find early late counters for home/away teams
-                                        cel_index = cel_indexerGet(did)
-                                        cel_list = self.current_earlylate_list[cel_index]['counter_list']
-                                        home_early = cel_list[home_ind]['early']
-                                        away_early = cel_list[away_ind]['early']
-
-                                        # also find out target early/late count values
-                                        tel_index = tel_indexerGet(did)
-                                        tel_list = self.target_earlylate_list[tel_index]['target_list']
-                                        home_early_target = tel_list[home_ind]['early']
-                                        away_early_target = tel_list[away_ind]['early']
-
-                                        if (home_early > home_early_target and
-                                            away_early > away_early_target):
-                                            # if the current home and away early counts are both greater than
-                                            # the target amount, they can afford to be bumped out the earliest
-                                            # slots; current match will take its place at slot 0
-                                            field_id = field_match[0]
-                                            slot_index = firstslot_CONST
-                                            # shift the current scheduled games to the right one spot
-                                            self.shiftFSstatus_list(field_id, round_id)
-                                            rflag = True
-                                            break # break out of for loop; need to break out of While True also
-                                        else:
-                                            continue # go to next iteration in for loop through fields
-                                    else:
-                                        # we iterated through fields but found out that replacing slot 0 is not prudent
-                                        # check if it makes sense to replace last element
-                                        pass # do nothing for now and see if el_state matches any other condition
-                                    if rflag:
-                                        # break out of while True loop
+                                    fieldslot_tuple = self.compareCounterToTarget(match_list, cel_indexerGet,
+                                                                                  tel_indexerGet, 'early')
+                                    if fieldslot_tuple:
+                                        # if the current home and away early counts are both greater than
+                                        # the target amount, they can afford to be bumped out the earliest
+                                        # slots; current match will take its place at slot 0
+                                        field_id = fieldslot_tuple.field_id
+                                        slot_index = fieldslot_tuple.slot_index
+                                        # shift the current scheduled games to the right one spot
+                                        self.shiftFSstatus_list(field_id, round_id)
+                                        # update counters
+                                        # increment for current home and away teams which will take first slot
+                                        self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                                        # decrement counters for teams whose match was shifted out of the first slot
+                                        self.decrementEL_counters(home_early, away_early, 'early')
                                         break
 
                             if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
@@ -459,11 +481,38 @@ class FieldTimeScheduleGenerator:
                                 # note on handling exceptions within list comprehension - basically can't do
                                 # http://stackoverflow.com/questions/1528237/how-can-i-handle-exceptions-in-a-list-comprehension-in-python
                                 openslotfield_list = [(x[0], x[1].index(False)) for x in isgame_list
-                                                      if not all_value(x[1], True)]
+                                                      if not all(x[1])]
                                 # find any fields that only have one element
                                 # use http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
                                 # modified for tuples
-
+                                osf_indexerGet = lambda x: dict((p[1],i) for i,p in enumerate(openslotfield_list)).get(x)
+                                # see if there are any fields with only one game scheduled so far
+                                # even if there are multiple fields with only game, only one is returned as the dictionary creation
+                                # process above with the lambda function will only allow one value to be re-mapped to a key
+                                onegame_ind = osf_indexerGet(1)
+                                if onegame_ind:
+                                    field_id = openslotfield[opengame_ind][0]
+                                    slot_index = 1
+                                    self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                                    break
+                                # ok there are no fields with only one game scheduled - next what we are going to do now is to look
+                                # at the fields and see if there are any last game matches that can afford to not be the last game
+                                # anymore.  This is done by looking at the late counters and see if there any over the target count.
+                                # Both home and away counters need to be over the target.
+                                # x[0] for the tuple is field_id, x[1] is first available slot (so we have to decrement by 1 to get last
+                                # scheduled game)
+                                match_list = [(x[0],self.fieldSeasonStatus[self.fstatus_indexerGet(x[0])]
+                                               ['slotstatus_list'][round_id-1][x[1]-1]['teams'], x[1]-1)
+                                              for x in openslotfield_list]
+                                fieldslot_tuple = self.compareCounterToTarget(match_list, cel_indexerGet,
+                                                                              tel_indexerGet, 'late')
+                                if fieldslot_tuple:
+                                    # if the current home and away early counts are both greater than
+                                    # the target amount, they can afford to be bumped out the earliest
+                                    # slots; current match will take its place at slot 0
+                                    field_id = fieldslot_tuple.field_id
+                                    slot_index = fieldslot_tuple.slot_index
+                                    break
                                 # ref http://stackoverflow.com/questions/3282823/python-get-key-with-the-least-value-from-a-dictionary
                                 # but modified to work wit list of tuples - use itemgetter to get min based on 1-index element
                                 # note we don't have to do any shifting
@@ -485,7 +534,7 @@ class FieldTimeScheduleGenerator:
                             # ref http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
                             # for finding all indices with 'False' status (note we are not trying to find max here as the ref)
                             openslot_list = [(x[0],[i for i,j in enumerate(x[1]) if j==False])
-                                             for x in isgame_list if not all_value(x[1],True)]
+                                             for x in isgame_list if not all(x[1])]
                             # first get the list of field/status dictionaries before searching for the False field
                             if all_value(openslot_list, None):
                                 logging.info("fieldtimescheduler: fields %s are full",[x[0] for x in isgame_list])
@@ -572,7 +621,7 @@ class FieldTimeScheduleGenerator:
                                     slot_index = len(isgame_list)-1
                                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                                     break # out of while true
-                            if not all_value(isgame_list, True):
+                            if not all(isgame_list):
                                 openslotone_list = [i for i,j in enumerate(isgame_list) if not j]
                                 slot_index = openslotone_list[0]
                                 if slot_index == 0:
