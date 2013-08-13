@@ -541,6 +541,7 @@ class FieldTimeScheduleGenerator:
                             self.shiftFSstatus_list(field_id, round_id, slot_index)
                             break
                         else:
+                            # handle case where there is only one candidate field
                             field_id = fieldcand_list[0]
                             fsindex = self.fstatus_indexerGet(field_id)
                             # find status list for this round
@@ -556,7 +557,13 @@ class FieldTimeScheduleGenerator:
                                 self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                 self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                                 break
-
+                            if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
+                                if not isgame_list[0]:
+                                    slot_index = 0
+                                    self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                                    break # break out of while True loop
+                                else:
+                                    pass
                             if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
                                 lastslot_state = isgame_list[-1]
                                 if lastslot_state is False:
