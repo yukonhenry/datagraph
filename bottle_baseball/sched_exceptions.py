@@ -8,9 +8,9 @@ class FieldAvailabilityError(Exception):
 
 class TimeSlotAvailabilityError(Exception):
     '''A user-defined exception class.'''
-    def __init__(self, div_id):
+    def __init__(self, field_id):
         Exception.__init__(self)
-        self.div_id = div_id
+        self.field_id = field_id
 
 class TimeCompactionError(Exception):
     '''Raised if there is some problem compacting the time schedule
