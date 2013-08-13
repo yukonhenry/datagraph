@@ -157,28 +157,35 @@ class FieldTimeScheduleGenerator:
                 team_id += 1
         return rebalance_count
 
-    def shiftFSstatus_list(self, field_id, round_id):
+    def shiftFSstatus_list(self, field_id, round_id, first_pos):
         ''' shift self.fieldSeasonStatus struct for a given field and gameday_id when a new match
         is scheduled for slot 0 '''
         # ref http://stackoverflow.com/questions/522372/finding-first-and-last-index-of-some-value-in-a-list-in-python
         gameday_list = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][round_id-1]
         isgame_list = [x['isgame'] for x in gameday_list]
-        firstTrue = isgame_list.index(True)
-        if firstTrue != 0:
+        #firstTrue = isgame_list.index(True)
+        #if firstTrue != 0:
+        #    return False
+        # check to make sure that the first slot to shift has a game scheduled
+        if not isgame_list[first_pos]:
             return False
         # see above reference for getting last index of a specified value in a list
         lastTrue = len(isgame_list)-1-isgame_list[::-1].index(True)
         index = lastTrue
+        shiftcount = 0
         while index >= firstTrue:
             gameday_list[index+1]['isgame'] = gameday_list[index]['isgame']
             # reference copy of dict should be sufficient below, but need to confirm
             gameday_list[index+1]['teams'] = gameday_list[index]['teams']
             index -= 1
+            shiftcount += 1
+        return shiftcount
 
     def compareCounterToTarget(self, match_list, cel_indexerGet, tel_indexerGet, el_str):
         rflag = False
+        fs_list = []
         for field_match in match_list:
-            match = field_match[1]
+            match = field_match['match']
             did = match['div_id']  # get div_id
             home_ind = match[home_CONST]-1  # list index index so subtract 1
             away_ind = match[away_CONST]-1
@@ -199,14 +206,19 @@ class FieldTimeScheduleGenerator:
                 # if the current home and away early counts are both greater than
                 # the target amount, they can afford to be bumped out the earliest
                 # slots; current match will take its place at slot 0
-                field_id = field_match[0]
-                slot_index = field_match[2]
+                fs_list.append({'field_id':field_match['field_id'], 'slot_index':field_match['newslot'],
+                                'home_el':home_el, 'away_el':away_el})
                 rflag = True
-                break
+        if rflag:
+            earliest_slot = min(fs_list, key=itemgetter('slot_index'))
+            field_id = earliest_slot['field_id']
+            slot_index = earliest_slot['slot_index']
+            # decrement counters for teams whose match will lose earliest or latest slot
+            self.decrementEL_counters(home_el, away_el, el_str)
+            FieldSlotTuple = namedtuple('FieldSlotTuple', 'field_id slot_index')
+            return FieldSlotTuple(field_id, slot_index)
         else:
             return None
-        FieldSlotTuple = namedtuple('FieldSlotTuple', 'field_id slot_index')
-        return FieldSlotTuple(field_id, slot_index)
 
     def generateSchedule(self, total_match_list):
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -450,10 +462,9 @@ class FieldTimeScheduleGenerator:
                                     if set(firstslotscheduled_list) != set(fieldcand_list):
                                         raise FieldConsistencyError(firstslotscheduled_list, fieldcand_list)
                                     # find out div and teams that are already scheduled for slot 0
-                                    match_list = [(x,self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
-                                                  ['slotstatus_list'][round_id-1][firstslot_CONST]['teams'],
-                                                   firstslot_CONST)
-                                                  for x in firstslotscheduled_list]
+                                    match_list = [{'field_id':x,
+                                                   'match':self.fieldSeasonStatus[self.fstatus_indexerGet(x)]['slotstatus_list'][round_id-1][firstslot_CONST]['teams'],
+                                                   'newslot':firstslot_CONST} for x in firstslotscheduled_list]
                                     fieldslot_tuple = self.compareCounterToTarget(match_list, cel_indexerGet,
                                                                                   tel_indexerGet, 'early')
                                     if fieldslot_tuple:
@@ -467,8 +478,6 @@ class FieldTimeScheduleGenerator:
                                         # update counters
                                         # increment for current home and away teams which will take first slot
                                         self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
-                                        # decrement counters for teams whose match was shifted out of the first slot
-                                        self.decrementEL_counters(home_early, away_early, 'early')
                                         break
 
                             if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
@@ -499,27 +508,37 @@ class FieldTimeScheduleGenerator:
                                 # at the fields and see if there are any last game matches that can afford to not be the last game
                                 # anymore.  This is done by looking at the late counters and see if there any over the target count.
                                 # Both home and away counters need to be over the target.
-                                # x[0] for the tuple is field_id, x[1] is first available slot (so we have to decrement by 1 to get last
-                                # scheduled game)
-                                match_list = [(x[0],self.fieldSeasonStatus[self.fstatus_indexerGet(x[0])]
-                                               ['slotstatus_list'][round_id-1][x[1]-1]['teams'], x[1]-1)
-                                              for x in openslotfield_list]
+                                # dict 'field_id' is field_id, 'match' is the match info for the already-scheduled slot
+                                # (we have to decrement open slotx[1] by 1 to get the scheduled game)
+                                # new slot is the current open slot
+                                match_list = [{'field_id':x[0],
+                                               'match':self.fieldSeasonStatus[self.fstatus_indexerGet(x[0])]['slotstatus_list'][round_id-1][x[1]-1]['teams'],
+                                               'newslot':x[1]} for x in openslotfield_list]
                                 fieldslot_tuple = self.compareCounterToTarget(match_list, cel_indexerGet,
                                                                               tel_indexerGet, 'late')
                                 if fieldslot_tuple:
-                                    # if the current home and away early counts are both greater than
-                                    # the target amount, they can afford to be bumped out the earliest
-                                    # slots; current match will take its place at slot 0
+                                    # if the current home and away late counts are both greater than
+                                    # the target amount, they can afford to have the scheduled spot take up the last slot
+                                    # fyi no shifting is necessary for 'late' (unlike for 'early' where shifting is needed when slot 0
+                                    # is taken up)
                                     field_id = fieldslot_tuple.field_id
                                     slot_index = fieldslot_tuple.slot_index
+                                    # increment for current home and away teams which will take first slot
+                                    self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                                     break
-                                # ref http://stackoverflow.com/questions/3282823/python-get-key-with-the-least-value-from-a-dictionary
-                                # but modified to work wit list of tuples - use itemgetter to get min based on 1-index element
-                                # note we don't have to do any shifting
-                                minelem =  min(openslotfield_list, key=itemgetter(1))
-                                field_id = minelem[0]
-                                slot_index = minelem[1]
-                                break
+
+                            # if fieldslot_tuple is empty, that means that we need the current last scheduled slot as is - so we need to
+                            # schedule the current match into some slot besides the very first or last slot
+                            # We will schedule it into second-to-last slot
+                            # to find the field, we will use the field that has the least number of games scheduled
+                            # ref http://stackoverflow.com/questions/3282823/python-get-key-with-the-least-value-from-a-dictionary
+                            # but modified to work wit list of tuples - use itemgetter to get min based on 1-index element
+                            # note we don't have to do any shifting
+                            minelem =  min(openslotfield_list, key=itemgetter(1))
+                            field_id = minelem[0]
+                            slot_index = minelem[1]-1  # -1 because we are scheduling into the second-to-last slot
+                            self.shiftFSstatus_list(field_id, round_id, slot_index)
+                            break
 
                                 # only look for last element, if el_state dictates so; if div totals are already met, skip
                                 # if we are looking for last time slot, first get a list for available last time slot
