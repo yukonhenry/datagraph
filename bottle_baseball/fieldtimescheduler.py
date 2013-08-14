@@ -228,14 +228,15 @@ class FieldTimeScheduleGenerator:
                 # the target amount, they can afford to be bumped out the earliest
                 # slots; current match will take its place at slot 0
                 fs_list.append({'field_id':field_match['field_id'], 'slot_index':field_match['newslot'],
-                                'home_el':home_el, 'away_el':away_el})
+                                'home_el':home_el_dict, 'away_el':away_el_dict,
+                                'measure':home_el-home_el_target+away_el-away_el_target})
                 rflag = True
         if rflag:
-            earliest_slot = min(fs_list, key=itemgetter('slot_index'))
-            field_id = earliest_slot['field_id']
-            slot_index = earliest_slot['slot_index']
+            best_slot = max(fs_list, key=itemgetter('measure'))
+            field_id = best_slot['field_id']
+            slot_index = best_slot['slot_index']
             # decrement counters for teams whose match will lose earliest or latest slot
-            self.decrementEL_counters(home_el_dict, away_el_dict, el_str)
+            self.decrementEL_counters(best_slot['home_el'], best_slot['away_el'], el_str)
             FieldSlotTuple = namedtuple('FieldSlotTuple', 'field_id slot_index')
             return FieldSlotTuple(field_id, slot_index)
         else:
@@ -472,12 +473,14 @@ class FieldTimeScheduleGenerator:
                             if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
                                 # if we have not met the early slot criteria, try to fill slot 0
                                 # first create list of fields from candidate field list that has slot 0 open if any
-                                firstslotopenfield_list = [x[0] for x in isgame_list if x[1][0] is False]
+                                firstslotopenfield_list = [x[0] for x in isgame_list if not x[1][0]]
                                 if firstslotopenfield_list:
                                     # if slot 0 is open, take it
                                     field_id = firstslotopenfield_list[0] # take first field element
                                     slot_index = 0
                                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                                    logging.debug("ftscheduler:genschedule:multiple fieldcand el early, first slot open field=%d round=%d",
+                                                  field_id, round_id)
                                     break # break out of while True loop
                                 else:
                                     # if slot 0 is not open, first see if it makes sense to shift other scheduled slots
