@@ -65,19 +65,17 @@ class FieldTimeScheduleGenerator:
         requiredslots_perfield = int(ceil(float(totalneeded_slots)/len(gd_fieldcount)))
         maxedout_field = None
         almostmaxed_field = None
-        for gd in gd_fieldcount:
-            diff = gd['count'] - requiredslots_perfield
-            if diff >= 0:
-                # 1 is a slack term, arbitrary
-                maxedout_field = gd['field_id']
-                penalty = (diff + 1)*2
-            elif diff >= -2:
-                almostmaxed_field = gd['field_id']
-                if diff == -2:
-                    penalty = 1  # give small additive penalty
-                else:
-                    # it can only be -1 here based on above logic
-                    penalty = 2
+        maxgd = max(gd_fieldcount, key=itemgetter('count'))
+        #for gd in gd_fieldcount:
+        diff = maxgd['count'] - requiredslots_perfield
+        if diff >= 0:
+            # 1 is a slack term, arbitrary
+            maxedout_field = maxgd['field_id']
+            penalty = (diff + 1)*2
+        elif diff >= -1:
+            almostmaxed_field = maxgd['field_id']
+            penalty = diff + 2 # impose additive penalty
+
         # first ensure both lists are sorted according to field
         # note when calling the sorted function, the list is only shallow-copied.
         # changing a field in the dictionary element in the sorted list also changes the dict
@@ -167,8 +165,9 @@ class FieldTimeScheduleGenerator:
             for team_metrics in tfmetrics:
                 maxuse = max(team_metrics, key=itemgetter('count'))
                 minuse = min(team_metrics, key=itemgetter('count'))
-                if maxuse['count']-minuse['count'] > 1:
-                    print div_id, team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id']
+                diff = maxuse['count']-minuse['count']
+                if diff > 1:
+                    print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
                 team_id += 1
         return rebalance_count
 
@@ -687,9 +686,11 @@ class FieldTimeScheduleGenerator:
                                                             gametime.strftime(time_format_CONST),
                                                             field_id, home_id, away_id)
                     gameday_id += 1
+            for div_id in connected_div_list:
+                print 'div=',div_id,'count=',self.current_earlylate_list[self.cel_indexerGet(div_id)]['counter_list']
 
         # executes after entire schedule for all divisions is generated
-        self.compactTimeSchedule()
+        #self.compactTimeSchedule()
         divlist = [x['div_id'] for x in self.leaguediv]
         divlist.sort()  # note assignment b=a.sort() returns None
         for div_id in divlist:
