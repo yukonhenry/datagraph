@@ -36,3 +36,11 @@ class FieldTimeAvailabilityError(Exception):
     def __init__(self, div_list):
         Exception.__init__(self)
         self.div_list = div_list
+
+class CodeLogicError(Exception):
+    ''' Generic Exception if there is a logic error in code '''
+    def __init__(self, msg):
+        Exception.__init__(self)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
