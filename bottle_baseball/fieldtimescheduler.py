@@ -161,6 +161,8 @@ class FieldTimeScheduleGenerator:
     def ReFieldBalance(self, connected_div_list, fieldmetrics_list, indexerGet):
         rebalance_count = 0
         for div_id in connected_div_list:
+            divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
+            numgamesperseason = divinfo['gamesperseason']
             tfmetrics = fieldmetrics_list[indexerGet(div_id)]['tfmetrics']
             team_id = 1
             for team_metrics in tfmetrics:
@@ -168,6 +170,10 @@ class FieldTimeScheduleGenerator:
                 minuse = min(team_metrics, key=itemgetter('count'))
                 diff = maxuse['count']-minuse['count']
                 if diff > 1:
+                    max_field = maxuse['field_id']
+                    min_field = minuse['field_id']
+                    max_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(max_field)]['slotstatus_list']
+                    min_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(min_field)]['slotstatus_list']
                     print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
                 team_id += 1
         return rebalance_count
