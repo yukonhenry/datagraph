@@ -166,14 +166,51 @@ class FieldTimeScheduleGenerator:
             tfmetrics = fieldmetrics_list[indexerGet(div_id)]['tfmetrics']
             team_id = 1
             for team_metrics in tfmetrics:
+                # for each team in the division, get counts for fields with maximum/minimum use counts
                 maxuse = max(team_metrics, key=itemgetter('count'))
                 minuse = min(team_metrics, key=itemgetter('count'))
                 diff = maxuse['count']-minuse['count']
                 if diff > 1:
+                    # if the difference between max and min is greater than a threshold
+                    # (1 in this case)
                     max_field = maxuse['field_id']
                     min_field = minuse['field_id']
                     max_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(max_field)]['slotstatus_list']
                     min_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(min_field)]['slotstatus_list']
+                    gameday_id = 1
+                    for max_round_status, min_round_status in zip(max_ftstatus, min_ftstatus):
+                        # for each gameday first find game stats for max count fields
+                        # for max count fields, find for each gameday, each gameday slot where the target
+                        # team plays on the max count field.  Each gameday slot might not involve the
+                        # target team because they may be playing on a different field
+                        max_game_info = [{'slot_index':i,
+                                          'start_time':j['start_time'],
+                                          'teams':j['teams']}
+                                          for i,j in enumerate(max_round_status)
+                                          if j['isgame'] and j['teams']['div_id']==div_id and
+                                          (j['teams'][home_CONST]==team_id or j['teams'][away_CONST]==team_id)]
+                        if max_game_info:
+                            logging.debug('ftscheduler:rebalance: max_field=%d div=%d team=%d gameday_id=%d',
+                                          max_field, div_id, team_id, gameday_id)
+                            logging.debug("ftscheduler:rebalance: max gameinfo=%s", max_game_info)
+                        # Once we find the games where the target team is playing on the max count field,
+                        # we need to find a game played on the minimum count field where the matches can
+                        # be swapped.
+                        # first find opponent on maximum count field and look up its field metrics stats
+
+                        # get game stats for minimum count field
+                        min_game_info = [{'slot_index':i,
+                                          'start_time':j['start_time'],
+                                          'teams':j['teams']}
+                                          for i,j in enumerate(min_round_status)
+                                          if j['isgame'] and j['teams']['div_id']==div_id and
+                                          (j['teams'][home_CONST]==team_id or j['teams'][away_CONST]==team_id)]
+                        logging.debug('ftscheduler:rebalance: min_field=%d div=%d team=%d gameday_id=%d',
+                                      min_field, div_id, team_id, gameday_id)
+                        if min_game_info:
+                            logging.debug("ftscheduler:rebalance: min gameinfo=%s", min_game_info)
+                        # find matches involving team_id
+                        gameday_id += 1
                     print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
                 team_id += 1
         return rebalance_count
