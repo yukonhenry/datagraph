@@ -1,4 +1,5 @@
 #!/usr/bin/python
+''' ©YukonTR 2013 '''
 import simplejson as json
 import time
 import networkx as nx

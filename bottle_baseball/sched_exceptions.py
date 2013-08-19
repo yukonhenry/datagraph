@@ -1,3 +1,4 @@
+''' ©YukonTR 2013 '''
 # ref http://docs.python.org/2/tutorial/errors.html
 # http://www.ibiblio.org/g2swap/byteofpython/read/raising-exceptions.html
 class FieldAvailabilityError(Exception):

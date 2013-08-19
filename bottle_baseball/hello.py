@@ -1,4 +1,5 @@
 #!/usr/bin/python
+''' ©YukonTR 2013 '''
 from bottle import route, request, run
 #ref http://simplejson.readthedocs.org/en/latest/
 import simplejson as json

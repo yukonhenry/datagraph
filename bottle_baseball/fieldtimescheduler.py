@@ -1,3 +1,4 @@
+''' ©YukonTR 2013 '''
 from datetime import  datetime, timedelta
 from itertools import cycle
 from schedule_util import roundrobin, all_same, all_value, enum, shift_list

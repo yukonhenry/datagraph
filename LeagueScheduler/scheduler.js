@@ -1,4 +1,5 @@
 /**
+ * Copyright (c) 2013 YukonTR *
  * @author Henry
  */
 // small note, if there are issues with garbage characters in the jsonp script get request,
