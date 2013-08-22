@@ -1,4 +1,4 @@
-''' ©YukonTR 2013 '''
+''' Copyright YukonTR 2013 '''
 from itertools import product
 import networkx as nx
 from math import sqrt

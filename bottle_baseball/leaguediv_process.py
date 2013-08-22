@@ -1,5 +1,5 @@
 #!/usr/bin/python
-''' ©YukonTR 2013 '''
+''' Copyright YukonTR 2013 '''
 import simplejson as json
 from pprint import pprint
 from bottle import route, request

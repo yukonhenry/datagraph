@@ -1,5 +1,5 @@
 #!/usr/bin/python
-''' ©YukonTR 2013 '''
+''' Copyright YukonTR 2013 '''
 import simplejson as json
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *

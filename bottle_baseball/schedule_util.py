@@ -1,3 +1,4 @@
+'''Copyright YukonTR 2013 '''
 from itertools import cycle, islice
 
 def roundrobin(iterable_list):

@@ -1,4 +1,4 @@
-''' ©YukonTR 2013 '''
+''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
 from itertools import cycle
 from schedule_util import roundrobin, all_same, all_value, enum, shift_list
@@ -159,6 +159,14 @@ class FieldTimeScheduleGenerator:
         away_slot_dict = slot_el_list[slot_away-1]
         self.decrementEL_counters(home_slot_dict, away_slot_dict, el_str)
 
+    def getFieldTeamCount(self, tfmetrics, field_id, team_id):
+        ''' get field count for team specified - extracted from tfmetrics (teamfieldmetrics which is the div_id)
+        extracted from fieldmetrics_list '''
+        metrics_list = tfmetrics[team_id-1]
+        metrics_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(metrics_list)).get(x)
+        count = metrics_list[metrics_indexerGet(field_id)]['count']
+        return count
+
     def ReFieldBalance(self, connected_div_list, fieldmetrics_list, indexerGet):
         rebalance_count = 0
         for div_id in connected_div_list:
@@ -174,12 +182,13 @@ class FieldTimeScheduleGenerator:
                 if diff > 1:
                     # if the difference between max and min is greater than a threshold
                     # (1 in this case)
-                    max_field = maxuse['field_id']
-                    min_field = minuse['field_id']
-                    max_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(max_field)]['slotstatus_list']
-                    min_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(min_field)]['slotstatus_list']
+                    maxfield = maxuse['field_id']
+                    minfield = minuse['field_id']
+                    max_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(maxfield)]['slotstatus_list']
+                    min_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(minfield)]['slotstatus_list']
                     gameday_id = 1
                     max_game_info = []
+                    oppteam_metrics_list = []
                     for max_round_status, min_round_status in zip(max_ftstatus, min_ftstatus):
                         # for each gameday first find game stats for max count fields
                         # for max count fields, find for each gameday, each gameday slot where the target
@@ -191,11 +200,22 @@ class FieldTimeScheduleGenerator:
                                                for i,j in enumerate(max_round_status)
                                                if j['isgame'] and j['teams']['div_id']==div_id and
                                                (j['teams'][home_CONST]==team_id or j['teams'][away_CONST]==team_id)]
-                        if today_max_game_info:
-                            logging.debug('ftscheduler:rebalance: max_field=%d div=%d team=%d gameday_id=%d',
-                                          max_field, div_id, team_id, gameday_id)
-                            logging.debug("ftscheduler:rebalance: max gameinfo=%s", max_game_info)
                         if len(today_max_game_info) > 1:
+                            raise CodeLogicError('ftschedule:rebalance: There should only be one game per gameday')
+                        if today_max_game_info:
+                            teaminfo = today_max_game_info[0]['teams']
+                            opp_team_id = teaminfo[home_CONST] if teaminfo[away_CONST]==team_id else teaminfo[away_CONST]
+                            maxfield_opp_count = self.getFieldTeamCount(tfmetrics, maxfield, opp_team_id)
+                            oppteam_metrics_list.append({'team_id':opp_team_id, 'count':maxfield_opp_count})
+                            logging.debug('ftscheduler:rebalance: maxfield=%d div=%d team=%d opponent=%d gameday_id=%d',
+                                          maxfield, div_id, team_id, opp_team_id, gameday_id)
+
+                            today_minfield_info = [{'slot_index':i, home_CONST:j['teams'][home_CONST],
+                                                    'home_count':self.getFieldTeamCount(tfmetrics, minfield, j['teams'][home_CONST])
+                                                    away_CONST:j['teams'][away_CONST],
+                                                    'away_count':self.getFieldTeamCount(tfmetrics, minfield, j['teams'][away_CONST])}
+                                                   for i,j in enumerate(min_round_status)
+                                                   if j['isgame'] and j['teams']['div_id']==div_id]
 
                         # Once we find the games where the target team is playing on the max count field,
                         # we need to find a game played on the minimum count field where the matches can
@@ -209,8 +229,8 @@ class FieldTimeScheduleGenerator:
                                           for i,j in enumerate(min_round_status)
                                           if j['isgame'] and j['teams']['div_id']==div_id and
                                           (j['teams'][home_CONST]==team_id or j['teams'][away_CONST]==team_id)]
-                        logging.debug('ftscheduler:rebalance: min_field=%d div=%d team=%d gameday_id=%d',
-                                      min_field, div_id, team_id, gameday_id)
+                        logging.debug('ftscheduler:rebalance: minfield=%d div=%d team=%d gameday_id=%d',
+                                      minfield, div_id, team_id, gameday_id)
                         if min_game_info:
                             logging.debug("ftscheduler:rebalance: min gameinfo=%s", min_game_info)
                         # find matches involving team_id
