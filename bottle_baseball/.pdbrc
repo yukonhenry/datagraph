@@ -7,7 +7,7 @@
 #(com) p el_state
 #(com) p home_currentel_dict, away_currentel_dict
 #(com) end
-b fieldtimescheduler.py:197
+b fieldtimescheduler.py:248
 #b fieldtimescheduler.py:375
 #b fieldtimescheduler.py:351, home_currentel_dict['early'] > 1 or away_currentel_dict['early'] > 1
 #b leaguediv_process.py:87
