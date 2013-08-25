@@ -192,10 +192,43 @@ class FieldTimeScheduleGenerator:
         for div_id in connected_div_list:
             divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
-            fcountdiff_num = sum(max(tmetrics, key=itemgetter('count'))-min(tmetrics, key=itemgetter('count')) > 1
+            # http://stackoverflow.com/questions/10543303/number-of-values-in-a-list-greater-than-a-certain-number
+            fcountdiff_num = sum(max(tmetrics, key=itemgetter('count'))['count']-min(tmetrics, key=itemgetter('count'))['count'] > 1
                                  for tmetrics in tfmetrics)
             fieldcountdiff_list.append({'div_id':div_id, 'fcountdiff_num':fcountdiff_num})
         return fieldcountdiff_list
+
+    def IncDecELCounters(self, teams, el_type, increment):
+        ''' inc/dec early/late counters based on el type in inc/dec flag '''
+        div_id = teams['div_id']
+        home_id = teams[home_CONST]
+        away_id = teams[away_CONST]
+        cel_index = self.cel_indexerGet(div_id)
+        current_el_list = self.current_earlylate_list[cel_index]['counter_list']
+        home_currentel_dict = current_el_list[home_id-1]
+        away_currentel_dict = current_el_list[away_id-1]
+        if increment:
+            self.incrementEL_counters(home_currentel_dict, away_currentel_dict, el_type)
+        else:
+            self.decrementEL_counters(home_currentel_dict, away_currentel_dict, el_type)
+
+
+    def IncDecFieldMetrics(self, fieldmetrics_list, findexerGet, field_id, teams, increment=True):
+        ''' increment/decrement fieldmetrics_list, based on field and team (inc/dec) flag '''
+        div_id = teams['div_id']
+        home_id = teams[home_CONST]
+        away_id = teams[away_CONST]
+        tfmetrics_list = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
+        home_fieldmetrics_list = tfmetrics_list[home_id-1]
+        away_fieldmetrics_list = tfmetrics_list[away_id-1]
+        home_fieldmetrics_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list)).get(x)
+        away_fieldmetrics_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list)).get(x)
+        if increment:
+            home_fieldmetrics_list[home_fieldmetrics_indexerGet(field_id)]['count'] += 1
+            away_fieldmetrics_list[away_fieldmetrics_indexerGet(field_id)]['count'] += 1
+        else:
+            home_fieldmetrics_list[home_fieldmetrics_indexerGet(field_id)]['count'] -= 1
+            away_fieldmetrics_list[away_fieldmetrics_indexerGet(field_id)]['count'] -= 1
 
     def ReFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         rebalance_count = 0
@@ -254,9 +287,9 @@ class FieldTimeScheduleGenerator:
                             # field) for that opponent team.  We need the count for the opponent because it will affect
                             # it's field count if the game is moved away from the max count field
                             maxf_teams = today_maxfield_info['teams']
-                            opp_team_id = maxf_teams[home_CONST] if maxf_teams[away_CONST]==team_id else maxf_teams[away_CONST]
-                            maxfield_opp_count = self.getFieldTeamCount(tfmetrics, maxfield, opp_team_id)
-                            minfield_opp_count = self.getFieldTeamCount(tfmetrics, minfield, opp_team_id)
+                            oppteam_id = maxf_teams[home_CONST] if maxf_teams[away_CONST]==team_id else maxf_teams[away_CONST]
+                            maxfield_opp_count = self.getFieldTeamCount(tfmetrics, maxfield, oppteam_id)
+                            minfield_opp_count = self.getFieldTeamCount(tfmetrics, minfield, oppteam_id)
                             # the measure for opponent team - desirability to swap out this game - is just the difference
                             # between max and min field counts
                             opp_measure = maxfield_opp_count - minfield_opp_count
@@ -271,7 +304,7 @@ class FieldTimeScheduleGenerator:
                             # summarize all the info and metrics for the swapped-out game from the max count field
                             # maxfteam_metrics_list persists outside of this current gameday and is used to choose the
                             # best match involving the maxfteam out of all the gamedays to swap out
-                            maxfteam_metrics = {'team':team_id, 'opp_team_id':opp_team_id, 'maxf_count':maxfield_opp_count,
+                            maxfteam_metrics = {'team':team_id, 'oppteam_id':oppteam_id, 'maxf_count':maxfield_opp_count,
                                                 'minf_count':minfield_opp_count, 'opp_measure':opp_measure,
                                                 'gameday_id':gameday_id, 'el_measure':el_measure,
                                                 'maxftotal_cost':maxftotal_cost}
@@ -285,6 +318,9 @@ class FieldTimeScheduleGenerator:
                             # move some fields to general for loop as list comprehension gets too messy.
                             today_minfield_info = [{'slot_index':i, 'teams':j['teams']}
                                                    for i,j in enumerate(min_round_status) if j['isgame']]
+                            minf_isgame_list = [x['isgame'] for x in min_round_status]
+                            # find 0-index for last game (True) (last game may be in a different division)
+                            minf_lastTrue_slot = len(minf_isgame_list)-1-minf_isgame_list[::-1].index(True)
                             for minfo in today_minfield_info:
                                 mteams = minfo['teams']
                                 mhome = mteams[home_CONST]
@@ -295,13 +331,14 @@ class FieldTimeScheduleGenerator:
                                 minfo['awayminf_count'] = self.getFieldTeamCount(mtfmetrics, minfield, maway)
                                 minfo['awaymaxf_count'] = self.getFieldTeamCount(mtfmetrics, maxfield, maway)
                                 slot = minfo['slot_index']
-                                # get cost associated with early/late counters, if any (large negative val if not)
-                                minfo['el_cost'] = self.getELslot_metrics(slot, mteams, lastTrue_slot)
+                                # get cost associated with early/late counters, if any (0 val if not)
+                                minfo['el_cost'] = self.getELslot_metrics(slot, mteams, minf_lastTrue_slot)
                                 # also get el counters for maxfield teams - they might be swapped into an el slot
                                 minfo['maxfteams_in_cost'] = self.getELslot_metrics(slot, maxf_teams,
-                                                                                    lastTrue_slot, incoming=1)
+                                                                                    minf_lastTrue_slot, incoming=1)
                                 # get the cost for the min field teams to swap into the max field slot (incoming)
                                 # relevant when the maxfield slot is an early/late slot
+                                # note lastTrue_slot is for maxfield
                                 minfo['maxfslot_el_cost'] = self.getELslot_metrics(maxf_slot, mteams,
                                                                                    lastTrue_slot, incoming=1)
                                 # calculate min field teams to swap out from the min field slot to max field slot
@@ -319,7 +356,7 @@ class FieldTimeScheduleGenerator:
                             max_minfo = max(today_minfield_info, key=itemgetter('totalswap_cost'))
                             max_minfo['gameday_id'] = gameday_id
                             minfteam_metrics_list.append(max_minfo)
-                            gameday_totalcost = {'gameday_id':gameday_id, 'maxf_slot':maxf_slot, 'opp_team_id':opp_team_id,
+                            gameday_totalcost = {'gameday_id':gameday_id, 'maxf_slot':maxf_slot, 'oppteam_id':oppteam_id,
                                                  'minf_slot':max_minfo['slot_index'], 'minf_teams':max_minfo['teams'],
                                                   'total_cost':max_minfo['totalswap_cost']+maxfteam_metrics['maxftotal_cost']}
                             gameday_totalcost_list.append(gameday_totalcost)
@@ -328,10 +365,60 @@ class FieldTimeScheduleGenerator:
                             logging.debug('ftscheduler:refieldbalance: max minfield=%s', max_minfo)
                             logging.debug('ftscheduler:refieldbalance: totalcost=%s', gameday_totalcost)
                         gameday_id += 1
+                    # ****
+                    # maximize cost by just taking max of total_cost on list
                     max_totalcost = max(gameday_totalcost_list, key=itemgetter('total_cost'))
                     max_gameday_id = max_totalcost['gameday_id']
+                    max_oppteam_id = max_totalcost['oppteam_id']
+                    max_maxf_slot = max_totalcost['maxf_slot']
+                    max_minf_teams = max_totalcost['minf_teams']
+                    max_minf_div_id = max_minf_teams['div_id']
+                    max_minf_home_id = max_minf_teams[home_CONST]
+                    max_minf_away_id = max_minf_teams[away_CONST]
+                    max_minf_slot = max_totalcost['minf_slot']
                     logging.debug('ftscheduler:refieldbalance: totalcost_list=%s', gameday_totalcost_list)
-                    logging.debug('ftscheduler:refieldbalance: div_id=%d team_id=%d max cost=%s', div_id, team_id, max_totalcost)
+                    logging.debug('ftscheduler:refieldbalance: maximum cost info=%s', max_totalcost)
+
+                    logging.debug('ftscheduler:refieldbalance: swapping div=%d team=%d playing oppoent=%d on gameday=%d, slot=%d field=%d',
+                                  div_id, team_id, max_oppteam_id, max_gameday_id, max_maxf_slot, maxfield)
+                    logging.debug('ftscheduler:refieldbalance: swap with match div=%d, home=%d away=%d, slot=%d field=%d',
+                                  max_minf_div_id, max_minf_home_id, max_minf_away_id, max_minf_slot, minfield)
+                    # ready to swap matches
+                    maxf_teams = max_ftstatus[max_gameday_id-1][max_maxf_slot]['teams']
+                    minf_teams = min_ftstatus[max_gameday_id-1][max_minf_slot]['teams']
+                    logging.debug('teams check only before swap maxf=%s minf=%s', max_ftstatus[max_gameday_id-1][max_maxf_slot],
+                                  min_ftstatus[max_gameday_id-1][max_minf_slot])
+                    max_ftstatus[max_gameday_id-1][max_maxf_slot]['teams'] = minf_teams
+                    min_ftstatus[max_gameday_id-1][max_minf_slot]['teams'] = maxf_teams
+                    logging.debug('teams check only after swap maxf=%s minf=%s', max_ftstatus[max_gameday_id-1][max_maxf_slot],
+                                  min_ftstatus[max_gameday_id-1][max_minf_slot])
+                    # increment/decrement fieldmetrics
+                    # maxf teams moves out of maxfield, so decrement
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet, maxfield, maxf_teams,
+                                            increment=False)
+                    # maxf teams moves into minfield, increment
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet, minfield, maxf_teams,
+                                            increment=True)
+                    # minf teams moves out of minfield, decrement
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet, minfield, minf_teams,
+                                            increment=False)
+                    # minf teams moves into maxfield, increment
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet, maxfield, minf_teams,
+                                            increment=True)
+                    # next adjust EL counters for maxf and minfteams
+                    if max_maxf_slot == 0:
+                        self.IncDecELCounters(maxf_teams, 'early', increment=False)
+                        self.IncDecELCounters(minf_teams, 'early', increment=True)
+                    elif max_maxf_slot == lastTrue_slot:
+                        self.IncDecELCounters(maxf_teams, 'late', increment=False)
+                        self.IncDecELCounters(minf_teams, 'late', increment=True)
+
+                    if max_minf_slot == 0:
+                        self.IncDecELCounters(minf_teams, 'early', increment=False)
+                        self.IncDecELCounters(maxf_teams, 'early', increment=True)
+                    elif max_minf_slot == minf_lastTrue_slot:
+                        self.IncDecELCounters(minf_teams, 'late', increment=False)
+                        self.IncDecELCounters(maxf_teams, 'late', increment=True)
 
                 team_id += 1
         return rebalance_count
@@ -949,7 +1036,13 @@ class FieldTimeScheduleGenerator:
                               connected_div_list, round_id, gameday_fieldcount)
             needbalance_count = self.CountFieldBalance(connected_div_list,
                                                        fieldmetrics_list, fieldmetrics_indexerGet)
+            logging.debug("ftscheduler:refieldbalance: 1st balance count=%s", needbalance_count)
+            print '1st balance count', needbalance_count
             rebalance_count = self.ReFieldBalance(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
+            needbalance_count = self.CountFieldBalance(connected_div_list,
+                                                       fieldmetrics_list, fieldmetrics_indexerGet)
+            logging.debug("ftscheduler:refieldbalance: 2nd balance count=%s", needbalance_count)
+            print '2st balance count', needbalance_count
             for field_id in fset:
                 gameday_id = 1
                 for gameday_list in self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list']:
@@ -965,8 +1058,8 @@ class FieldTimeScheduleGenerator:
                                                             gametime.strftime(time_format_CONST),
                                                             field_id, home_id, away_id)
                     gameday_id += 1
-            for div_id in connected_div_list:
-                print 'div=',div_id,'count=',self.current_earlylate_list[self.cel_indexerGet(div_id)]['counter_list']
+#            for div_id in connected_div_list:
+#                print 'div=',div_id,'count=',self.current_earlylate_list[self.cel_indexerGet(div_id)]['counter_list']
 
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()

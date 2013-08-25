@@ -3,18 +3,19 @@
 from bottle import route, request, run
 #ref http://simplejson.readthedocs.org/en/latest/
 import simplejson as json
-import sys
+import sys, socket
 import networkx as nx
 from networkx.readwrite import json_graph
 # sys.path.append('/home/henry/workspace/twitterexplore')
-from mlb_util import getMLBteam_details, getMLBteamname_list, getMLBStoveInfoJSON, getMLBStoveInfoJSON_fromfile
-from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqTweets
-from cacooparse import getCacooDesignJSON
 import time
 import logging
 # see comment below on OO implementation for scheduler
 # from scheduler import generateRRSchedule
 from leaguediv_process import *
+'''
+from mlb_util import getMLBteam_details, getMLBteamname_list, getMLBStoveInfoJSON, getMLBStoveInfoJSON_fromfile
+from twitter_util import getTweets, getTweetUrls, getTextFromTweetUrls, getFreqTweets
+from cacooparse import getCacooDesignJSON
 
 # if one of the module is reworked, don't forget to invoke 'reload(module)' cmd
 @route('/hello')
@@ -98,22 +99,16 @@ def getpathdata():
     print "nodes=",sg_nodes, len(sg_nodes)
     print "obstacle=",obs_polyline, len(obs_polyline)
     return callback_name+'('+a+');'
-
-''' Comment out for now during transition to class definition for
-Scheduler.
-
-@route('/getschedule')
-def getschedule():
-    callback_name = request.query.callback
-    numTeams = request.query.num_teams
-    game_list = generateRRSchedule(int(numTeams))
-    a = json.dumps({"game_list":game_list})
-    return callback_name+'('+a+');'
 '''
 def main():
     logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
     #logging.basicConfig(level=logging.DEBUG)
-    run(host='localhost', port=8080, debug=True)
+    if socket.gethostname() == 'web380.webfaction.com':
+#        run(port = 21033, server = 'cherrypy')
+        run(host='localhost',port = 21033)
+
+    else:
+        run(host='localhost', port=8080, debug=True)
 
 if __name__ == '__main__':
     main()
