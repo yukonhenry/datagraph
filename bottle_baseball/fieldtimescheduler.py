@@ -189,11 +189,12 @@ class FieldTimeScheduleGenerator:
                 el_measure = 0 # same here
         return el_measure
 
-    def FindSwapMatchForTimeBalance(self, div_id, fieldset, diff_groups, el_type, swap_dict):
+    def FindSwapMatchForTimeBalance(self, div_id, fieldset, diff_groups, el_type):
         ''' find potential matches to swap with; also calculate costs so that optimization
         can be made '''
         diff_str = 'early_diff' if el_type == 'early' else 'late_diff'
         bestswap_list = []
+        swap_dict = {}
         for diff_elem in diff_groups:
             # diff groups are sorted according to EL counter differences
             diff_cost = diff_elem[diff_str] # get counter value
@@ -233,7 +234,7 @@ class FieldTimeScheduleGenerator:
                                     min_match_index = [i for i, j in enumerate(swapmatch_list)
                                                        if j['cost'] == min_cost]
                                     # create record that includes all the data
-                                    # *********
+                                    # ********
                                     # including cost function - 'total_cost' below
                                     min_swapmatch_list.append({'swapteams':[x for i,x in enumerate(swapmatch_list)
                                                                             if i in min_match_index],
@@ -277,6 +278,7 @@ class FieldTimeScheduleGenerator:
                 bgraph[tslot] = swapslots
                 logging.debug('ftscheduler:findswapmatchfortb: keytuple=%s graph=%s',
                               key_tuple, bgraph)
+        return swap_dict
 
     def calcELdiff_list(self, div_id):
         tel_index = self.tel_indexerGet(div_id)
@@ -298,25 +300,7 @@ class FieldTimeScheduleGenerator:
                                                        for x in el_diff_list if x['late_diff'] > 0)})
         return div_eldiff_list
 
-
-    def ReTimeBalance(self, fieldset, connected_div_list):
-        ''' Rebalance time schedules for teams that have excessive number of early/late games '''
-        fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
-        swap_dict = {}
-        for div_id in connected_div_list:
-            el_diff_list = self.calcELdiff_list(div_id)
-            sorted_early_list = sorted(el_diff_list, key=itemgetter('early_diff'), reverse=True)
-            sorted_late_list = sorted(el_diff_list, key=itemgetter('late_diff'), reverse=True)
-            logging.debug("ftscheduler:retimebalance: div=%d sorted early=%s", div_id, sorted_early_list)
-            # ref http://stackoverflow.com/questions/5695208/group-list-by-values for grouping by values
-            earlydiff_groups = [{'early_diff': key, 'teams':[x['team_id'] for x in items]}
-                                for key, items in groupby(sorted_early_list, itemgetter('early_diff'))]
-            self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early', swap_dict)
-            logging.debug("ftscheduler:retimebalance: div=%d sorted late=%s", div_id, sorted_late_list)
-            latediff_groups = [{'late_diff': key, 'teams':[x['team_id'] for x in items]}
-                                for key, items in groupby(sorted_late_list, itemgetter('late_diff'))]
-            self.FindSwapMatchForTimeBalance(div_id, fieldset, latediff_groups, 'late', swap_dict)
-            # http://stackoverflow.com/questions/4391697/find-the-index-of-a-dict-within-a-list-by-matching-the-dicts-value
+    def swapMatchTimeUpdateEL(self, swap_dict):
         for swap_key in swap_dict:
             field_id = swap_key[0]
             gameday_id = swap_key[1]
@@ -328,7 +312,7 @@ class FieldTimeScheduleGenerator:
                     lastslot = key
             obj = bipartiteMatch(bgraph)
             # obj[0] contains the swap slots in a:b dictionary element - swap slot a w. b
-            print 'field gameday graph swapobj', field_id, gameday_id, bgraph, obj[0]
+            #print 'field gameday graph swapobj', field_id, gameday_id, bgraph, obj[0]
             ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
             logging.debug("ftscheduler:retimebalance: swap info after bipartite match=%s", obj[0])
             swapteams_dict = obj[0]
@@ -354,6 +338,64 @@ class FieldTimeScheduleGenerator:
                     self.IncDecELCounters(vteams, 'late', increment=False)
                     self.IncDecELCounters(kteams, 'late', increment=True)
 
+    def ReTimeBalance(self, fieldset, connected_div_list):
+        ''' Rebalance time schedules for teams that have excessive number of early/late games '''
+        fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
+        for div_id in connected_div_list:
+            el_diff_list = self.calcELdiff_list(div_id)
+            sorted_early_list = sorted(el_diff_list, key=itemgetter('early_diff'), reverse=True)
+            logging.debug("ftscheduler:retimebalance: div=%d sorted early=%s", div_id, sorted_early_list)
+            # ref http://stackoverflow.com/questions/5695208/group-list-by-values for grouping by values
+            earlydiff_groups = [{'early_diff': key, 'teams':[x['team_id'] for x in items]}
+                                for key, items in groupby(sorted_early_list, itemgetter('early_diff'))]
+            swap_dict = self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+            self.swapMatchTimeUpdateEL(swap_dict)
+            el_diff_list = self.calcELdiff_list(div_id)
+            sorted_late_list = sorted(el_diff_list, key=itemgetter('late_diff'), reverse=True)
+            logging.debug("ftscheduler:retimebalance: div=%d sorted late=%s", div_id, sorted_late_list)
+            latediff_groups = [{'late_diff': key, 'teams':[x['team_id'] for x in items]}
+                                for key, items in groupby(sorted_late_list, itemgetter('late_diff'))]
+            swap_dict = self.FindSwapMatchForTimeBalance(div_id, fieldset, latediff_groups, 'late')
+            self.swapMatchTimeUpdateEL(swap_dict)
+            # http://stackoverflow.com/questions/4391697/find-the-index-of-a-dict-within-a-list-by-matching-the-dicts-value
+    '''
+        for swap_key in swap_dict:
+            field_id = swap_key[0]
+            gameday_id = swap_key[1]
+            bgraph = swap_dict[swap_key]
+            # get last slot information, if it exists (emedded in graph as one of the keys, the other being 0)
+            lastslot = None
+            for key in bgraph:
+                if key > 0:
+                    lastslot = key
+            obj = bipartiteMatch(bgraph)
+            # obj[0] contains the swap slots in a:b dictionary element - swap slot a w. b
+            #print 'field gameday graph swapobj', field_id, gameday_id, bgraph, obj[0]
+            ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
+            logging.debug("ftscheduler:retimebalance: swap info after bipartite match=%s", obj[0])
+            swapteams_dict = obj[0]
+            for key_slot in swapteams_dict:
+                val_slot = swapteams_dict[key_slot]
+                kteams = ftstatus[key_slot]['teams']
+                vteams = ftstatus[val_slot]['teams']
+                logging.debug("ftscheduler:retimebalance: swapping teams %s at slot %d with teams %s at slot %d",
+                              kteams, key_slot, vteams, val_slot)
+                ftstatus[val_slot]['teams'] = kteams
+                ftstatus[key_slot]['teams'] = vteams
+                if key_slot == 0:
+                    self.IncDecELCounters(kteams, 'early', increment=False)
+                    self.IncDecELCounters(vteams, 'early', increment=True)
+                elif lastslot and key_slot == lastslot:
+                    self.IncDecELCounters(kteams, 'late', increment=False)
+                    self.IncDecELCounters(vteams, 'late', increment=True)
+
+                if val_slot == 0:
+                    self.IncDecELCounters(vteams, 'early', increment=False)
+                    self.IncDecELCounters(kteams, 'early', increment=True)
+                elif lastslot and val_slot == lastslot:
+                    self.IncDecELCounters(vteams, 'late', increment=False)
+                    self.IncDecELCounters(kteams, 'late', increment=True)
+'''
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         fieldcountdiff_list = []
         for div_id in connected_div_list:
@@ -532,7 +574,7 @@ class FieldTimeScheduleGenerator:
                             logging.debug('ftscheduler:refieldbalance: max minfield=%s', max_minfo)
                             logging.debug('ftscheduler:refieldbalance: totalcost=%s', gameday_totalcost)
                         gameday_id += 1
-                    # ****
+                    # ******
                     # maximize cost by just taking max of total_cost on list
                     max_totalcost = max(gameday_totalcost_list, key=itemgetter('total_cost'))
                     max_gameday_id = max_totalcost['gameday_id']
@@ -1239,9 +1281,11 @@ class FieldTimeScheduleGenerator:
                 logging.debug("ftscheduler:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
                               iteration_count, balcount_list, balance_diff)
                 print 'iteration=', iteration_count, 'balance count=', balcount_list, 'diff=', balance_diff
-                if all(x['diff'] < 1 for x in balance_diff or iteration_count >= iteration_max):
+                if all(x['diff'] < 1 for x in balance_diff) or iteration_count >= iteration_max:
                     logging.debug("ftscheduler:refieldbalance: FINISHED FIELD iteration div=%d", div_id)
                     print 'finished field iteration div=', div_id
+                    if iteration_count >= iteration_max:
+                        print 'FINISHED but Iteration count > Max'
                     break
                 else:
                     old_balcount_list = balcount_list
