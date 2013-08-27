@@ -216,13 +216,13 @@ class FieldTimeScheduleGenerator:
                                 (match_team[home_CONST] == team_id or match_team[away_CONST] == team_id):
                                 # if a match is found, find opponent and it's cost
                                 oppteam_id = match_team[home_CONST] if match_team[away_CONST] == team_id else match_team[away_CONST]
-                                oppteam_cost = self.getSingleTeamELstats(div_id, oppteam_id, 'early')
+                                oppteam_cost = self.getSingleTeamELstats(div_id, oppteam_id, el_type)
                                 #print 'found slot 0 match with field=', field_id, 'div=', div_id, 'gameday=', gameday_id, 'team=', team_id, 'opp=', oppteam_id
                                 logging.debug("ftscheduler:FindSwapMatchForTB: found slot0 field=%d div=%d gameday=%d team=%d opp=%d",
                                               field_id, div_id, gameday_id, team_id, oppteam_id)
                                 # only look for range that does not involve EL slots
                                 swapmatch_list = [{'swapteam':fstatus_gameday[x]['teams'],
-                                                   'cost':self.getELstats(fstatus_gameday[x]['teams'], 'early').measure,
+                                                   'cost':self.getELstats(fstatus_gameday[x]['teams'], el_type).measure,
                                                    'slot_index':x}
                                                    for x in range(1,lastslot)]
                                 # ref http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
@@ -256,6 +256,8 @@ class FieldTimeScheduleGenerator:
                                       div_id, team_id, max_min_swapmatch)
                         bestswap_list.append(max_min_swapmatch)
         # work through the swap list
+        # and create bgraph graph dictionary structure required by bipartite matching
+        # graph created for each field,gameday tuple
         if bestswap_list:
             for swap in bestswap_list:
                 logging.debug("ftscheduler:findswapmatchtb: swap=%s", swap)
@@ -276,17 +278,33 @@ class FieldTimeScheduleGenerator:
                 logging.debug('ftscheduler:findswapmatchfortb: keytuple=%s graph=%s',
                               key_tuple, bgraph)
 
+    def calcELdiff_list(self, div_id):
+        tel_index = self.tel_indexerGet(div_id)
+        target_el_list = self.target_earlylate_list[tel_index]['target_list']
+        cel_index = self.cel_indexerGet(div_id)
+        current_el_list = self.current_earlylate_list[cel_index]['counter_list']
+        el_diff_list = [{'team_id': i, 'early_diff': x[0]['early']-x[1]['early'], 'late_diff':x[0]['late']-x[1]['late']}
+                        for i,x in enumerate(zip(current_el_list, target_el_list), start=1)]
+        return el_diff_list
+
+    def calcDivELdiffSum(self, connect_div_list):
+        div_eldiff_list = []
+        for div_id in connect_div_list:
+            el_diff_list = self.calcELdiff_list(div_id)
+            div_eldiff_list.append({'div_id':div_id,
+                                    'earlydiff_sum':sum(x['early_diff']
+                                                        for x in el_diff_list if x['early_diff'] > 0),
+                                    'latediff_sum':sum(x['late_diff']
+                                                       for x in el_diff_list if x['late_diff'] > 0)})
+        return div_eldiff_list
+
+
     def ReTimeBalance(self, fieldset, connected_div_list):
         ''' Rebalance time schedules for teams that have excessive number of early/late games '''
         fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
         swap_dict = {}
         for div_id in connected_div_list:
-            tel_index = self.tel_indexerGet(div_id)
-            target_el_list = self.target_earlylate_list[tel_index]['target_list']
-            cel_index = self.cel_indexerGet(div_id)
-            current_el_list = self.current_earlylate_list[cel_index]['counter_list']
-            el_diff_list = [{'team_id': i, 'early_diff': x[0]['early']-x[1]['early'], 'late_diff':x[0]['late']-x[1]['late']}
-                            for i,x in enumerate(zip(current_el_list, target_el_list), start=1)]
+            el_diff_list = self.calcELdiff_list(div_id)
             sorted_early_list = sorted(el_diff_list, key=itemgetter('early_diff'), reverse=True)
             sorted_late_list = sorted(el_diff_list, key=itemgetter('late_diff'), reverse=True)
             logging.debug("ftscheduler:retimebalance: div=%d sorted early=%s", div_id, sorted_early_list)
@@ -303,9 +321,38 @@ class FieldTimeScheduleGenerator:
             field_id = swap_key[0]
             gameday_id = swap_key[1]
             bgraph = swap_dict[swap_key]
+            # get last slot information, if it exists (emedded in graph as one of the keys, the other being 0)
+            lastslot = None
+            for key in bgraph:
+                if key > 0:
+                    lastslot = key
             obj = bipartiteMatch(bgraph)
             # obj[0] contains the swap slots in a:b dictionary element - swap slot a w. b
             print 'field gameday graph swapobj', field_id, gameday_id, bgraph, obj[0]
+            ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
+            logging.debug("ftscheduler:retimebalance: swap info after bipartite match=%s", obj[0])
+            swapteams_dict = obj[0]
+            for key_slot in swapteams_dict:
+                val_slot = swapteams_dict[key_slot]
+                kteams = ftstatus[key_slot]['teams']
+                vteams = ftstatus[val_slot]['teams']
+                logging.debug("ftscheduler:retimebalance: swapping teams %s at slot %d with teams %s at slot %d",
+                              kteams, key_slot, vteams, val_slot)
+                ftstatus[val_slot]['teams'] = kteams
+                ftstatus[key_slot]['teams'] = vteams
+                if key_slot == 0:
+                    self.IncDecELCounters(kteams, 'early', increment=False)
+                    self.IncDecELCounters(vteams, 'early', increment=True)
+                elif lastslot and key_slot == lastslot:
+                    self.IncDecELCounters(kteams, 'late', increment=False)
+                    self.IncDecELCounters(vteams, 'late', increment=True)
+
+                if val_slot == 0:
+                    self.IncDecELCounters(vteams, 'early', increment=False)
+                    self.IncDecELCounters(kteams, 'early', increment=True)
+                elif lastslot and val_slot == lastslot:
+                    self.IncDecELCounters(vteams, 'late', increment=False)
+                    self.IncDecELCounters(kteams, 'late', increment=True)
 
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         fieldcountdiff_list = []
@@ -1200,7 +1247,36 @@ class FieldTimeScheduleGenerator:
                     old_balcount_list = balcount_list
                     old_bal_indexerGet = bal_indexerGet
                     iteration_count += 1
-            self.ReTimeBalance(fset, connected_div_list)
+
+            # now work on time balanceing
+            iteration_count = 1
+            old_eldiff_list = self.calcDivELdiffSum(connected_div_list)
+            logging.debug("ftscheduler:schedulegen: ReTimeBalance begin div=%d init eldiff_list=%s",
+                          div_id, old_eldiff_list)
+            old_eldiff_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_eldiff_list)).get(x)
+            while True:
+                self.ReTimeBalance(fset, connected_div_list)
+                eldiff_list = self.calcDivELdiffSum(connected_div_list)
+                eldiff_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_eldiff_list)).get(x)
+                improvementdiff_list = [{'div_id':div_id,
+                                         'esumdiff':eldiff_list[eldiff_indexerGet(div_id)]['earlydiff_sum'] -
+                                         old_eldiff_list[old_eldiff_indexerGet(div_id)]['earlydiff_sum'],
+                                         'lsumdiff':eldiff_list[eldiff_indexerGet(div_id)]['latediff_sum'] -
+                                         old_eldiff_list[old_eldiff_indexerGet(div_id)]['latediff_sum']
+                                         } for div_id in connected_div_list]
+                logging.debug("ftscheduler:schedulegen: ReTimeBalance iteration count=%d eldiff=%s improvement=%s",
+                              iteration_count, eldiff_list, improvementdiff_list)
+                if ((all(x['esumdiff'] < 1 for x in improvementdiff_list) and
+                     all(x['lsumdiff'] < 1 for x in improvementdiff_list)) or iteration_count >= iteration_max):
+                    logging.debug("ftscheduler:refieldbalance: Retimebalance FINISHING div=%d", div_id)
+                    print 'finished time iteration, divs', connected_div_list
+                    break
+                else:
+                    old_eldiff_list = eldiff_list
+                    old_eldiff_indexerGet = eldiff_indexerGet
+                    iteration_count += 1
+                    print 'continuing time balance', iteration_count
+
             for field_id in fset:
                 gameday_id = 1
                 for gameday_list in self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list']:
