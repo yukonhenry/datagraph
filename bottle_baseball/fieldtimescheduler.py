@@ -310,6 +310,7 @@ class FieldTimeScheduleGenerator:
             for key in bgraph:
                 if key > 0:
                     lastslot = key
+                    break
             obj = bipartiteMatch(bgraph)
             # obj[0] contains the swap slots in a:b dictionary element - swap slot a w. b
             #print 'field gameday graph swapobj', field_id, gameday_id, bgraph, obj[0]
@@ -1308,11 +1309,11 @@ class FieldTimeScheduleGenerator:
                                          'lsumdiff':eldiff_list[eldiff_indexerGet(div_id)]['latediff_sum'] -
                                          old_eldiff_list[old_eldiff_indexerGet(div_id)]['latediff_sum']
                                          } for div_id in connected_div_list]
-                logging.debug("ftscheduler:schedulegen: ReTimeBalance iteration count=%d eldiff=%s improvement=%s",
-                              iteration_count, eldiff_list, improvementdiff_list)
+                logging.debug("ftscheduler:schedulegen: ReTimeBalance iteration divset=%s count=%d eldiff=%s improvement=%s",
+                              connected_div_list, iteration_count, eldiff_list, improvementdiff_list)
                 if ((all(x['esumdiff'] < 1 for x in improvementdiff_list) and
                      all(x['lsumdiff'] < 1 for x in improvementdiff_list)) or iteration_count >= iteration_max):
-                    logging.debug("ftscheduler:refieldbalance: Retimebalance FINISHING div=%d", div_id)
+                    logging.debug("ftscheduler:refieldbalance: Retimebalance FINISHING divset=%s", connected_div_list)
                     print 'finished time iteration, divs', connected_div_list
                     break
                 else:
