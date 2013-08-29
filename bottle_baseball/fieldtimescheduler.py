@@ -372,7 +372,6 @@ class FieldTimeScheduleGenerator:
                     self.IncDecELCounters(kteams, 'late', increment=True)
 
     def getEarlyLateCounterGroups(self, el_diff_list, el_type):
-        eldiff_str = 'early_diff' if el_type == 'early' else 'late_diff'
         sorted_list = sorted(el_diff_list, key=itemgetter(eldiff_str), reverse=True)
         logging.debug("ftscheduler:retimebalance: div=%d sorted %s = %s", div_id, el_type, sorted_list)
         # ref http://stackoverflow.com/questions/5695208/group-list-by-values for grouping by values
@@ -385,15 +384,25 @@ class FieldTimeScheduleGenerator:
     def ReTimeBalance(self, fieldset, connected_div_list):
         ''' Rebalance time schedules for teams that have excessive number of early/late games '''
         fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
+        iteration_max = 10
         for div_id in connected_div_list:
             # as early/late counters are team-based, iterate on each division in the connected division list
-            el_diff_list = self.calcELdiff_list(div_id)
-            earlydiff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'early')
-            self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+            iteration_count = 1
+            while True:
+                el_diff_list = self.calcELdiff_list(div_id)
+                sum_earlydiff_list = sum(x['early_diff'] for x in el_diff_list if x['early_diff'] > 0)
+                if sum_earlydiff_list > 0:
+                    earlydiff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'early')
+                    self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
 
-            el_diff_list = self.calcELdiff_list(div_id)
-            latediff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'late')
-            self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+                el_diff_list = self.calcELdiff_list(div_id)
+                sum_latediff_list = sum(x['late_diff'] for x in el_diff_list if x['late_diff'] > 0)
+                if sum_latediff_list == 0 and sum_earlydiff_list == 0:
+                    break
+                elif sum_latediff_list > 0:
+                    latediff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'late')
+                    self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+                iteration_count += 1
 '''
             self.swapMatchTimeUpdateEL(swap_dict)
             el_diff_list = self.calcELdiff_list(div_id)
