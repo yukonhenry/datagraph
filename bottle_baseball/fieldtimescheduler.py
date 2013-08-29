@@ -14,6 +14,7 @@ from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, 
 from math import ceil, floor
 from collections import namedtuple
 import networkx as nx
+from random import shuffle
 
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
@@ -189,8 +190,8 @@ class FieldTimeScheduleGenerator:
                 el_measure = 0 # same here
         return el_measure
 
-    def FindSwapMatchForTimeBalance(self, div_id, fieldset, diff_groups, el_type):
-        ''' find potential matches to swap with; also calculate costs so that optimization
+    def FindSwapMatchForTimeBalance(self, div_id, fieldset, diff_groups, el_type, random=0, offset=0):
+        ''' find single potential match to swap with; also calculate costs so that optimization
         can be made '''
         diff_str = 'early_diff' if el_type == 'early' else 'late_diff'
         bestswap_list = []
@@ -201,6 +202,8 @@ class FieldTimeScheduleGenerator:
             if diff_cost > 0:
                 # only work on cases where diff is greater than 0 (needs swapping)
                 teams = diff_elem['teams']
+                # possibly random shufflie list here
+                # http://stackoverflow.com/questions/976882/shuffling-a-list-of-objects-in-python
                 for team_id in teams:
                     min_swapmatch_list = []
                     for field_id in fieldset:
@@ -212,17 +215,17 @@ class FieldTimeScheduleGenerator:
                             lastslot = len(isgame_list)-1-isgame_list[::-1].index(True)
                             slot_index = 0 if el_type == 'early' else lastslot
                             # we are just going to search for matches in the early/late slot
-                            match_team = fstatus_gameday[slot_index]['teams']
-                            if match_team['div_id'] == div_id and \
-                                (match_team[home_CONST] == team_id or match_team[away_CONST] == team_id):
+                            match_teams = fstatus_gameday[slot_index]['teams']
+                            if match_teams['div_id'] == div_id and \
+                                (match_teams[home_CONST] == team_id or match_teams[away_CONST] == team_id):
                                 # if a match is found, find opponent and it's cost
-                                oppteam_id = match_team[home_CONST] if match_team[away_CONST] == team_id else match_team[away_CONST]
+                                oppteam_id = match_teams[home_CONST] if match_teams[away_CONST] == team_id else match_teams[away_CONST]
                                 oppteam_cost = self.getSingleTeamELstats(div_id, oppteam_id, el_type)
                                 #print 'found slot 0 match with field=', field_id, 'div=', div_id, 'gameday=', gameday_id, 'team=', team_id, 'opp=', oppteam_id
                                 logging.debug("ftscheduler:FindSwapMatchForTB: found slot0 field=%d div=%d gameday=%d team=%d opp=%d",
                                               field_id, div_id, gameday_id, team_id, oppteam_id)
                                 # only look for range that does not involve EL slots
-                                swapmatch_list = [{'swapteam':fstatus_gameday[x]['teams'],
+                                swapmatch_list = [{'swapteams':fstatus_gameday[x]['teams'],
                                                    'cost':self.getELstats(fstatus_gameday[x]['teams'], el_type).measure,
                                                    'slot_index':x}
                                                    for x in range(1,lastslot)]
@@ -236,29 +239,58 @@ class FieldTimeScheduleGenerator:
                                     # create record that includes all the data
                                     # ********
                                     # including cost function - 'total_cost' below
-                                    min_swapmatch_list.append({'swapteams':[x for i,x in enumerate(swapmatch_list)
+                                    min_swapmatch_list.append({'swapmatches':[x for i,x in enumerate(swapmatch_list)
                                                                             if i in min_match_index],
-                                                                'min_cost':min_cost, 'gameday_id':gameday_id,
-                                                                'field_id':field_id, 'team_id':team_id,
-                                                                'oppteam_id':oppteam_id, 'oppteam_cost':oppteam_cost,
-                                                                'diff_cost':diff_cost, 'team_slot':slot_index,
-                                                                'total_cost':diff_cost+oppteam_cost-min_cost})
+                                                               'min_cost':min_cost, 'gameday_id':gameday_id,
+                                                               'field_id':field_id, 'team_id':team_id,
+                                                               'oppteam_id':oppteam_id, 'oppteam_cost':oppteam_cost,
+                                                               'team_slot':slot_index, 'self_teams':match_teams,
+                                                               'total_cost':oppteam_cost-min_cost})
                                 else:
                                     # only one game scheduled on this field this gameday, move on to next day
                                     continue
-                    # see sorted description = sort with total_cost first, but with diff_cost and oppteam cost
+                    # see sorted description = sort with total_cost first, but with oppteam cost
                     # if necessary
                     if min_swapmatch_list:
                         sorted_min_swapmatch = sorted(min_swapmatch_list,
-                                                      key=itemgetter('total_cost', 'diff_cost', 'oppteam_cost'),
+                                                      key=itemgetter('total_cost', 'oppteam_cost', 'min_cost'),
                                                       reverse=True)
+                        # note we can choose to use indices other than 0 for subsequent iterations
                         max_min_swapmatch = sorted_min_swapmatch[0]
                         logging.debug("ftscheduler:findswapmatchtb: swap for div=%d team=%d is=%s",
                                       div_id, team_id, max_min_swapmatch)
-                        bestswap_list.append(max_min_swapmatch)
+                        field_id = max_min_swapmatch('field_id')
+                        gameday_id = max_min_swapmatch('gameday_id')
+                        ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
+                        el_slot_index = max_min_swapmatch('team_slot')
+                        el_teams = ftstatus[el_slot_index]['teams']
+                        # confirm correctness of team retrieved from ftstatus matches with team retrieved from
+                        # max_min_swapmatch structure
+                        if el_teams is not max_min_swapmatch('self_teams'):
+                            raise CodeLogicError('ftscheduler:findSwapMatchTB:team mismatch %s', el_teams)
+                        # get info on swapped match
+                        swapmatches_list = max_min_swapmatch('swapmatches')
+                        if len(swapmatches_list) > 0:
+                            swapmatches_sel = swapmatches_list[offset]
+                        else:
+                            swapmatches_sel = swapmatches_list[0]
+                        swap_slot_index = swapmatches_sel['slot_index']
+
+                        swap_teams = ftstatus[swap_slot_index]['teams']
+                        if swap_teams is not swapteams_sel['swapteams']:
+                            raise CodeLogicError('ftscheduler:findSwapMatchTB:swap team mismatch %s', swapteams)
+                        # do swap
+                        ftstatus[el_slot_index]['teams'] = swap_teams
+                        ftstatus[swap_slot_index]['teams'] = el_teams
+                        lastslot = el_slot_index if el_slot_index > 0 else None
+                        self.updateSlotELCounters(el_slot_index, swap_slot_index, lastslot, lastslot)
+                        return True
+                        #bestswap_list.append(max_min_swapmatch)
+        return False
         # work through the swap list
         # and create bgraph graph dictionary structure required by bipartite matching
         # graph created for each field,gameday tuple
+        '''
         if bestswap_list:
             for swap in bestswap_list:
                 logging.debug("ftscheduler:findswapmatchtb: swap=%s", swap)
@@ -279,7 +311,7 @@ class FieldTimeScheduleGenerator:
                 logging.debug('ftscheduler:findswapmatchfortb: keytuple=%s graph=%s',
                               key_tuple, bgraph)
         return swap_dict
-
+'''
     def calcELdiff_list(self, div_id):
         tel_index = self.tel_indexerGet(div_id)
         target_el_list = self.target_earlylate_list[tel_index]['target_list']
@@ -339,64 +371,37 @@ class FieldTimeScheduleGenerator:
                     self.IncDecELCounters(vteams, 'late', increment=False)
                     self.IncDecELCounters(kteams, 'late', increment=True)
 
+    def getEarlyLateCounterGroups(self, el_diff_list, el_type):
+        eldiff_str = 'early_diff' if el_type == 'early' else 'late_diff'
+        sorted_list = sorted(el_diff_list, key=itemgetter(eldiff_str), reverse=True)
+        logging.debug("ftscheduler:retimebalance: div=%d sorted %s = %s", div_id, el_type, sorted_list)
+        # ref http://stackoverflow.com/questions/5695208/group-list-by-values for grouping by values
+        diff_groups = [{eldiff_str: key, 'teams':[x['team_id'] for x in items]}
+                       for key, items in groupby(sorted_list, itemgetter(eldiff_str))]
+        logging.debug("ftscheduler:retimebalance: group %s counters %s", el_type, diff_groups)
+        return diff_groups
+
+
     def ReTimeBalance(self, fieldset, connected_div_list):
         ''' Rebalance time schedules for teams that have excessive number of early/late games '''
         fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
         for div_id in connected_div_list:
+            # as early/late counters are team-based, iterate on each division in the connected division list
             el_diff_list = self.calcELdiff_list(div_id)
-            sorted_early_list = sorted(el_diff_list, key=itemgetter('early_diff'), reverse=True)
-            logging.debug("ftscheduler:retimebalance: div=%d sorted early=%s", div_id, sorted_early_list)
-            # ref http://stackoverflow.com/questions/5695208/group-list-by-values for grouping by values
-            earlydiff_groups = [{'early_diff': key, 'teams':[x['team_id'] for x in items]}
-                                for key, items in groupby(sorted_early_list, itemgetter('early_diff'))]
-            swap_dict = self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+            earlydiff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'early')
+            self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+
+            el_diff_list = self.calcELdiff_list(div_id)
+            latediff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'late')
+            self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+'''
             self.swapMatchTimeUpdateEL(swap_dict)
             el_diff_list = self.calcELdiff_list(div_id)
-            sorted_late_list = sorted(el_diff_list, key=itemgetter('late_diff'), reverse=True)
-            logging.debug("ftscheduler:retimebalance: div=%d sorted late=%s", div_id, sorted_late_list)
-            latediff_groups = [{'late_diff': key, 'teams':[x['team_id'] for x in items]}
-                                for key, items in groupby(sorted_late_list, itemgetter('late_diff'))]
             swap_dict = self.FindSwapMatchForTimeBalance(div_id, fieldset, latediff_groups, 'late')
             self.swapMatchTimeUpdateEL(swap_dict)
+            '''
             # http://stackoverflow.com/questions/4391697/find-the-index-of-a-dict-within-a-list-by-matching-the-dicts-value
-    '''
-        for swap_key in swap_dict:
-            field_id = swap_key[0]
-            gameday_id = swap_key[1]
-            bgraph = swap_dict[swap_key]
-            # get last slot information, if it exists (emedded in graph as one of the keys, the other being 0)
-            lastslot = None
-            for key in bgraph:
-                if key > 0:
-                    lastslot = key
-            obj = bipartiteMatch(bgraph)
-            # obj[0] contains the swap slots in a:b dictionary element - swap slot a w. b
-            #print 'field gameday graph swapobj', field_id, gameday_id, bgraph, obj[0]
-            ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
-            logging.debug("ftscheduler:retimebalance: swap info after bipartite match=%s", obj[0])
-            swapteams_dict = obj[0]
-            for key_slot in swapteams_dict:
-                val_slot = swapteams_dict[key_slot]
-                kteams = ftstatus[key_slot]['teams']
-                vteams = ftstatus[val_slot]['teams']
-                logging.debug("ftscheduler:retimebalance: swapping teams %s at slot %d with teams %s at slot %d",
-                              kteams, key_slot, vteams, val_slot)
-                ftstatus[val_slot]['teams'] = kteams
-                ftstatus[key_slot]['teams'] = vteams
-                if key_slot == 0:
-                    self.IncDecELCounters(kteams, 'early', increment=False)
-                    self.IncDecELCounters(vteams, 'early', increment=True)
-                elif lastslot and key_slot == lastslot:
-                    self.IncDecELCounters(kteams, 'late', increment=False)
-                    self.IncDecELCounters(vteams, 'late', increment=True)
 
-                if val_slot == 0:
-                    self.IncDecELCounters(vteams, 'early', increment=False)
-                    self.IncDecELCounters(kteams, 'early', increment=True)
-                elif lastslot and val_slot == lastslot:
-                    self.IncDecELCounters(vteams, 'late', increment=False)
-                    self.IncDecELCounters(kteams, 'late', increment=True)
-'''
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         fieldcountdiff_list = []
         for div_id in connected_div_list:
@@ -616,6 +621,9 @@ class FieldTimeScheduleGenerator:
                     self.IncDecFieldMetrics(fieldmetrics_list, findexerGet, maxfield, minf_teams,
                                             increment=True)
                     # next adjust EL counters for maxf and minfteams
+                    self.updateSlotELCounters(max_maxf_slot, max_minf_slot, maxf_teams, minf_teams,
+                                              lastTrue_slot1 = lastTrue_slot, lastTrue_slot2 = minf_lastTrue_slot)
+                    '''
                     if max_maxf_slot == 0:
                         self.IncDecELCounters(maxf_teams, 'early', increment=False)
                         self.IncDecELCounters(minf_teams, 'early', increment=True)
@@ -629,9 +637,26 @@ class FieldTimeScheduleGenerator:
                     elif max_minf_slot == minf_lastTrue_slot:
                         self.IncDecELCounters(minf_teams, 'late', increment=False)
                         self.IncDecELCounters(maxf_teams, 'late', increment=True)
-
+                '''
                 team_id += 1
         return rebalance_count
+
+    def updateSlotELCounters(self, slot1, slot2, origslot1_teams, origslot2_teams,
+                             lastTrue_slot1 = None, lastTrue_slot2 = None):
+        if slot1 == 0:
+            self.IncDecELCounters(origslot1_teams, 'early', increment=False)
+            self.IncDecELCounters(origslot2_teams, 'early', increment=True)
+        elif lastTrue_slot1 and slot1 == lastTrue_slot1:
+            self.IncDecELCounters(origslot1_teams, 'late', increment=False)
+            self.IncDecELCounters(origslot2_teams, 'late', increment=True)
+
+        if slot2 == 0:
+            self.IncDecELCounters(origslot2_teams, 'early', increment=False)
+            self.IncDecELCounters(origslot1_teams, 'early', increment=True)
+        elif lastTrue_slot2 and slot2 == lastTrue_slot2:
+            self.IncDecELCounters(origslot2_teams, 'late', increment=False)
+            self.IncDecELCounters(origslot1_teams, 'late', increment=True)
+
 
     def shiftFSstatus_list(self, field_id, round_id, first_pos):
         ''' shift self.fieldSeasonStatus struct for a given field and gameday_id when a new match
