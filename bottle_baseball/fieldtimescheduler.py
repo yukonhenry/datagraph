@@ -12,7 +12,7 @@ from copy import deepcopy
 from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, \
      CodeLogicError
 from math import ceil, floor
-from collections import namedtuple
+from collections import namedtuple, deque
 import networkx as nx
 from random import shuffle
 
@@ -190,7 +190,7 @@ class FieldTimeScheduleGenerator:
                 el_measure = 0 # same here
         return el_measure
 
-    def FindSwapMatchForTimeBalance(self, div_id, fieldset, diff_groups, el_type, random=0, offset=0):
+    def FindSwapMatchForTimeBalance(self, div_id, fieldset, diff_groups, el_type, random=False, offset=0):
         ''' find single potential match to swap with; also calculate costs so that optimization
         can be made '''
         diff_str = 'early_diff' if el_type == 'early' else 'late_diff'
@@ -204,6 +204,8 @@ class FieldTimeScheduleGenerator:
                 teams = diff_elem['teams']
                 # possibly random shufflie list here
                 # http://stackoverflow.com/questions/976882/shuffling-a-list-of-objects-in-python
+                if random:
+                    shuffle(teams)
                 for team_id in teams:
                     min_swapmatch_list = []
                     for field_id in fieldset:
@@ -259,31 +261,32 @@ class FieldTimeScheduleGenerator:
                         max_min_swapmatch = sorted_min_swapmatch[0]
                         logging.debug("ftscheduler:findswapmatchtb: swap for div=%d team=%d is=%s",
                                       div_id, team_id, max_min_swapmatch)
-                        field_id = max_min_swapmatch('field_id')
-                        gameday_id = max_min_swapmatch('gameday_id')
+                        field_id = max_min_swapmatch['field_id']
+                        gameday_id = max_min_swapmatch['gameday_id']
                         ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
-                        el_slot_index = max_min_swapmatch('team_slot')
+                        el_slot_index = max_min_swapmatch['team_slot']
                         el_teams = ftstatus[el_slot_index]['teams']
                         # confirm correctness of team retrieved from ftstatus matches with team retrieved from
                         # max_min_swapmatch structure
-                        if el_teams is not max_min_swapmatch('self_teams'):
+                        if el_teams is not max_min_swapmatch['self_teams']:
                             raise CodeLogicError('ftscheduler:findSwapMatchTB:team mismatch %s', el_teams)
                         # get info on swapped match
-                        swapmatches_list = max_min_swapmatch('swapmatches')
-                        if len(swapmatches_list) > 0:
-                            swapmatches_sel = swapmatches_list[offset]
-                        else:
-                            swapmatches_sel = swapmatches_list[0]
+                        # ref http://stackoverflow.com/questions/9457832/python-list-rotation
+                        max_min_deq = deque(max_min_swapmatch['swapmatches'])
+                        max_min_deq.rotate(offset)  # return is None, so convert to list in separate statement
+                        swapmatches_list = list(max_min_deq)
+                        swapmatches_sel = swapmatches_list[0]
                         swap_slot_index = swapmatches_sel['slot_index']
 
                         swap_teams = ftstatus[swap_slot_index]['teams']
-                        if swap_teams is not swapteams_sel['swapteams']:
+                        if swap_teams is not swapmatches_sel['swapteams']:
                             raise CodeLogicError('ftscheduler:findSwapMatchTB:swap team mismatch %s', swapteams)
                         # do swap
                         ftstatus[el_slot_index]['teams'] = swap_teams
                         ftstatus[swap_slot_index]['teams'] = el_teams
                         lastslot = el_slot_index if el_slot_index > 0 else None
-                        self.updateSlotELCounters(el_slot_index, swap_slot_index, lastslot, lastslot)
+                        self.updateSlotELCounters(el_slot_index, swap_slot_index, el_teams, swap_teams,
+                                                  lastslot, lastslot)
                         return True
                         #bestswap_list.append(max_min_swapmatch)
         return False
@@ -372,8 +375,9 @@ class FieldTimeScheduleGenerator:
                     self.IncDecELCounters(kteams, 'late', increment=True)
 
     def getEarlyLateCounterGroups(self, el_diff_list, el_type):
+        eldiff_str = 'early_diff' if el_type == 'early' else 'late_diff'
         sorted_list = sorted(el_diff_list, key=itemgetter(eldiff_str), reverse=True)
-        logging.debug("ftscheduler:retimebalance: div=%d sorted %s = %s", div_id, el_type, sorted_list)
+        logging.debug("ftscheduler:retimebalance: type %s = sorted %s", el_type, sorted_list)
         # ref http://stackoverflow.com/questions/5695208/group-list-by-values for grouping by values
         diff_groups = [{eldiff_str: key, 'teams':[x['team_id'] for x in items]}
                        for key, items in groupby(sorted_list, itemgetter(eldiff_str))]
@@ -385,30 +389,76 @@ class FieldTimeScheduleGenerator:
         ''' Rebalance time schedules for teams that have excessive number of early/late games '''
         fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
         iteration_max = 10
+        earlyrandom_flag = False
+        laterandom_flag = False
+        offset_count = 0
+        offset_max = 10
+        oldearly_sum = verypositive_CONST
+        oldlate_sum = verypositive_CONST
         for div_id in connected_div_list:
             # as early/late counters are team-based, iterate on each division in the connected division list
-            iteration_count = 1
+            iteration_count = 0
             while True:
+                print 'Retimebalance iteration=', iteration_count
                 el_diff_list = self.calcELdiff_list(div_id)
                 sum_earlydiff_list = sum(x['early_diff'] for x in el_diff_list if x['early_diff'] > 0)
-                if sum_earlydiff_list > 0:
+                earlysum_diff = sum_earlydiff_list - oldearly_sum
+                logging.debug("ftscheduler:retimebalance: earlydiffsum=%d old=%d diff=%d", sum_earlydiff_list,
+                              oldearly_sum, earlysum_diff)
+                if earlysum_diff  < 0:
+                    earlyimproving_flag = True
                     earlydiff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'early')
-                    self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+                    status = self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early',
+                                                              random=earlyrandom_flag,
+                                                              offset=offset_count)
+                    if not status:
+                        logging.warning("ftscheduler:retimebalance: div=%d iter=%d No early swap found",
+                                        div_id, iteration_count)
+                else:
+                    earlyimproving_flag = False
+                oldearly_sum = sum_earlydiff_list
 
                 el_diff_list = self.calcELdiff_list(div_id)
                 sum_latediff_list = sum(x['late_diff'] for x in el_diff_list if x['late_diff'] > 0)
+                latesum_diff = sum_latediff_list - oldlate_sum
+                logging.debug("ftscheduler:retimebalance: latediffsum=%d old=%d diff=%d",sum_latediff_list,
+                              oldlate_sum, latesum_diff)
                 if sum_latediff_list == 0 and sum_earlydiff_list == 0:
+                    logging.debug("ftscheduler:retimebalance: both sums zero, exiting div %d", div_id)
+                    print 'retimebalance complete for div=', div_id
                     break
-                elif sum_latediff_list > 0:
+                elif latesum_diff  < 0:
+                    lateimproving_flag = True
                     latediff_groups = self.getEarlyLateCounterGroups(el_diff_list, 'late')
-                    self.FindSwapMatchForTimeBalance(div_id, fieldset, earlydiff_groups, 'early')
+                    status = self.FindSwapMatchForTimeBalance(div_id, fieldset, latediff_groups, 'late',
+                                                              random=laterandom_flag, offset=offset_count)
+                    if not status:
+                        logging.warning("ftscheduler:retimebalance: div=%d iter=%d No late swap found",
+                                        div_id, iteration_count)
+                else:
+                    lateimproving_flag = False
+                oldlate_sum = sum_latediff_list
                 iteration_count += 1
-'''
-            self.swapMatchTimeUpdateEL(swap_dict)
-            el_diff_list = self.calcELdiff_list(div_id)
-            swap_dict = self.FindSwapMatchForTimeBalance(div_id, fieldset, latediff_groups, 'late')
-            self.swapMatchTimeUpdateEL(swap_dict)
-            '''
+                print 'early late improve', earlyimproving_flag, lateimproving_flag, earlyrandom_flag, laterandom_flag
+                if earlyrandom_flag and laterandom_flag and iteration_count > iteration_max and offset_count > offset_max:
+                    logging.debug("ftscheduler:retimebalance: offset and iteration exceeded, exiting div=%d", div_id)
+                    print 'we tried enough - retimebalance exiting w. offset and iteration exceeded for div=', div_id
+                    break
+                elif earlyrandom_flag and laterandom_flag and iteration_count > iteration_max:
+                    offset_count += 1
+                    iteration_count = 0
+                    logging.debug("ftscheduler:retimebalance: offset increase %d", offset_count)
+                    print 'offset count inc', offset_count
+                elif not earlyimproving_flag or not lateimproving_flag:
+                    if not earlyimproving_flag:
+                        logging.debug("ftscheduler:retimebalance: setting early randomflag")
+                        print 'early random flag set, iteration=', iteration_count
+                        earlyrandom_flag = True
+                    if not lateimproving_flag:
+                        logging.debug("ftscheduler:retimebalance: setting late randomflag")
+                        print 'late random flag set, iteration=', iteration_count
+                        laterandom_flag = True
+
             # http://stackoverflow.com/questions/4391697/find-the-index-of-a-dict-within-a-list-by-matching-the-dicts-value
 
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
@@ -1297,37 +1347,12 @@ class FieldTimeScheduleGenerator:
                                   div.age, div.gender, round_id, field_id, gametime, slot_index)
                 logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
                               connected_div_list, round_id, gameday_fieldcount)
-            old_balcount_list = self.CountFieldBalance(connected_div_list, fieldmetrics_list,
-                                                       fieldmetrics_indexerGet)
-            old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
-            iteration_count = 1
-            iteration_max = 10
-            logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s", iteration_count,
-                          old_balcount_list)
-            print 'first iteration', old_balcount_list
-            while True:
-                rebalance_count = self.ReFieldBalance(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
-                balcount_list = self.CountFieldBalance(connected_div_list,fieldmetrics_list, fieldmetrics_indexerGet)
-                bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(balcount_list)).get(x)
-                balance_diff = [{'div_id':div_id,
-                                'diff':old_balcount_list[old_bal_indexerGet(div_id)]['fcountdiff_num'] -
-                                balcount_list[bal_indexerGet(div_id)]['fcountdiff_num']}
-                                for div_id in connected_div_list]
-                logging.debug("ftscheduler:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
-                              iteration_count, balcount_list, balance_diff)
-                print 'iteration=', iteration_count, 'balance count=', balcount_list, 'diff=', balance_diff
-                if all(x['diff'] < 1 for x in balance_diff) or iteration_count >= iteration_max:
-                    logging.debug("ftscheduler:refieldbalance: FINISHED FIELD iteration div=%d", div_id)
-                    print 'finished field iteration div=', div_id
-                    if iteration_count >= iteration_max:
-                        print 'FINISHED but Iteration count > Max'
-                    break
-                else:
-                    old_balcount_list = balcount_list
-                    old_bal_indexerGet = bal_indexerGet
-                    iteration_count += 1
-
+            self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
             # now work on time balanceing
+            self.ReTimeBalance(fset, connected_div_list)
+            self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
+            self.ReTimeBalance(fset, connected_div_list)
+            '''
             iteration_count = 1
             old_eldiff_list = self.calcDivELdiffSum(connected_div_list)
             logging.debug("ftscheduler:schedulegen: ReTimeBalance begin div=%d init eldiff_list=%s",
@@ -1345,17 +1370,17 @@ class FieldTimeScheduleGenerator:
                                          } for div_id in connected_div_list]
                 logging.debug("ftscheduler:schedulegen: ReTimeBalance iteration divset=%s count=%d eldiff=%s improvement=%s",
                               connected_div_list, iteration_count, eldiff_list, improvementdiff_list)
-                if ((all(x['esumdiff'] < 1 for x in improvementdiff_list) and
-                     all(x['lsumdiff'] < 1 for x in improvementdiff_list)) or iteration_count >= iteration_max):
+                if ((all(x['esumdiff'] > 0 for x in improvementdiff_list) and
+                     all(x['lsumdiff'] > 0 for x in improvementdiff_list)) or iteration_count >= iteration_max):
                     logging.debug("ftscheduler:refieldbalance: Retimebalance FINISHING divset=%s", connected_div_list)
-                    print 'finished time iteration, divs', connected_div_list
+                    print 'no more improvements, finished time iteration, divs', connected_div_list
                     break
                 else:
                     old_eldiff_list = eldiff_list
                     old_eldiff_indexerGet = eldiff_indexerGet
                     iteration_count += 1
                     print 'continuing time balance', iteration_count
-
+        '''
             for field_id in fset:
                 gameday_id = 1
                 for gameday_list in self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list']:
@@ -1371,28 +1396,42 @@ class FieldTimeScheduleGenerator:
                                                             gametime.strftime(time_format_CONST),
                                                             field_id, home_id, away_id)
                     gameday_id += 1
-#            for div_id in connected_div_list:
-#                print 'div=',div_id,'count=',self.current_earlylate_list[self.cel_indexerGet(div_id)]['counter_list']
 
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()
-        divlist = [x['div_id'] for x in self.leaguediv]
-        divlist.sort()  # note assignment b=a.sort() returns None
-        for div_id in divlist:
-            # gets stats from the db - note current_earlylate_list is not a good stat counter after
-            # time scheduling has completed because a first game at 8:50 (instead of 8:00 for example)
-            # does not get counted.  It is possible to detect an early game after compaction, but
-            # db interface gives reliable stat counts
-            div = getAgeGenderDivision(div_id)
-            divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
-            divfields = divinfo['fields']
-            numgamesperseason = divinfo['gamesperseason']
-            ELcounter_tuple = self.dbinterface.getTimeSlotMetrics(div.age, div.gender,
-                                                                  divfields, numgamesperseason)
-            earliest_counter = ELcounter_tuple.earliest
-            latest_counter = ELcounter_tuple.latest
-            print div_id, earliest_counter, latest_counter
-            print 'max min earliest', earliest_counter.most_common(1)
+
+    def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet):
+        old_balcount_list = self.CountFieldBalance(connected_div_list, fieldmetrics_list,
+                                                   fieldmetrics_indexerGet)
+        old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
+        iteration_count = 1
+        iteration_max = 10
+        logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s", iteration_count,
+                      old_balcount_list)
+        print 'first field iteration', old_balcount_list
+        while True:
+            rebalance_count = self.ReFieldBalance(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
+            balcount_list = self.CountFieldBalance(connected_div_list,fieldmetrics_list, fieldmetrics_indexerGet)
+            bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(balcount_list)).get(x)
+            balance_diff = [{'div_id':div_id,
+                             'diff':old_balcount_list[old_bal_indexerGet(div_id)]['fcountdiff_num'] -
+                             balcount_list[bal_indexerGet(div_id)]['fcountdiff_num']}
+                            for div_id in connected_div_list]
+            logging.debug("ftscheduler:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
+                          iteration_count, balcount_list, balance_diff)
+            print 'field iteration=', iteration_count, 'balance count=', balcount_list, 'diff=', balance_diff
+            if all(x['diff'] < 1 for x in balance_diff) or iteration_count >= iteration_max:
+                logging.debug("ftscheduler:refieldbalance: FINISHED FIELD iteration connected_div %s", connected_div_list)
+                print 'finished field iteration div=', connected_div_list
+                if iteration_count >= iteration_max:
+                    logging.debug("ftscheduler:refieldbalance: iteration count exceeded max=%d", iteration_max)
+                    print 'FINISHED but Iteration count > Max'
+                break
+            else:
+                old_balcount_list = balcount_list
+                old_bal_indexerGet = bal_indexerGet
+                iteration_count += 1
+
 
     def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, gameday_id,
                           src_begin, dst_begin, shift_len):
