@@ -1,6 +1,7 @@
 #!/usr/bin/python
 ''' Copyright YukonTR 2013 '''
 import simplejson as json
+import time
 from pprint import pprint
 from bottle import route, request
 import networkx as nx
@@ -9,17 +10,9 @@ from networkx import connected_components
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface
-from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo
-'''
-# http://api.mongodb.org/python/current/tutorial.html
-from pymongo import  *
-# prep for connecting to db
-client = MongoClient()
-testschedule_db = client.testschedule_db
-div_schedule_col = testschedule_db.div_schedule
-# create collection in db for storing metrics
-metrics_collect = testschedule_db.metrics
-'''
+from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
+     getFieldInfo
+
 dbInterface = MongoDBInterface()
 
 def get_leaguedata():
@@ -40,8 +33,12 @@ http://bottlepy.org/docs/dev/tutorial.html#request-routing
 @route('/leaguedivinfo')
 def leaguedivinfo_all():
     callback_name = request.query.callback
-    ldata = get_leaguedata()
-    a = json.dumps(ldata)
+    ldata_tuple = getLeagueDivInfo()
+    field_tuple = getFieldInfo()
+
+    a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
+                    "field_info":field_tuple.dict_list,
+                    "creation_time":time.asctime()})
     return callback_name+'('+a+')'
 
 # Get per-division schedule

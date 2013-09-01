@@ -5,7 +5,7 @@ from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bip
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDivFieldEdgeWeight_list, \
-     getConnectedDivisions, getLeagueDivInfo, getFieldInfo
+     getConnectedDivisions, getLeagueDivInfo, getFieldInfo, getTeamTimeConstraintInfo
 import logging
 from operator import itemgetter
 from copy import deepcopy
@@ -33,6 +33,8 @@ firstslot_CONST = 0
 verynegative_CONST = -1e6
 verypositive_CONST = 1e6
 balanceweight_CONST = 2
+time_iteration_max_CONST = 12
+field_iteration_max_CONST = 12
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
@@ -77,6 +79,7 @@ class FieldTimeScheduleGenerator:
         #for gd in gd_fieldcount:
         diff = maxgd['count'] - requiredslots_perfield
         if diff >= 0:
+            #******** cost function
             # 1 is a slack term, arbitrary
             maxedout_field = maxgd['field_id']
             penalty = (diff + 1)*2
@@ -205,52 +208,51 @@ class FieldTimeScheduleGenerator:
                 # possibly random shufflie list here
                 # http://stackoverflow.com/questions/976882/shuffling-a-list-of-objects-in-python
                 if random:
-                    shuffle(teams)
+                    shuffle(teams, lambda:0)  # make it a deterministic shuffle
                 for team_id in teams:
                     min_swapmatch_list = []
                     for field_id in fieldset:
                         # games can be on either field
                         fstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list']
                         for gameday_id, fstatus_gameday in enumerate(fstatus, start=1):
-                            # for every field and gameday_id, find game with team_id that falls on EL slot
-                            isgame_list = [x['isgame'] for x in fstatus_gameday]
-                            lastslot = len(isgame_list)-1-isgame_list[::-1].index(True)
-                            slot_index = 0 if el_type == 'early' else lastslot
-                            # we are just going to search for matches in the early/late slot
-                            match_teams = fstatus_gameday[slot_index]['teams']
-                            if match_teams['div_id'] == div_id and \
-                                (match_teams[home_CONST] == team_id or match_teams[away_CONST] == team_id):
-                                # if a match is found, find opponent and it's cost
-                                oppteam_id = match_teams[home_CONST] if match_teams[away_CONST] == team_id else match_teams[away_CONST]
-                                oppteam_cost = self.getSingleTeamELstats(div_id, oppteam_id, el_type)
-                                #print 'found slot 0 match with field=', field_id, 'div=', div_id, 'gameday=', gameday_id, 'team=', team_id, 'opp=', oppteam_id
-                                logging.debug("ftscheduler:FindSwapMatchForTB: found slot0 field=%d div=%d gameday=%d team=%d opp=%d",
-                                              field_id, div_id, gameday_id, team_id, oppteam_id)
-                                # only look for range that does not involve EL slots
-                                swapmatch_list = [{'swapteams':fstatus_gameday[x]['teams'],
-                                                   'cost':self.getELstats(fstatus_gameday[x]['teams'], el_type).measure,
-                                                   'slot_index':x}
-                                                   for x in range(1,lastslot)]
-                                # ref http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
-                                if swapmatch_list:
-                                    # if potential swaps can be found (sometimes there are only games on EL slots,
-                                    # where a swap game won't exist)
-                                    min_cost = min(swapmatch_list, key=itemgetter('cost'))['cost']
-                                    min_match_index = [i for i, j in enumerate(swapmatch_list)
-                                                       if j['cost'] == min_cost]
-                                    # create record that includes all the data
-                                    # ********
-                                    # including cost function - 'total_cost' below
-                                    min_swapmatch_list.append({'swapmatches':[x for i,x in enumerate(swapmatch_list)
-                                                                            if i in min_match_index],
-                                                               'min_cost':min_cost, 'gameday_id':gameday_id,
-                                                               'field_id':field_id, 'team_id':team_id,
-                                                               'oppteam_id':oppteam_id, 'oppteam_cost':oppteam_cost,
-                                                               'team_slot':slot_index, 'self_teams':match_teams,
-                                                               'total_cost':oppteam_cost-min_cost})
-                                else:
-                                    # only one game scheduled on this field this gameday, move on to next day
-                                    continue
+                            if fstatus_gameday:
+                                # for every field and gameday_id, find game with team_id that falls on EL slot
+                                isgame_list = [x['isgame'] for x in fstatus_gameday]
+                                lastslot = len(isgame_list)-1-isgame_list[::-1].index(True)
+                                slot_index = 0 if el_type == 'early' else lastslot
+                                # we are just going to search for matches in the early/late slot
+                                match_teams = fstatus_gameday[slot_index]['teams']
+                                if match_teams['div_id'] == div_id and \
+                                    (match_teams[home_CONST] == team_id or match_teams[away_CONST] == team_id):
+                                    # if a match is found, find opponent and it's cost
+                                    oppteam_id = match_teams[home_CONST] if match_teams[away_CONST] == team_id else match_teams[away_CONST]
+                                    oppteam_cost = self.getSingleTeamELstats(div_id, oppteam_id, el_type)
+                                    #print 'found slot 0 match with field=', field_id, 'div=', div_id, 'gameday=', gameday_id, 'team=', team_id, 'opp=', oppteam_id
+                                    logging.debug("ftscheduler:FindSwapMatchForTB: found slot0 field=%d div=%d gameday=%d team=%d opp=%d",
+                                                  field_id, div_id, gameday_id, team_id, oppteam_id)
+                                    # only look for range that does not involve EL slots
+                                    swapmatch_list = [{'swapteams':fstatus_gameday[x]['teams'],
+                                                       'cost':self.getELstats(fstatus_gameday[x]['teams'], el_type).measure,
+                                                       'slot_index':x} for x in range(1,lastslot)]
+                                    # ref http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
+                                    if swapmatch_list:
+                                        # if potential swaps can be found (sometimes there are only games on EL slots,
+                                        # where a swap game won't exist)
+                                        min_cost = min(swapmatch_list, key=itemgetter('cost'))['cost']
+                                        min_match_index = [i for i, j in enumerate(swapmatch_list) if j['cost'] == min_cost]
+                                        # create record that includes all the data
+                                        # ********
+                                        # including cost function - 'total_cost' below
+                                        min_swapmatch_list.append({'swapmatches':[x for i,x in enumerate(swapmatch_list)
+                                                                                  if i in min_match_index],
+                                                                'min_cost':min_cost, 'gameday_id':gameday_id,
+                                                                'field_id':field_id, 'team_id':team_id,
+                                                                'oppteam_id':oppteam_id, 'oppteam_cost':oppteam_cost,
+                                                                'team_slot':slot_index, 'self_teams':match_teams,
+                                                                'total_cost':oppteam_cost-min_cost})
+                                    else:
+                                        # only one game scheduled on this field this gameday, move on to next day
+                                        continue
                     # see sorted description = sort with total_cost first, but with oppteam cost
                     # if necessary
                     if min_swapmatch_list:
@@ -388,7 +390,6 @@ class FieldTimeScheduleGenerator:
     def ReTimeBalance(self, fieldset, connected_div_list):
         ''' Rebalance time schedules for teams that have excessive number of early/late games '''
         fstatus_list = [self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'] for f in fieldset]
-        iteration_max = 10
         earlyrandom_flag = False
         laterandom_flag = False
         offset_count = 0
@@ -440,11 +441,11 @@ class FieldTimeScheduleGenerator:
                 oldlate_sum = sum_latediff_list
                 iteration_count += 1
                 print 'early late improve', earlyimproving_flag, lateimproving_flag, earlyrandom_flag, laterandom_flag
-                if earlyrandom_flag and laterandom_flag and iteration_count > iteration_max and offset_count > offset_max:
+                if earlyrandom_flag and laterandom_flag and iteration_count > time_iteration_max_CONST and offset_count > offset_max:
                     logging.debug("ftscheduler:retimebalance: offset and iteration exceeded, exiting div=%d", div_id)
                     print 'we tried enough - retimebalance exiting w. offset and iteration exceeded for div=', div_id
                     break
-                elif earlyrandom_flag and laterandom_flag and iteration_count > iteration_max:
+                elif earlyrandom_flag and laterandom_flag and iteration_count > time_iteration_max_CONST:
                     offset_count += 1
                     iteration_count = 0
                     logging.debug("ftscheduler:retimebalance: offset increase %d", offset_count)
@@ -533,6 +534,14 @@ class FieldTimeScheduleGenerator:
                         # for max count fields, find for each gameday, each gameday slot where the target
                         # team plays on the max count field.  Each gameday slot might not involve the
                         # target team because they may be playing on a different field
+                        if not max_round_status or not min_round_status:
+                            # if max count field is not being used on a particular gameday, skip and go to the next
+                            logging.debug("ftscheduler:refieldbalance: either max or min on gameday=%d is None",
+                                          gameday_id)
+                            gameday_id += 1
+                            continue
+                        else:
+                            logging.debug("continuing on gameday=%d", gameday_id)
                         today_maxfield_info_list = [{'gameday_id':gameday_id, 'slot_index':i,
                                                     'start_time':j['start_time'],
                                                     'teams':j['teams']}
@@ -584,7 +593,7 @@ class FieldTimeScheduleGenerator:
                                                 'maxftotal_cost':maxftotal_cost}
                             maxfteam_metrics_list.append(maxfteam_metrics)
                             logging.debug('ftscheduler:refieldbalance: maxfield team metrics=%s', maxfteam_metrics)
-                            # Now we are going to find all the teams (not just in this div but also all field-shaed divs)
+                            # Now we are going to find all the teams (not just in this div but also all field-shared divs)
                             # using the minimum count field
                             # and then find the measures for each field - which is both the minfield counts for the home and
                             # away teams, along with the timeslot early/late count - el count only generated if the slot index
@@ -1067,25 +1076,33 @@ class FieldTimeScheduleGenerator:
                                       div_id, round_id, home_id, away_id, home_fieldmetrics_list, away_fieldmetrics_list, fieldcand_list)
                         logging.debug("fieldcandlist=%s",fieldcand_list)
                         if len(fieldcand_list) > 1:
+                            # see if fieldcand_list needs to be reduced:
                             # for each field, get the True/False list of game scheduled status
                             isgame_list = [(x,
                                             [y['isgame'] for y in self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
                                              ['slotstatus_list'][round_id-1]])
-                                           for x in fieldcand_list]
-                            # first make sure that not all game slots for all candidate fields have not
-                            # been scheduled.
-                            for fieldsched in isgame_list:
-                                if not all(fieldsched[1]):
-                                    # if there is at least one False, then we have space to schedule a game
-                                    # ok to break out of the for loop
-                                    break
-                            else:
+                                           for x in fieldcand_list if self.fieldSeasonStatus[self.fstatus_indexerGet(x)]
+                                           ['slotstatus_list'][round_id-1]]
+                            if not isgame_list:
+                                logging.warning("ftscheduler: fields %s not available on gameday %d", fieldcand_list, round_id)
+                                submin += 1
+                                continue
+                            # recreate the isgame list
+                            isgame_list[:] = [fieldsched for fieldsched in isgame_list if not all(fieldsched[1])]
+                            if len(isgame_list) < len(fieldcand_list):
+                                logging.info("ftscheduler:schedulegen: dropping candidate field size reduced from %d to %d",
+                                             len(fieldcand_list), len(isgame_list))
+                            if not isgame_list:
                                 logging.warning("ftscheduler: fields %s are full, looking for alternates",
                                                 [x[0] for x in isgame_list])
                                 submin += 1
                                 continue
-                                #raise FieldAvailabilityError(div_id)
+                            else:
+                                # recreate the field candidate list based on remaining fields in isgame_list
+                                fieldcand_list[:] = [x[0] for x in isgame_list]
 
+
+                        if len(fieldcand_list) > 1:
                             # take care of the case where a field is completely unscheduled - if it is,
                             # assign a game and credit both early and late game counters
                             fieldempty_list = [x[0] for x in isgame_list if all_value(x[1], False)]
@@ -1241,13 +1258,18 @@ class FieldTimeScheduleGenerator:
                             # find status list for this round
                             fieldslotstatus_list = self.fieldSeasonStatus[fsindex]['slotstatus_list'][round_id-1]
                             # find first open time slot in round
-                            isgame_list = [y['isgame'] for y in fieldslotstatus_list]
-                            if all(isgame_list):
-                                logging.warning("ftscheduler:schedulegenerator:field=%d round=%d full, attempting alternate",
-                                                field_id, round_id)
+                            if fieldslotstatus_list:
+                                isgame_list = [y['isgame'] for y in fieldslotstatus_list]
+                                if all(isgame_list):
+                                    logging.warning("ftscheduler:schedulegenerator:field=%d round=%d full, attempting alternate",
+                                                    field_id, round_id)
+                                    submin += 1
+                                    continue
+                            else:
+                                logging.warning("ftscheduler: field %d not available on gameday %d", field_id, round_id)
                                 submin += 1
                                 continue
-                                #raise TimeSlotAvailabilityError(field_id, round_id)
+
                             if all_value(isgame_list, False):
                                 # if there are no games scheduled for the field, assign to first slot
                                 # and update both early/late counters
@@ -1371,7 +1393,7 @@ class FieldTimeScheduleGenerator:
                 logging.debug("ftscheduler:schedulegen: ReTimeBalance iteration divset=%s count=%d eldiff=%s improvement=%s",
                               connected_div_list, iteration_count, eldiff_list, improvementdiff_list)
                 if ((all(x['esumdiff'] > 0 for x in improvementdiff_list) and
-                     all(x['lsumdiff'] > 0 for x in improvementdiff_list)) or iteration_count >= iteration_max):
+                     all(x['lsumdiff'] > 0 for x in improvementdiff_list)) or iteration_count >= time_iteration_max_CONST):
                     logging.debug("ftscheduler:refieldbalance: Retimebalance FINISHING divset=%s", connected_div_list)
                     print 'no more improvements, finished time iteration, divs', connected_div_list
                     break
@@ -1384,17 +1406,18 @@ class FieldTimeScheduleGenerator:
             for field_id in fset:
                 gameday_id = 1
                 for gameday_list in self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list']:
-                    for match in gameday_list:
-                        if match['isgame']:
-                            gametime = match['start_time']
-                            teams = match['teams']
-                            div_id = teams['div_id']
-                            home_id = teams[home_CONST]
-                            away_id = teams[away_CONST]
-                            div = getAgeGenderDivision(div_id)
-                            self.dbinterface.insertGameData(div.age, div.gender, gameday_id,
-                                                            gametime.strftime(time_format_CONST),
-                                                            field_id, home_id, away_id)
+                    if gameday_list:
+                        for match in gameday_list:
+                            if match['isgame']:
+                                gametime = match['start_time']
+                                teams = match['teams']
+                                div_id = teams['div_id']
+                                home_id = teams[home_CONST]
+                                away_id = teams[away_CONST]
+                                div = getAgeGenderDivision(div_id)
+                                self.dbinterface.insertGameData(div.age, div.gender, gameday_id,
+                                                                gametime.strftime(time_format_CONST),
+                                                                field_id, home_id, away_id)
                     gameday_id += 1
 
         # executes after entire schedule for all divisions is generated
@@ -1405,7 +1428,6 @@ class FieldTimeScheduleGenerator:
                                                    fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
         iteration_count = 1
-        iteration_max = 10
         logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s", iteration_count,
                       old_balcount_list)
         print 'first field iteration', old_balcount_list
@@ -1420,11 +1442,11 @@ class FieldTimeScheduleGenerator:
             logging.debug("ftscheduler:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
                           iteration_count, balcount_list, balance_diff)
             print 'field iteration=', iteration_count, 'balance count=', balcount_list, 'diff=', balance_diff
-            if all(x['diff'] < 1 for x in balance_diff) or iteration_count >= iteration_max:
+            if all(x['diff'] < 1 for x in balance_diff) or iteration_count >= field_iteration_max_CONST:
                 logging.debug("ftscheduler:refieldbalance: FINISHED FIELD iteration connected_div %s", connected_div_list)
                 print 'finished field iteration div=', connected_div_list
-                if iteration_count >= iteration_max:
-                    logging.debug("ftscheduler:refieldbalance: iteration count exceeded max=%d", iteration_max)
+                if iteration_count >= field_iteration_max_CONST:
+                    logging.debug("ftscheduler:refieldbalance: iteration count exceeded max=%d", field_iteration_max_CONST)
                     print 'FINISHED but Iteration count > Max'
                 break
             else:

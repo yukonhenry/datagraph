@@ -6,6 +6,7 @@ from pymongo import  *
 from collections import Counter, namedtuple
 from leaguedivprep import getDivID
 import logging
+import socket
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
@@ -27,7 +28,10 @@ venue_count_CONST = 'VENUE_COUNT'
 venue_count_list_CONST = 'VENUE_COUNT_LIST'
 class MongoDBInterface:
     def __init__(self):
-        client = MongoClient()
+        if socket.gethostname() == 'web380.webfaction.com':
+            client = MongoClient('localhost', 11466)
+        else:
+            client = MongoClient()
         schedule_db = client.schedule_db
         self.games_col = schedule_db.games
 

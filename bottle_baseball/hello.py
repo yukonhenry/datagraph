@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python2.7
 # Copyright YukonTR 2013
 from bottle import route, request, run
 #ref http://simplejson.readthedocs.org/en/latest/
@@ -105,7 +105,7 @@ def main():
     #logging.basicConfig(level=logging.DEBUG)
     if socket.gethostname() == 'web380.webfaction.com':
 #        run(port = 21033, server = 'cherrypy')
-        run(host='localhost',port = 21033)
+        run(host='localhost',port = 31032)  # check webfaction port setting
 
     else:
         run(host='localhost', port=8080, debug=True)

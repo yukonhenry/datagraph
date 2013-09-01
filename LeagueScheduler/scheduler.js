@@ -11,7 +11,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
 	function(dom, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil) {
-		var constant = {'SERVER_PREFIX':"http://127.0.0.1:8080/"};
+		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
 		var earliest_count_CONST = 'EARLIEST_COUNT';

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python2.7
 ''' Copyright YukonTR 2013 '''
 import simplejson as json
 import time
@@ -26,13 +26,13 @@ _league_div = [
 { 'div_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':28,
   'gamedaysperweek':1, 'gameinterval':70, 'gamesperseason':10},
 { 'div_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':23,
-  'gamedaysperweek':2, 'gameinterval':80, 'gamesperseason':10},
+  'gamedaysperweek':1, 'gameinterval':80, 'gamesperseason':10},
 { 'div_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':22,
-  'gamedaysperweek':2, 'gameinterval':80, 'gamesperseason':10},
+  'gamedaysperweek':1, 'gameinterval':80, 'gamesperseason':10},
 { 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':15,
-  'gamedaysperweek':2, 'gameinterval':90, 'gamesperseason':10},
+  'gamedaysperweek':1, 'gameinterval':90, 'gamesperseason':10},
 { 'div_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':13,
-  'gamedaysperweek':2, 'gameinterval':90, 'gamesperseason':10}
+  'gamedaysperweek':1, 'gameinterval':90, 'gamesperseason':10}
 ]
 #assign team numbers
 team_id_start = 1
@@ -45,41 +45,41 @@ for div in _league_div:
 # identified by _id from _league_div dictionary elements
 _field_info = [
     {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary 1',
-     'start_time':'08:00', 'end_time':'19:00'},
+     'start_time':'09:00', 'end_time':'18:00'},
     {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elementary 2',
-     'start_time':'08:00', 'end_time':'19:00'},
+     'start_time':'09:00', 'end_time':'18:00'},
     {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary 1',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary 2',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elementary 3',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':6, 'primary':[3,4], 'secondary':[1,2], 'name':'Golden Hills 1',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':7, 'primary':[3,4], 'secondary':[1,2], 'name':'Golden Hills 2',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':8, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park',
-     'start_time':'08:00', 'end_time':'19:00'},
+     'start_time':'09:00', 'end_time':'18:00'},
     {'field_id':9, 'primary':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 1',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':10, 'primary':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 2',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':11, 'primary':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 3',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':12, 'primary':[5,6], 'secondary':[1,2], 'name':'Nancy Boyd Park',
-     'start_time':'08:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':13, 'primary':[5,6], 'secondary':[1,2], 'name':'Strandwood Elementary',
-     'start_time':'08:00', 'end_time':'19:00' },
-    {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello',
-     'start_time':'13:00', 'end_time':'19:00' },
+     'start_time':'09:00', 'end_time':'18:00' },
+    {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello Park',
+     'start_time':'13:30', 'end_time':'15:30', 'closed_gameday_list':[4] },
     {'field_id':15, 'primary':[7,8], 'secondary':[1,2], 'name':'Sequoia Middle',
-     'start_time':'08:00', 'end_time':'19:00'},
+     'start_time':'09:00', 'end_time':'18:00'},
     {'field_id':16, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary',
-     'start_time':'08:00', 'end_time':'19:00'},
+     'start_time':'09:00', 'end_time':'18:00'},
     {'field_id':17, 'primary':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
-     'start_time':'08:00', 'end_time':'19:00'},
+     'start_time':'09:00', 'end_time':'18:00'},
 #    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elementary',
-#     'start_time':'08:00', 'end_time':'19:00',
+#     'start_time':'09:00', 'end_time':'18:00',
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
 
@@ -99,6 +99,56 @@ for field in _field_info:
         else:
             division['fields'] = [f_id]
 
+
+def getDivID(agediv, gender):
+    if agediv == 'U6':
+        if gender == 'B':
+            div_id = 1
+        else:
+            div_id = 2
+    elif agediv == 'U8':
+        if gender == 'B':
+            div_id = 3
+        else:
+            div_id = 4
+    elif agediv == 'U10':
+        if gender == 'B':
+            div_id = 5
+        else:
+            div_id = 6
+    elif agediv == 'U12':
+        if gender == 'B':
+            div_id = 7
+        else:
+            div_id = 8
+    elif agediv == 'U14':
+        if gender == 'B':
+            div_id = 9
+        else:
+            div_id = 10
+    else:
+        div_id = 0
+    return div_id
+
+
+_coach_conflict_info = [
+    {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},
+    {'coach_id':2, 'conflict':({'agediv':'U8','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},
+    {'coach_id':3, 'conflict':({'agediv':'U8','gender':'G', 'team_id':7},{'agediv':'U8','gender':'B', 'team_id':9})}
+
+]
+
+_team_timeconstraint_info = [
+    {'agediv':'U8', 'gender':'B', 'team_id':3,
+     'gameday_id_list':[2], 'goodtime':{'start_time':'10:00', 'end_time':'14:00'}},
+    {'agediv':'U10', 'gender':'G', 'team_id':9,
+     'gameday_id_list':[1,3], 'goodtime':{'start_time':'12:00', 'end_time':'18:00'}},
+]
+for team in _team_timeconstraint_info:
+    div_id = getDivID(team['agediv'], team['gender'])
+    team['div_id'] = div_id
+
+
 def getLeagueDivInfo():
     # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
     l_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_league_div)).get(x)
@@ -107,6 +157,10 @@ def getLeagueDivInfo():
 def getFieldInfo():
     f_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_field_info)).get(x)
     return _List_Indexer(_field_info, f_indexerGet)
+
+def getTeamTimeConstraintInfo(div_id):
+    div_team_timeconstaints = [x for x in _team_timeconstraint_info if x['div_id'] == div_id]
+    return div_team_timeconstraints
 
 ''' create bipartite graph - one column is division, other column is fields
 used to define relationship between division and fields
@@ -183,55 +237,26 @@ def getFieldSeasonStatus_list():
         end_time = parser.parse(f['end_time'])
         # slotstatus_list has a list of statuses, one for each gameslot
         sstatus_list = []
-        while gamestart <= end_time:
-            #slotstatus_list.append(FieldTimeStatus(gamestart, False))
+        while gamestart + gameinterval <= end_time:
+            # for above, correct statement should be adding pure gametime only
             sstatus_list.append({'start_time':gamestart, 'isgame':False})
             gamestart += gameinterval
         sstatus_len = len(sstatus_list)
         slotstatus_list = [deepcopy(sstatus_list) for i in range(numgamesperseason)]
+        closed_gameday_list = f.get('closed_gameday_list')
+        if closed_gameday_list:
+            # if there are fields that are closed on certain days, then slotstatus
+            # entry must be set to null; note gameslotsperday is Not nulled out as the field
+            # applies to the whole season and not individual games.
+            for gameday in closed_gameday_list:
+                slotstatus_list[gameday-1] = None
+
         fieldseason_status_list.append({'field_id':f['field_id'],
                                         'slotstatus_list':slotstatus_list,
                                         'gameslotsperday':sstatus_len})
     fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
     List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
     return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
-
-coach_conflict_info = [
-    {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},
-    {'coach_id':2, 'conflict':({'agediv':'U8','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},
-    {'coach_id':3, 'conflict':({'agediv':'U8','gender':'G', 'team_id':7},{'agediv':'U8','gender':'B', 'team_id':9})}
-
-]
-
-def getDivID(agediv, gender):
-    if agediv == 'U6':
-        if gender == 'B':
-            div_id = 1
-        else:
-            div_id = 2
-    elif agediv == 'U8':
-        if gender == 'B':
-            div_id = 3
-        else:
-            div_id = 4
-    elif agediv == 'U10':
-        if gender == 'B':
-            div_id = 5
-        else:
-            div_id = 6
-    elif agediv == 'U12':
-        if gender == 'B':
-            div_id = 7
-        else:
-            div_id = 8
-    elif agediv == 'U14':
-        if gender == 'B':
-            div_id = 9
-        else:
-            div_id = 10
-    else:
-        div_id = 0
-    return div_id
 
 def getTeamID(agediv, gender, team_id):
     div_id = getDivID(agediv, gender)
@@ -308,7 +333,7 @@ def getConnectedDivisions():
 
 # create coach conflict graph to find conflict metrics
 conflictG = nx.Graph()
-for coach in coach_conflict_info:
+for coach in _coach_conflict_info:
     prev_node = None
     for team in coach['conflict']:
         a = team['agediv']
@@ -330,7 +355,7 @@ print a
 
 jsonstr = json.dumps({"creation_time":time.asctime(),
                       "leaguedivinfo":_league_div,
-                      "conflict_info":coach_conflict_info,
+                      "conflict_info":_coach_conflict_info,
                       "field_info":_field_info})
 f = open('leaguediv_json.txt','w')
 f.write(jsonstr)
