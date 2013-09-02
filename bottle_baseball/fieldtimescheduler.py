@@ -33,8 +33,8 @@ firstslot_CONST = 0
 verynegative_CONST = -1e6
 verypositive_CONST = 1e6
 balanceweight_CONST = 2
-time_iteration_max_CONST = 12
-field_iteration_max_CONST = 12
+time_iteration_max_CONST = 18
+field_iteration_max_CONST = 10
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
@@ -205,7 +205,7 @@ class FieldTimeScheduleGenerator:
             if diff_cost > 0:
                 # only work on cases where diff is greater than 0 (needs swapping)
                 teams = diff_elem['teams']
-                # possibly random shufflie list here
+                # possibly random shuffle list here
                 # http://stackoverflow.com/questions/976882/shuffling-a-list-of-objects-in-python
                 if random:
                     shuffle(teams, lambda:0)  # make it a deterministic shuffle
@@ -400,7 +400,7 @@ class FieldTimeScheduleGenerator:
             # as early/late counters are team-based, iterate on each division in the connected division list
             iteration_count = 0
             while True:
-                print 'Retimebalance iteration=', iteration_count
+                #print 'Retimebalance iteration=', iteration_count
                 el_diff_list = self.calcELdiff_list(div_id)
                 sum_earlydiff_list = sum(x['early_diff'] for x in el_diff_list if x['early_diff'] > 0)
                 earlysum_diff = sum_earlydiff_list - oldearly_sum
@@ -440,7 +440,7 @@ class FieldTimeScheduleGenerator:
                     lateimproving_flag = False
                 oldlate_sum = sum_latediff_list
                 iteration_count += 1
-                print 'early late improve', earlyimproving_flag, lateimproving_flag, earlyrandom_flag, laterandom_flag
+                #print 'early late improve', earlyimproving_flag, lateimproving_flag, earlyrandom_flag, laterandom_flag
                 if earlyrandom_flag and laterandom_flag and iteration_count > time_iteration_max_CONST and offset_count > offset_max:
                     logging.debug("ftscheduler:retimebalance: offset and iteration exceeded, exiting div=%d", div_id)
                     print 'we tried enough - retimebalance exiting w. offset and iteration exceeded for div=', div_id
@@ -453,11 +453,11 @@ class FieldTimeScheduleGenerator:
                 elif not earlyimproving_flag or not lateimproving_flag:
                     if not earlyimproving_flag:
                         logging.debug("ftscheduler:retimebalance: setting early randomflag")
-                        print 'early random flag set, iteration=', iteration_count
+                        #print 'early random flag set, iteration=', iteration_count
                         earlyrandom_flag = True
                     if not lateimproving_flag:
                         logging.debug("ftscheduler:retimebalance: setting late randomflag")
-                        print 'late random flag set, iteration=', iteration_count
+                        #print 'late random flag set, iteration=', iteration_count
                         laterandom_flag = True
 
             # http://stackoverflow.com/questions/4391697/find-the-index-of-a-dict-within-a-list-by-matching-the-dicts-value
@@ -522,7 +522,7 @@ class FieldTimeScheduleGenerator:
                     # (1 in this case)
                     maxfield = maxuse['field_id']
                     minfield = minuse['field_id']
-                    print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
+                    #print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
                     max_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(maxfield)]['slotstatus_list']
                     min_ftstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(minfield)]['slotstatus_list']
                     gameday_id = 1

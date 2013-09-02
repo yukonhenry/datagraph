@@ -70,13 +70,13 @@ _field_info = [
      'start_time':'09:00', 'end_time':'18:00' },
     {'field_id':13, 'primary':[5,6], 'secondary':[1,2], 'name':'Strandwood Elementary',
      'start_time':'09:00', 'end_time':'18:00' },
-    {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello Park',
-     'start_time':'13:30', 'end_time':'15:30', 'closed_gameday_list':[4] },
-    {'field_id':15, 'primary':[7,8], 'secondary':[1,2], 'name':'Sequoia Middle',
+#    {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello Park',
+#     'start_time':'13:30', 'end_time':'16:30', 'closed_gameday_list':[4] },
+    {'field_id':14, 'primary':[7,8], 'secondary':[1,2], 'name':'Sequoia Middle',
      'start_time':'09:00', 'end_time':'18:00'},
-    {'field_id':16, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary',
+    {'field_id':15, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elementary',
      'start_time':'09:00', 'end_time':'18:00'},
-    {'field_id':17, 'primary':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
+    {'field_id':16, 'primary':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
      'start_time':'09:00', 'end_time':'18:00'},
 #    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elementary',
 #     'start_time':'09:00', 'end_time':'18:00',
@@ -140,9 +140,7 @@ _coach_conflict_info = [
 
 _team_timeconstraint_info = [
     {'agediv':'U8', 'gender':'B', 'team_id':3,
-     'gameday_id_list':[2], 'goodtime':{'start_time':'10:00', 'end_time':'14:00'}},
-    {'agediv':'U10', 'gender':'G', 'team_id':9,
-     'gameday_id_list':[1,3], 'goodtime':{'start_time':'12:00', 'end_time':'18:00'}},
+     'badslot':[{'gameday_id':3, 'slot_index':2}]}
 ]
 for team in _team_timeconstraint_info:
     div_id = getDivID(team['agediv'], team['gender'])
