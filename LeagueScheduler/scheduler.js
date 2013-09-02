@@ -25,7 +25,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var teamDataGrid = null;
 		var fieldScheduleGrid = null;
 		var metricsGrid = null;
-		
+		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
+			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Oct 28', 10:'Nov 2', 11:'Nov 9', 12:'Nov 16'};
 		var ldata_array = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
@@ -68,7 +69,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				var time_column_key_CONST = 'time';
 				var gameday_column_key_CONST = 'cycle';
 				var game_columns = {};
-				game_columns[gameday_column_key_CONST] = 'GameDay#'
+				game_columns[gameday_column_key_CONST] = 'Game Date'
 				game_columns[time_column_key_CONST] = 'GameTime';
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
@@ -84,7 +85,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					var start_time = item.START_TIME; 
 					var game_grid_row = {};
 					// fill in the game day number and start time
-					game_grid_row[gameday_column_key_CONST] = gameday_id;
+					game_grid_row[gameday_column_key_CONST] = calendarMapObj[gameday_id];
 					game_grid_row[time_column_key_CONST] = start_time;
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
@@ -120,7 +121,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			}
     		fieldScheduleGrid = new CustomGrid({
     			columns:{
-    				GAMEDAY_ID:'Game Day ID',
+    				GAMEDAY_ID:'Game Date',
     				START_TIME:'Start Time',
     				AGE:'Age Group',
     				GEN:'Boy/Girl',
@@ -131,7 +132,12 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		script.get(constant.SERVER_PREFIX+"fieldschedule/"+fidnum,{
     			jsonp:"callback"
     		}).then(function(fdata){
-    			fieldschedule_array = fdata.fieldschedule_list
+    			fieldschedule_array = fdata.fieldschedule_list;
+    			arrayUtil.forEach(fieldschedule_array, function(item, index) {
+					// fields names are keys to the column dictionary						console.log("tdata "+item);
+					gameday_id = item.GAMEDAY_ID;
+					item.GAMEDAY_ID = calendarMapObj[gameday_id];
+				});    		
     			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
 		});
@@ -206,7 +212,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     			}
     			teamDataGrid = new CustomGrid({
     				columns: {
-    					GAMEDAY_ID:'Game Day ID',
+    					GAMEDAY_ID:'Game Date',
     					START_TIME:'Start Time',
     					VENUE:'Venue',
     					HOME:'Home',
@@ -217,7 +223,12 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     				jsonp:"callback",
     				query:{division_code:divisioncode}
     			}).then(function(tdata){
-    				tdata_array = tdata.teamdata_list
+    				tdata_array = tdata.teamdata_list;
+					arrayUtil.forEach(tdata_array, function(item, index) {
+						// fields names are keys to the column dictionary						console.log("tdata "+item);
+						gameday_id = item.GAMEDAY_ID;
+						item.GAMEDAY_ID = calendarMapObj[gameday_id];
+					});    		
     				teamDataGrid.renderArray(tdata_array);
     			});
 			});

@@ -139,8 +139,24 @@ _coach_conflict_info = [
 ]
 
 _team_timeconstraint_info = [
-    {'agediv':'U8', 'gender':'B', 'team_id':3,
-     'badslot':[{'gameday_id':3, 'slot_index':2}]}
+    {'agediv':'U10', 'gender':'G', 'team_id':16,
+     'desired':[{'gameday_id':1, 'slot_index_list':[0]}]},
+
+    {'agediv':'U12', 'gender':'G', 'team_id':1,
+     'desired':[{'gameday_id':5, 'slot_index_list':[3,4]}]},
+
+     {'agediv':'U12', 'gender':'B', 'team_id':1,
+     'desired':[{'gameday_id':6, 'slot_index_list':[3,4]}]},
+
+    {'agediv':'U12', 'gender':'G', 'team_id':2,
+     'desired':[{'gameday_id':6, 'slot_index_list':[3,4]}]},
+
+    {'agediv':'U12', 'gender':'B', 'team_id':2,
+     'desired':[{'gameday_id':7, 'slot_index_list':[3,4]}]},
+
+    {'agediv':'U12', 'gender':'G', 'team_id':3,
+     'desired':[{'gameday_id':7, 'slot_index_list':[3,4]}]},
+
 ]
 for team in _team_timeconstraint_info:
     div_id = getDivID(team['agediv'], team['gender'])
@@ -157,7 +173,7 @@ def getFieldInfo():
     return _List_Indexer(_field_info, f_indexerGet)
 
 def getTeamTimeConstraintInfo(div_id):
-    div_team_timeconstaints = [x for x in _team_timeconstraint_info if x['div_id'] == div_id]
+    div_team_timeconstraints = [x for x in _team_timeconstraint_info if x['div_id'] == div_id]
     return div_team_timeconstraints
 
 ''' create bipartite graph - one column is division, other column is fields
