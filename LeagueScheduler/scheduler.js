@@ -27,13 +27,19 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var metricsGrid = null;
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Oct 28', 10:'Nov 2', 11:'Nov 9', 12:'Nov 16'};
+		var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',
+			3:'Pleasant Hill Elem 1', 4:'Pleasant Hill Elem 2',
+			5:'Pleasant Hill Elem 3', 6:'Golden Hills 1', 7:'Golden Hills 2',
+			8:'Mountain View Park', 9:'Pleasant Hill Middle 1', 10:'Pleasant Hill Middle 2',
+			11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
+			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park'};
 		var ldata_array = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
 				agediv:"Age Group",
 				gender:"Boy/Girl",
-				totalteams:"Total#",
+				totalteams:"Total#Teams",
 				fields:"Fields",
 				gamedaysperweek:"Weekly Games#",
 				gameinterval:"Game Interval(min)",
@@ -73,7 +79,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				game_columns[time_column_key_CONST] = 'GameTime';
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
-					game_columns[item] = 'field '+item;
+					game_columns[item] = fieldMapObj[item];
 				});
 
 				var game_array = sdata.game_list;				
@@ -228,6 +234,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						// fields names are keys to the column dictionary						console.log("tdata "+item);
 						gameday_id = item.GAMEDAY_ID;
 						item.GAMEDAY_ID = calendarMapObj[gameday_id];
+						venue = item.VENUE;
+						item.VENUE = fieldMapObj[venue]
 					});    		
     				teamDataGrid.renderArray(tdata_array);
     			});

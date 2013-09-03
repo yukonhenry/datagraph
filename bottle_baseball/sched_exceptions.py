@@ -8,6 +8,7 @@ class FieldAvailabilityError(Exception):
         self.div_id = div_id
     def __str__(self):
         return repr(self.div_id)
+
 class TimeSlotAvailabilityError(Exception):
     '''A user-defined exception class.'''
     def __init__(self, field_id, round_id):
@@ -40,6 +41,14 @@ class FieldTimeAvailabilityError(Exception):
 
 class CodeLogicError(Exception):
     ''' Generic Exception if there is a logic error in code '''
+    def __init__(self, msg):
+        Exception.__init__(self)
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+class SchedulerConfigurationError(Exception):
+    '''A user-defined exception class.'''
     def __init__(self, msg):
         Exception.__init__(self)
         self.msg = msg

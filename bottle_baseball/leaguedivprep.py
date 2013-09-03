@@ -140,22 +140,22 @@ _coach_conflict_info = [
 
 _team_timeconstraint_info = [
     {'agediv':'U10', 'gender':'G', 'team_id':16,
-     'desired':[{'gameday_id':1, 'slot_index_list':[0]}]},
+     'desired':[{'gameday_id':1, 'end_before':'10:00'}]},
 
     {'agediv':'U12', 'gender':'G', 'team_id':1,
-     'desired':[{'gameday_id':5, 'slot_index_list':[3,4]}]},
+     'desired':[{'gameday_id':5, 'start_after':'13:30'}]},
 
      {'agediv':'U12', 'gender':'B', 'team_id':1,
-     'desired':[{'gameday_id':6, 'slot_index_list':[3,4]}]},
+     'desired':[{'gameday_id':6, 'start_after':'13:30'}]},
 
     {'agediv':'U12', 'gender':'G', 'team_id':2,
-     'desired':[{'gameday_id':6, 'slot_index_list':[3,4]}]},
+     'desired':[{'gameday_id':6, 'start_after':'13:30'}]},
 
     {'agediv':'U12', 'gender':'B', 'team_id':2,
-     'desired':[{'gameday_id':7, 'slot_index_list':[3,4]}]},
+     'desired':[{'gameday_id':7, 'start_after':'13:30'}]},
 
     {'agediv':'U12', 'gender':'G', 'team_id':3,
-     'desired':[{'gameday_id':7, 'slot_index_list':[3,4]}]},
+     'desired':[{'gameday_id':7, 'start_after':'13:30'}]},
 
 ]
 for team in _team_timeconstraint_info:
