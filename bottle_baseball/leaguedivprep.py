@@ -140,23 +140,51 @@ _coach_conflict_info = [
 
 _team_timeconstraint_info = [
     {'agediv':'U10', 'gender':'G', 'team_id':16,
-     'desired':[{'gameday_id':1, 'end_before':'10:00'}]},
+     'desired':[{'id':1, 'gameday_id':1, 'end_before':'10:30', 'priority':1}]},
 
     {'agediv':'U12', 'gender':'G', 'team_id':1,
-     'desired':[{'gameday_id':5, 'start_after':'13:30'}]},
+     'desired':[{'id':2, 'gameday_id':5, 'start_after':'13:30', 'priority':1}]},
 
      {'agediv':'U12', 'gender':'B', 'team_id':1,
-     'desired':[{'gameday_id':6, 'start_after':'13:30'}]},
+     'desired':[{'id':3, 'gameday_id':6, 'start_after':'13:30', 'priority':1}]},
 
     {'agediv':'U12', 'gender':'G', 'team_id':2,
-     'desired':[{'gameday_id':6, 'start_after':'13:30'}]},
+     'desired':[{'id':4, 'gameday_id':6, 'start_after':'13:30', 'priority':1}]},
 
     {'agediv':'U12', 'gender':'B', 'team_id':2,
-     'desired':[{'gameday_id':7, 'start_after':'13:30'}]},
+     'desired':[{'id':5, 'gameday_id':7, 'start_after':'13:30', 'priority':1}]},
 
     {'agediv':'U12', 'gender':'G', 'team_id':3,
-     'desired':[{'gameday_id':7, 'start_after':'13:30'}]},
+     'desired':[{'id':6, 'gameday_id':7, 'start_after':'13:30', 'priority':1}]},
 
+    {'agediv':'U12', 'gender':'B', 'team_id':9,
+     'desired':[{'id':7, 'gameday_id':1, 'start_after':'11:30', 'priority':2},
+                {'id':8, 'gameday_id':2, 'start_after':'11:30', 'priority':2},
+                {'id':9, 'gameday_id':3, 'end_before':'12:30','start_after':'15:30', 'priority':2},
+                {'id':10, 'gameday_id':4, 'end_before':'12:30','start_after':'15:00', 'priority':2},
+                {'id':11, 'gameday_id':5, 'end_before':'10:30','start_after':'15:00', 'priority':2},
+                {'id':12, 'gameday_id':6, 'start_after':'11:00', 'priority':2},
+                {'id':13, 'gameday_id':7, 'end_before':'15:30', 'priority':2}]},
+
+    {'agediv':'U10', 'gender':'B', 'team_id':12,
+     'desired':[{'id':14, 'gameday_id':1, 'start_after':'11:30', 'priority':2},
+                {'id':15, 'gameday_id':2, 'start_after':'11:30', 'priority':2},
+                {'id':16, 'gameday_id':3, 'end_before':'12:30','start_after':'15:30', 'priority':2},
+                {'id':17, 'gameday_id':4, 'end_before':'12:30','start_after':'15:00', 'priority':2},
+                {'id':18, 'gameday_id':5, 'end_before':'10:30','start_after':'15:00', 'priority':2},
+                {'id':19, 'gameday_id':6, 'start_after':'11:00', 'priority':2},
+                {'id':20, 'gameday_id':7, 'end_before':'15:30', 'priority':2}]},
+
+    {'agediv':'U10', 'gender':'G', 'team_id':3,
+     'desired':[{'id':21, 'gameday_id':1, 'start_after':'12:30','priority':3},
+                {'id':22, 'gameday_id':2, 'start_after':'12:30','priority':3},
+                {'id':23, 'gameday_id':3, 'start_after':'12:30','priority':3},
+                {'id':24, 'gameday_id':4, 'start_after':'12:30','priority':3},
+                {'id':25, 'gameday_id':5, 'start_after':'12:30','priority':3},
+                {'id':26, 'gameday_id':6, 'start_after':'12:30','priority':3},
+                {'id':27, 'gameday_id':7, 'start_after':'12:30','priority':3},
+                {'id':28, 'gameday_id':8, 'start_after':'12:30','priority':3},
+                {'id':29, 'gameday_id':9, 'start_after':'12:30','priority':3}]}
 ]
 for team in _team_timeconstraint_info:
     div_id = getDivID(team['agediv'], team['gender'])

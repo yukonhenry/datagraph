@@ -176,7 +176,7 @@ class FieldTimeScheduleGenerator:
         count = metrics_list[metrics_indexerGet(field_id)]['count']
         return count
 
-    def getELslot_metrics(self, slot, teams_dict, last_slot, incoming=0):
+    def getELcost_by_slot(self, slot, teams_dict, last_slot, incoming=0):
         ''' utility function to get early/late metrics given slot index and teams dictionary'''
         if slot == 0 or slot == last_slot:
             # el_measure will indicate desirability of moving away from this time slot
@@ -271,7 +271,7 @@ class FieldTimeScheduleGenerator:
                         # confirm correctness of team retrieved from ftstatus matches with team retrieved from
                         # max_min_swapmatch structure
                         if el_teams is not max_min_swapmatch['self_teams']:
-                            raise CodeLogicError('ftscheduler:findSwapMatchTB:team mismatch %s', el_teams)
+                            raise CodeLogicError('ftscheduler:findSwapMatchTB:team mismatch %s' % (el_teams,))
                         # get info on swapped match
                         # ref http://stackoverflow.com/questions/9457832/python-list-rotation
                         max_min_deq = deque(max_min_swapmatch['swapmatches'])
@@ -282,7 +282,7 @@ class FieldTimeScheduleGenerator:
 
                         swap_teams = ftstatus[swap_slot_index]['teams']
                         if swap_teams is not swapmatches_sel['swapteams']:
-                            raise CodeLogicError('ftscheduler:findSwapMatchTB:swap team mismatch %s', swapteams)
+                            raise CodeLogicError('ftscheduler:findSwapMatchTB:swap team mismatch %s'%(swapteams,))
                         # do swap
                         ftstatus[el_slot_index]['teams'] = swap_teams
                         ftstatus[swap_slot_index]['teams'] = el_teams
@@ -451,7 +451,7 @@ class FieldTimeScheduleGenerator:
             fieldcountdiff_list.append({'div_id':div_id, 'fcountdiff_num':fcountdiff_num})
         return fieldcountdiff_list
     def IncDecELCounters(self, teams, el_type, increment):
-        ''' inc/dec early/late counters based on el type in inc/dec flag '''
+        ''' inc/dec early/late counters based on el type and inc/dec flag '''
         div_id = teams['div_id']
         home_id = teams[home_CONST]
         away_id = teams[away_CONST]
@@ -539,7 +539,7 @@ class FieldTimeScheduleGenerator:
                             # find 0-index for last game (True) (last game may be in a different division)
                             lastTrue_slot = len(isgame_list)-1-isgame_list[::-1].index(True)
                             maxf_slot = today_maxfield_info['slot_index']
-                            el_measure = self.getELslot_metrics(maxf_slot, today_maxfield_info['teams'], lastTrue_slot)
+                            el_measure = self.getELcost_by_slot(maxf_slot, today_maxfield_info['teams'], lastTrue_slot)
                             logging.debug('ftscheduler:refieldbalance: maxf_slot=%d el_measure=%d lastslot=%d',
                                           maxf_slot, el_measure, lastTrue_slot)
 
@@ -592,14 +592,14 @@ class FieldTimeScheduleGenerator:
                                 minfo['awaymaxf_count'] = self.getFieldTeamCount(mtfmetrics, maxfield, maway)
                                 slot = minfo['slot_index']
                                 # get cost associated with early/late counters, if any (0 val if not)
-                                minfo['el_cost'] = self.getELslot_metrics(slot, mteams, minf_lastTrue_slot)
+                                minfo['el_cost'] = self.getELcost_by_slot(slot, mteams, minf_lastTrue_slot)
                                 # also get el counters for maxfield teams - they might be swapped into an el slot
-                                minfo['maxfteams_in_cost'] = self.getELslot_metrics(slot, maxf_teams,
+                                minfo['maxfteams_in_cost'] = self.getELcost_by_slot(slot, maxf_teams,
                                                                                     minf_lastTrue_slot, incoming=1)
                                 # get the cost for the min field teams to swap into the max field slot (incoming)
                                 # relevant when the maxfield slot is an early/late slot
                                 # note lastTrue_slot is for maxfield
-                                minfo['maxfslot_el_cost'] = self.getELslot_metrics(maxf_slot, mteams,
+                                minfo['maxfslot_el_cost'] = self.getELcost_by_slot(maxf_slot, mteams,
                                                                                    lastTrue_slot, incoming=1)
                                 # calculate min field teams to swap out from the min field slot to max field slot
                                 homeswap_cost = minfo['homeminf_count']-minfo['homemaxf_count']
@@ -1428,6 +1428,12 @@ class FieldTimeScheduleGenerator:
                 finally:
                     break
 
+    def findFieldGamedayLastTrueSlot(self, field_id, gameday_id):
+        gameday_fslot = self.fieldSeasonStatus[self.fstatus_indexerGet(field_id)]['slotstatus_list'][gameday_id-1]
+        isgame_list = [x['isgame']  for x in gameday_fslot]
+        lastslot = len(isgame_list)-1-isgame_list[::-1].index(True)
+        return lastslot
+
     def RecomputeCEL_list(self, fset, div_set):
         ''' recompute current_earlylist_counter structure by going through fieldseasonstatus matrix '''
         for div_id in div_set:
@@ -1483,71 +1489,151 @@ class FieldTimeScheduleGenerator:
                     cdiv_id = constraint['div_id']
                     cteam_id = constraint['team_id']
                     cdesired_list = constraint['desired']
-                    print '****cdiv cteam', cdiv_id, cteam_id
-                    breakflag = False
                     for cdesired in cdesired_list:
+                        breakflag = False
                         # each time might have multiple constraints
                         # read each constraint and see if any are already met by default
-                        cd_start_after = None
-                        cd_end_before = None
                         cd_gameday_id = cdesired['gameday_id']
+                        cd_id = cdesired['id']
+                        cd_priority = cdesired['priority']
                         startafter_str = cdesired.get('start_after')
-                        if startafter_str:
-                            cd_start_after = parser.parse(startafter_str)
+                        startafter_time = parser.parse(startafter_str) if startafter_str else None
                         endbefore_str = cdesired.get('end_before')
-                        if endbefore_str:
-                            cd_end_before = parser.parse(endbefore_str)
-                        # TODO: make sure end time is greater than start time
+                        endbefore_time = parser.parse(endbefore_str) if endbefore_str else None
+                        # we can support two separate continuous segments of desired slots (but not more than two)
+                        # define the type of segment basd on presend of start and endtimes and their values
+                        # comment visually shows time slots (not position accurate) that will satisfy time constraints
+                        segment_type = -1
+                        if startafter_time and not endbefore_time:
+                            # [------TTTT]
+                            segment_type = 0
+                        elif not startafter_time and endbefore_time:
+                            # [TTTT------]
+                            segment_type = 1
+                        elif startafter_time and endbefore_time:
+                            if endbefore_time > startafter_time:
+                                # [---TTTTTT---]
+                                segment_type = 2
+                            elif endbefore_time < startafter_time:
+                                #[TTTT----TTTTT]
+                                segment_type = 3
+                            elif endbefore_time == startafter_time:
+                                # [TTTTTTTTTTTT] (no constraint)
+                                logging.debug("ftscheduler:processconstraints: constraint %d is not needed since start_after=end_before",
+                                              cd_id)
+                                break
+                        else:
+                            logging.debug("ftscheduler:processconstraints: constraint %d nothing specified",
+                                          cd_id)
+                            break
                         swapmatch_list = []
                         for f in fset:
-                            # search through each field for the divset
+                            # search through each field for the divset to 1)find if team is already scheduled in a desired slot; or
+                            # 2) if not, find the list of matches that the team can swap with during that day
                             fstatus = self.fieldSeasonStatus[self.fstatus_indexerGet(f)]
                             f_gameslotsperday = fstatus['gameslotsperday']
                             fstatus_gameday = \
                               self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'][cd_gameday_id-1]
+
+                            # find out slot number that is designated by the 'start_after' constraint
                             firstgame_slot = fstatus_gameday[0]
                             if not firstgame_slot or not firstgame_slot['isgame']:
-                                raise CodeLogicError("ftscheduler:ProccessContraints: firstgame for div %d, gameday %d",
-                                                     div_id, cd_gameday_id)
-                            firstgame_time = firstgame_slot['start_time']
-                            if cd_start_after:
-                                start_after_slot = self.mapStartTimeToSlot(cd_start_after, firstgame_time, gameinterval)
-                                if start_after_slot > f_gameslotsperday - 1:
-                                    raise SchedulerConfigurationError("Constraint Configuration Error: Start after time is too late")
-                            end_before_slot = self.mapEndTimeToSlot(cd_end_before, firstgame_time, gameinterval) if cd_end_before else -2
-                            cdslot_index = start_after_slot if start_after_slot else 0
-                            end_slot = end_before_slot if end_before_slot > -1 else verypositive_CONST
-                            fstatus_slot = fstatus_gameday[cdslot_index]
-                            while fstatus_slot['isgame'] and cdslot_index <= end_slot:
-                                # search through gameday slots where game is already scheduled
-                                cteams = fstatus_slot['teams']
-                                if cteams['div_id'] == cdiv_id:
-                                    chome = cteams[home_CONST]
-                                    caway = cteams[away_CONST]
-                                    if chome == cteam_id or caway == cteam_id:
-                                        logging.info("ftscheduler:processconstraints: constraint already satisfied with div=%d team=%d gameday=%d",
-                                                     cdiv_id, cteam_id, cd_gameday_id)
-                                        print "constraint already satisifed with div team gameday", cdiv_id, cteam_id, cd_gameday_id
-                                        breakflag = True
-                                        break  # from inner while isgame loop
-                                    else:
-                                        swapmatch_list.append({'slot':cdslot_index, 'teams':cteams})
-                                else:
-                                    pass # this is for matches that has the 'other' div_id
-                                cdslot_index += 1
-                                fstatus_slot = fstatus_gameday[cdslot_index]
-                            else:
-                                logging.debug("ftscheduler:processconstraints:candidate matches in field=%d for swap %s",
-                                              f, swapmatch_list)
-                        if breakflag:
-                            break  # from outer for fset loop
-                    if breakflag:
-                        logging.debug("ftscheduler:process constraints %s already satisfied as is", cdesired)
-                        print 'constraint', cdesired, 'is already satisfied'
-                    else:
-                        logging.debug("ftscheduler:processconstraints: candidate swap=%s", swapteamcand_list)
-                        print 'swap candidates', swapmatch_list
+                                raise CodeLogicError("ftscheduler:ProccessContraints: firstgame for div %d, gameday %d" % (cdiv_id, cd_gameday_id))
+                            firstgame_time = firstgame_slot['start_time']  # first game time
+                            startafter_index = self.mapStartTimeToSlot(startafter_time, firstgame_time, gameinterval) if startafter_time else None
+                            if startafter_index and startafter_index > f_gameslotsperday - 1:
+                                raise SchedulerConfigurationError("Constraint Configuration Error: Start after time is too late")
 
+                            # -1 return means that the end time is before the end of the first game
+                            endbefore_index = self.mapEndTimeToSlot(endbefore_time, firstgame_time, gameinterval) if endbefore_time else -2
+
+                            fullindex_list = range(f_gameslotsperday)
+                            # define range of time slots that satisfy constraints
+                            if segment_type == 0:
+                                segment_range = range(startafter_index, f_gameslotsperday)
+                            elif segment_type == 1:
+                                segment_range = range(0, endbefore_index+1)
+                            elif segment_type == 2:
+                                segment_range = range(startafter_index, endbefore_index+1)
+                            elif segment_type == 3:
+                                segment_range = range(0,endbefore_index+1) + range(startafter_index, f_gameslotsperday)
+                            else:
+                                # ref http://www.diveintopython.net/native_data_types/formatting_strings.html for formatting string
+                                raise CodeLogicError("ftscheduler:process constraints - error with segment type, constraint %d" %(cd_id,))
+                            # based on segment range, create list with T/F values - True represents slot that satisfies
+                            # time constraint
+                            canswapTF_list = [True if x in segment_range else False for x in fullindex_list]
+                            #print 'cd id canswap', cd_id, canswapTF_list
+                            for slot_ind, slot_TF in enumerate(canswapTF_list):
+                                if slot_TF:
+                                    fstatus_slot = fstatus_gameday[slot_ind]
+                                    # search through gameday slots where game is already scheduled
+                                    if fstatus_slot['isgame']:
+                                        teams = fstatus_slot['teams']
+                                        div_id = teams['div_id']
+                                        home = teams[home_CONST]
+                                        away = teams[away_CONST]
+                                        if div_id == cdiv_id and (home == cteam_id or away == cteam_id):
+                                            logging.info("ftscheduler:constraints: ***constraint satisfied with constraint=%d div=%d team=%d gameday=%d",
+                                                         cd_id, div_id, cteam_id, cd_gameday_id)
+                                            breakflag = True
+                                            break  # from inner for canswapTF_list loop
+                                        else:
+                                            swapmatch_list.append({'teams':teams, 'slot_index':slot_ind, 'field_id':f})
+                            else:
+                                logging.debug("ftscheduler:processconstraints:candidate matches in field=%d constraint=%d for swap %s",
+                                              f, cd_id, swapmatch_list)
+                                continue
+                            break  # from outer for fset loop
+                        if breakflag:
+                            logging.debug("ftscheduler:processconstraints id %d %s already satisfied as is", cd_id, cdesired)
+                            print '*********constraint', cd_id, cdesired, 'is already satisfied'
+                        else:
+                            logging.debug("ftscheduler:processconstraints: id=%d constraint=%s candidate swap=%s",
+                                          cd_id, cdesired, swapmatch_list)
+                            print 'constraint', cd_id, cdesired, 'swap candidates', swapmatch_list
+                            self.findMatchSwapForConstraint(fset, cdiv_id, cteam_id, cd_gameday_id, cd_priority, swapmatch_list)
+
+    def findMatchSwapForConstraint(self, fset, div_id, team_id, gameday_id, priority, swap_list):
+        ''' from the list of candidate matches to swap with, find match to swap with that does not violate constraints.'''
+        # Teams that swap may get additional early/late games
+        # first find slot that matches current reference team
+        fstatus_tuple = self.findFieldSeasonStatusSlot(fset, div_id, team_id, gameday_id)
+        refteams = fstatus_tuple.teams
+        refslot_index = fstatus_tuple.slot_index
+        reffield_id = fstatus_tuple.field_id
+        lastTrueSlot = self.findFieldGamedayLastTrueSlot(reffield_id, gameday_id)
+
+        #slist_field_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(swap_list)).get(x)
+        samefield_index_list = [i for i,j in enumerate(swap_list) if j['field_id']==reffield_id]
+        print 'div team gameday slot field', div_id, team_id, gameday_id, refslot_index, reffield_id, samefield_index_list
+        if samefield_index_list:
+            cost_list = [{'teams':swap_list[x]['teams'], 'slot_index':swap_list[x]['slot_index'], 'field_id':swap_list[x]['field_id'],
+                          'cost':self.getELcost_by_slot(swap_list[x]['slot_index'], swap_list[x]['teams'], lastTrueSlot)}
+                         for x in samefield_index_list]
+            print 'cost list', cost_list
+        else:
+            return None
+
+
+    def findFieldSeasonStatusSlot(self, fset, div_id, team_id, gameday_id):
+        breakflag = False
+        for f in fset:
+            fgameday_status = self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'][gameday_id-1]
+            for slot_index, fstatus in enumerate(fgameday_status):
+                if fstatus['isgame']:
+                    fteams = fstatus['teams']
+                    if fteams['div_id'] == div_id and (fteams[home_CONST]==team_id or fteams[away_CONST]==team_id):
+                        breakflag = True
+                        break
+            else:
+                continue
+            break
+        if breakflag:
+            StatusSlot_tuple = namedtuple('StatusSlot_tuple', 'slot_index field_id teams')
+            return StatusSlot_tuple(slot_index, f, fteams)
+        else:
+            raise CodeLogicError("constraints: findswapmatch can't find slot for div=%d team=%d gameday=%d" % (div_id, team_id, gameday_id))
 
     def compactTimeSchedule(self):
         ''' compact time schedule by identifying scheduling gaps through False statueses in the 'isgame' field '''
