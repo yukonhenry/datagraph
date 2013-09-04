@@ -40,8 +40,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				agediv:"Age Group",
 				gender:"Boy/Girl",
 				totalteams:"Total#Teams",
-				fields:"Fields",
-				gamedaysperweek:"Weekly Games#",
+				fields:"Fields (ID)",
 				gameinterval:"Game Interval(min)",
 				gamesperseason:"Games in Season"				
 			},
@@ -59,6 +58,11 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			jsonp:"callback"
 		}).then(function(ldata){
 			ldata_array = ldata.leaguedivinfo;
+			//arrayUtil.forEach(ldata_array, function(item, index) {
+				// fields names are keys to the column dictionary
+				//game_columns[item] = fieldMapObj[item];
+			//});
+
 			fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);

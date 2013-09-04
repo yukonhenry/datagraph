@@ -1591,28 +1591,132 @@ class FieldTimeScheduleGenerator:
                         else:
                             logging.debug("ftscheduler:processconstraints: id=%d constraint=%s candidate swap=%s",
                                           cd_id, cdesired, swapmatch_list)
-                            print 'constraint', cd_id, cdesired, 'swap candidates', swapmatch_list
+                            print '####constraint', cd_id, cdesired
                             self.findMatchSwapForConstraint(fset, cdiv_id, cteam_id, cd_gameday_id, cd_priority, swapmatch_list)
 
     def findMatchSwapForConstraint(self, fset, div_id, team_id, gameday_id, priority, swap_list):
-        ''' from the list of candidate matches to swap with, find match to swap with that does not violate constraints.'''
+        ''' from the list of candidate matches to swap with, find match to swap with that does not violate constraints.
+        Priority description:
+        Priority 1: Use cost calculations - however, if refslot is an EL slot, if the EL cost of the opposite slot is
+        above a threshold, then skip to next iteration; if EL cost is below the threshold,
+        then increase mult weight when swap slot is an EL slot
+        Priority 2: Use cost calculations - however, if refslot is an EL slot, then swap slot must also be an EL slot;
+        but if the EL cost of the opposite slot exceeds a priority-dependent threshold, skip iteration.
+        if ref slot is not an EL slot, then increase mult weight when swap slot is an EL slot
+        Priority 3: Use cost calucations - however, if refslot is an EL slot, then disallow that particular constraint
+        Don't let a match swap in a ref EL slot, even if swap slot is an EL slot; however, if swap slot is an EL slot,
+        do normal calculations - with slightly higher mult weight'''
         # Teams that swap may get additional early/late games
         # first find slot that matches current reference team
+        swap_addweight = 0
+        swap_multweight = 1
+        requireEarly_flag = False
+        requireLate_flag = False
         fstatus_tuple = self.findFieldSeasonStatusSlot(fset, div_id, team_id, gameday_id)
         refteams = fstatus_tuple.teams
-        refslot_index = fstatus_tuple.slot_index
         reffield_id = fstatus_tuple.field_id
+        refslot_index = fstatus_tuple.slot_index
+        refoppteam_id = fstatus_tuple.oppteam_id
         lastTrueSlot = self.findFieldGamedayLastTrueSlot(reffield_id, gameday_id)
+        # note we will most likely continue to ignore refoppteam_cost value below as it has no
+        # bearing on max operation (same value for all swap candidates)
+        if refslot_index == 0:
+            refoppteam_cost = self.getSingleTeamELstats(div_id, refoppteam_id, 'early')
+        elif refslot_index == lastTrueSlot:
+            refoppteam_cost = self.getSingleTeamELstats(div_id, refoppteam_id, 'late')
+        else:
+            refoppteam_cost = 0
+
+        # ********* cost parameters
+        if (refslot_index == 0 or refslot_index == lastTrueSlot):
+            if priority == 3:
+                print '*** priority 3, refslot is EL, NONE dont be mean'
+                logging.debug("ftscheduler:findMatchSwapConstraint: teams %s is an EL slot, no swap",
+                              refteams)
+                return None
+            elif priority == 2 or priority == 1:
+                # if ref slot is an EL slot, swap slot needs to also be an EL slot
+                if refslot_index == 0:
+                    requireLate_flag = True
+                else:
+                    requireEarly_flag = True
 
         #slist_field_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(swap_list)).get(x)
         samefield_index_list = [i for i,j in enumerate(swap_list) if j['field_id']==reffield_id]
-        print 'div team gameday slot field', div_id, team_id, gameday_id, refslot_index, reffield_id, samefield_index_list
+        #print 'div team gameday slot field index', div_id, team_id, gameday_id, refslot_index, reffield_id, samefield_index_list
         if samefield_index_list:
-            cost_list = [{'teams':swap_list[x]['teams'], 'slot_index':swap_list[x]['slot_index'], 'field_id':swap_list[x]['field_id'],
-                          'cost':self.getELcost_by_slot(swap_list[x]['slot_index'], swap_list[x]['teams'], lastTrueSlot)}
-                         for x in samefield_index_list]
-            print 'cost list', cost_list
+            cost_list = []
+            for swap_index in samefield_index_list:
+                swap_elem = swap_list[swap_index]
+                swap_slot_index = swap_elem['slot_index']
+                EL_slot_state = (swap_slot_index == 0 or swap_slot_index == lastTrueSlot)
+                swap_cost_threshold = 1 if priority == 1 else 0  # priority dependent threshold
+                # ************ more cost logic
+                if (priority == 2 and (requireEarly_flag or requireLate_flag)) and not EL_slot_state:
+                    continue
+                elif requireEarly_flag and swap_slot_index == 0:
+                    refoppteam_swap_cost = self.getSingleTeamELstats(div_id, refoppteam_id, 'early')
+                    if refoppteam_swap_cost >= swap_cost_threshold:
+                        continue
+                elif requireLate_flag and swap_slot_index == lastTrueSlot:
+                    refoppteam_swap_cost = self.getSingleTeamELstats(div_id, refoppteam_id, 'late')
+                    if refoppteam_swap_cost >= swap_cost_threshold:
+                        continue
+                elif ((priority == 2 and EL_slot_state) or
+                      (priority == 1 and (requireEarly_flag or requireLate_flag) and EL_slot_state)):
+                    swap_multweight = 2
+                elif priority ==3 and EL_slot_state:
+                    swap_addweight = 1
+                swap_teams = swap_elem['teams']
+                # cost for swap teams current cost in current slot = attractive cost for swap teams to move out
+                # from current slot
+                # weight applied only if value is positive - since we are maximizing and want to attract if swap slot
+                # is an EL slot (based on priority)
+                swap_cost = self.getELcost_by_slot(swap_slot_index, swap_teams, lastTrueSlot)
+                # ******** cost arithmetic using parameters
+                if swap_cost > 0:
+                    swap_cost = (swap_multweight*swap_cost) + swap_addweight
+                # cost for swap teams to move into refslot (subtractive cost)
+                swap_outgoing_cost = self.getELcost_by_slot(refslot_index, swap_teams, lastTrueSlot)
+                # cost for ref teams to move into swapslot (subtractive)
+                swap_incoming_cost = self.getELcost_by_slot(swap_slot_index, refteams, lastTrueSlot)
+                if swap_incoming_cost < 0:
+                    swap_incoming_cost = (swap_multweight*swap_incoming_cost) + swap_addweight
+                total_cost = swap_cost - swap_outgoing_cost - swap_incoming_cost
+                swap_list[swap_index]['swap_cost'] = swap_cost
+                swap_list[swap_index]['swap_outgoing_cost'] = swap_outgoing_cost
+                swap_list[swap_index]['swap_incoming_cost'] = swap_incoming_cost
+                swap_list[swap_index]['total_cost'] = swap_cost - swap_outgoing_cost - swap_incoming_cost
+                cost_list.append(swap_list[swap_index])
+            if cost_list:
+                max_swap = max(cost_list, key=itemgetter('total_cost'))
+                logging.debug("ftscheduler:findMatchSwapConstraints: max swap elem", max_swap)
+                #print 'max_swap', max_swap
+                if max_swap['field_id'] != reffield_id:
+                    raise CodeLogicError("ftschedule:findSwapMatchForConstraints reffield %d max_swap field do Not match" % (reffield_id,))
+                fgameday_status = self.fieldSeasonStatus[self.fstatus_indexerGet(reffield_id)]['slotstatus_list'][gameday_id-1]
+                if fgameday_status[refslot_index]['teams'] !=  refteams:
+                    raise CodeLogicError("ftschedule:findSwapMatchConstraints refslotindex %d does not produce teams %s"
+                                         % (refslot_index, refteams))
+                max_swap_slot_index = max_swap['slot_index']
+                max_swap_teams = max_swap['teams']
+                if fgameday_status[max_swap_slot_index]['teams'] != max_swap_teams:
+                    raise CodeLogicError("ftschedule:findSwapMatchConstraints swapslot %d does not produce teams %s"
+                                         % (max_swap_slot_index, max_swap_teams))
+                fgameday_status[refslot_index]['teams'], fgameday_status[max_swap_slot_index]['teams'] = \
+                  fgameday_status[max_swap_slot_index]['teams'], fgameday_status[refslot_index]['teams']
+                logging.debug("ftscheduler:swapmatchconstraints: swapping refslot %d with slot %d, refteams %s with teams %s",
+                              refslot_index, max_swap_slot_index, refteams, max_swap_teams)
+                print "****swapping refslot %d with slot %d, refteams %s with teams %s" % (refslot_index, max_swap_slot_index, refteams, max_swap_teams)
+
+                self.updateSlotELCounters(refslot_index, max_swap_slot_index, refteams, max_swap_teams,
+                                          lastTrueSlot, lastTrueSlot)
+            else:
+                logging.debug("ftscheduler:findMatchSwapConstraints cost list is empty, No Swap")
+                print '*** No elements left in cost_list, NONE'
+                return None
         else:
+            print '****No options in the same field, returning NONE'
             return None
 
 
@@ -1624,14 +1728,15 @@ class FieldTimeScheduleGenerator:
                 if fstatus['isgame']:
                     fteams = fstatus['teams']
                     if fteams['div_id'] == div_id and (fteams[home_CONST]==team_id or fteams[away_CONST]==team_id):
+                        oppteam_id = fteams[home_CONST] if fteams[away_CONST]==team_id else fteams[away_CONST]
                         breakflag = True
                         break
             else:
                 continue
             break
         if breakflag:
-            StatusSlot_tuple = namedtuple('StatusSlot_tuple', 'slot_index field_id teams')
-            return StatusSlot_tuple(slot_index, f, fteams)
+            StatusSlot_tuple = namedtuple('StatusSlot_tuple', 'slot_index field_id oppteam_id teams')
+            return StatusSlot_tuple(slot_index, f, oppteam_id, fteams)
         else:
             raise CodeLogicError("constraints: findswapmatch can't find slot for div=%d team=%d gameday=%d" % (div_id, team_id, gameday_id))
 

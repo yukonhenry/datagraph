@@ -10,7 +10,7 @@
         <title>League Scheduler Demo</title>
     </head>
     <body class="claro">
-        <h1 id="greeting">PHMSA League Scheduler ver0.06o</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true"></script>
@@ -23,9 +23,8 @@
 			});
 		</script>
 		<div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
-        	<div data-dojo-type="dijit/layout/ContentPane" title="Generate/Division"  id="generatePane" data-dojo-props="selected:true">
-    		<button id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Schedule</button>      		<button id="genxls_btn" data-dojo-type="dijit/form/Button">Generate XLS</button>			Click on Division row to see div schedule - scroll down.  See other tabs.  
-			Re-generate schedule by 'Generate Schedule' button - wait 10sec (XLS generation not operational.)
+        	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="generatePane" data-dojo-props="selected:true">
+    		<button id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Schedule</button>      		<!--<button id="genxls_btn" data-dojo-type="dijit/form/Button">Generate XLS</button>-->			<b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
     		<div id="divisionInfoGrid"></div>
     		<div id="scheduleInfoGrid"></div>
     		</div>
@@ -33,7 +32,7 @@
     			<label for="divisionSelect">Select Division</label>
     			<select id="divisionSelect" data-dojo-type="dijit/form/Select" name="divisionSelect">	
         			<option value="" selected="selected">Select division</option>
-        			<!-- value fields are 0-indexed as they map into array positions of the returned
+        			<!-- value fields are 0-indexed as they map into array positions of the returned!
         				division info array returned from server -->			
          			<option value=1>U6B</option>
         			<option value=2>U6G</option>
@@ -44,17 +43,17 @@
         			<option value=7>U12B</option>
         			<option value=8>U12G</option>
     			</select>
-    			Selection division, then click on row with team to see team schedule.  Scroll down
+    			<b>Selection division, then click on row</b> with team to see team schedule.  Scroll down. <b>Note on Bye Weeks:</b> Because of the odd number of teams in some divisions, some teams ih the division will have bye week(s) in their schedule.
     			<div id="divisionGridLinkTeams"></div>
     			<div id="teamDataGrid"></div>    			
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Fields" id="fieldsPane">
-    			click on Field to see field schedule.  Scroll down
+    			<b>click on Field row</b> to see field schedule.  Scroll down
     			<div id="fieldInfoGrid"></div>
     			<div id="fieldScheduleGrid"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Metrics" id="metricsPane">
-    			Internal use - display metrics for schedule fairness. <br>
+    			Internal use - display metrics for schedule fairness. Some specific schedule metrics impacted by constraints implemented for specific teams.<br>
     			<label for="divisionSelectForMetrics">Select Division</label>
     			<select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">	
         			<option value="" selected="selected">Select division</option>

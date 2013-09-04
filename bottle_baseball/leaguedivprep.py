@@ -18,21 +18,21 @@ _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 _league_div = [
 { 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':15,
-  'gamedaysperweek':1, 'gameinterval':60, 'gamesperseason':10},
+  'gameinterval':60, 'gamesperseason':10},
 { 'div_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':8,
-  'gamedaysperweek':1, 'gameinterval':60, 'gamesperseason':10},
+  'gameinterval':60, 'gamesperseason':10},
 { 'div_id':3, 'agediv':'U8', 'gender':'B', 'totalteams':41,
-  'gamedaysperweek':1, 'gameinterval':70, 'gamesperseason':10},
+  'gameinterval':70, 'gamesperseason':10},
 { 'div_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':28,
-  'gamedaysperweek':1, 'gameinterval':70, 'gamesperseason':10},
+  'gameinterval':70, 'gamesperseason':10},
 { 'div_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':23,
-  'gamedaysperweek':1, 'gameinterval':80, 'gamesperseason':10},
+  'gameinterval':80, 'gamesperseason':10},
 { 'div_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':22,
-  'gamedaysperweek':1, 'gameinterval':80, 'gamesperseason':10},
+  'gameinterval':80, 'gamesperseason':10},
 { 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':15,
-  'gamedaysperweek':1, 'gameinterval':90, 'gamesperseason':10},
+  'gameinterval':90, 'gamesperseason':10},
 { 'div_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':13,
-  'gamedaysperweek':1, 'gameinterval':90, 'gamesperseason':10}
+  'gameinterval':90, 'gamesperseason':10}
 ]
 #assign team numbers
 team_id_start = 1
