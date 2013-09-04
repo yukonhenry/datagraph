@@ -26,7 +26,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		var fieldScheduleGrid = null;
 		var metricsGrid = null;
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
-			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Oct 28', 10:'Nov 2', 11:'Nov 9', 12:'Nov 16'};
+			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',
 			3:'Pleasant Hill Elem 1', 4:'Pleasant Hill Elem 2',
 			5:'Pleasant Hill Elem 3', 6:'Golden Hills 1', 7:'Golden Hills 2',
@@ -326,6 +326,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		ready(function() {
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
+			//on(registry.byId("export_btn"), "click", exportSchedule)
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			on(registry.byId("generatePane"),"show",resizeGeneratePaneGrids);

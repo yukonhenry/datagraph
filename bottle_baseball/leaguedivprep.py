@@ -142,7 +142,7 @@ _team_timeconstraint_info = [
     {'agediv':'U10', 'gender':'G', 'team_id':16,
      'desired':[{'id':1, 'gameday_id':1, 'end_before':'10:30', 'priority':1}]},
 
-    {'agediv':'U12', 'gender':'G', 'team_id':1,
+    {'agediv':'U12', 'gender':'G', 'team_id':4,
      'desired':[{'id':2, 'gameday_id':5, 'start_after':'13:30', 'priority':1}]},
 
      {'agediv':'U12', 'gender':'B', 'team_id':1,
@@ -190,6 +190,12 @@ for team in _team_timeconstraint_info:
     div_id = getDivID(team['agediv'], team['gender'])
     team['div_id'] = div_id
 
+_swap_team_info = [{'agediv':'U12', 'gender':'G', 'team1_id':1, 'team2_id':4},
+                   {'agediv':'U10', 'gender':'B', 'team1_id':16, 'team2_id':3}
+                   ]
+for team in _swap_team_info:
+    div_id = getDivID(team['agediv'], team['gender'])
+    team['div_id'] = div_id
 
 def getLeagueDivInfo():
     # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
@@ -203,6 +209,10 @@ def getFieldInfo():
 def getTeamTimeConstraintInfo(div_id):
     div_team_timeconstraints = [x for x in _team_timeconstraint_info if x['div_id'] == div_id]
     return div_team_timeconstraints
+
+def getSwapTeamInfo(div_id):
+    div_swapteaminfo = [x for x in _swap_team_info if x['div_id'] == div_id]
+    return div_swapteaminfo
 
 ''' create bipartite graph - one column is division, other column is fields
 used to define relationship between division and fields

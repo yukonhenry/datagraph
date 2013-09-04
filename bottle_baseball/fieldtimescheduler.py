@@ -5,7 +5,7 @@ from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bip
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDivFieldEdgeWeight_list, \
-     getConnectedDivisions, getLeagueDivInfo, getFieldInfo, getTeamTimeConstraintInfo
+     getConnectedDivisions, getLeagueDivInfo, getFieldInfo, getTeamTimeConstraintInfo, getSwapTeamInfo
 import logging
 from operator import itemgetter
 from copy import deepcopy
@@ -1335,10 +1335,10 @@ class FieldTimeScheduleGenerator:
                                   div.age, div.gender, round_id, field_id, gametime, slot_index)
                 logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
                               connected_div_list, round_id, gameday_fieldcount)
-            #self.RecomputeCEL_list(fset, connected_div_list)
             self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
             # now work on time balanceing
             self.ReTimeBalance(fset, connected_div_list)
+            self.ManualSwapTeams(fset, connected_div_list)
             self.ProcessConstraints(fset, connected_div_list)
 
             for field_id in fset:
@@ -1360,6 +1360,44 @@ class FieldTimeScheduleGenerator:
 
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()
+
+    def ManualSwapTeams(self, fset, div_set):
+        ''' Manual Swap Teams as specified in _swap_team_info in leaguedivprep '''
+        for div_id in div_set:
+            div_swapinfo_list = getSwapTeamInfo(div_id)
+            if div_swapinfo_list:
+                for div_swapinfo in div_swapinfo_list:
+                    swapdiv_id = div_swapinfo['div_id']
+                    team1_id = div_swapinfo['team1_id']
+                    team2_id = div_swapinfo['team2_id']
+                    for f in fset:
+                        fslot_status = self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list']
+                        for gamedayslot_status in fslot_status:
+                            for slot_status in gamedayslot_status:
+                                if slot_status['isgame']:
+                                    teams = slot_status['teams']
+                                    if teams['div_id'] == swapdiv_id:
+                                        if teams[home_CONST] == team1_id:
+                                            teams[home_CONST] = team2_id
+                                        elif teams[home_CONST] == team2_id:
+                                            teams[home_CONST] = team1_id
+                                        if teams[away_CONST] == team1_id:
+                                            teams[away_CONST] = team2_id
+                                        elif teams[away_CONST] == team2_id:
+                                            teams[away_CONST] = team1_id
+                    cel_counter_list = self.current_earlylate_list[self.cel_indexerGet(swapdiv_id)]['counter_list']
+                    tel_target_list = self.target_earlylate_list[self.tel_indexerGet(swapdiv_id)]['target_list']
+                    # counter swaps
+                    print 'CEL', cel_counter_list[team1_id-1], cel_counter_list[team2_id-1]
+                    print 'TEL', tel_target_list[team1_id-1], tel_target_list[team2_id-1]
+                    cel_counter_list[team1_id-1], cel_counter_list[team2_id-1] = \
+                                                  cel_counter_list[team2_id-1], cel_counter_list[team1_id-1]
+                    tel_target_list[team1_id-1], tel_target_list[team2_id-1] = \
+                                                  tel_target_list[team2_id-1], tel_target_list[team1_id-1]
+                    print 'AFTER', cel_counter_list[team1_id-1], cel_counter_list[team2_id-1]
+                    print 'AFTER', tel_target_list[team1_id-1], tel_target_list[team2_id-1]
+
+
 
     def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet):
         old_balcount_list = self.CountFieldBalance(connected_div_list, fieldmetrics_list,
