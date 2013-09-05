@@ -12,7 +12,7 @@ from fieldtimescheduler import FieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
      getFieldInfo
-
+from sched_exporter import ScheduleExporter
 dbInterface = MongoDBInterface()
 
 def get_leaguedata():
@@ -80,6 +80,18 @@ def get_alldivSchedule():
     #connected_div_components = connected_components(connectedG)
     fieldtimeSchedule = FieldTimeScheduleGenerator(dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
+    a = json.dumps({"status":'ready'})
+    return callback_name+'('+a+')'
+
+@route('/exportschedule')
+def exportSchedule():
+    callback_name = request.query.callback
+    schedExporter = ScheduleExporter(dbInterface)
+    ldata_divinfo = getLeagueDivInfo().dict_list
+    for division in ldata_divinfo:
+        schedExporter.exportDivTeamSchedules(div_id=division['div_id'], age=division['agediv'], gen=division['gender'],
+                                             numteams=division['totalteams'])
+        schedExporter.exportDivSchedules(division['div_id'])
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 

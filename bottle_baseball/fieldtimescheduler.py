@@ -1385,17 +1385,16 @@ class FieldTimeScheduleGenerator:
                                             teams[away_CONST] = team2_id
                                         elif teams[away_CONST] == team2_id:
                                             teams[away_CONST] = team1_id
+                    # swap counter values also.  In addition to EL counters, we also need to swap field metric
+                    # counters also.  However, field metric counters are no longer used at this point in code flow.
+                    # TODO: review to find other - including field metric - counters to swap
                     cel_counter_list = self.current_earlylate_list[self.cel_indexerGet(swapdiv_id)]['counter_list']
                     tel_target_list = self.target_earlylate_list[self.tel_indexerGet(swapdiv_id)]['target_list']
                     # counter swaps
-                    print 'CEL', cel_counter_list[team1_id-1], cel_counter_list[team2_id-1]
-                    print 'TEL', tel_target_list[team1_id-1], tel_target_list[team2_id-1]
                     cel_counter_list[team1_id-1], cel_counter_list[team2_id-1] = \
                                                   cel_counter_list[team2_id-1], cel_counter_list[team1_id-1]
                     tel_target_list[team1_id-1], tel_target_list[team2_id-1] = \
                                                   tel_target_list[team2_id-1], tel_target_list[team1_id-1]
-                    print 'AFTER', cel_counter_list[team1_id-1], cel_counter_list[team2_id-1]
-                    print 'AFTER', tel_target_list[team1_id-1], tel_target_list[team2_id-1]
 
 
 

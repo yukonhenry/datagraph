@@ -33,6 +33,18 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			8:'Mountain View Park', 9:'Pleasant Hill Middle 1', 10:'Pleasant Hill Middle 2',
 			11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
 			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park'};
+		var tConvert = function(time) {
+			// courtesy http://stackoverflow.com/questions/13898423/javascript-convert-24-hour-time-of-day-string-to-12-hour-time-with-am-pm-and-no
+  			// Check correct time format and split into components
+  			time = time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+
+  			if (time.length > 1) { // If time format correct
+    			time = time.slice (1);  // Remove full string match value
+    			time[5] = +time[0] < 12 ? ' am' : ' pm'; // Set AM/PM
+    			time[0] = +time[0] % 12 || 12; // Adjust hours
+  			}
+  			return time.join (''); // return adjusted time or original string
+		}
 		var ldata_array = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
@@ -96,7 +108,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 					var game_grid_row = {};
 					// fill in the game day number and start time
 					game_grid_row[gameday_column_key_CONST] = calendarMapObj[gameday_id];
-					game_grid_row[time_column_key_CONST] = start_time;
+					game_grid_row[time_column_key_CONST] = tConvert(start_time);
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
 					});
@@ -144,9 +156,10 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
     		}).then(function(fdata){
     			fieldschedule_array = fdata.fieldschedule_list;
     			arrayUtil.forEach(fieldschedule_array, function(item, index) {
-					// fields names are keys to the column dictionary						console.log("tdata "+item);
+					// fields names are keys to the column dictionary
 					gameday_id = item.GAMEDAY_ID;
 					item.GAMEDAY_ID = calendarMapObj[gameday_id];
+					item.START_TIME = tConvert(item.START_TIME)
 				});    		
     			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
@@ -178,10 +191,19 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 							var match = d[j];
 							matchstr += match[0]+"vs"+match[1]+" ";
 						}
-						return matchstr;スイミー 
+						return matchstr;
 					});
 */
 			});
+		}
+		var exportSchedule = function(evt) {
+			//dom.byId("status").innerHTML = "";
+	        script.get(constant.SERVER_PREFIX+"exportschedule", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {
+	        	//console.log("getalldiv schedule status"+adata.status);
+
+			});			
 		}
 		var getDivisionTeamData = function(evt) {
 			var divisioncode = registry.byId("divisionSelect").get("value");
@@ -240,6 +262,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 						item.GAMEDAY_ID = calendarMapObj[gameday_id];
 						venue = item.VENUE;
 						item.VENUE = fieldMapObj[venue]
+						item.START_TIME = tConvert(item.START_TIME)
 					});    		
     				teamDataGrid.renderArray(tdata_array);
     			});
@@ -326,7 +349,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		ready(function() {
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
-			//on(registry.byId("export_btn"), "click", exportSchedule)
+			on(registry.byId("export_btn"), "click", exportSchedule)
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			on(registry.byId("generatePane"),"show",resizeGeneratePaneGrids);

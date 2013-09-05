@@ -203,7 +203,7 @@ def getLeagueDivInfo():
     return _List_Indexer(_league_div, l_indexerGet)
 
 def getFieldInfo():
-    f_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_field_info)).get(x)
+    f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(_field_info)).get(x)
     return _List_Indexer(_field_info, f_indexerGet)
 
 def getTeamTimeConstraintInfo(div_id):
@@ -363,6 +363,13 @@ def getDivisionData(div_id):
     index = div_indexer.get(div_id)
     division = _league_div[index]
     return division
+
+_gameday_to_cal_dict = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
+			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9',
+                        11:'Nov 16', 12:'Nov 23'}
+
+def mapGamedayIdToCalendar(gameday_id):
+    return _gameday_to_cal_dict.get(gameday_id)
 
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list
