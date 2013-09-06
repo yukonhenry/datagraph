@@ -91,7 +91,10 @@ def exportSchedule():
     for division in ldata_divinfo:
         schedExporter.exportDivTeamSchedules(div_id=division['div_id'], age=division['agediv'], gen=division['gender'],
                                              numteams=division['totalteams'])
+        schedExporter.exportTeamSchedules(div_id=division['div_id'], age=division['agediv'], gen=division['gender'],
+                                             numteams=division['totalteams'])
         schedExporter.exportDivSchedules(division['div_id'])
+        schedExporter.exportDivSchedulesRefFormat()
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 

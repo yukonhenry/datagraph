@@ -17,13 +17,13 @@ import logging
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 _league_div = [
-{ 'div_id':1, 'agediv':'U6', 'gender':'B', 'totalteams':15,
+{ 'div_id':1, 'agediv':'U06', 'gender':'B', 'totalteams':15,
   'gameinterval':60, 'gamesperseason':10},
-{ 'div_id':2, 'agediv':'U6', 'gender':'G', 'totalteams':8,
+{ 'div_id':2, 'agediv':'U06', 'gender':'G', 'totalteams':8,
   'gameinterval':60, 'gamesperseason':10},
-{ 'div_id':3, 'agediv':'U8', 'gender':'B', 'totalteams':41,
+{ 'div_id':3, 'agediv':'U08', 'gender':'B', 'totalteams':41,
   'gameinterval':70, 'gamesperseason':10},
-{ 'div_id':4, 'agediv':'U8', 'gender':'G', 'totalteams':28,
+{ 'div_id':4, 'agediv':'U08', 'gender':'G', 'totalteams':28,
   'gameinterval':70, 'gamesperseason':10},
 { 'div_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':23,
   'gameinterval':80, 'gamesperseason':10},
@@ -101,12 +101,12 @@ for field in _field_info:
 
 
 def getDivID(agediv, gender):
-    if agediv == 'U6':
+    if agediv == 'U06':
         if gender == 'B':
             div_id = 1
         else:
             div_id = 2
-    elif agediv == 'U8':
+    elif agediv == 'U08':
         if gender == 'B':
             div_id = 3
         else:
@@ -132,9 +132,9 @@ def getDivID(agediv, gender):
 
 
 _coach_conflict_info = [
-    {'coach_id':1, 'conflict':({'agediv':'U6','gender':'B', 'team_id':1},{'agediv':'U8','gender':'B', 'team_id':3})},
-    {'coach_id':2, 'conflict':({'agediv':'U8','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},
-    {'coach_id':3, 'conflict':({'agediv':'U8','gender':'G', 'team_id':7},{'agediv':'U8','gender':'B', 'team_id':9})}
+    {'coach_id':1, 'conflict':({'agediv':'U06','gender':'B', 'team_id':1},{'agediv':'U08','gender':'B', 'team_id':3})},
+    {'coach_id':2, 'conflict':({'agediv':'U08','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},
+    {'coach_id':3, 'conflict':({'agediv':'U08','gender':'G', 'team_id':7},{'agediv':'U08','gender':'B', 'team_id':9})}
 
 ]
 
@@ -324,16 +324,16 @@ def getTeamID(agediv, gender, team_id):
 def getAgeGenderDivision(div_id):
     Division = namedtuple('Division', 'age gender')
     if div_id == 1:
-        Division.age = 'U6'
+        Division.age = 'U06'
         Division.gender = 'B'
     elif div_id == 2:
-        Division.age = 'U6'
+        Division.age = 'U06'
         Division.gender = 'G'
     elif div_id == 3:
-        Division.age = 'U8'
+        Division.age = 'U08'
         Division.gender = 'B'
     elif div_id == 4:
-        Division.age = 'U8'
+        Division.age = 'U08'
         Division.gender = 'G'
     elif div_id == 5:
         Division.age = 'U10'
@@ -364,12 +364,16 @@ def getDivisionData(div_id):
     division = _league_div[index]
     return division
 
-_gameday_to_cal_dict = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
-			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9',
-                        11:'Nov 16', 12:'Nov 23'}
+_gameday_to_cal = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
+                   6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9',
+                   11:'Nov 16', 12:'Nov 23'}
+_gameday_to_numericalcal = {1:'9/7/2013', 2:'9/14/2013', 3:'9/21/2013', 4:'9/28/2013', 5:'10/5/2013',
+                            6:'10/12/2013', 7:'10/19/2013', 8:'10/26/2013', 9:'11/2/2013', 10:'11/9/2013',
+                            11:'11/16/2013', 12:'11/23/2013'}
 
-def mapGamedayIdToCalendar(gameday_id):
-    return _gameday_to_cal_dict.get(gameday_id)
+def mapGamedayIdToCalendar(gameday_id, format=0):
+    calformat = _gameday_to_cal.get(gameday_id) if format == 0 else _gameday_to_numericalcal.get(gameday_id)
+    return calformat
 
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list

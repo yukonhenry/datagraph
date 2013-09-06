@@ -81,6 +81,21 @@ class MongoDBInterface:
         #pdb.set_trace()
         return game_list
 
+    def findDivisionSchedulePHMSARefFormat(self):
+        ''' query for all games, but sort according to date, time, division '''
+        game_curs = self.games_col.find({},{'_id':0})
+        game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1), (age_CONST,1), (gen_CONST,1), (venue_CONST,1)])
+        schedule_list = []
+        for game in game_curs:
+            schedule_list.append({gameday_id_CONST:game[gameday_id_CONST],
+                                  start_time_CONST:game[start_time_CONST],
+                                  age_CONST:game[age_CONST],
+                                  gen_CONST:game[gen_CONST],
+                                  home_CONST:game[home_CONST],
+                                  away_CONST:game[away_CONST],
+                                  venue_CONST:game[venue_CONST]})
+        return schedule_list
+
     def findTeamSchedule(self, age, gender, team_id):
         team_game_curs = self.games_col.find({age_CONST:age, gen_CONST:gender,
                                             "$or":[{home_CONST:team_id},{away_CONST:team_id}]},
