@@ -1,0 +1,11 @@
+@import "../dgrid/css/dgrid.css";
+
+.dgrid {
+    height: auto;
+}
+
+.dgrid .dgrid-scroller {
+    position: relative;
+    max-height: 230px;
+    overflow: auto;
+}
