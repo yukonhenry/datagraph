@@ -104,8 +104,8 @@ def main():
     logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
     #logging.basicConfig(level=logging.DEBUG)
     if socket.gethostname() == 'web380.webfaction.com':
-#        run(port = 21033, server = 'cherrypy')
-        run(host='localhost',port = 31032)  # check webfaction port setting
+        run(port = 31032, server = 'cherrypy')
+#        run(host='localhost',port = 31032)  # check webfaction port setting
 
     else:
         run(host='localhost', port=8080, debug=True)
