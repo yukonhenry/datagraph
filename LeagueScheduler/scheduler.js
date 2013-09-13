@@ -173,7 +173,8 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 	        	//console.log("getalldiv schedule status"+adata.status);
 				dom.byId("status").innerHTML = "!Done!";
 
-/*					        	if (game_listP) {
+/*				
+	        	if (game_listP) {
 	        		d3.select(schedulerDiv).selectAll("p").remove();
 	        	}
 	        	// data returned from server is an array of tuples, with each tuple
@@ -202,7 +203,13 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 	        	//console.log("getalldiv schedule status"+adata.status);
-
+			});			
+		}
+		var getCupSchedule = function(evt) {
+	        script.get(constant.SERVER_PREFIX+"cupschedule", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {
+	        	//console.log("getalldiv schedule status"+adata.status);
 			});			
 		}
 		var getDivisionTeamData = function(evt) {
@@ -350,6 +357,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule)
+			on(registry.byId("cup_btn"), "click", getCupSchedule)
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			on(registry.byId("generatePane"),"show",resizeGeneratePaneGrids);
