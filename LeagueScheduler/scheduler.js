@@ -8,9 +8,11 @@
 require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
 		"dojo/_base/declare", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
+		"dojo/request", "dojo/store/Memory","dgrid/OnDemandGrid",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
-	function(dom, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil) {
+	function(dom, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil,
+		request, Memory, OnDemandGrid) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
