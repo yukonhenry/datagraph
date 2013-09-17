@@ -83,7 +83,10 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			teamSchedLinkDom = dom.byId("teamScheduleLinks");
 			teamSchedLinkDom.innerHTML = "";
 			arrayUtil.forEach(ldata_array, function(item, index) {
-				domConstruct.create("a", { href: "foo.html", title: "Goto FOO!", innerHTML: "link" }, teamSchedLinkDom);
+				divstr = item.agediv +  item.gender;
+				domConstruct.create("p",{innerHTML:divstr+ " Teams"}, teamSchedLinkDom);
+				urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
+				domConstruct.create("a", { href: urlstr, title: "Goto FOO!", innerHTML: "link" }, teamSchedLinkDom);
 			});
 		});
 		
