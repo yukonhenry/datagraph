@@ -85,7 +85,6 @@ def get_alldivSchedule():
 
 @route('/exportschedule')
 def exportSchedule():
-    callback_name = request.query.callback
     schedExporter = ScheduleExporter(dbInterface)
     ldata_divinfo = getLeagueDivInfo().dict_list
     for division in ldata_divinfo:
@@ -97,6 +96,12 @@ def exportSchedule():
         schedExporter.exportDivSchedulesRefFormat()
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
+
+@route('/getcupschedule')
+def getCupSchedule():
+    a = ""
+    return callback_name+'('+a+')'
+
 
 @route('/divisiondata/<did:int>', method='GET')
 def divisiondata(did):

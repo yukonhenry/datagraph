@@ -5,13 +5,13 @@
 // small note, if there are issues with garbage characters in the jsonp script get request,
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
-require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
+require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
 		"dojo/_base/declare", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request", "dojo/store/Memory","dgrid/OnDemandGrid",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
-	function(dom, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil,
+	function(dom, domConstruct, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil,
 		request, Memory, OnDemandGrid) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
@@ -76,11 +76,18 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 				// fields names are keys to the column dictionary
 				//game_columns[item] = fieldMapObj[item];
 			//});
-
 			fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);
+			// generate links for individual team schedules
+			teamSchedLinkDom = dom.byId("teamScheduleLinks");
+			teamSchedLinkDom.innerHTML = "";
+			arrayUtil.forEach(ldata_array, function(item, index) {
+				domConstruct.create("a", { href: "foo.html", title: "Goto FOO!", innerHTML: "link" }, teamSchedLinkDom);
+			});
 		});
+		
+
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data.div_id;
@@ -208,7 +215,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			});			
 		}
 		var getCupSchedule = function(evt) {
-	        script.get(constant.SERVER_PREFIX+"cupschedule", {
+	        script.get(constant.SERVER_PREFIX+"getcupschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 	        	//console.log("getalldiv schedule status"+adata.status);
