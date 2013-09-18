@@ -10,7 +10,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="claro">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.06u</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.06v</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true"></script>
@@ -23,10 +23,7 @@
 			});
 		</script>
 		<div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
-        	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="generatePane" data-dojo-props="selected:true">
-    		<button style="display: inline" id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Sched</button>
-    		<button style="display: inline" id="cup_btn" data-dojo-type="dijit/form/Button">Generate Cup Sched</button> 
-    		<button style="display: inline" id="export_btn" data-dojo-type="dijit/form/Button">Export</button>
+        	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="divisionPane" data-dojo-props="selected:true">
 			<b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
     		<div id="divisionInfoGrid"></div>
     		<div id="scheduleInfoGrid"></div>
@@ -88,192 +85,18 @@
 				<i>U6-U12 League Schedule, sorted by date and time, one file</i>
 				<a href="http://localhost/doc/xls/2013PHMSAFall_schedule_RefFormat.xls">U6-U12 League Schedule</a> 
 				<br/><br />
-				<i>All Team Schedules by Team (XLS)</i><br>
+				<i>All Team Schedules by Team (XLS)</i>:<br>
 				<div id="teamScheduleLinks"></div>
-				U06B Teams<br>
-				<a href="http://localhost/doc/xls/U06B01_schedule.xls">U06B01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B02_schedule.xls">U06B02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B03_schedule.xls">U06B03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B04_schedule.xls">U06B04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B05_schedule.xls">U06B05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B06_schedule.xls">U06B06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B07_schedule.xls">U06B07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B08_schedule.xls">U06B08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B09_schedule.xls">U06B09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06B10_schedule.xls">U06B10 Schedule</a>
-				<a href="http://localhost/doc/xls/U06B11_schedule.xls">U06B11 Schedule</a>
-				<a href="http://localhost/doc/xls/U06B12_schedule.xls">U06B12 Schedule</a>
-				<a href="http://localhost/doc/xls/U06B13_schedule.xls">U06B13 Schedule</a>
-				<a href="http://localhost/doc/xls/U06B14_schedule.xls">U06B14 Schedule</a>
-				<a href="http://localhost/doc/xls/U06B15_schedule.xls">U06B15 Schedule</a> <br><br>
-				U06G Teams<br>
-				<a href="http://localhost/doc/xls/U06G01_schedule.xls">U06G01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G02_schedule.xls">U06G02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G03_schedule.xls">U06G03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G04_schedule.xls">U06G04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G05_schedule.xls">U06G05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G06_schedule.xls">U06G06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G07_schedule.xls">U06G07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G08_schedule.xls">U06G08 Schedule</a><br><br>
-				U08B Teams<br>
-				<a href="http://localhost/doc/xls/U08B01_schedule.xls">U08B01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B02_schedule.xls">U08B02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B03_schedule.xls">U08B03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B04_schedule.xls">U08B04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B05_schedule.xls">U08B05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B06_schedule.xls">U08B06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B07_schedule.xls">U08B07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B08_schedule.xls">U08B08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B09_schedule.xls">U08B09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B10_schedule.xls">U08B10 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B11_schedule.xls">U08B11 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B12_schedule.xls">U08B12 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B13_schedule.xls">U08B13 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B14_schedule.xls">U08B14 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B15_schedule.xls">U08B15 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B16_schedule.xls">U08B16 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B17_schedule.xls">U08B17 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B18_schedule.xls">U08B18 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B19_schedule.xls">U08B19 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B20_schedule.xls">U08B20 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B21_schedule.xls">U08B21 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B22_schedule.xls">U08B22 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B23_schedule.xls">U08B23 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B24_schedule.xls">U08B24 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B25_schedule.xls">U08B25 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B26_schedule.xls">U08B26 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B27_schedule.xls">U08B27 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B28_schedule.xls">U08B28 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B29_schedule.xls">U08B29 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B30_schedule.xls">U08B30 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B31_schedule.xls">U08B31 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B32_schedule.xls">U08B32 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B33_schedule.xls">U08B33 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B34_schedule.xls">U08B34 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B35_schedule.xls">U08B35 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B36_schedule.xls">U08B36 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B37_schedule.xls">U08B37 Schedule</a>
-				<a href="http://localhost/doc/xls/U08B38_schedule.xls">U08B38 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B39_schedule.xls">U08B39 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B40_schedule.xls">U08B40 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08B41_schedule.xls">U08B41 Schedule</a>  
-				<br><br>
-				U08G Teams<br>
-				<a href="http://localhost/doc/xls/U08G01_schedule.xls">U08G01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G02_schedule.xls">U08G02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G03_schedule.xls">U08G03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G04_schedule.xls">U08G04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G05_schedule.xls">U08G05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G06_schedule.xls">U08G06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G07_schedule.xls">U08G07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G08_schedule.xls">U08G08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G09_schedule.xls">U08G09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G10_schedule.xls">U08G10 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G11_schedule.xls">U08G11 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G12_schedule.xls">U08G12 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G13_schedule.xls">U08G13 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G14_schedule.xls">U08G14 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G15_schedule.xls">U08G15 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G16_schedule.xls">U08G16 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G17_schedule.xls">U08G17 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G18_schedule.xls">U08G18 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G19_schedule.xls">U08G19 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G20_schedule.xls">U08G20 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G21_schedule.xls">U08G21 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G22_schedule.xls">U08G22 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G23_schedule.xls">U08G23 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G24_schedule.xls">U08G24 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G25_schedule.xls">U08G25 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G26_schedule.xls">U08G26 Schedule</a> 
-				<a href="http://localhost/doc/xls/U08G27_schedule.xls">U08G27 Schedule</a>
-				<a href="http://localhost/doc/xls/U08G28_schedule.xls">U08G28 Schedule</a> 
-				<br><br>
-				U10B Teams<br>
-				<a href="http://localhost/doc/xls/U10B01_schedule.xls">U10B01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B02_schedule.xls">U10B02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B03_schedule.xls">U10B03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B04_schedule.xls">U10B04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B05_schedule.xls">U10B05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B06_schedule.xls">U10B06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B07_schedule.xls">U10B07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B08_schedule.xls">U10B08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B09_schedule.xls">U10B09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B10_schedule.xls">U10B10 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B11_schedule.xls">U10B11 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B12_schedule.xls">U10B12 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B13_schedule.xls">U10B13 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B14_schedule.xls">U10B14 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B15_schedule.xls">U10B15 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B16_schedule.xls">U10B16 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B17_schedule.xls">U10B17 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B18_schedule.xls">U10B18 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B19_schedule.xls">U10B19 Schedule</a>
-				<a href="http://localhost/doc/xls/U10B20_schedule.xls">U10B20 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B21_schedule.xls">U10B21 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B22_schedule.xls">U10B22 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B23_schedule.xls">U10B23 Schedule</a> 
-				<br><br>
-				U10G Teams<br>
-				<a href="http://localhost/doc/xls/U10G01_schedule.xls">U10G01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G02_schedule.xls">U10G02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G03_schedule.xls">U10G03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G04_schedule.xls">U10G04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G05_schedule.xls">U10G05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G06_schedule.xls">U10G06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G07_schedule.xls">U10G07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G08_schedule.xls">U10G08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G09_schedule.xls">U10G09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G10_schedule.xls">U10G10 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G11_schedule.xls">U10G11 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G12_schedule.xls">U10G12 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G13_schedule.xls">U10G13 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G14_schedule.xls">U10G14 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G15_schedule.xls">U10G15 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G16_schedule.xls">U10G16 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G17_schedule.xls">U10G17 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G18_schedule.xls">U10G18 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G19_schedule.xls">U10G19 Schedule</a>
-				<a href="http://localhost/doc/xls/U10G20_schedule.xls">U10G20 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G21_schedule.xls">U10G21 Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G22_schedule.xls">U10G22 Schedule</a> 
-				<br><br>
-				U12B Teams<br>
-				<a href="http://localhost/doc/xls/U12B01_schedule.xls">U12B01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B02_schedule.xls">U12B02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B03_schedule.xls">U12B03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B04_schedule.xls">U12B04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B05_schedule.xls">U12B05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B06_schedule.xls">U12B06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B07_schedule.xls">U12B07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B08_schedule.xls">U12B08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B09_schedule.xls">U12B09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B10_schedule.xls">U12B10 Schedule</a>
-				<a href="http://localhost/doc/xls/U12B11_schedule.xls">U12B11 Schedule</a>
-				<a href="http://localhost/doc/xls/U12B12_schedule.xls">U12B12 Schedule</a>
-				<a href="http://localhost/doc/xls/U12B13_schedule.xls">U12B13 Schedule</a>
-				<a href="http://localhost/doc/xls/U12B14_schedule.xls">U12B14 Schedule</a>
-				<a href="http://localhost/doc/xls/U12B15_schedule.xls">U12B15 Schedule</a>
-				<br><br>
-				U12G Teams<br>
-				<a href="http://localhost/doc/xls/U12G01_schedule.xls">U12G01 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G02_schedule.xls">U12G02 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G03_schedule.xls">U12G03 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G04_schedule.xls">U12G04 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G05_schedule.xls">U12G05 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G06_schedule.xls">U12G06 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G07_schedule.xls">U12G07 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G08_schedule.xls">U12G08 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G09_schedule.xls">U12G09 Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G10_schedule.xls">U12G10 Schedule</a>
-				<a href="http://localhost/doc/xls/U12G11_schedule.xls">U12G11 Schedule</a>
-				<a href="http://localhost/doc/xls/U12G12_schedule.xls">U12G12 Schedule</a>
-				<a href="http://localhost/doc/xls/U12G13_schedule.xls">U12G13 Schedule</a>
-				<br /><br />
-
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane">
     			<b>Edit Division Parameters</b>
     			<div id="editGrid"></div>
+    		</div>
+    		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
+    			<b>Generate Schedule</b>
+    			<button style="display: inline" id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Sched</button>
+    			<button style="display: inline" id="cup_btn" data-dojo-type="dijit/form/Button">Generate Cup Sched</button> 
+    			<button style="display: inline" id="export_btn" data-dojo-type="dijit/form/Button">Export</button>
     		</div>
     	</div>
     </body>

@@ -9,10 +9,11 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		"dojo/_base/declare", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request", "dojo/store/Memory","dgrid/OnDemandGrid",
+		"LeagueScheduler/schedulerUtil",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
 	function(dom, domConstruct, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil,
-		request, Memory, OnDemandGrid) {
+		request, Memory, OnDemandGrid, schedulerUtil) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -27,26 +28,6 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		var teamDataGrid = null;
 		var fieldScheduleGrid = null;
 		var metricsGrid = null;
-		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
-			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
-		var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',
-			3:'Pleasant Hill Elem 1', 4:'Pleasant Hill Elem 2',
-			5:'Pleasant Hill Elem 3', 6:'Golden Hills 1', 7:'Golden Hills 2',
-			8:'Mountain View Park', 9:'Pleasant Hill Middle 1', 10:'Pleasant Hill Middle 2',
-			11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
-			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park'};
-		var tConvert = function(time) {
-			// courtesy http://stackoverflow.com/questions/13898423/javascript-convert-24-hour-time-of-day-string-to-12-hour-time-with-am-pm-and-no
-  			// Check correct time format and split into components
-  			time = time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
-
-  			if (time.length > 1) { // If time format correct
-    			time = time.slice (1);  // Remove full string match value
-    			time[5] = +time[0] < 12 ? ' am' : ' pm'; // Set AM/PM
-    			time[0] = +time[0] % 12 || 12; // Adjust hours
-  			}
-  			return time.join (''); // return adjusted time or original string
-		}
 		var ldata_array = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
@@ -72,21 +53,33 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			jsonp:"callback"
 		}).then(function(ldata){
 			ldata_array = ldata.leaguedivinfo;
-			//arrayUtil.forEach(ldata_array, function(item, index) {
-				// fields names are keys to the column dictionary
-				//game_columns[item] = fieldMapObj[item];
-			//});
 			fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);
 			// generate links for individual team schedules
 			teamSchedLinkDom = dom.byId("teamScheduleLinks");
 			teamSchedLinkDom.innerHTML = "";
+			// loop through each division, and with second loop that loops
+			// through each team_id, create string for <a href= 
+			// then create dom entry w. domConstruct.create call
+			// http://dojotoolkit.org/documentation/tutorials/1.9/dom_functions/
 			arrayUtil.forEach(ldata_array, function(item, index) {
 				divstr = item.agediv +  item.gender;
-				domConstruct.create("p",{innerHTML:divstr+ " Teams"}, teamSchedLinkDom);
-				urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
-				domConstruct.create("a", { href: urlstr, title: "Goto FOO!", innerHTML: "link" }, teamSchedLinkDom);
+				numteams = item.totalteams;
+				divheaderstr = divstr+" Teams</u><br>";
+				hrefstr = "";
+				for (var i = 1; i < numteams+1; i++) {
+					if (i < 10) {
+						teamstr = '0' + i;
+					} else {
+						teamstr = i.toString();
+					}
+					dtstr = divstr+teamstr;
+					urlstr = "http://localhost/doc/xls/"+dtstr+"_schedule.xls";
+					labelstr = dtstr + " Schedule";
+					hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
+				}
+				domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},teamSchedLinkDom);
 			});
 		});
 		
@@ -107,7 +100,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 				game_columns[time_column_key_CONST] = 'GameTime';
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
-					game_columns[item] = fieldMapObj[item];
+					game_columns[item] = schedulerUtil.getFieldMap(item);
 				});
 
 				var game_array = sdata.game_list;				
@@ -119,8 +112,8 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 					var start_time = item.START_TIME; 
 					var game_grid_row = {};
 					// fill in the game day number and start time
-					game_grid_row[gameday_column_key_CONST] = calendarMapObj[gameday_id];
-					game_grid_row[time_column_key_CONST] = tConvert(start_time);
+					game_grid_row[gameday_column_key_CONST] = schedulerUtil.getCalendarMap(gameday_id);
+					game_grid_row[time_column_key_CONST] = schedulerUtil.tConvert(start_time);
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
 					});
@@ -170,8 +163,8 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     			arrayUtil.forEach(fieldschedule_array, function(item, index) {
 					// fields names are keys to the column dictionary
 					gameday_id = item.GAMEDAY_ID;
-					item.GAMEDAY_ID = calendarMapObj[gameday_id];
-					item.START_TIME = tConvert(item.START_TIME)
+					item.GAMEDAY_ID = schedulerUtil.getCalendarMap(gameday_id);
+					item.START_TIME = schedulerUtil.tConvert(item.START_TIME)
 				});    		
     			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
@@ -278,10 +271,10 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 					arrayUtil.forEach(tdata_array, function(item, index) {
 						// fields names are keys to the column dictionary						console.log("tdata "+item);
 						gameday_id = item.GAMEDAY_ID;
-						item.GAMEDAY_ID = calendarMapObj[gameday_id];
+						item.GAMEDAY_ID = schedulerUtil.getCalendarMap(gameday_id);
 						venue = item.VENUE;
-						item.VENUE = fieldMapObj[venue]
-						item.START_TIME = tConvert(item.START_TIME)
+						item.VENUE = schedulerUtil.getFieldMap(venue);
+						item.START_TIME = schedulerUtil.tConvert(item.START_TIME);
 					});    		
     				teamDataGrid.renderArray(tdata_array);
     			});
@@ -342,7 +335,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		};
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
-		var resizeGeneratePaneGrids = function(evt) {
+		var resizeDivisionPaneGrids = function(evt) {
 			grid.resize();
 			if (gamesGrid)
 				gamesGrid.resize();
@@ -372,7 +365,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			on(registry.byId("cup_btn"), "click", getCupSchedule)
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
-			on(registry.byId("generatePane"),"show",resizeGeneratePaneGrids);
+			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
 			on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
