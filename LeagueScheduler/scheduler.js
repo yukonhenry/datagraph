@@ -56,6 +56,8 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);
+			dbstatus = ldata.dbstatus;
+			schedulerUtil.updateDBstatusline(dbstatus);
 			// generate links for individual team schedules
 			teamSchedLinkDom = dom.byId("teamScheduleLinks");
 			teamSchedLinkDom.innerHTML = "";
@@ -87,7 +89,6 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data.div_id;
-    		console.log("Row selected: ", idnum);
     		script.get(constant.SERVER_PREFIX+"leaguedivinfo/"+idnum,{
     			jsonp:"callback"
     		}).then(function(sdata){
@@ -170,14 +171,11 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     		});
 		});
 		var getAllDivSchedule = function(evt) {
-			//dom.byId("status").innerHTML = "";
-			console.log("getting all div schedule");
+			schedulerUtil.updateDBstatusline(0);
 	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
-	        	//console.log("getalldiv schedule status"+adata.status);
-				dom.byId("status").innerHTML = "!Done!";
-
+				schedulerUtil.updateDBstatusline(adata.dbstatus);
 /*				
 	        	if (game_listP) {
 	        		d3.select(schedulerDiv).selectAll("p").remove();

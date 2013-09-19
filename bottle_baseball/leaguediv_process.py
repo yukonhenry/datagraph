@@ -13,6 +13,9 @@ from dbinterface import MongoDBInterface
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
      getFieldInfo
 from sched_exporter import ScheduleExporter
+from tournamentscheduler import TournamentScheduler
+import logging
+
 dbInterface = MongoDBInterface()
 
 def get_leaguedata():
@@ -35,10 +38,12 @@ def leaguedivinfo_all():
     callback_name = request.query.callback
     ldata_tuple = getLeagueDivInfo()
     field_tuple = getFieldInfo()
-
+    dbstatus = dbInterface.getSchedStatus_col()
+    logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
-                    "creation_time":time.asctime()})
+                    "creation_time":time.asctime(),
+                    "dbstatus":dbstatus})
     return callback_name+'('+a+')'
 
 # Get per-division schedule
@@ -80,11 +85,12 @@ def get_alldivSchedule():
     #connected_div_components = connected_components(connectedG)
     fieldtimeSchedule = FieldTimeScheduleGenerator(dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
-    a = json.dumps({"status":'ready'})
+    a = json.dumps({"dbstatus":dbInterface.getSchedStatus_col()})
     return callback_name+'('+a+')'
 
 @route('/exportschedule')
 def exportSchedule():
+    callback_name = request.query.callback
     schedExporter = ScheduleExporter(dbInterface)
     ldata_divinfo = getLeagueDivInfo().dict_list
     for division in ldata_divinfo:
@@ -99,6 +105,10 @@ def exportSchedule():
 
 @route('/getcupschedule')
 def getCupSchedule():
+    callback_name = request.query.callback
+    ldata_tuple = getLeagueDivInfo()
+    tournamentsched = TournamentScheduler(dbInterface, ldata_tuple)
+    tournamentsched.generate()
     a = ""
     return callback_name+'('+a+')'
 

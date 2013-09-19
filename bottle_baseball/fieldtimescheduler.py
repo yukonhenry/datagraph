@@ -851,6 +851,7 @@ class FieldTimeScheduleGenerator:
         # indexer below is used to protect against list of dictionaries that are not ordered according to id,
         # though it is a protective measure, as the list should be ordered with the id.
         match_list_indexer = dict((p['div_id'],i) for i,p in enumerate(total_match_list))
+        self.dbinterface.resetSchedStatus_col()
         self.dbinterface.dropGameCollection()  # reset game schedule collection
 
         # used for calaculating time balancing metrics
@@ -1357,7 +1358,7 @@ class FieldTimeScheduleGenerator:
                                                                 gametime.strftime(time_format_CONST),
                                                                 field_id, home_id, away_id)
                     gameday_id += 1
-
+        self.dbinterface.setSchedStatus_col()
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()
 

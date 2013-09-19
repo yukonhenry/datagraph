@@ -1,6 +1,6 @@
 /* look at examples in http://dojotoolkit.org/documentation/tutorials/1.9/modules/
 for loadable module design and syntax */
-define(function(){
+define(["dojo/dom", "dojo/_base/array", "dojo/domReady!"], function(dom, arrayUtil){
 	var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 		6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 	var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',3:'Pleasant Hill Elem 1',
@@ -9,6 +9,8 @@ define(function(){
 		8:'Mountain View Park', 9:'Pleasant Hill Middle 1', 10:'Pleasant Hill Middle 2',
 		11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
 		14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park'};
+	var status_dom = dom.byId("dbstatus_txt");
+	var status1_dom = dom.byId("dbstatus1_txt");
 	return {
 		getCalendarMap: function(gameday_id) {
 			return calendarMapObj[gameday_id];
@@ -27,6 +29,17 @@ define(function(){
     			time[0] = +time[0] % 12 || 12; // Adjust hours
   			}
   			return time.join (''); // return adjusted time or original string
+		},
+		updateDBstatusline: function(dbstatus) {
+			arrayUtil.forEach([status_dom, status1_dom], function(item_dom, index) {
+				if (dbstatus) {
+					item_dom.innerHTML = "Schedule in database, Ready";
+					item_dom.style.color = 'green';
+				} else {
+					item_dom.innerHTML = "Schedule Not Ready";
+					item_dom.style.color = 'red';
+				}
+			});
 		}
 	};
 });

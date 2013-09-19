@@ -77,3 +77,6 @@ div.bar {
         background-color: red;
         border: 2px solid black;
 } 
+#dbstatus_txt {
+  color:red;
+}

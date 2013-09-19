@@ -26,6 +26,8 @@ team_id_CONST = 'TEAM_ID'
 totalgames_CONST = 'TOTALGAMES'
 venue_count_CONST = 'VENUE_COUNT'
 venue_count_list_CONST = 'VENUE_COUNT_LIST'
+sched_status_CONST = 'SCHED_STATUS'
+
 class MongoDBInterface:
     def __init__(self):
         if socket.gethostname() == 'web380.webfaction.com':
@@ -34,6 +36,9 @@ class MongoDBInterface:
             client = MongoClient()
         schedule_db = client.schedule_db
         self.games_col = schedule_db.games
+        self.schedstatus_col = schedule_db.schedstatus
+        if self.schedstatus_col.count() == 0:
+            self.schedstatus_col.insert({sched_status_CONST:0})
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
@@ -244,3 +249,15 @@ class MongoDBInterface:
 
     def dropGameCollection(self):
         self.games_col.drop()
+        self.resetSchedStatus_col()
+
+    def resetSchedStatus_col(self):
+        self.schedstatus_col.update({sched_status_CONST:{"$exists":True}},
+                                    {"$set":{sched_status_CONST:0}})
+
+    def setSchedStatus_col(self):
+        self.schedstatus_col.update({sched_status_CONST:{"$exists":True}},
+                                    {"$set":{sched_status_CONST:1}})
+
+    def getSchedStatus_col(self):
+        return self.schedstatus_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
