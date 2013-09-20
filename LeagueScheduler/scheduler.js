@@ -29,6 +29,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		var fieldScheduleGrid = null;
 		var metricsGrid = null;
 		var ldata_array = null;
+		var schedUtil = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -57,7 +58,12 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);
 			dbstatus = ldata.dbstatus;
-			schedulerUtil.updateDBstatusline(dbstatus);
+			schedUtil = new schedulerUtil({leaguedata:ldata_array});
+			schedUtil.updateDBstatusline(dbstatus);
+			// generate division selection drop-down menus
+			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
+			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
+			schedUtil.generateDivSelectDropDown(registry.byId("divSelectForEdit"));
 			// generate links for individual team schedules
 			teamSchedLinkDom = dom.byId("teamScheduleLinks");
 			teamSchedLinkDom.innerHTML = "";
@@ -85,7 +91,6 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			});
 		});
 		
-
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data.div_id;
@@ -101,7 +106,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 				game_columns[time_column_key_CONST] = 'GameTime';
 				arrayUtil.forEach(field_array, function(item, index) {
 					// fields names are keys to the column dictionary
-					game_columns[item] = schedulerUtil.getFieldMap(item);
+					game_columns[item] = schedUtil.getFieldMap(item);
 				});
 
 				var game_array = sdata.game_list;				
@@ -113,8 +118,8 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 					var start_time = item.START_TIME; 
 					var game_grid_row = {};
 					// fill in the game day number and start time
-					game_grid_row[gameday_column_key_CONST] = schedulerUtil.getCalendarMap(gameday_id);
-					game_grid_row[time_column_key_CONST] = schedulerUtil.tConvert(start_time);
+					game_grid_row[gameday_column_key_CONST] = schedUtil.getCalendarMap(gameday_id);
+					game_grid_row[time_column_key_CONST] = schedUtil.tConvert(start_time);
 					arrayUtil.forEach(gameday_data, function(item2, index2) {
 						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
 					});
@@ -136,7 +141,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     		});
 		});
 		grid.on("dgrid-deselect", function(event){
-    		console.log("Row de-selected: ", event.rows[0].data);
+    		//console.log("Row de-selected: ", event.rows[0].data);
 		});
 		
 		fieldInfoGrid.on("dgrid-select", function(event){
@@ -164,18 +169,18 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     			arrayUtil.forEach(fieldschedule_array, function(item, index) {
 					// fields names are keys to the column dictionary
 					gameday_id = item.GAMEDAY_ID;
-					item.GAMEDAY_ID = schedulerUtil.getCalendarMap(gameday_id);
-					item.START_TIME = schedulerUtil.tConvert(item.START_TIME)
+					item.GAMEDAY_ID = schedUtil.getCalendarMap(gameday_id);
+					item.START_TIME = schedUtil.tConvert(item.START_TIME)
 				});    		
     			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
 		});
 		var getAllDivSchedule = function(evt) {
-			schedulerUtil.updateDBstatusline(0);
+			schedUtil.updateDBstatusline(0);
 	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
-				schedulerUtil.updateDBstatusline(adata.dbstatus);
+				schedUtil.updateDBstatusline(adata.dbstatus);
 /*				
 	        	if (game_listP) {
 	        		d3.select(schedulerDiv).selectAll("p").remove();
@@ -269,10 +274,10 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 					arrayUtil.forEach(tdata_array, function(item, index) {
 						// fields names are keys to the column dictionary						console.log("tdata "+item);
 						gameday_id = item.GAMEDAY_ID;
-						item.GAMEDAY_ID = schedulerUtil.getCalendarMap(gameday_id);
+						item.GAMEDAY_ID = schedUtil.getCalendarMap(gameday_id);
 						venue = item.VENUE;
-						item.VENUE = schedulerUtil.getFieldMap(venue);
-						item.START_TIME = schedulerUtil.tConvert(item.START_TIME);
+						item.VENUE = schedUtil.getFieldMap(venue);
+						item.START_TIME = schedUtil.tConvert(item.START_TIME);
 					});    		
     				teamDataGrid.renderArray(tdata_array);
     			});
@@ -331,6 +336,11 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     			metricsGrid.renderArray(metricsGrid_list); 			
     		});  
 		};
+		var editSeedGrid = function(evt) {
+			var div_id = registry.byId("divSelectForEdit").get("value");
+			var numteams = schedUtil.getNumberTeams(div_id);
+			console.log('number teams='+numteams);
+		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
 		var resizeDivisionPaneGrids = function(evt) {
@@ -353,6 +363,10 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			if (metricsGrid)
 				metricsGrid.resize();
 		}
+		var resizeEditPaneGrids = function(evt) {
+			//if (metricsGrid)
+			//	metricsGrid.resize();
+		}
 
 		// events for widgets should be in one file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget
@@ -363,10 +377,12 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			on(registry.byId("cup_btn"), "click", getCupSchedule)
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
+			on(registry.byId("divSelectForEdit"),"change", editSeedGrid);
 			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
 			on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
+			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
  		}); 
 	}
 );

@@ -10,14 +10,14 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="claro">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.06x</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.06y</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true"></script>
         <script>
 			require(["dojo/dom", "LeagueScheduler/scheduler",
 			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select","dojo/domReady!"],
-			function(dom, scheduler){
+			function(dom){
     			var greeting = dom.byId("greeting");
     			greeting.innerHTML +="";
 			});
@@ -31,18 +31,7 @@
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Teams" id="teamsPane">
     			<label for="divisionSelect">Select Division</label>
-    			<select id="divisionSelect" data-dojo-type="dijit/form/Select" name="divisionSelect">	
-        			<option value="" selected="selected">Select division</option>
-        			<!-- value fields are 0-indexed as they map into array positions of the returned!
-        				division info array returned from server -->			
-         			<option value=1>U6B</option>
-        			<option value=2>U6G</option>
-        			<option value=3>U8B</option>
-        			<option value=4>U8G</option>
-        			<option value=5>U10B</option>
-        			<option value=6>U10G</option>
-        			<option value=7>U12B</option>
-        			<option value=8>U12G</option>
+    			<select id="divisionSelect" data-dojo-type="dijit/form/Select" name="divisionSelect">
     			</select>
     			<b>Selection division, then click on row</b> with team to see team schedule.  Scroll down. <b>Note on Bye Weeks:</b> Because of the odd number of teams in some divisions, some teams ih the division will have bye week(s) in their schedule.
     			<div id="divisionGridLinkTeams"></div>
@@ -56,18 +45,7 @@
     		<div data-dojo-type="dijit/layout/ContentPane" title="Metrics" id="metricsPane">
     			Internal use - display metrics for schedule fairness. Some specific schedule metrics impacted by constraints implemented for specific teams.<br>
     			<label for="divisionSelectForMetrics">Select Division</label>
-    			<select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">	
-        			<option value="" selected="selected">Select division</option>
-        			<!-- value fields are 0-indexed as they map into array positions of the returned
-        				division info array returned from server -->			
-         			<option value=1>U6B</option>
-        			<option value=2>U6G</option>
-        			<option value=3>U8B</option>
-        			<option value=4>U8G</option>
-        			<option value=5>U10B</option>
-        			<option value=6>U10G</option>
-        			<option value=7>U12B</option>
-        			<option value=8>U12G</option>
+                <select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">
     			</select>
     			<div id="metricsHeader"></div>
     			<div id="metricsGrid"></div>
@@ -91,6 +69,9 @@
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane">
     			<b>Edit Division Parameters</b>
+                <label for="divSelectForEdit">Select Division</label>
+                <select id="divSelectForEdit" data-dojo-type="dijit/form/Select" name="divSelectForEdit">
+                </select>
     			<div id="editGrid"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
