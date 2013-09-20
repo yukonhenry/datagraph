@@ -341,23 +341,6 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			var schedConfig = new schedulerConfig({div_id:registry.byId("divSelectForEdit").get("value"),
 				schedutil_obj:schedUtil});
 			seedGrid = schedConfig.createSeedGrid("seedGrid");
-/*
-
-			var team_seed_list = [];
-			for (var i = 1; i < numteams+1; i++) {
-				team_seed_list.push({team_id:i, seed_id:i});
-			}
-			var seed_store = new Memory({data:team_seed_list, idProperty:team_id_CONST});
-			seedGrid = new OnDemandGrid({
-            	store: seed_store,
-            	columns: {
-                	team_id: "Team ID",
-                	seed_id: "Seed"
-            	}
-        	}, "seedGrid");
-     
-        	seedGrid.startup();
-*/
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63

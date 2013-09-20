@@ -1,6 +1,6 @@
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
-	"dojo/store/Memory","dgrid/OnDemandGrid","dojo/domReady!"], 
-	function(dom, declare, lang, arrayUtil, Memory, OnDemandGrid){
+	"dojo/store/Memory","dgrid/OnDemandGrid", "dgrid/Keyboard", "dgrid/editor", "dojo/domReady!"], 
+	function(dom, declare, lang, arrayUtil, Memory, OnDemandGrid, Keyboard, editor){
 		return declare(null, {
 			div_id: 0, schedutil_obj: null, numteams:0,
 			team_seed_list:null, seedGrid: null, seedStore:null,
@@ -21,7 +21,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             		store: this.seedStore,
             		columns: {
                 		team_id: "Team ID",
-                		seed_id: "Seed"
+                		editor({
+                			label: "Seed",
+                			field: "seed_id",
+                			editor: "text",
+                			editOn: "dblclick" });
             		}
         		}, grid_name);
         		this.seedGrid.startup();
