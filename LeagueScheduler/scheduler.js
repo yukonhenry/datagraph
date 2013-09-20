@@ -8,12 +8,12 @@
 require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
 		"dojo/_base/declare", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
-		"dojo/request", "dojo/store/Memory","dgrid/OnDemandGrid",
-		"LeagueScheduler/schedulerUtil",
+		"dojo/request", 
+		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
 	function(dom, domConstruct, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil,
-		request, Memory, OnDemandGrid, schedulerUtil) {
+		request, schedulerUtil, schedulerConfig) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -22,12 +22,9 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		var totalgames_CONST = 'TOTALGAMES'
 		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var numTeams = 0; numVenues =0; divnum = "U5";
-		var gamesGrid = null;
-		var divisionGrid = null;
+		var gamesGrid = divisionGrid = teamDataGrid = fieldScheduleGrid = metricsGrid = null;
+		var seedGrid = null;
 		var divisionGridHandle = null;
-		var teamDataGrid = null;
-		var fieldScheduleGrid = null;
-		var metricsGrid = null;
 		var ldata_array = null;
 		var schedUtil = null;
 		var CustomGrid = declare([ Grid, Selection ]);
@@ -337,9 +334,26 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     		});  
 		};
 		var editSeedGrid = function(evt) {
-			var div_id = registry.byId("divSelectForEdit").get("value");
-			var numteams = schedUtil.getNumberTeams(div_id);
-			console.log('number teams='+numteams);
+			schedConfig = new schedulerConfig({div_id:registry.byId("divSelectForEdit").get("value"),
+				schedutil_obj:schedUtil});
+			seedGrid = schedConfig.createSeedGrid("seedGrid");
+/*
+
+			var team_seed_list = [];
+			for (var i = 1; i < numteams+1; i++) {
+				team_seed_list.push({team_id:i, seed_id:i});
+			}
+			var seed_store = new Memory({data:team_seed_list, idProperty:team_id_CONST});
+			seedGrid = new OnDemandGrid({
+            	store: seed_store,
+            	columns: {
+                	team_id: "Team ID",
+                	seed_id: "Seed"
+            	}
+        	}, "seedGrid");
+     
+        	seedGrid.startup();
+*/
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
@@ -364,8 +378,8 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 				metricsGrid.resize();
 		}
 		var resizeEditPaneGrids = function(evt) {
-			//if (metricsGrid)
-			//	metricsGrid.resize();
+			if (seedGrid)
+				seedGrid.resize();
 		}
 
 		// events for widgets should be in one file; trying to split it up into two or more modules
