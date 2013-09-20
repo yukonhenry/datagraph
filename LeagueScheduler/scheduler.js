@@ -334,7 +334,11 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
     		});  
 		};
 		var editSeedGrid = function(evt) {
-			schedConfig = new schedulerConfig({div_id:registry.byId("divSelectForEdit").get("value"),
+			if (seedGrid) {
+				dom.byId("seedGrid").innerHTML = "";
+				delete seedGrid;
+			}
+			var schedConfig = new schedulerConfig({div_id:registry.byId("divSelectForEdit").get("value"),
 				schedutil_obj:schedUtil});
 			seedGrid = schedConfig.createSeedGrid("seedGrid");
 /*
