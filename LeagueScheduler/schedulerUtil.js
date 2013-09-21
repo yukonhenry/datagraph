@@ -63,6 +63,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				select_reg.addOption(option_array);
 			},
 			getNumberTeams: function(div_id) {
+				// ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/array.html#dojo-base-array
 				var result_array = arrayUtil.filter(this.leaguedata, function(item) {
 					return item.div_id == div_id;
 				});
