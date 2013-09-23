@@ -22,7 +22,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             		store: this.seedStore,
             		columns: {
                 		team_id: "Team ID",
-                		seed_id: editor({label:"Seed", field:"sead_id"},"text","click")
+                		seed_id: editor({label:"Seed", field:"seed_id", autoSave:true},"text","dblclick")
                 	/*	editor({
                 			label: "Seed",
                 			field: "seed_id",
@@ -31,6 +31,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             		}
         		}, grid_name);
         		this.seedGrid.startup();
+        		this.seedGrid.on("dgrid-datachange", function(event) {
+        			var val = event.value;
+        			console.log("val="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
+        				'col='+event.cell.column.field);
+        		});
         		return this.seedGrid;
 			}
 		});
