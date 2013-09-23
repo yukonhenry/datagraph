@@ -17,7 +17,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}
 			},
 			createSeedGrid: function(grid_name) {
-				this.seedStore = new Memory({data:this.team_seed_list, idProperty:'team_id'});
+				this.seedStore = new Memory({data:this.team_seed_list, idProperty:"team_id"});
+
 				this.seedGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
             		store: this.seedStore,
             		columns: {
@@ -31,13 +32,22 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             		}
         		}, grid_name);
         		this.seedGrid.startup();
+        		
         		this.seedGrid.on("dgrid-datachange", function(event) {
+        			var entry1 = this.seedStore.get(2);
+        			console.log("entry="+entry1.seed_id);
         			var val = event.value;
         			console.log("val="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
         				'col='+event.cell.column.field);
+        			var entry = this.seedStore.get(2);
+        			console.log("entry="+entry.seed_id);
+        			entry.seed_id = 989;
+
+        			this.seedStore.put(entry);
+        			this.seedGrid.refresh();
         		});
         		return this.seedGrid;
-			}
+        	}
 		});
 	}
 );
