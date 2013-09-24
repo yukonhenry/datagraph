@@ -6,14 +6,14 @@
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
 require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
-		"dojo/_base/declare", "dgrid/Grid", "dgrid/Selection",
+		"dojo/_base/declare", "dojo/_base/lang", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request", 
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"dijit/form/NumberTextBox","dijit/form/Button",
 		"dojo/domReady!"],
-	function(dom, domConstruct, on, parser, registry, ready, declare, Grid, Selection, script, arrayUtil,
-		request, schedulerUtil, schedulerConfig) {
+	function(dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection, 
+		script,arrayUtil, request, schedulerUtil, schedulerConfig) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -341,6 +341,12 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			var schedConfig = new schedulerConfig({div_id:registry.byId("divSelectForEdit").get("value"),
 				schedutil_obj:schedUtil});
 			seedGrid = schedConfig.createSeedGrid("seedGrid");
+			// Note there are several ways to invoke event handler; see this file
+			// and ref http://dojotoolkit.org/documentation/tutorials/1.9/events/
+			// see http://dojotoolkit.org/documentation/tutorials/1.9/hitch/
+			// for usage of hitch to mitigate against js scope rules around execution context
+			on(seedGrid, "dgrid-datachange", lang.hitch(schedConfig, schedConfig.editSeedGrid));
+			schedConfig.testValue(1);
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63

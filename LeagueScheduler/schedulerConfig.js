@@ -6,7 +6,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			div_id: 0, schedutil_obj: null, numteams:0,
 			team_seed_list:null, seedGrid: null, seedStore:null,
 			constructor: function(args) {
-				//declare.safeMixin(this, args);
+				// declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
 				// than declare.safeMixin
 				lang.mixin(this, args);
@@ -23,7 +23,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             		store: this.seedStore,
             		columns: {
                 		team_id: "Team ID",
-                		seed_id: editor({label:"Seed", field:"seed_id", autoSave:true},"text","dblclick")
+                		seed_id: editor({label:"Seed", field:"seed_id"},"text","dblclick")
                 	/*	editor({
                 			label: "Seed",
                 			field: "seed_id",
@@ -32,22 +32,35 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             		}
         		}, grid_name);
         		this.seedGrid.startup();
-        		
-        		this.seedGrid.on("dgrid-datachange", function(event) {
-        			var entry1 = this.seedStore.get(2);
-        			console.log("entry="+entry1.seed_id);
+                return this.seedGrid;
+            },        		
+            editSeedGrid: function(event) {
         			var val = event.value;
         			console.log("val="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
         				'col='+event.cell.column.field);
-        			var entry = this.seedStore.get(2);
-        			console.log("entry="+entry.seed_id);
-        			entry.seed_id = 989;
+                    this.testValue(event.rowId);
+                    /*
+                    this.seedGrid.updateDirty(2,'seed_id', 989);
+                    this.seedGrid.save().then(function(results) {
+                        this.seedGrid.refresh();
+                        console.log("save finished");
+                    });
+                    var entry = this.seedStore.get(2);
+                    entry.seed_id = 989;
+                    this.seedStore.put(entry);
 
-        			this.seedStore.put(entry);
-        			this.seedGrid.refresh();
-        		});
-        		return this.seedGrid;
-        	}
+                    //console.log('updated');
+        			//saved = this.seedGrid.save();
+                    //saved.then(function(results) {
+                    console.log("save finished");
+                    this.seedGrid.refresh();
+                    //})
+                    //this.seedGrid.refresh();
+                    */
+        	},
+            testValue: function(rid) {
+                console.log("store value"+this.seedStore.get(rid).seed_id);
+            }
 		});
 	}
 );
