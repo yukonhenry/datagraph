@@ -328,8 +328,10 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			schedConfig.testValue(1);
 		}
 		var initNewSchedule = function(evt) {
-			newScheduler = new newscheduler();
+			input_reg = registry.byId("newsched_input");
+			newScheduler = new newscheduler({newsched_reg:input_reg});
 			newScheduler.createConfig("newsched_name");
+			on(input_reg, "keyup", lang.hitch(newScheduler, newScheduler.processdbname_input));
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
