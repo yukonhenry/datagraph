@@ -10,10 +10,11 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request", 
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
-		"dijit/form/NumberTextBox","dijit/form/Button",
+		"LeagueScheduler/newscheduler",
+		"dijit/form/Button",
 		"dojo/domReady!"],
 	function(dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection, 
-		script,arrayUtil, request, schedulerUtil, schedulerConfig) {
+		script,arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -61,31 +62,9 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
 			schedUtil.generateDivSelectDropDown(registry.byId("divSelectForEdit"));
+			schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
-			teamSchedLinkDom = dom.byId("teamScheduleLinks");
-			teamSchedLinkDom.innerHTML = "";
-			// loop through each division, and with second loop that loops
-			// through each team_id, create string for <a href= 
-			// then create dom entry w. domConstruct.create call
-			// http://dojotoolkit.org/documentation/tutorials/1.9/dom_functions/
-			arrayUtil.forEach(ldata_array, function(item, index) {
-				divstr = item.agediv +  item.gender;
-				numteams = item.totalteams;
-				divheaderstr = divstr+" Teams</u><br>";
-				hrefstr = "";
-				for (var i = 1; i < numteams+1; i++) {
-					if (i < 10) {
-						teamstr = '0' + i;
-					} else {
-						teamstr = i.toString();
-					}
-					dtstr = divstr+teamstr;
-					urlstr = "http://localhost/doc/xls/"+dtstr+"_schedule.xls";
-					labelstr = dtstr + " Schedule";
-					hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
-				}
-				domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},teamSchedLinkDom);
-			});
+			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 		});
 		
 		grid.on("dgrid-select", function(event){
@@ -348,6 +327,10 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			on(seedGrid, "dgrid-datachange", lang.hitch(schedConfig, schedConfig.editSeedGrid));
 			schedConfig.testValue(1);
 		}
+		var initNewSchedule = function(evt) {
+			newScheduler = new newscheduler();
+			newScheduler.createConfig("newsched_name");
+		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
 		var resizeDivisionPaneGrids = function(evt) {
@@ -380,8 +363,8 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		ready(function() {
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
-			on(registry.byId("export_btn"), "click", exportSchedule)
-			on(registry.byId("cup_btn"), "click", getCupSchedule)
+			on(registry.byId("export_btn"), "click", exportSchedule);
+			on(registry.byId("cup_btn"), "click", getCupSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			on(registry.byId("divSelectForEdit"),"change", editSeedGrid);
@@ -390,6 +373,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
+			on(registry.byId("new_btn"), "click", initNewSchedule);
  		}); 
 	}
 );

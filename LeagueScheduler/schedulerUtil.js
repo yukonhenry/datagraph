@@ -3,8 +3,9 @@ for loadable module design and syntax  also ref
 http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and 
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
-define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/domReady!"], 
-	function(dom, declare, lang, arrayUtil){
+define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang",
+	"dojo/_base/array", "dojo/domReady!"], 
+	function(dom, domConstruct, declare, lang, arrayUtil){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',3:'Pleasant Hill Elem 1',
@@ -68,7 +69,44 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					return item.div_id == div_id;
 				});
 				return result_array[0].totalteams;
-			}
+			},
+			createSchedLinks: function(ldata_array, dom_name) {
+				target_dom = dom.byId(dom_name);
+				hrefstr = "";
+				arrayUtil.forEach(ldata_array, function(item, index) {
+					divstr = item.agediv + item.gender;
+					urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
+					labelstr = divstr + " Schedule";
+					hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
+				});
+				domConstruct.place(hrefstr, target_dom);
+			},
+			createTeamSchedLinks: function(ldata_array, dom_name) {
+				// loop through each division, and with second loop that loops
+				// through each team_id, create string for <a href= 
+				// then create dom entry w. domConstruct.create call
+				// http://dojotoolkit.org/documentation/tutorials/1.9/dom_functions/
+				target_dom = dom.byId(dom_name);
+				target_dom.innerHTML = "";
+				arrayUtil.forEach(ldata_array, function(item, index) {
+					divstr = item.agediv + item.gender;
+					numteams = item.totalteams;
+					divheaderstr = "<u>"+divstr+" Teams</u><br>";
+					hrefstr = "";
+					for (var i = 1; i < numteams+1; i++) {
+						if (i < 10) {
+							teamstr = '0' + i;
+						} else {
+							teamstr = i.toString();
+						}
+						dtstr = divstr+teamstr;
+						urlstr = "http://localhost/doc/xls/"+dtstr+"_schedule.xls";
+						labelstr = dtstr + " Schedule";
+						hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
+					}
+					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
+				});  //foreach
+			}  //createTeamSchedLinks
 		});
 	}
 );

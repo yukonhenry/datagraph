@@ -77,6 +77,15 @@ div.bar {
         background-color: red;
         border: 2px solid black;
 } 
+#new_btn {
+  color: green;
+}
 #dbstatus_txt {
   color:red;
+}
+.style_inline {
+  display:inline;
+}
+.style_none {
+  display:none;
 }

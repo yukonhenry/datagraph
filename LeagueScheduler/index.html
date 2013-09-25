@@ -10,13 +10,13 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="claro">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07a</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07b</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true"></script>
         <script>
-			require(["dojo/dom", "LeagueScheduler/scheduler",
-			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select","dojo/domReady!"],
+			require(["dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
+			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/ValidationTextBox", "dojo/domReady!"],
 			function(dom){
     			var greeting = dom.byId("greeting");
     			greeting.innerHTML +="";
@@ -51,16 +51,10 @@
     			<div id="metricsGrid"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Download Here" id="DownloadPane">
+                <div id="divScheduleLinks">
     			<b>Schedules for Download</b><br><br>
-    			<i>Team Schedules in one XLS file, by division:</i> 
-				<a href="http://localhost/doc/xls/U06B_schedule.xls">U06B Schedule</a> 
-				<a href="http://localhost/doc/xls/U06G_schedule.xls">U06G Schedule</a> 
-				<a href="http://localhost/doc/xls/U8B_schedule.xls">U8B Schedule</a> 
-				<a href="http://localhost/doc/xls/U8G_schedule.xls">U8G Schedule</a> 
-				<a href="http://localhost/doc/xls/U10B_schedule.xls">U10B Schedule</a> 
-				<a href="http://localhost/doc/xls/U10G_schedule.xls">U10G Schedule</a> 
-				<a href="http://localhost/doc/xls/U12B_schedule.xls">U12B Schedule</a> 
-				<a href="http://localhost/doc/xls/U12G_schedule.xls">U12G Schedule</a> <br><br>
+    			<i>Team Schedules in one XLS file, by division: </i></div>
+                <br>
 				<i>U6-U12 League Schedule, sorted by date and time, one file</i>
 				<a href="http://localhost/doc/xls/2013PHMSAFall_schedule_RefFormat.xls">U6-U12 League Schedule</a> 
 				<br/><br />
@@ -68,7 +62,13 @@
 				<div id="teamScheduleLinks"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane">
-    			<b>Edit Division Parameters</b>
+                <button style="display: inline" id="new_btn" data-dojo-type="dijit/form/Button" type="button" title="Click to Create New Schedule">NEW Schedule</button> 
+                <div id="newsched_name" class="style_none">
+                    <label for="newsched_input">Input Schedule Name</label>
+                    <input type="text" name="newsched_input" id="newsched_input" value="newdb" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
+                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                </div>
+    			<br><b>Edit Division Parameters</b>
                 <label for="divSelectForEdit">Select Division</label>
                 <select id="divSelectForEdit" data-dojo-type="dijit/form/Select" name="divSelectForEdit">
                 </select>
@@ -76,9 +76,9 @@
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
     			<b>Generate Schedule</b>
-    			<button style="display: inline" id="schedule_btn" data-dojo-type="dijit/form/Button">Generate Sched</button>
-    			<button style="display: inline" id="cup_btn" data-dojo-type="dijit/form/Button">Generate Cup Sched</button> 
-    			<button style="display: inline" id="export_btn" data-dojo-type="dijit/form/Button">Export</button> <br>
+    			<button style="display: inline" id="schedule_btn" data-dojo-type="dijit/form/Button" type="button">Generate Sched</button>
+    			<button style="display: inline" id="cup_btn" data-dojo-type="dijit/form/Button" type="button">Generate Cup Sched</button> 
+    			<button style="display: inline" id="export_btn" data-dojo-type="dijit/form/Button" type="button">Export</button> <br>
                 <div id="dbstatus1_txt"></div>
     		</div>
     	</div>
