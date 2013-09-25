@@ -1,7 +1,7 @@
-define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Memory","dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", 
 	"dgrid/Selection", "dojo/domReady!"], 
-	function(dom, declare, lang, arrayUtil, Memory, OnDemandGrid, editor, Keyboard, Selection){
+	function(dbootstrap, dom, declare, lang, arrayUtil, Memory, OnDemandGrid, editor, Keyboard, Selection){
 		return declare(null, {
 			div_id: 0, schedutil_obj: null, numteams:0,
 			team_seed_list:null, seedGrid: null, seedStore:null,

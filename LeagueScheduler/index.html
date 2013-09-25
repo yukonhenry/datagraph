@@ -4,20 +4,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <link rel="stylesheet" href="../dijit/themes/claro/claro.css" media="screen">
+        <!--<link rel="stylesheet" href="../dijit/themes/claro/claro.css" media="screen">-->
+        <link rel="stylesheet" href="../dbootstrap/build/theme/dbootstrap/theme/dbootstrap/dbootstrap.css" media="screen">
+        <link rel="stylesheet" href="../dbootstrap/build/theme/dbootstrap/theme/dbootstrap/dijit.css" media="screen">
         <link rel="stylesheet" href="style.css" media="screen">
         <link rel="stylesheet" href="scheduledgridstyle.css" media="screen">
         <title>PHMSA AYSO Fall 2013</title>
     </head>
-    <body class="claro">
+    <body class="dbootstrap">
         <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07b</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
-            data-dojo-config="async: true"></script>
+            data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
-			require(["dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
+			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
 			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/ValidationTextBox", "dojo/domReady!"],
-			function(dom){
+			function(dbootstrap, dom){
     			var greeting = dom.byId("greeting");
     			greeting.innerHTML +="";
 			});

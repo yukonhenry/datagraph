@@ -1,6 +1,6 @@
-define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", 
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", 
 	"dojo/dom-class", "dojo/keys", "dojo/domReady!"],
-	function(dom, declare, lang, domClass, keys) {
+	function(dbootstrap, dom, declare, lang, domClass, keys) {
 		return declare(null, {
 			newsched_reg : null,
 			constructor: function(args) {

@@ -5,7 +5,7 @@
 // small note, if there are issues with garbage characters in the jsonp script get request,
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
-require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
+require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
 		"dojo/_base/declare", "dojo/_base/lang", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request", 
@@ -13,7 +13,7 @@ require(["dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/regi
 		"LeagueScheduler/newscheduler",
 		"dijit/form/Button",
 		"dojo/domReady!"],
-	function(dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection, 
+	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection, 
 		script,arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
