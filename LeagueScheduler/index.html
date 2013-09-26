@@ -17,7 +17,9 @@
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
 			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
-			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/ValidationTextBox", "dojo/domReady!"],
+			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/ValidationTextBox",
+            "dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem",
+            "dojo/domReady!"],
 			function(dbootstrap, dom){
     			var greeting = dom.byId("greeting");
     			greeting.innerHTML +="";
@@ -26,7 +28,7 @@
 		<div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
         	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="divisionPane" data-dojo-props="selected:true">
                 <div id="dbstatus_txt"></div>
-                Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
+                <b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
                 <div id="divisionInfoGrid"></div>
                 <div id="scheduleInfoGrid"></div>
     		</div>
@@ -63,6 +65,20 @@
 				<div id="teamScheduleLinks"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane">
+                <div data-dojo-type="dijit/form/DropDownButton">
+                    <span>Select Schedule</span>
+                    <div data-dojo-type="dijit/DropDownMenu" id="dbselect_menu">
+                        <div data-dojo-type="dijit/MenuItem" id="newsched_menu">New Schedule</div>
+                        <div data-dojo-type="dijit/PopupMenuItem" id="existingsched_menu">
+                            <span>Existing Schedule</span>
+                            <div data-dojo-type="dijit/DropDownMenu" id="submenu2">
+                                <div data-dojo-type="dijit/MenuItem">Nested #1</div>
+                                <div data-dojo-type="dijit/MenuItem">Nested #2</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
                 <span class="dijit dijitReset dijitInline primary dijitButton" role="presentation">
                 <button style="display: inline" id="new_btn" data-dojo-type="dijit/form/Button" type="button" title="Click to Create New Schedule">NEW Schedule</button> </span>
                 <div id="newsched_name" class="style_none">
