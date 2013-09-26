@@ -6,7 +6,6 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <!--<link rel="stylesheet" href="../dijit/themes/claro/claro.css" media="screen">-->
         <link rel="stylesheet" href="../dbootstrap/build/theme/dbootstrap/theme/dbootstrap/dbootstrap.css" media="screen">
-        <link rel="stylesheet" href="../dbootstrap/build/theme/dbootstrap/theme/dbootstrap/dijit.css" media="screen">
         <link rel="stylesheet" href="style.css" media="screen">
         <link rel="stylesheet" href="scheduledgridstyle.css" media="screen">
         <title>PHMSA AYSO Fall 2013</title>
@@ -64,7 +63,8 @@
 				<div id="teamScheduleLinks"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane">
-                <button style="display: inline" id="new_btn" data-dojo-type="dijit/form/Button" type="button" title="Click to Create New Schedule">NEW Schedule</button> 
+                <span class="dijit dijitReset dijitInline primary dijitButton" role="presentation">
+                <button style="display: inline" id="new_btn" data-dojo-type="dijit/form/Button" type="button" title="Click to Create New Schedule">NEW Schedule</button> </span>
                 <div id="newsched_name" class="style_none">
                     <label for="newsched_input">Input Schedule Name</label>
                     <input type="text" name="newsched_input" id="newsched_input" value="newdb" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
