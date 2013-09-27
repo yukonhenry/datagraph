@@ -38,12 +38,14 @@ def leaguedivinfo_all():
     callback_name = request.query.callback
     ldata_tuple = getLeagueDivInfo()
     field_tuple = getFieldInfo()
-    dbstatus = dbInterface.getSchedStatus_col()
+    dbstatus = dbInterface.getSchedStatus()
+    schedcol_list = dbInterface.getScheduleCollections()
     logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
-                    "dbstatus":dbstatus})
+                    "dbstatus":dbstatus,
+                    "dbcol_list":schedcol_list})
     return callback_name+'('+a+')'
 
 # Get per-division schedule
@@ -85,7 +87,7 @@ def get_alldivSchedule():
     #connected_div_components = connected_components(connectedG)
     fieldtimeSchedule = FieldTimeScheduleGenerator(dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
-    a = json.dumps({"dbstatus":dbInterface.getSchedStatus_col()})
+    a = json.dumps({"dbstatus":dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
 @route('/exportschedule')

@@ -34,11 +34,10 @@ class MongoDBInterface:
             client = MongoClient('localhost', 11466)
         else:
             client = MongoClient()
-        schedule_db = client.schedule_db
-        self.games_col = schedule_db.games
-        self.schedstatus_col = schedule_db.schedstatus
-        if self.schedstatus_col.count() == 0:
-            self.schedstatus_col.insert({sched_status_CONST:0})
+        self.schedule_db = client.schedule_db
+        self.games_col = self.schedule_db.games
+        if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
+            self.games_col.insert({sched_status_CONST:0})
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
@@ -252,12 +251,20 @@ class MongoDBInterface:
         self.resetSchedStatus_col()
 
     def resetSchedStatus_col(self):
-        self.schedstatus_col.update({sched_status_CONST:{"$exists":True}},
-                                    {"$set":{sched_status_CONST:0}})
+        # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
+        self.games_col.update({sched_status_CONST:{"$exists":True}},
+                              {"$set":{sched_status_CONST:0}}, upsert=True)
 
     def setSchedStatus_col(self):
-        self.schedstatus_col.update({sched_status_CONST:{"$exists":True}},
-                                    {"$set":{sched_status_CONST:1}})
+        self.games_col.update({sched_status_CONST:{"$exists":True}},
+                              {"$set":{sched_status_CONST:1}})
 
-    def getSchedStatus_col(self):
-        return self.schedstatus_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
+    def getSchedStatus(self):
+        return self.games_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
+
+    def getScheduleCollections(self):
+        # ref http://api.mongodb.org/python/current/api/pymongo/database.html
+        sc_list = self.schedule_db.collection_names(include_system_collections=False)
+        # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
+        schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1]
+        return schedcollect_list
