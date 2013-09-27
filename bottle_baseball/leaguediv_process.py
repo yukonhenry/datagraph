@@ -45,7 +45,7 @@ def leaguedivinfo_all():
                     "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "dbstatus":dbstatus,
-                    "dbcol_list":schedcol_list})
+                    "dbcollection_list":schedcol_list})
     return callback_name+'('+a+')'
 
 # Get per-division schedule

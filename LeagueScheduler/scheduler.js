@@ -65,6 +65,9 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
+			dbcollection_list = ldata.dbcollection_list;
+			dbcollection_submenu_reg = registry.byId("dbcollection_submenu");
+			newScheduler = new newscheduler({newsched_reg:input_reg});			
 		});
 		
 		grid.on("dgrid-select", function(event){
