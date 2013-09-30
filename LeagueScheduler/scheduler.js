@@ -61,13 +61,14 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
-			schedUtil.generateDivSelectDropDown(registry.byId("divSelectForEdit"));
+			//schedUtil.generateDivSelectDropDown(registry.byId("divSelectForEdit"));
 			schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			dbcollection_list = ldata.dbcollection_list;
-			dbcollection_submenu_reg = registry.byId("dbcollection_submenu");
-			newScheduler = new newscheduler({newsched_reg:input_reg});			
+			dbcollection_submenu_dom = registry.byId("dbcollection_submenu");
+			schedUtil.generateDBCollection_smenu(dbcollection_submenu_dom,
+				dbcollection_list);
 		});
 		
 		grid.on("dgrid-select", function(event){
@@ -372,13 +373,13 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("cup_btn"), "click", getCupSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
-			on(registry.byId("divSelectForEdit"),"change", editSeedGrid);
+			//on(registry.byId("divSelectForEdit"),"change", editSeedGrid);
 			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
 			on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
-			on(registry.byId("new_btn"), "click", initNewSchedule);
+			on(registry.byId("newsched_item"), "click", initNewSchedule);
  		}); 
 	}
 );
