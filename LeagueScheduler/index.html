@@ -76,10 +76,12 @@
                         </div>
                     </div>
                 </div>
-                <div id="newsched_name" class="style_none">
-                    <label for="newsched_input">Input Schedule Name</label>
-                    <input type="text" name="newsched_input" id="newsched_input" value="newdb_name" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
-                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                <div data-dojo-type="dijit/form/Form" id="dbname_form" data-dojo-id="dbname_form">
+                    <div id="newsched_name" class="style_none">
+                        <label for="newsched_input">Input Schedule Name</label>
+                        <input type="text" name="newsched_input" id="newsched_input" value="newdb_name" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
+                        data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                    </div>
                 </div>
                 <!--
                 <span class="dijit dijitReset dijitInline primary dijitButton" role="presentation">
