@@ -29,12 +29,13 @@ venue_count_list_CONST = 'VENUE_COUNT_LIST'
 sched_status_CONST = 'SCHED_STATUS'
 
 class MongoDBInterface:
-    def __init__(self):
+    def __init__(self, db_name='schedule_db'):
         if socket.gethostname() == 'web380.webfaction.com':
             client = MongoClient('localhost', 11466)
         else:
             client = MongoClient()
-        self.schedule_db = client.schedule_db
+#        self.schedule_db = client.schedule_db
+        self.schedule_db = client[db_name]
         self.games_col = self.schedule_db.games
         if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
             self.games_col.insert({sched_status_CONST:0})

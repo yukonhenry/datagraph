@@ -174,3 +174,11 @@ def schedulemetrics(div_id):
                                           divisionData)
     a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
     return callback_name+'('+a+')'
+
+@route('/createnewdb')
+def createnewdb():
+    callback_name = request.query.callback
+    db_name = request.query.newdb_name
+    print 'db_name', db_name
+    a = json.dumps({'test':'asdf'})
+    return callback_name+'('+a+')'

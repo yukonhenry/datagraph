@@ -10,11 +10,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request", 
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
-		"LeagueScheduler/newscheduler",
+		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"dijit/form/Button",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection, 
-		script,arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -28,6 +28,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var divisionGridHandle = null;
 		var ldata_array = null;
 		var schedUtil = null;
+		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -48,9 +49,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			},
 			selectionMode:"single"
 		}, "fieldInfoGrid");    // div ID
-		script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
-			jsonp:"callback"
-		}).then(function(ldata){
+		//script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
+		//	jsonp:"callback"
+		//}).then(function(ldata){
+		var leaguediv_func = function(ldata) {
 			ldata_array = ldata.leaguedivinfo;
 			fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
@@ -69,7 +71,9 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			dbcollection_submenu_dom = registry.byId("dbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(dbcollection_submenu_dom,
 				dbcollection_list);
-		});
+		}
+		//});
+		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 		
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
@@ -332,9 +336,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedConfig.testValue(1);
 		}
 		var initNewSchedule = function(evt) {
-			input_reg = registry.byId("newsched_input");
-			newScheduler = new newscheduler({newsched_reg:input_reg});
-			newScheduler.createConfig("newsched_name");
+			form_reg = registry.byId("newsched_form_id");
+			input_reg = registry.byId("newsched_input_id");
+			newScheduler = new newscheduler({input_reg:input_reg, form_reg:form_reg,
+				server_interface:serverInterface});
+			newScheduler.makeVisible("newsched_form_id");
 			on(input_reg, "keyup", lang.hitch(newScheduler, newScheduler.processdbname_input));
 		}
 		// resize dgrid's if there is a show event on the content pane
