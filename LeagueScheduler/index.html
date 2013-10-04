@@ -11,7 +11,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07c</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07d</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -19,6 +19,7 @@
 			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
 			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox",
             "dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip",
+            "dijit/form/Button",
             "dojo/domReady!"],
 			function(dbootstrap, dom){
     			var greeting = dom.byId("greeting");
@@ -84,13 +85,14 @@
                     <label for="newsched_input_id">Input Schedule Name</label>
                     <input type="text" name="newsched_input" id="newsched_input_id" value="newdb_name" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Specify Schedule Name and Press ENTER</span></div>
+                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Specify Schedule Name</span></div>
                     <label for="divnum_input_id">Input Number of Divisions</label>
-                    <input type="text" name="divnum_input" id="divnum_input_id" value="6" required="true" data-dojo-type="dijit/form/NumberTextBox" title="Enter Number of Divisions"
+                    <input type="text" name="divnum_input" id="divnum_input_id" value="6" required="true" data-dojo-type="dijit/form/NumberTextBox" title="Enter Number of Divisions" style="width:6em"
                     data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Divisions', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Divisions (positive ineteger)'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'divnum_input_id', position:['below','after']">Specify Number of Divisions</span></div>
-                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="submit" name="submitButton" id="submit_btn" value="Submit">Submit</button>
+                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="submitButton" id="submit_btn" value="Submit">Submit</button>
                 </div>
+                <div id="divisionInfoInputGrid"></div>
                 <!--
                 <span class="dijit dijitReset dijitInline primary dijitButton" role="presentation">
                 <button style="display: inline" id="new_btn" data-dojo-type="dijit/form/Button" type="button" title="Click to Create New Schedule">NEW Schedule</button> </span>

@@ -5,6 +5,7 @@
 // small note, if there are issues with garbage characters in the jsonp script get request,
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
+// dbootstrap reference: https://github.com/thesociable/dbootstrap
 require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
 		"dojo/_base/declare", "dojo/_base/lang", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
@@ -338,10 +339,14 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var initNewSchedule = function(evt) {
 			form_reg = registry.byId("newsched_form_id");
 			input_reg = registry.byId("newsched_input_id");
-			newScheduler = new newscheduler({input_reg:input_reg, form_reg:form_reg,
-				server_interface:serverInterface});
+			divnum_reg = registry.byId("divnum_input_id");
+			submitbtn_reg = registry.byId("submit_btn");
+			newScheduler = new newscheduler({dbname_reg:input_reg, form_reg:form_reg,
+				divnum_reg:divnum_reg, server_interface:serverInterface,
+				divInfoGridName:"divisionInfoInputGrid"});
 			newScheduler.makeVisible("newsched_form_id");
-			on(input_reg, "keyup", lang.hitch(newScheduler, newScheduler.processdbname_input));
+			on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.processdbname_input));
+			console.log("after on");
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
