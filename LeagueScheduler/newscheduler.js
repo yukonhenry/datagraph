@@ -1,7 +1,7 @@
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", 
+define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang", 
 	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, domClass, arrayUtil, Memory,
+	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
 		OnDemandGrid, editor, Keyboard, Selection) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
@@ -21,6 +21,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					divnum = this.divnum_reg.get("value");
 					console.log("newdb="+newdb_name+" divnum="+divnum);
 					this.createDivInfoGrid(divnum);
+					on(this.divInfoGrid, "dgrid-datachange",
+						lang.hitch(this, this.editDivInfoGrid));
 					this.server_interface.getServerData("createnewdb", this.newdb_ack,
 						{newdb_name:newdb_name});
 				} else {
@@ -52,6 +54,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 	}
                 }, this.divInfoGridName);
 				this.divInfoGrid.startup();
+			},
+			editDivInfoGrid: function(event) {
+				var val = event.value;
+        		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
+        			'col='+event.cell.column.field);				
 			}
 
 		});

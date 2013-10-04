@@ -28,7 +28,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var seedGrid = null;
 		var divisionGridHandle = null;
 		var ldata_array = null;
-		var schedUtil = null;
+		var schedUtil = newScheduler = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
@@ -337,16 +337,15 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedConfig.testValue(1);
 		}
 		var initNewSchedule = function(evt) {
-			form_reg = registry.byId("newsched_form_id");
-			input_reg = registry.byId("newsched_input_id");
-			divnum_reg = registry.byId("divnum_input_id");
-			submitbtn_reg = registry.byId("submit_btn");
+			var form_reg = registry.byId("newsched_form_id");
+			var input_reg = registry.byId("newsched_input_id");
+			var divnum_reg = registry.byId("divnum_input_id");
+			var submitbtn_reg = registry.byId("submit_btn");
 			newScheduler = new newscheduler({dbname_reg:input_reg, form_reg:form_reg,
 				divnum_reg:divnum_reg, server_interface:serverInterface,
 				divInfoGridName:"divisionInfoInputGrid"});
 			newScheduler.makeVisible("newsched_form_id");
 			on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.processdbname_input));
-			console.log("after on");
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
@@ -371,8 +370,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				metricsGrid.resize();
 		}
 		var resizeEditPaneGrids = function(evt) {
-			if (seedGrid)
-				seedGrid.resize();
+			if (newScheduler && newScheduler.divInfoGrid)
+				newScheduler.divInfoGrid.resize();
 		}
 
 		// events for widgets should be in one file; trying to split it up into two or more modules
