@@ -1,12 +1,12 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang", 
-	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory",
+	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
+	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory, 
 		OnDemandGrid, editor, Keyboard, Selection) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			divnum_reg: null, divInfoStore:null, divInfoGrid:null,
-			divInfoGridName:null,
+			divInfoGridName:null, error_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -14,20 +14,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				domClass.replace(dom_name, "style_inline", "style_none");
 			},
 			// ref http://dojotoolkit.org/documentation/tutorials/1.9/key_events/
-			processdbname_input: function(event) {
-				if (this.form_reg.validate()) {
-					confirm('Input Name is Valid, creating new Schedule DB');
-					newdb_name = this.dbname_reg.get("value");
-					divnum = this.divnum_reg.get("value");
-					console.log("newdb="+newdb_name+" divnum="+divnum);
-					this.createDivInfoGrid(divnum);
-					on(this.divInfoGrid, "dgrid-datachange",
-						lang.hitch(this, this.editDivInfoGrid));
-					this.server_interface.getServerData("createnewdb", this.newdb_ack,
-						{newdb_name:newdb_name});
-				} else {
+			processdivinfo_input: function(event) {
+				if (event.keyCode == keys.ENTER) {
+					if (this.form_reg.validate()) {
+						confirm('Input Name is Valid, creating new Schedule DB');
+						newdb_name = this.dbname_reg.get("value");
+						divnum = this.divnum_reg.get("value");
+						console.log("newdb="+newdb_name+" divnum="+divnum);
+						this.createDivInfoGrid(divnum);
+						on(this.divInfoGrid, "dgrid-datachange",
+							lang.hitch(this, this.editDivInfoGrid));
+					} else {
 						alert('Input name is Invalid, please correct');
-				}
+					}
+				}	
 			},
 			newdb_ack: function(adata) {
 				console.log("data returned"+adata.test);
@@ -47,19 +47,31 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
             		store: this.divInfoStore,
             		columns: {
                 		div_id: "Div ID",
-                		div_age: editor({label:"Age", field:"div_age"},"text","dblclick"),
-                		div_gen: editor({label:"Gen", field:"div_gen"}, "text", "dblclick"),
-                		totalteams: editor({label:"Total Teams", field:"totalteams"}, "text", "dblclick"),
-                		totalbrackets: editor({label:"Total Brackets", field:"totalbrackets"}, "text", "dblclick")
+                		div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
+                		div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
+                		totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
+                		totalbrackets: editor({label:"Total Brackets", field:"totalbrackets", autoSave:true}, "text", "dblclick")
                 	}
                 }, this.divInfoGridName);
 				this.divInfoGrid.startup();
+				this.divInfoGrid.on("dgrid-error", function(event) {
+					this.error_node.className = "messgae error";
+					this.error_node.innerHTML = event.error.message;
+				});
 			},
 			editDivInfoGrid: function(event) {
 				var val = event.value;
         		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
-        			'col='+event.cell.column.field);				
+        			'col='+event.cell.column.field);
+			},
+			sendDivInfoToServer: function(event) {
+				if (this.form_reg.validate()) {
+					storedata_json = JSON.stringify(this.divInfoStore.query());
+					//this.divInfoStore.query().forEach(function(division) {
+        			//});
+					this.server_interface.getServerData("createnewdb", this.newdb_ack,
+						{newdb_name:newdb_name, divinfo_data:storedata_json});					
+				}
 			}
-
 		});
 	})

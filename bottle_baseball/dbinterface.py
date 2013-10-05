@@ -29,29 +29,25 @@ venue_count_list_CONST = 'VENUE_COUNT_LIST'
 sched_status_CONST = 'SCHED_STATUS'
 
 class MongoDBInterface:
-    def __init__(self, db_name='schedule_db'):
-        if socket.gethostname() == 'web380.webfaction.com':
-            client = MongoClient('localhost', 11466)
-        else:
-            client = MongoClient()
-#        self.schedule_db = client.schedule_db
-        self.schedule_db = client[db_name]
-        self.games_col = self.schedule_db.games
+    def __init__(self, mongoClient, collection_name='games'):
+        self.schedule_db = mongoClient.schedule_db
+#        self.games_col = self.schedule_db.games
+        self.games_col = self.schedule_db[collection_name]
         if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
-            self.games_col.insert({sched_status_CONST:0})
+            self.games_col.insert({sched_status_CONST:0}, safe=True)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
-        docID = self.games_col.insert(document)
+        docID = self.games_col.insert(document, safe=True)
 
     def updateGameTime(self, venue, gameday_id, old_start_time, new_start_time):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
                  start_time_CONST:old_start_time}
         updatefields = {"$set":{start_time_CONST:new_start_time}}
         logging.debug("dbinterface:updateGameTime: query=%s, update=%s", query, updatefields)
-        docID = self.games_col.update(query, updatefields)
+        docID = self.games_col.update(query, updatefields, safe=True)
 
 
     def findDivisionSchedule(self,age, gender):
@@ -254,11 +250,11 @@ class MongoDBInterface:
     def resetSchedStatus_col(self):
         # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
         self.games_col.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:0}}, upsert=True)
+                              {"$set":{sched_status_CONST:0}}, upsert=True, safe=True)
 
     def setSchedStatus_col(self):
         self.games_col.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:1}})
+                              {"$set":{sched_status_CONST:1}}, safe=True)
 
     def getSchedStatus(self):
         return self.games_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]

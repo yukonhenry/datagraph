@@ -343,9 +343,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var submitbtn_reg = registry.byId("submit_btn");
 			newScheduler = new newscheduler({dbname_reg:input_reg, form_reg:form_reg,
 				divnum_reg:divnum_reg, server_interface:serverInterface,
-				divInfoGridName:"divisionInfoInputGrid"});
+				divInfoGridName:"divisionInfoInputGrid",
+				error_node:dom.byId("divisionInfoInputGridErrorNode")});
 			newScheduler.makeVisible("newsched_form_id");
-			on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.processdbname_input));
+			on(divnum_reg, "keyup", lang.hitch(newScheduler, newScheduler.processdivinfo_input));
+			on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.sendDivInfoToServer));
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63

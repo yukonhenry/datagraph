@@ -15,8 +15,10 @@ from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInf
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 import logging
+from singletonlite import mongoClient
+from newschedule import NewSchedule
 
-dbInterface = MongoDBInterface()
+dbInterface = MongoDBInterface(mongoClient)
 
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
@@ -179,6 +181,9 @@ def schedulemetrics(div_id):
 def createnewdb():
     callback_name = request.query.callback
     db_name = request.query.newdb_name
-    print 'db_name', db_name
+    divinfo_data = request.query.divinfo_data
+    newSchedule = NewSchedule(mongoClient, db_name, divinfo_data)
+    #for division in divinfo_data:
+    #    print division.div_id
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'

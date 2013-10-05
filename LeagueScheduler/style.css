@@ -91,3 +91,16 @@ div.bar {
 .style_none {
   display:none;
 }
+/* http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ */
+.message {
+  height: 1em;
+  margin: 1em 2em;
+  padding: 1em 2em;
+}
+.hidden {
+  visibility: hidden;
+}
+.error {
+  background-color: #fcc;
+  color:  #900;
+}
