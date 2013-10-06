@@ -42,12 +42,14 @@ def leaguedivinfo_all():
     field_tuple = getFieldInfo()
     dbstatus = dbInterface.getSchedStatus()
     schedcol_list = dbInterface.getScheduleCollections()
+    cupschedcol_list = dbInterface.getCupScheduleCollections()
     logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "dbstatus":dbstatus,
-                    "dbcollection_list":schedcol_list})
+                    "dbcollection_list":schedcol_list,
+                    "cupdbcollection_list":cupschedcol_list})
     return callback_name+'('+a+')'
 
 # Get per-division schedule

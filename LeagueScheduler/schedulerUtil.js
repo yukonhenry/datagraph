@@ -124,6 +124,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					this.server_interface.server_ack);
 			},
 			getCupSchedule: function(item) {
+				console.log("cupitem"+item);
 				this.server_interface.getServerData("getcupschedule/"+item,
 					this.server_interface.server_ack);				
 			}
