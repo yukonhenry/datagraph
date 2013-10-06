@@ -11,7 +11,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07e</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07f</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -75,6 +75,11 @@
                             <div data-dojo-type="dijit/DropDownMenu" id="dbcollection_submenu">
                             </div>
                         </div>
+                        <div data-dojo-type="dijit/PopupMenuItem">
+                            <span>Delete Schedule</span>
+                            <div data-dojo-type="dijit/DropDownMenu" id="deldbcollection_submenu">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!--reference on use of different kinds of id's:
@@ -83,7 +88,7 @@
                 -->
                 <div data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id" class="style_none">
                     <label for="newsched_input_id">New Schedule Name</label>
-                    <input type="text" name="newsched_input" id="newsched_input_id" value="newdb_name" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
+                    <input type="text" name="newsched_input" id="newsched_input_id" value="phmsacup2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Specify Schedule Name</span></div>
                     <label for="divnum_input_id">Number of Divisions</label>
@@ -115,7 +120,15 @@
     			<b>Generate Schedule</b>
                 <span class="dijitButton" style="display:inline">
     			<button class="primary" id="schedule_btn" data-dojo-type="dijit/form/Button" type="button">Generate Sched</button>
-    			<button class="warning" id="cup_btn" data-dojo-type="dijit/form/Button" type="button">Generate Cup Sched</button> 
+    			<!--<button class="warning" id="cup_btn" data-dojo-type="dijit/form/Button" type="button">Generate Cup Sched</button> -->
+                <div data-dojo-type="dijit/form/DropDownButton" class="primary dijitDropDownButton">
+                    <span>Generate Cup Sched</span>
+                    <div data-dojo-type="dijit/PopupMenuItem">
+                        <span>Select League</span>
+                        <div data-dojo-type="dijit/DropDownMenu" id="cupdbcollection_submenu">
+                        </div>
+                    </div>
+                </div> 
     			<button class="primary" id="export_btn" data-dojo-type="dijit/form/Button" type="button">Export</button> <br>
                 </span>
                 <div id="dbstatus1_txt"></div>

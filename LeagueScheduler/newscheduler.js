@@ -6,7 +6,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			divnum_reg: null, divInfoStore:null, divInfoGrid:null,
-			divInfoGridName:null, error_node:null,
+			divInfoGridName:null, error_node:null, newcol_name: null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -18,9 +18,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (event.keyCode == keys.ENTER) {
 					if (this.form_reg.validate()) {
 						confirm('Input Name is Valid, creating new Schedule DB');
-						newdb_name = this.dbname_reg.get("value");
+						this.newcol_name = this.dbname_reg.get("value");
 						divnum = this.divnum_reg.get("value");
-						console.log("newdb="+newdb_name+" divnum="+divnum);
+						console.log("newdb="+this.newcol_name+" divnum="+divnum);
 						this.createDivInfoGrid(divnum);
 						on(this.divInfoGrid, "dgrid-datachange",
 							lang.hitch(this, this.editDivInfoGrid));
@@ -28,9 +28,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						alert('Input name is Invalid, please correct');
 					}
 				}	
-			},
-			newdb_ack: function(adata) {
-				console.log("data returned"+adata.test);
 			},
 			createDivInfoGrid: function(divnum) {
 				if (this.divInfoGrid) {
@@ -55,7 +52,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 }, this.divInfoGridName);
 				this.divInfoGrid.startup();
 				this.divInfoGrid.on("dgrid-error", function(event) {
-					this.error_node.className = "messgae error";
+					this.error_node.className = "message error";
 					this.error_node.innerHTML = event.error.message;
 				});
 			},
@@ -69,8 +66,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					storedata_json = JSON.stringify(this.divInfoStore.query());
 					//this.divInfoStore.query().forEach(function(division) {
         			//});
-					this.server_interface.getServerData("createnewdb", this.newdb_ack,
-						{newdb_name:newdb_name, divinfo_data:storedata_json});					
+					this.server_interface.getServerData("create_newdbcol/"+this.newcol_name,
+						this.server_interface.server_ack, {divinfo_data:storedata_json});					
 				}
 			}
 		});

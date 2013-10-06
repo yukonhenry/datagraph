@@ -107,11 +107,11 @@ def exportSchedule():
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 
-@route('/getcupschedule')
-def getCupSchedule():
+@route('/getcupschedule/<divinfo_col>')
+def getCupSchedule(divinfo_col):
     callback_name = request.query.callback
     ldata_tuple = getLeagueDivInfo()
-    tournamentsched = TournamentScheduler(dbInterface, ldata_tuple)
+    tournamentsched = TournamentScheduler(mongoClient, ldata_tuple, divinfo_col)
     tournamentsched.generate()
     a = ""
     return callback_name+'('+a+')'
@@ -177,13 +177,17 @@ def schedulemetrics(div_id):
     a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
     return callback_name+'('+a+')'
 
-@route('/createnewdb')
-def createnewdb():
+@route('/create_newdbcol/<newcol_name>')
+def create_newdbcol(newcol_name):
     callback_name = request.query.callback
-    db_name = request.query.newdb_name
     divinfo_data = request.query.divinfo_data
-    newSchedule = NewSchedule(mongoClient, db_name, divinfo_data)
-    #for division in divinfo_data:
-    #    print division.div_id
+    newSchedule = NewSchedule(mongoClient, newcol_name, divinfo_data)
     a = json.dumps({'test':'asdf'})
+    return callback_name+'('+a+')'
+
+@route('/delete_dbcol/<delcol_name>')
+def delete_dbcol(delcol_name):
+    callback_name = request.query.callback
+    print 'delete', delcol_name
+    a = json.dumps({'test':'werjler'})
     return callback_name+'('+a+')'

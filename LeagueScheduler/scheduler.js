@@ -59,7 +59,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);
 			dbstatus = ldata.dbstatus;
-			schedUtil = new schedulerUtil({leaguedata:ldata_array});
+			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
@@ -68,10 +68,20 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
+			// generate dropdown menu for edit->existing schedules
 			dbcollection_list = ldata.dbcollection_list;
-			dbcollection_submenu_dom = registry.byId("dbcollection_submenu");
-			schedUtil.generateDBCollection_smenu(dbcollection_submenu_dom,
-				dbcollection_list);
+			dbcollection_smenu_reg = registry.byId("dbcollection_submenu");
+			schedUtil.generateDBCollection_smenu(dbcollection_smenu_reg,
+				dbcollection_list, schedUtil, schedUtil.default_alert);
+			// generate dropdown menu for edit->delete schedule
+			deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
+			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
+				dbcollection_list, schedUtil, schedUtil.delete_dbcollection);	
+			// generate dropdown for 'generate cup schedule'
+			cupdbcollection_list = ldata.cupdbcollection_list;
+			cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
+			schedUtil.generateDBCollection_smenu(cupdbcollection_smenu_reg,
+				cupdbcollection_list, schedUtil, schedUtil.getCupSchedule);
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
@@ -193,13 +203,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var exportSchedule = function(evt) {
 			//dom.byId("status").innerHTML = "";
 	        script.get(constant.SERVER_PREFIX+"exportschedule", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {
-	        	//console.log("getalldiv schedule status"+adata.status);
-			});			
-		}
-		var getCupSchedule = function(evt) {
-	        script.get(constant.SERVER_PREFIX+"getcupschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 	        	//console.log("getalldiv schedule status"+adata.status);
@@ -382,7 +385,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
  			parser.parse();	
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
-			on(registry.byId("cup_btn"), "click", getCupSchedule);
+			//on(registry.byId("cup_btn"), "click", getCupSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			//on(registry.byId("divSelectForEdit"),"change", editSeedGrid);

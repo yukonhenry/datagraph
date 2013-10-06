@@ -27,14 +27,21 @@ totalgames_CONST = 'TOTALGAMES'
 venue_count_CONST = 'VENUE_COUNT'
 venue_count_list_CONST = 'VENUE_COUNT_LIST'
 sched_status_CONST = 'SCHED_STATUS'
+div_id_CONST = 'DIV_ID'
+totalteams_CONST = 'TOTALTEAMS'
+totalbrackets_CONST = 'TOTALBRACKETS'
+sched_type_CONST = 'SCHED_TYPE'
+RR_CONST = 'RoundRobin'
+Tourn_CONST = 'Tournament'
 
 class MongoDBInterface:
-    def __init__(self, mongoClient, collection_name='games'):
+    def __init__(self, mongoClient, collection_name='games', rr_type=True):
         self.schedule_db = mongoClient.schedule_db
 #        self.games_col = self.schedule_db.games
         self.games_col = self.schedule_db[collection_name]
+        self.sched_type = RR_CONST if rr_type else Tourn_CONST
         if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
-            self.games_col.insert({sched_status_CONST:0}, safe=True)
+            self.games_col.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type}, safe=True)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
@@ -42,7 +49,13 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateGameTime(self, venue, gameday_id, old_start_time, new_start_time):
+    def updateDivInfo(self, div_id, age, gen, totalteams, totalbrackets):
+        document = {div_id_CONST:div_id, age_CONST:age, gen_CONST:gen,
+                    totalteams_CONST:totalteams, totalbrackets_CONST: totalbrackets}
+        docID = self.games_col.update({div_id_CONST:div_id},
+                                      {"$set": document}, upsert=True, safe=True)
+
+    def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
                  start_time_CONST:old_start_time}
         updatefields = {"$set":{start_time_CONST:new_start_time}}
@@ -245,23 +258,33 @@ class MongoDBInterface:
 
     def dropGameCollection(self):
         self.games_col.drop()
-        self.resetSchedStatus_col()
+        self.resetSchedStatus_col(self)
 
     def resetSchedStatus_col(self):
         # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
         self.games_col.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:0}}, upsert=True, safe=True)
+                              {"$set":{sched_status_CONST:0, sched_type_CONST:self.sched_type}},
+                              upsert=True, safe=True)
 
     def setSchedStatus_col(self):
         self.games_col.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:1}}, safe=True)
+                              {"$set":{sched_status_CONST:1, sched_type_CONST:self.sched_type}}, safe=True)
 
     def getSchedStatus(self):
         return self.games_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
 
     def getScheduleCollections(self):
         # ref http://api.mongodb.org/python/current/api/pymongo/database.html
+        # make sure python version >= 2.7 for include_system_collections
         sc_list = self.schedule_db.collection_names(include_system_collections=False)
         # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
         schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1]
         return schedcollect_list
+
+    def getCupScheduleCollections(self):
+        sc_list = self.schedule_db.collection_names(include_system_collections=False)
+        # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
+        schedcollect_list = [x for x in sc_list
+                             if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:Tourn_CONST}) ]
+        return schedcollect_list
+    

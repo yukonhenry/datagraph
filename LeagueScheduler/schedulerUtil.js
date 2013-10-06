@@ -17,7 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		var status_dom = dom.byId("dbstatus_txt");
 		var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
-			leaguedata: null,
+			leaguedata: null, server_interface:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
@@ -107,12 +107,25 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateDBCollection_smenu: function(submenu_dom, submenu_list) {
+			// review usage of hitch to provide context to event handlers
+			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
+			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func) {
 				arrayUtil.forEach(submenu_list, function(item, index) {
 					smenuitem = new MenuItem({label: item, 
-						onClick: function(){ alert(item); }});
-    				submenu_dom.addChild(smenuitem);
+						onClick: lang.hitch(onclick_context, onclick_func, item) });
+    				submenu_reg.addChild(smenuitem);
 				});					
+			},
+			default_alert: function(item) {
+				alert(item);
+			},
+			delete_dbcollection: function(item) {
+				this.server_interface.getServerData("delete_dbcol/"+item,
+					this.server_interface.server_ack);
+			},
+			getCupSchedule: function(item) {
+				this.server_interface.getServerData("getcupschedule/"+item,
+					this.server_interface.server_ack);				
 			}
 		});
 	}
