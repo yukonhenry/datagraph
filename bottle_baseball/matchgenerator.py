@@ -14,7 +14,7 @@ large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class MatchGenerator:
-    def __init__(self, nt, ng):
+    def __init__(self, nt, ng, targetgamesperteam=1):
         self.numTeams = nt
         self.numGameSlots = ng  # num gameslots per team per season
         # actual number of games per team (determined by counter), init to 0 to start
@@ -296,7 +296,7 @@ class MatchGenerator:
 
             count_list = mingames_list + maxgames_list
             self.targethome_count_list = [[c/2] if c%2==0 else [c/2,c/2+1] for c in count_list]
-        print 'target home count', self.targethome_count_list
+        #print 'target home count', self.targethome_count_list
         # while not all([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]):
         # iterate until all the metrics are at or within the target range intervalx
         while sum([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]) < self.numTeams:

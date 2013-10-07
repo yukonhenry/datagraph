@@ -30,16 +30,20 @@ sched_status_CONST = 'SCHED_STATUS'
 div_id_CONST = 'DIV_ID'
 totalteams_CONST = 'TOTALTEAMS'
 totalbrackets_CONST = 'TOTALBRACKETS'
+elimination_num_CONST = 'ELIMINATION_NUM'
+field_id_list_CONST = 'FIELD_ID_LIST'
 sched_type_CONST = 'SCHED_TYPE'
 RR_CONST = 'RoundRobin'
 Tourn_CONST = 'Tournament'
+# global for namedtuple
+_List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 class MongoDBInterface:
-    def __init__(self, mongoClient, collection_name='games', rr_type=True):
+    def __init__(self, mongoClient, collection_name='games', rr_type_flag=True):
         self.schedule_db = mongoClient.schedule_db
 #        self.games_col = self.schedule_db.games
         self.games_col = self.schedule_db[collection_name]
-        self.sched_type = RR_CONST if rr_type else Tourn_CONST
+        self.sched_type = RR_CONST if rr_type_flag else Tourn_CONST
         if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
             self.games_col.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type}, safe=True)
 
@@ -49,9 +53,11 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateDivInfo(self, div_id, age, gen, totalteams, totalbrackets):
+    def updateTournamentDivInfo(self, div_id, age, gen, totalteams, totalbrackets, elimination_num, field_id_list):
         document = {div_id_CONST:div_id, age_CONST:age, gen_CONST:gen,
-                    totalteams_CONST:totalteams, totalbrackets_CONST: totalbrackets}
+                    totalteams_CONST:totalteams, totalbrackets_CONST: totalbrackets,
+                    elimination_num_CONST:elimination_num,
+                    field_id_list_CONST:field_id_list}
         docID = self.games_col.update({div_id_CONST:div_id},
                                       {"$set": document}, upsert=True, safe=True)
 
@@ -287,4 +293,11 @@ class MongoDBInterface:
         schedcollect_list = [x for x in sc_list
                              if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:Tourn_CONST}) ]
         return schedcollect_list
-    
+
+    def getTournamentDivInfo(self):
+        result_list = self.games_col.find({div_id_CONST:{"$exists":True}},{'_id':0})
+        divinfo_list = []
+        for div_dict in result_list:
+            divinfo_list.append(div_dict)
+        d_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divinfo_list)).get(x)
+        return _List_Indexer(divinfo_list, d_indexerGet)

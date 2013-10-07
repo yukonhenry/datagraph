@@ -109,12 +109,12 @@ def exportSchedule():
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 
-@route('/getcupschedule/<divinfo_col>')
-def getCupSchedule(divinfo_col):
+@route('/getcupschedule/<tourn_divinfo_col>')
+def getCupSchedule(tourn_divinfo_col):
     callback_name = request.query.callback
-    ldata_tuple = getLeagueDivInfo()
-    tournamentsched = TournamentScheduler(mongoClient, ldata_tuple, divinfo_col)
-    tournamentsched.generate()
+    field_tuple = getFieldInfo()
+    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col)
+    tournamentsched.prepGenerate()
     a = ""
     return callback_name+'('+a+')'
 
@@ -179,6 +179,7 @@ def schedulemetrics(div_id):
     a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
     return callback_name+'('+a+')'
 
+# create new db collection based on new schedule parameters (currently for tournament format)
 @route('/create_newdbcol/<newcol_name>')
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
