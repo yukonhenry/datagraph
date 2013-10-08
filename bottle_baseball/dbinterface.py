@@ -300,4 +300,4 @@ class MongoDBInterface:
         for div_dict in result_list:
             divinfo_list.append(div_dict)
         divinfo_ntuple = namedtuple('divinfonum_ntuple', 'divinfo_list totaldivs')
-        return divinfo_ntuple(divinfo_list, len(result_list))
+        return divinfo_ntuple(divinfo_list, len(divinfo_list))

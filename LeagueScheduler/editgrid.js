@@ -5,9 +5,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		OnDemandGrid, editor, Keyboard, Selection) {
 		return declare(null, {
 			divinfo_list:null, totaldivs: null, text_node:null,
-			dbname_reg : null, server_interface:null,
-			divnum_reg: null, divInfoStore:null, divInfoGrid:null,
-			divInfoGridName:null, error_node:null, newcol_name: null,
+			server_interface:null, colname:null,
+			divInfoStore:null, divInfoGrid:null,
+			divInfoGridName:null, error_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -30,16 +30,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}
 				}	
 			},
-			createDivInfoGrid: function(divnum) {
+			recreateDivInfoGrid: function() {
 				if (this.divInfoGrid) {
 					dom.byId(this.divInfoGridName).innerHTML = "";
 					delete this.divInfoGrid;
 				}
-				divInfo_list = new Array();
-				for (var i = 1; i < divnum+1; i++) {
-					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
-						totalteams:1, totalbrackets:1, elimination_num:1,
-						field_id_str:""});
+				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
+				divInfo_list = new Array():
+				for (var=0; i < this.divinfo_list.length; i++) {
+					divinfo_obj = 
 				}
 				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
 				this.divInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({

@@ -130,16 +130,23 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					this.server_interface.server_ack);				
 			},
 			getServerDBDivInfo: function(item) {
+				// note third parameter maps to query object, which in this case
+				// there is none.  But we need to provide some argument as js does
+				// not support named function arguments.  Also specifying "" as the
+				// parameter instead of null might be a better choice as the query
+				// object will be emitted in the jsonp request (though not consumed
+				// at the server)
 				this.server_interface.getServerData("get_dbcol/"+item,
-					this.createEditGrid);
+					this.createEditGrid, null, item);
 			},
-			createEditGrid: function(divdata) {
+			createEditGrid: function(divdata, colname) {
 				editGrid = new EditGrid({divinfo_list:divdata.divinfo_list,
-					totaldivs:divdata.totaldivs,
+					totaldivs:divdata.totaldivs, colname:colname,
 					server_interface:this.server_interface,
 					divInfoGridName:"divisionInfoInputGrid",
 					error_node:dom.byId("divisionInfoInputGridErrorNode"),
-					text_node:dom.byId("divisionInfoNodeText")})
+					text_node:dom.byId("divisionInfoNodeText")});
+				editGrid.recreateDivInfoGrid();
 			}
 
 		});

@@ -5,9 +5,10 @@ function(dom, declare, lang, script) {
 		constructor: function(args) {
 			lang.mixin(this, args);
 		},
-		getServerData: function(rest_path, then_function, query_obj) {
+		getServerData: function(rest_path, then_function, query_obj, otherfunc_param) {
 			// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
 			query_obj = (typeof query_obj === "undefined") ? "" : query_obj;
+			other_param = (typeof other_param === "undefined") ? "" : other_param;
 			var data = null;
 			wholeURL = this.hostURL + rest_path;
 			script.get(wholeURL, {
@@ -15,7 +16,7 @@ function(dom, declare, lang, script) {
 				query:query_obj
 			}).then(function(data) {
 				console.log("request to "+wholeURL+" returned");
-				then_function(data);
+				then_function(data, otherfunc_param);
 			});
 			return data;
 		},
