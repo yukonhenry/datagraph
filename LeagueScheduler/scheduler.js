@@ -72,7 +72,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			dbcollection_list = ldata.dbcollection_list;
 			dbcollection_smenu_reg = registry.byId("dbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(dbcollection_smenu_reg,
-				dbcollection_list, schedUtil, schedUtil.default_alert);
+				dbcollection_list, schedUtil, schedUtil.getServerDBDivInfo);
 			// generate dropdown menu for edit->delete schedule
 			deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,

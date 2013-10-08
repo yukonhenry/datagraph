@@ -194,3 +194,12 @@ def delete_dbcol(delcol_name):
     print 'delete', delcol_name
     a = json.dumps({'test':'werjler'})
     return callback_name+'('+a+')'
+
+@route('/get_dbcol/<getcol_name>')
+def get_dbcol(getcol_name):
+    callback_name = request.query.callback
+    dbcol = MongoDBInterface(mongoClient, getcol_name, False)
+    divtotal_tuple = dbcol.getTournamentDivInfo()
+    a = json.dumps({'divinfo_list':divtotal_tuple.divinfo_list,
+                    'totaldivs':divtotal_tuple.totaldivs})
+    return callback_name+'('+a+')'
