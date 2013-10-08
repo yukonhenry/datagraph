@@ -16,7 +16,7 @@ from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 import logging
 from singletonlite import mongoClient
-from newschedule import NewSchedule
+from tourndbinterface import TournDBInterface
 
 dbInterface = MongoDBInterface(mongoClient)
 
@@ -184,7 +184,8 @@ def schedulemetrics(div_id):
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
-    newSchedule = NewSchedule(mongoClient, newcol_name, divinfo_data)
+    tdbInterface = TournDBInterface(mongoClient, newcol_name)
+    tdbInterface.writeDB(divinfo_data)
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'
 
@@ -198,8 +199,7 @@ def delete_dbcol(delcol_name):
 @route('/get_dbcol/<getcol_name>')
 def get_dbcol(getcol_name):
     callback_name = request.query.callback
-    dbcol = MongoDBInterface(mongoClient, getcol_name, False)
-    divtotal_tuple = dbcol.getTournamentDivInfo()
-    a = json.dumps({'divinfo_list':divtotal_tuple.divinfo_list,
-                    'totaldivs':divtotal_tuple.totaldivs})
+    tdbInterface = TournDBInterface(mongoClient, getcol_name)
+    divinfo_list = tdbInterface.readDB()
+    a = json.dumps({'divinfo_list':divinfo_list})
     return callback_name+'('+a+')'

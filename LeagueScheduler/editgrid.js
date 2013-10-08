@@ -36,10 +36,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					delete this.divInfoGrid;
 				}
 				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
-				divInfo_list = new Array():
-				for (var=0; i < this.divinfo_list.length; i++) {
-					divinfo_obj = 
-				}
+				divInfo_list = new Array();
+				arrayUtil.forEach(this.divinfo_list, function(item, index) {
+					for (var propt in item) {
+						console.log("propt item="+propt+" "+item[propt]);
+					}
+					//divInfo_list.push(item);
+				});
 				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
 				this.divInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
             		store: this.divInfoStore,

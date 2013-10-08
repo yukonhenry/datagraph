@@ -377,6 +377,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var resizeEditPaneGrids = function(evt) {
 			if (newScheduler && newScheduler.divInfoGrid)
 				newScheduler.divInfoGrid.resize();
+			if (schedUtil && schedUtil.editGrid && schedUtil.editGrid.divInfoGrid)
+				schedUtil.editGrid.divInfoGrid.resize();
 		}
 
 		// events for widgets should be in one file; trying to split it up into two or more modules

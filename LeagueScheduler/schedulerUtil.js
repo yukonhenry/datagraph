@@ -19,7 +19,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		var status_dom = dom.byId("dbstatus_txt");
 		var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
-			leaguedata: null, server_interface:null,
+			leaguedata: null, server_interface:null, editGrid:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
@@ -140,13 +140,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					this.createEditGrid, null, item);
 			},
 			createEditGrid: function(divdata, colname) {
-				editGrid = new EditGrid({divinfo_list:divdata.divinfo_list,
+				this.editGrid = new EditGrid({divinfo_list:divdata.divinfo_list,
 					totaldivs:divdata.totaldivs, colname:colname,
 					server_interface:this.server_interface,
 					divInfoGridName:"divisionInfoInputGrid",
 					error_node:dom.byId("divisionInfoInputGridErrorNode"),
 					text_node:dom.byId("divisionInfoNodeText")});
-				editGrid.recreateDivInfoGrid();
+				this.editGrid.recreateDivInfoGrid();
 			}
 
 		});
