@@ -4,46 +4,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory, 
 		OnDemandGrid, editor, Keyboard, Selection) {
 		return declare(null, {
-			divinfo_list:null, totaldivs: null, text_node:null,
+			divinfo_list:null, text_node:null,
 			server_interface:null, colname:null,
-			divInfoStore:null, divInfoGrid:null,
-			divInfoGridName:null, error_node:null,
+			divInfoStore:null, divInfoGrid:null, updatediv_node:null,
+			divInfoGridName:null, error_node:null, submitbtn_reg:null,
+			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
 			makeVisible: function(dom_name) {
 				domClass.replace(dom_name, "style_inline", "style_none");
 			},
-			// ref http://dojotoolkit.org/documentation/tutorials/1.9/key_events/
-			processdivinfo_input: function(event) {
-				if (event.keyCode == keys.ENTER) {
-					if (this.form_reg.validate()) {
-						confirm('Input Name is Valid, creating new Schedule DB');
-						this.newcol_name = this.dbname_reg.get("value");
-						divnum = this.divnum_reg.get("value");
-						console.log("newdb="+this.newcol_name+" divnum="+divnum);
-						this.createDivInfoGrid(divnum);
-						on(this.divInfoGrid, "dgrid-datachange",
-							lang.hitch(this, this.editDivInfoGrid));
-					} else {
-						alert('Input name is Invalid, please correct');
-					}
-				}	
+			makeInvisible: function(dom_name) {
+				domClass.replace(dom_name, "style_none", "style_inline");
 			},
 			recreateDivInfoGrid: function() {
-				if (this.divInfoGrid) {
-					dom.byId(this.divInfoGridName).innerHTML = "";
-					delete this.divInfoGrid;
-				}
 				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
 				divInfo_list = new Array();
-				arrayUtil.forEach(this.divinfo_list, function(item, index) {
-					for (var propt in item) {
-						console.log("propt item="+propt+" "+item[propt]);
-					}
-					//divInfo_list.push(item);
-				});
-				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
+				// for finding dom node from dijit registry:
+				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
+				this.makeVisible(this.updatediv_node);
+				this.divInfoStore = new Memory({data:this.divinfo_list, idProperty:"div_id"});
 				this.divInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
             		store: this.divInfoStore,
             		columns: {
@@ -61,10 +42,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 	}
                 }, this.divInfoGridName);
 				this.divInfoGrid.startup();
-				this.divInfoGrid.on("dgrid-error", function(event) {
+				this.errorHandle = this.divInfoGrid.on("dgrid-error", function(event) {
+					console.log("dgrid error fired");
 					this.error_node.className = "message error";
 					this.error_node.innerHTML = event.error.message;
 				});
+				this.datachangeHandle = this.divInfoGrid.on("dgrid-datachange",
+					lang.hitch(this, this.editDivInfoGrid));
+				this.submitHandle = this.submitbtn_reg.on("click",
+					lang.hitch(this, this.sendDivInfoToServer));
 			},
 			editDivInfoGrid: function(event) {
 				var val = event.value;
@@ -72,13 +58,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
         			'col='+event.cell.column.field);
 			},
 			sendDivInfoToServer: function(event) {
-				if (this.form_reg.validate()) {
-					storedata_json = JSON.stringify(this.divInfoStore.query());
-					//this.divInfoStore.query().forEach(function(division) {
-        			//});
-					this.server_interface.getServerData("create_newdbcol/"+this.newcol_name,
-						this.server_interface.server_ack, {divinfo_data:storedata_json});					
+				storedata_json = JSON.stringify(this.divInfoStore.query());
+				//this.divInfoStore.query().forEach(function(division) {
+        		//});
+				this.server_interface.getServerData("create_newdbcol/"+this.colname,
+					this.server_interface.server_ack, {divinfo_data:storedata_json});					
+			},
+			cleanup: function(event) {
+				if (this.divInfoGrid) {
+					dom.byId(this.divInfoGridName).innerHTML = "";
+					delete this.divInfoGrid;
+					this.makeInVisible(this.updatediv_node);
+					delete this.divInfoStore;
 				}
+				if (this.errorHandle) {
+					this.error_node.innerHTML = "";
+					delete this.error_node;
+					this.errorHandle.remove();
+				}
+				if (this.datachangeHandle)
+					this.datachangeHandle.remove();
+				if (this.submitHandle)
+					this.submitHandle.remove();
 			}
 		});
 	})

@@ -17,7 +17,7 @@ class TournDBInterface:
     def __init__(self, mongoClient, newcol_name):
         self.dbInterface = MongoDBInterface(mongoClient, newcol_name, rr_type_flag=False)
 
-    def writeDB(divinfo_str):
+    def writeDB(self,divinfo_str):
         divinfo_dict = json.loads(divinfo_str)
         for division in divinfo_dict:
             self.dbInterface.updateTournamentDivInfo(div_id=division['div_id'],
@@ -28,7 +28,7 @@ class TournDBInterface:
                                                      elimination_num=division['elimination_num'],
                                                      field_id_list=division['field_id_str'].split())
 
-    def readDB():
+    def readDB(self):
         dvlist = self.dbInterface.getTournamentDivInfo()
         divinfo_list = []
         for divinfo in dvlist:
@@ -38,5 +38,5 @@ class TournDBInterface:
                                  'totalteams':divinfo[totalteams_CONST],
                                  'totalbrackets':divinfo[totalbrackets_CONST],
                                  'elimination_num':divinfo[elimination_num_CONST],
-                                 'field_id_str':str(divinfo[field_id_list])})
+                                 'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST])})
         return divinfo_list

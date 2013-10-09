@@ -4,9 +4,10 @@ http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
 define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/_base/array", "dijit/MenuItem",
+	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
 	"LeagueScheduler/editgrid", "dojo/domReady!"], 
-	function(dbootstrap, dom, domConstruct, declare, lang, arrayUtil, MenuItem, EditGrid){
+	function(dbootstrap, dom, domConstruct, declare, lang, arrayUtil, registry, MenuItem,
+		EditGrid){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',3:'Pleasant Hill Elem 1',
@@ -137,16 +138,30 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				this.server_interface.getServerData("get_dbcol/"+item,
-					this.createEditGrid, null, item);
+					lang.hitch(this, this.createEditGrid), null, item);
 			},
 			createEditGrid: function(divdata, colname) {
-				this.editGrid = new EditGrid({divinfo_list:divdata.divinfo_list,
-					totaldivs:divdata.totaldivs, colname:colname,
-					server_interface:this.server_interface,
-					divInfoGridName:"divisionInfoInputGrid",
-					error_node:dom.byId("divisionInfoInputGridErrorNode"),
-					text_node:dom.byId("divisionInfoNodeText")});
-				this.editGrid.recreateDivInfoGrid();
+				// don't create grid if a grid already exists and it points to the same schedule db col
+				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
+				if (!this.editGrid || colname != this.editGrid.colname) {
+					if (this.editGrid) {
+						this.editGrid.cleanup();
+						delete this.editGrid;
+					}
+					if (!this.server_interface)
+						console.log("no server interface");
+					this.editGrid = new EditGrid({divinfo_list:divdata.divinfo_list,
+						colname:colname,
+						server_interface:this.server_interface,
+						divInfoGridName:"divisionInfoInputGrid",
+						error_node:dom.byId("divisionInfoInputGridErrorNode"),
+						text_node:dom.byId("divisionInfoNodeText"),
+						submitbtn_reg:registry.byId("updatesubmit_btn"),
+						updatediv_node:dom.byId("divisionInfoUpdateBtnText")});
+					this.editGrid.recreateDivInfoGrid();
+				} else {
+					alert("same schedule selected");
+				}
 			}
 
 		});
