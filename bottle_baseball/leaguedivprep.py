@@ -78,6 +78,14 @@ _field_info = [
      'start_time':'09:00', 'end_time':'18:00'},
     {'field_id':16, 'primary':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
      'start_time':'09:00', 'end_time':'18:00'},
+    {'field_id':17, 'primary':[9,10], 'secondary':None, 'name':'Sequoia Middle Large',
+     'start_time':'09:00', 'end_time':'17:00'},
+    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Hidden Lakes',
+     'start_time':'09:00', 'end_time':'18:00'},
+    {'field_id':19, 'primary':[9,10], 'secondary':None, 'name':'Waterfront',
+     'start_time':'09:00', 'end_time':'18:00'},
+    {'field_id':20, 'primary':[9,10], 'secondary':None, 'name':'College Park Turf',
+     'start_time':'13:00', 'end_time':'18:00'}
 #    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elementary',
 #     'start_time':'09:00', 'end_time':'18:00',
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
@@ -92,12 +100,13 @@ for field in _field_info:
     f_id = field['field_id']
     for d_id in field['primary']:
         index = _div_indexer.get(d_id)
-        division = _league_div[index]
-        # check existence of key 'fields' - if it exists, append to list of fields, if not create
-        if 'fields' in division:
-            division['fields'].append(f_id)
-        else:
-            division['fields'] = [f_id]
+        if index:
+            division = _league_div[index]
+            # check existence of key 'fields' - if it exists, append to list of fields, if not create
+            if 'fields' in division:
+                division['fields'].append(f_id)
+            else:
+                division['fields'] = [f_id]
 
 
 def getDivID(agediv, gender):

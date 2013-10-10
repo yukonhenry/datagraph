@@ -347,7 +347,7 @@ class MatchGenerator:
             self.match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
         return game_count
 
-    def generateMatchList(self):
+    def generateMatchList(self, teamid_map=None):
         '''
         Implement circle method.  Circle iterates from 0 to one less than
         total number of effective teams.  Virtual team used if there is a bye.
@@ -370,4 +370,13 @@ class MatchGenerator:
         print '****************************************'
         print 'metrics_list', self.numTeams, self.metrics_list
         self.adjustHomeAwayTeams()
+        if teamid_map:
+            self.mapTeamID(teamid_map)
         return self.match_by_round_list
+
+    def mapTeamID(self, teamid_map):
+        # ref http://stackoverflow.com/questions/4291236/edit-the-values-in-a-list-of-dictionaries
+        for round_matches in self.match_by_round_list:
+            game_list = round_matches[game_team_CONST]
+            for game in game_list:
+                game.update((k,teamid_map[v-1]) for k,v in game.iteritems())

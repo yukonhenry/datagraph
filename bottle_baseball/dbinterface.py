@@ -299,4 +299,5 @@ class MongoDBInterface:
         divinfo_list = []
         for div_dict in result_list:
             divinfo_list.append(div_dict)
-        return divinfo_list
+        d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
+        return _List_Indexer(divinfo_list, d_indexerGet)

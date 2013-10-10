@@ -29,7 +29,7 @@ class TournDBInterface:
                                                      field_id_list=division['field_id_str'].split())
 
     def readDB(self):
-        dvlist = self.dbInterface.getTournamentDivInfo()
+        dvlist = self.dbInterface.getTournamentDivInfo().dict_list
         divinfo_list = []
         for divinfo in dvlist:
             divinfo_list.append({'div_id':divinfo[div_id_CONST],

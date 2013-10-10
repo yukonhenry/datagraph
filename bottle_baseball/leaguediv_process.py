@@ -113,7 +113,7 @@ def exportSchedule():
 def getCupSchedule(tourn_divinfo_col):
     callback_name = request.query.callback
     field_tuple = getFieldInfo()
-    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col)
+    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col, field_tuple)
     tournamentsched.prepGenerate()
     a = ""
     return callback_name+'('+a+')'
