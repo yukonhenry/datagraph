@@ -44,7 +44,9 @@ class TournamentScheduler:
                              bracket, match_list)
                 totalmatch_list.append({'div_id': division[div_id_CONST],
                                         'match_list':match_list})
-        tourn_ftscheduler = TournamentFieldTimeScheduler(self.dbInterface, self.field_tuple)
+        tourn_ftscheduler = TournamentFieldTimeScheduler(self.dbInterface, self.field_tuple,
+                                                         self.tourn_divinfo,
+                                                         self.tindexerGet)
         tourn_ftscheduler.generateSchedule(totalmatch_list)
 
     def getTeamID_list(self, numteams):

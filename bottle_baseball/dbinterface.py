@@ -262,9 +262,10 @@ class MongoDBInterface:
         return metrics_list
 
 
-    def dropGameCollection(self):
-        self.games_col.drop()
-        self.resetSchedStatus_col(self)
+    def dropGameDocuments(self):
+        # remove documents only have to do with game data
+        self.games_col.remove({gameday_id_CONST:{"$exists":True}})
+        self.resetSchedStatus_col()
 
     def resetSchedStatus_col(self):
         # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
@@ -296,8 +297,10 @@ class MongoDBInterface:
 
     def getTournamentDivInfo(self):
         result_list = self.games_col.find({div_id_CONST:{"$exists":True}},{'_id':0})
+        print 'resultlist', result_list
         divinfo_list = []
         for div_dict in result_list:
             divinfo_list.append(div_dict)
+        print 'divinfolist', divinfo_list
         d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         return _List_Indexer(divinfo_list, d_indexerGet)
