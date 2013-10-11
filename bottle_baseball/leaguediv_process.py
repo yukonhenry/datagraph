@@ -11,7 +11,7 @@ from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
-     getFieldInfo
+     getFieldInfo, getTournamentFieldInfo
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 import logging
@@ -37,38 +37,38 @@ http://bottlepy.org/docs/dev/tutorial.html#request-routing
 '''
 @route('/leaguedivinfo')
 def leaguedivinfo_all():
-    callback_name = request.query.callback
-    ldata_tuple = getLeagueDivInfo()
-    field_tuple = getFieldInfo()
-    dbstatus = dbInterface.getSchedStatus()
-    schedcol_list = dbInterface.getScheduleCollections()
-    cupschedcol_list = dbInterface.getCupScheduleCollections()
-    logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
-    a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
+	callback_name = request.query.callback
+	ldata_tuple = getLeagueDivInfo()
+	field_tuple = getFieldInfo()
+	dbstatus = dbInterface.getSchedStatus()
+	schedcol_list = dbInterface.getScheduleCollections()
+	cupschedcol_list = dbInterface.getCupScheduleCollections()
+	logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
+	a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "dbstatus":dbstatus,
                     "dbcollection_list":schedcol_list,
                     "cupdbcollection_list":cupschedcol_list})
-    return callback_name+'('+a+')'
+	return callback_name+'('+a+')'
 
 # Get per-division schedule
 @route('/leaguedivinfo/<tid:int>', method='GET')
 def leaguedivinfo(tid):
-    callback_name = request.query.callback
-    ldata_tuple = getLeagueDivInfo()
-    ldata_divinfo = ldata_tuple.dict_list
-    leaguediv_indexerGet = ldata_tuple.indexerGet
-    divindex = leaguediv_indexerGet(tid)
-    if divindex is not None:
-        div = ldata_divinfo[divindex]
-        age = div['agediv']
-        gender = div['gender']
-        game_list = dbInterface.findDivisionSchedule(age, gender)
-        a = json.dumps({"game_list":game_list, "fields":div['fields']})
-        return callback_name+'('+a+')'
-    else:
-        return False
+	callback_name = request.query.callback
+	ldata_tuple = getLeagueDivInfo()
+	ldata_divinfo = ldata_tuple.dict_list
+	leaguediv_indexerGet = ldata_tuple.indexerGet
+	divindex = leaguediv_indexerGet(tid)
+	if divindex is not None:
+		div = ldata_divinfo[divindex]
+		age = div['agediv']
+		gender = div['gender']
+		game_list = dbInterface.findDivisionSchedule(age, gender)
+		a = json.dumps({"game_list":game_list, "fields":div['fields']})
+		return callback_name+'('+a+')'
+	else:
+		return False
 
 @route('/getalldivschedule')
 def get_alldivSchedule():
@@ -112,7 +112,7 @@ def exportSchedule():
 @route('/getcupschedule/<tourn_divinfo_col>')
 def getCupSchedule(tourn_divinfo_col):
     callback_name = request.query.callback
-    field_tuple = getFieldInfo()
+    field_tuple = getTournamentFieldInfo()
     tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col, field_tuple)
     tournamentsched.prepGenerate()
     a = ""

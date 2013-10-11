@@ -1,6 +1,6 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
-from itertools import cycle, groupby
+from itertools import groupby
 from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser

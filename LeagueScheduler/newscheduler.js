@@ -38,7 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				for (var i = 1; i < divnum+1; i++) {
 					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
 						totalteams:1, totalbrackets:1, elimination_num:1,
-						field_id_str:""});
+						field_id_str:"", gameinterval:1});
 				}
 				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
 				this.divInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
@@ -54,6 +54,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 		elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true},
                 			"text", "dblclick"),
                 		field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true},
+                			"text", "dblclick"),
+                		gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true},
                 			"text", "dblclick")
                 	}
                 }, this.divInfoGridName);

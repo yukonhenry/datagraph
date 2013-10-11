@@ -53,11 +53,7 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateTournamentDivInfo(self, div_id, age, gen, totalteams, totalbrackets, elimination_num, field_id_list):
-        document = {div_id_CONST:div_id, age_CONST:age, gen_CONST:gen,
-                    totalteams_CONST:totalteams, totalbrackets_CONST: totalbrackets,
-                    elimination_num_CONST:elimination_num,
-                    field_id_list_CONST:field_id_list}
+    def updateTournamentDivInfo(self, document, div_id):
         docID = self.games_col.update({div_id_CONST:div_id},
                                       {"$set": document}, upsert=True, safe=True)
 
@@ -297,10 +293,8 @@ class MongoDBInterface:
 
     def getTournamentDivInfo(self):
         result_list = self.games_col.find({div_id_CONST:{"$exists":True}},{'_id':0})
-        print 'resultlist', result_list
         divinfo_list = []
         for div_dict in result_list:
             divinfo_list.append(div_dict)
-        print 'divinfolist', divinfo_list
         d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         return _List_Indexer(divinfo_list, d_indexerGet)

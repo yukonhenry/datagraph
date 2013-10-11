@@ -9,7 +9,7 @@ totalteams_CONST = 'TOTALTEAMS'
 totalbrackets_CONST = 'TOTALBRACKETS'
 elimination_num_CONST = 'ELIMINATION_NUM'
 field_id_list_CONST = 'FIELD_ID_LIST'
-sched_type_CONST = 'SCHED_TYPE'
+gameinterval_CONST = 'GAMEINTERVAL'
 
 ''' class to convert process new tournament schedule.  All namespace conversion between
 js object keys and db document keys happen here '''
@@ -17,16 +17,17 @@ class TournDBInterface:
     def __init__(self, mongoClient, newcol_name):
         self.dbInterface = MongoDBInterface(mongoClient, newcol_name, rr_type_flag=False)
 
-    def writeDB(self,divinfo_str):
+    def writeDB(self, divinfo_str):
         divinfo_dict = json.loads(divinfo_str)
         for division in divinfo_dict:
-            self.dbInterface.updateTournamentDivInfo(div_id=division['div_id'],
-                                                     age=division['div_age'],
-                                                     gen=division['div_gen'],
-                                                     totalteams=division['totalteams'],
-                                                     totalbrackets=division['totalbrackets'],
-                                                     elimination_num=division['elimination_num'],
-                                                     field_id_list=division['field_id_str'].split())
+            div_id = division['div_id']
+            document = {div_id_CONST:div_id, age_CONST:division['div_age'],
+                        gen_CONST:division['div_gen'], totalteams_CONST:division['totalteams'],
+                        totalbrackets_CONST: division['totalbrackets'],
+                        elimination_num_CONST:division['elimination_num'],
+                        field_id_list_CONST:division['field_id_str'].split(),
+                        gameinterval_CONST:division['gameinterval']}
+            self.dbInterface.updateTournamentDivInfo(document, div_id)
 
     def readDB(self):
         dvlist = self.dbInterface.getTournamentDivInfo().dict_list
@@ -38,5 +39,6 @@ class TournDBInterface:
                                  'totalteams':divinfo[totalteams_CONST],
                                  'totalbrackets':divinfo[totalbrackets_CONST],
                                  'elimination_num':divinfo[elimination_num_CONST],
-                                 'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST])})
+                                 'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST]),
+                                 'gameinterval':divinfo[gameinterval_CONST]})
         return divinfo_list

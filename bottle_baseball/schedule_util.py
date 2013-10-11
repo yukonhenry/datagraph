@@ -1,6 +1,7 @@
 '''Copyright YukonTR 2013 '''
 from itertools import cycle, islice
-
+import networkx as nx
+from networkx import connected_components
 def roundrobin(iterable_list):
     '''ref http://docs.python.org/2/library/itertools.html
     # ref http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
@@ -131,3 +132,24 @@ def bipartiteMatch(graph):
 			return 0
 
 		for v in unmatched: recurse(v)
+
+#find inter-related divisions through the field_info list
+# this should be simplier than the method below whith utilize the division info list
+# note there is an identical function (w different name) in leaguedivprocess - eventuall
+# migrate to using this function.
+def getConnectedDivisionGroup(fieldinfo_list):
+    G = nx.Graph()
+    for field in fieldinfo_list:
+        prev_node = None
+        for div_id in field['primary']:
+            if not G.has_node(div_id):
+                G.add_node(div_id)
+            if prev_node is not None and not G.has_edge(prev_node, div_id):
+                G.add_edge(prev_node, div_id)
+            prev_node = div_id
+    connected_div_components = connected_components(G)
+    #serialize field-connected divisions as graph and save it
+    #(instead of saving list of connected components); used by leaguediv_process to
+    #determine schedule allocation of connected divisions
+    #connected_graph = json_graph.node_link_data(G)
+    return connected_div_components

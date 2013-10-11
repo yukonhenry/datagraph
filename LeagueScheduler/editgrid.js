@@ -20,7 +20,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			recreateDivInfoGrid: function() {
 				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
-				divInfo_list = new Array();
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatediv_node);
@@ -38,6 +37,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 		elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true},
                 			"text", "dblclick"),
                 		field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true},
+                			"text", "dblclick"),
+                		gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true},
                 			"text", "dblclick")
                 	}
                 }, this.divInfoGridName);
