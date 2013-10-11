@@ -18,4 +18,8 @@ class TournamentFieldTimeScheduler:
         self.dbinterface.dropGameDocuments()  # reset game schedule docs
         for connected_div_list in self.connected_div_components:
             connecteddiv_match_list = [totalmatch_list[tmindexerGet(x)] for x in connected_div_list]
-            grouped_list = groupby(connecteddiv_match_list,key=itemgetter('ROUND_ID'))
+            # embed div_id value in each dictionary
+            flatdiv_list = [{'ROUND_ID':y['ROUND_ID'], 'GAME_TEAM':y['GAME_TEAM'], 'DIV_ID':x['div_id']} for x in connecteddiv_match_list for y in x['match_list']]
+            print flatdiv_list
+#            flatdiv_list = [y.update({'div_id':x['div_id']}) for x in connecteddiv_match_list] for y in x['match_list']]
+            #grouped_list = groupby(connecteddiv_match_list,key=itemgetter('ROUND_ID'))
