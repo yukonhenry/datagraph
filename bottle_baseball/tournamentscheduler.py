@@ -25,7 +25,11 @@ class TournamentScheduler:
             team_id_list = self.getTeamID_list(nt)
             nb = int(division[totalbrackets_CONST])
             ne = int(division[elimination_num_CONST])
+            div_id = int(division[div_id_CONST])
             bracket_list = self.createRRBrackets(nt, team_id_list, nb)
+            logging.debug("tournsched:createRRbrack: div_id= %d bracket_list=%s",
+                          div_id, bracket_list)
+            print 'div_id bracketlist', div_id, bracket_list
             # number games per team in bracket is the minimum bracket size minus 1
             # all brackets in the division has the same number of games, e.g.
             # if one bracket has three teams and another has four, each team plays
@@ -37,13 +41,17 @@ class TournamentScheduler:
             virtualgamedays = ng if nt%2==0 else ng+1
             logging.info("tournscheduler:prepGenerate: virtualgamedays=%d",
                          virtualgamedays)
+            match_list = []
             for bracket in bracket_list:
                 match = MatchGenerator(len(bracket['team_id_list']), virtualgamedays)
-                match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
+                bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
                 logging.info("tournscheduler:prepGenerate:bracket=%s match_list=%s",
-                             bracket, match_list)
-                totalmatch_list.append({'div_id': division[div_id_CONST],
-                                        'match_list':match_list})
+                             bracket, bracket_match_list)
+                match_list.append(bracket_match_list)
+            logging.info("tournscheduler:prepGenerate:div=%d match_list=%s",
+                         div_id, match_list)
+            totalmatch_list.append({'div_id': division[div_id_CONST],
+                                    'match_list':match_list})
         tourn_ftscheduler = TournamentFieldTimeScheduler(self.dbInterface, self.field_tuple,
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
@@ -75,6 +83,5 @@ class TournamentScheduler:
             bracket_dict = {'bracket_id':bracket_id, 'team_id_list':team_id_list}
             bracket_list.append(bracket_dict)
             index = lastindex
-        logging.debug("tournsched:createRRbrack: bracket_list=%s", bracket_list)
-        print 'bracketlist', bracket_list
+
         return bracket_list
