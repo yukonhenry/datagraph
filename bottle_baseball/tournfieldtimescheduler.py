@@ -33,13 +33,12 @@ class TournamentFieldTimeScheduler:
             # group list by round_id; dict value of 'match_list' key is a nested array,
             # with each inner list corresponding to a specific division
             # the nested list will be passed to the roundrobin multiplexer
-            for key, items in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID')):
-                for key1, items1 in groupby(items, key=itemgetter('DIV_ID')):
-                    for j in items1:
-                        print key, key1, j
-
+            #for key, items in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID')):
+            #   for key1, items1 in groupby(items, key=itemgetter('DIV_ID')):
+            #      for j in items1:
+            #         print key, key1, j
+            grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], 'div_id':dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
             #grouped_match_list = [{'round_id':key,'match_list':[[{'HOME':y['HOME'], 'AWAY':y['AWAY'], 'DIV_ID':x['DIV_ID']} for y in x['GAME_TEAM']] for x in items]} for key, items in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
-            '''
             logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
             print 'group', grouped_match_list
             for round_games in  grouped_match_list:
@@ -47,4 +46,4 @@ class TournamentFieldTimeScheduler:
                 rrgenobj = roundrobin(round_games['match_list'])
                 for rrgame in rrgenobj:
                     print round_id, rrgame
-'''
+
