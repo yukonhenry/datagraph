@@ -1,7 +1,7 @@
-define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang", 
+define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory, 
+	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
 		OnDemandGrid, editor, Keyboard, Selection) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
@@ -27,7 +27,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					} else {
 						alert('Input name is Invalid, please correct');
 					}
-				}	
+				}
 			},
 			createDivInfoGrid: function(divnum) {
 				if (this.divInfoGrid) {
@@ -38,7 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				for (var i = 1; i < divnum+1; i++) {
 					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
 						totalteams:1, totalbrackets:1, elimination_num:1,
-						field_id_str:"", gameinterval:1});
+						field_id_str:"", gameinterval:1, rr_gamedays:1});
 				}
 				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
 				this.divInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
@@ -56,7 +56,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 		field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true},
                 			"text", "dblclick"),
                 		gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true},
-                			"text", "dblclick")
+                			"text", "dblclick"),
+                        rr_gamedays: editor({label:"Number RR Gamedays", field:"rr_gamedays", autoSave:true},
+                            "text", "dblclick")
                 	}
                 }, this.divInfoGridName);
 				this.divInfoGrid.startup();
@@ -76,7 +78,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					//this.divInfoStore.query().forEach(function(division) {
         			//});
 					this.server_interface.getServerData("create_newdbcol/"+this.newcol_name,
-						this.server_interface.server_ack, {divinfo_data:storedata_json});					
+						this.server_interface.server_ack, {divinfo_data:storedata_json});
 				}
 			}
 		});

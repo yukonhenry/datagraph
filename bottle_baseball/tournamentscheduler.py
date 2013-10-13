@@ -4,28 +4,25 @@ import logging
 from sched_exceptions import CodeLogicError
 from matchgenerator import MatchGenerator
 from tournfieldtimescheduler import TournamentFieldTimeScheduler
-
-totalteams_CONST = 'TOTALTEAMS'
-totalbrackets_CONST = 'TOTALBRACKETS'
-elimination_num_CONST = 'ELIMINATION_NUM'
-div_id_CONST = 'DIV_ID'
+from tourndbinterface import TournDBInterface
 
 class TournamentScheduler:
-    def __init__(self, mongoClient, divinfo_col, field_tuple):
-        self.dbInterface = MongoDBInterface(mongoClient, divinfo_col, rr_type_flag=False)
-        divinfo_tuple = self.dbInterface.getTournamentDivInfo()
+    def __init__(self, mongoClient, divinfo_col, tfield_tuple):
+        #self.dbInterface = MongoDBInterface(mongoClient, divinfo_col, rr_type_flag=False)
+        self.tdbInterface = TournDBInterface(mongoClient, divinfo_col)
+        divinfo_tuple = self.tdbInterface.readDB()
         self.tourn_divinfo = divinfo_tuple.dict_list
         self.tindexerGet = divinfo_tuple.indexerGet
-        self.field_tuple = field_tuple
+        self.tfield_tuple = tfield_tuple
 
     def prepGenerate(self):
         totalmatch_list = []
         for division in self.tourn_divinfo:
-            nt = int(division[totalteams_CONST])
+            nt = int(division['totalteams'])
             team_id_list = self.getTeamID_list(nt)
-            nb = int(division[totalbrackets_CONST])
-            ne = int(division[elimination_num_CONST])
-            div_id = int(division[div_id_CONST])
+            nb = int(division['totalbrackets'])
+            ne = int(division['elimination_num'])
+            div_id = int(division['div_id'])
             bracket_list = self.createRRBrackets(nt, team_id_list, nb)
             logging.debug("tournsched:createRRbrack: div_id= %d bracket_list=%s",
                           div_id, bracket_list)
@@ -50,9 +47,9 @@ class TournamentScheduler:
                 match_list.append(bracket_match_list)
             logging.info("tournscheduler:prepGenerate:div=%d match_list=%s",
                          div_id, match_list)
-            totalmatch_list.append({'div_id': division[div_id_CONST],
+            totalmatch_list.append({'div_id': division['div_id'],
                                     'match_list':match_list})
-        tourn_ftscheduler = TournamentFieldTimeScheduler(self.dbInterface, self.field_tuple,
+        tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
         tourn_ftscheduler.generateSchedule(totalmatch_list)

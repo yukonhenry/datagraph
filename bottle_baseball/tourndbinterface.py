@@ -2,6 +2,7 @@
 ''' Copyright YukonTR 2013 '''
 from dbinterface import MongoDBInterface
 import simplejson as json
+from collections import namedtuple
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
 div_id_CONST = 'DIV_ID'
@@ -10,6 +11,9 @@ totalbrackets_CONST = 'TOTALBRACKETS'
 elimination_num_CONST = 'ELIMINATION_NUM'
 field_id_list_CONST = 'FIELD_ID_LIST'
 gameinterval_CONST = 'GAMEINTERVAL'
+rr_gamedays_CONST = 'RR_GAMEDAYS'
+# global for namedtuple
+_List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 ''' class to convert process new tournament schedule.  All namespace conversion between
 js object keys and db document keys happen here '''
@@ -26,7 +30,8 @@ class TournDBInterface:
                         totalbrackets_CONST: division['totalbrackets'],
                         elimination_num_CONST:division['elimination_num'],
                         field_id_list_CONST:division['field_id_str'].split(),
-                        gameinterval_CONST:division['gameinterval']}
+                        gameinterval_CONST:division['gameinterval'],
+                        rr_gamedays_CONST:division['rr_gamedays']}
             self.dbInterface.updateTournamentDivInfo(document, div_id)
 
     def readDB(self):
@@ -40,5 +45,8 @@ class TournDBInterface:
                                  'totalbrackets':divinfo[totalbrackets_CONST],
                                  'elimination_num':divinfo[elimination_num_CONST],
                                  'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST]),
-                                 'gameinterval':divinfo[gameinterval_CONST]})
-        return divinfo_list
+                                 'gameinterval':divinfo[gameinterval_CONST],
+                                 'rr_gamedays':divinfo[rr_gamedays_CONST]})
+        d_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divinfo_list)).get(x)
+        return _List_Indexer(divinfo_list, d_indexerGet)
+

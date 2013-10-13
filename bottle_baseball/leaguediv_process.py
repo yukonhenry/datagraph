@@ -112,8 +112,8 @@ def exportSchedule():
 @route('/getcupschedule/<tourn_divinfo_col>')
 def getCupSchedule(tourn_divinfo_col):
     callback_name = request.query.callback
-    field_tuple = getTournamentFieldInfo()
-    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col, field_tuple)
+    tfield_tuple = getTournamentFieldInfo()
+    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col, tfield_tuple)
     tournamentsched.prepGenerate()
     a = ""
     return callback_name+'('+a+')'
@@ -200,6 +200,6 @@ def delete_dbcol(delcol_name):
 def get_dbcol(getcol_name):
     callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
-    divinfo_list = tdbInterface.readDB()
+    divinfo_list = tdbInterface.readDB().dict_list
     a = json.dumps({'divinfo_list':divinfo_list})
     return callback_name+'('+a+')'
