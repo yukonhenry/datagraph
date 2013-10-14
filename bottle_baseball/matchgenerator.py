@@ -14,10 +14,12 @@ large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class MatchGenerator:
-    def __init__(self, nt, ng, maxGamesPerTeam=1e6):
+    def __init__(self, nt, ng, maxGamesPerTeam=10000):
         self.numTeams = nt
         self.numGameSlots = ng  # num gameslots per team per season
         self.maxGamesPerTeam = maxGamesPerTeam
+        if (nt*maxGamesPerTeam % 2 == 1):
+            logging.warning("MatchGenerator: some team will need a bye!")
         # actual number of games per team (determined by counter), init to 0 to start
         # position in list is team_id-1
         self.numGames_list = nt*[0]

@@ -5,7 +5,8 @@ from sched_exceptions import CodeLogicError
 from matchgenerator import MatchGenerator
 from tournfieldtimescheduler import TournamentFieldTimeScheduler
 from tourndbinterface import TournDBInterface
-from schedule_util import any_ismore
+from schedule_util import any_ismore, any_isless
+
 
 class TournamentScheduler:
     def __init__(self, mongoClient, divinfo_col, tfield_tuple):
@@ -40,14 +41,27 @@ class TournamentScheduler:
             logging.info("tournscheduler:prepGenerate: virtualgamedays=%d",
                          virtualgamedays)
             match_list = []
+            partialgame_list = []
             for bracket in bracket_list:
                 match = MatchGenerator(len(bracket['team_id_list']), virtualgamedays, maxGamesPerTeam=ng)
                 bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
-                logging.info("tournscheduler:prepGenerate:bracket=%s match_list=%s",
-                             bracket, bracket_match_list)
+                logging.info("tournscheduler:prepGenerate:div=%d bracket=%s bracketmatch_list=%s",
+                             div_id, bracket, bracket_match_list)
+                print 'div bracket numgames', div_id, bracket, match.numGames_list
+                if any_isless(match.numGames_list, ng):
+                    index_list = [i for i,j in enumerate(match.numGames_list) if j < ng]
+                    partialgame_list.append([bracket['team_id_list'][x] for x in index_list])
                 match_list.append(bracket_match_list)
-            logging.info("tournscheduler:prepGenerate:div=%d match_list=%s",
-                         div_id, match_list)
+            if partialgame_list:
+                # create cross-bracket matches if necessary
+                if len(partialgame_list) != 2:
+                    raise CodeLogicError("TournScheduler:PrepGenerate: need to add handling for partial game list that has other than 2 sets")
+                else:
+                    game_team_list = [{'HOME':i,'AWAY':j} for i,j in zip(partialgame_list[0], partialgame_list[1])]
+                    print 'PARTIAL GAMETEAMLIST', game_team_list
+                    match_list.append([{'ROUND_ID':virtualgamedays,
+                                      'GAME_TEAM':game_team_list}])
+
             totalmatch_list.append({'div_id': division['div_id'],
                                     'match_list':match_list})
         tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
