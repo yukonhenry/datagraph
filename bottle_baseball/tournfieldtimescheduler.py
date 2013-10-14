@@ -20,7 +20,7 @@ class TournamentFieldTimeScheduler:
         self.divinfo_list = divinfo
         self.dindexerGet = dindexerGet
         tfstatus_tuple = self.getTournFieldSeasonStatus_list()
-        self.tfieldSeasonStatus_list = tfstatus_tuple.dict_list
+        self.tfieldtatus_list = tfstatus_tuple.dict_list
         self.tfstatus_indexerGet = tfstatus_tuple.indexerGet
 
     def generateSchedule(self, totalmatch_list):
@@ -45,7 +45,7 @@ class TournamentFieldTimeScheduler:
             grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], 'div_id':dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
             logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
             #print 'group', grouped_match_list
-            for round_games in  grouped_match_list:
+            for round_games in grouped_match_list:
                 round_id = round_games['round_id']
                 rrgenobj = roundrobin(round_games['match_list'])
                 for rrgame in rrgenobj:
@@ -116,6 +116,7 @@ class TournamentFieldTimeScheduler:
                     slotstatus_list[gameday-1] = deepcopy(sstatus_list)
 
             fieldseason_status_list.append({'field_id':f['field_id'],
-                                            'slotstatus_list':slotstatus_list})
+                                            'slotstatus_list':slotstatus_list,
+                                            'nextopen_slot':0})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
         return _List_Indexer(fieldseason_status_list, fstatus_indexerGet)
