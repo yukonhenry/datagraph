@@ -14,9 +14,10 @@ large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class MatchGenerator:
-    def __init__(self, nt, ng, targetgamesperteam=1):
+    def __init__(self, nt, ng, maxGamesPerTeam=1e6):
         self.numTeams = nt
         self.numGameSlots = ng  # num gameslots per team per season
+        self.maxGamesPerTeam = maxGamesPerTeam
         # actual number of games per team (determined by counter), init to 0 to start
         # position in list is team_id-1
         self.numGames_list = nt*[0]
@@ -77,17 +78,23 @@ class MatchGenerator:
         # update game number (per team) counter
         self.numGames_list[t1_ind] += 1
         self.numGames_list[t2_ind] += 1
-        if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
-            # if team1 should be the home team
-            gamematch = {home_CONST:team1_id, away_CONST:team2_id}
-            self.addGraphEdgeAttribute(team1_id, team2_id, gamecount_id)
-            self.metrics_list[t1_ind] += 1
+        if (self.numGames_list[t1_ind] <= self.maxGamesPerTeam and
+            self.numGames_list[t2_ind] <= self.maxGamesPerTeam):
+            if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
+                # if team1 should be the home team
+                gamematch = {home_CONST:team1_id, away_CONST:team2_id}
+                self.addGraphEdgeAttribute(team1_id, team2_id, gamecount_id)
+                self.metrics_list[t1_ind] += 1
+            else:
+                # team2 should be the home team
+                gamematch = {home_CONST:team2_id, away_CONST:team1_id}
+                self.addGraphEdgeAttribute(team2_id, team1_id, gamecount_id)
+                self.metrics_list[t2_ind] += 1
+            return gamematch
         else:
-            # team2 should be the home team
-            gamematch = {home_CONST:team2_id, away_CONST:team1_id}
-            self.addGraphEdgeAttribute(team2_id, team1_id, gamecount_id)
-            self.metrics_list[t2_ind] += 1
-        return gamematch
+            self.numGames_list[t1_ind] -= 1
+            self.numGames_list[t2_ind] -= 1
+            return None
 
     # calculate cost function - euclidean distance between metrics_list and
     # targethome_count_list (if targethome_count is a list itself, then distance is defined
@@ -320,9 +327,11 @@ class MatchGenerator:
             circletop_team = rotation_ind + 1   # top of circle
             # first game pairing
             if (not self.bye_flag):
-                gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team, circlecenter_team,
-                                                               game_count)
-                round_list = [gamematch_dict]
+                gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team, circlecenter_team, game_count)
+                if gamematch_dict:
+                    round_list = [gamematch_dict]
+                else:
+                    round_list = []
             else:
                 round_list = []
             for j in range(1, self.half_n):
@@ -342,7 +351,8 @@ class MatchGenerator:
                 CCW_team = (((circletop_team-1)-j) % circle_total_pos) + 1
                 CW_team = (((circletop_team-1)+j) % circle_total_pos) + 1
                 gamematch_dict = self.getBalancedHomeAwayTeams(CCW_team, CW_team, game_count)
-                round_list.append(gamematch_dict)
+                if gamematch_dict:
+                    round_list.append(gamematch_dict)
             # round id is 1-index based, equivalent to team# at top of circle
             self.match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
         return game_count

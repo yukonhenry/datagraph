@@ -5,6 +5,7 @@ from sched_exceptions import CodeLogicError
 from matchgenerator import MatchGenerator
 from tournfieldtimescheduler import TournamentFieldTimeScheduler
 from tourndbinterface import TournDBInterface
+from schedule_util import any_ismore
 
 class TournamentScheduler:
     def __init__(self, mongoClient, divinfo_col, tfield_tuple):
@@ -40,7 +41,7 @@ class TournamentScheduler:
                          virtualgamedays)
             match_list = []
             for bracket in bracket_list:
-                match = MatchGenerator(len(bracket['team_id_list']), virtualgamedays)
+                match = MatchGenerator(len(bracket['team_id_list']), virtualgamedays, maxGamesPerTeam=ng)
                 bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
                 logging.info("tournscheduler:prepGenerate:bracket=%s match_list=%s",
                              bracket, bracket_match_list)

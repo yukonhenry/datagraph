@@ -44,7 +44,7 @@ class TournamentFieldTimeScheduler:
             #         print key, key1, j
             grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], 'div_id':dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
             logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
-            print 'group', grouped_match_list
+            #print 'group', grouped_match_list
             for round_games in  grouped_match_list:
                 round_id = round_games['round_id']
                 rrgenobj = roundrobin(round_games['match_list'])
