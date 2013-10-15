@@ -6,7 +6,7 @@ from matchgenerator import MatchGenerator
 from tournfieldtimescheduler import TournamentFieldTimeScheduler
 from tourndbinterface import TournDBInterface
 from schedule_util import any_ismore, any_isless
-
+from sched_exporter import ScheduleExporter
 
 class TournamentScheduler:
     def __init__(self, mongoClient, divinfo_col, tfield_tuple):
@@ -68,6 +68,15 @@ class TournamentScheduler:
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
         tourn_ftscheduler.generateSchedule(totalmatch_list)
+        tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface)
+        for division in self.tourn_divinfo:
+            tschedExporter.exportDivTeamSchedules(div_id=int(division['div_id']), age=division['div_age'], gen=division['div_gen'],
+                                                  numteams=int(division['totalteams']),
+                                                  prefix='PHMSACup2013')
+        tschedExporter.exportTeamSchedules(div_id=int(division['div_id']), age=division['div_age'], gen=division['div_gen'],
+                                             numteams=int(division['totalteams']), prefix='PHMSACup2013')
+        tschedExporter.exportDivSchedules(division['div_id'])
+        #tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup2013')
 
     def getTeamID_list(self, numteams):
         team_id_list = range(1,numteams+1)

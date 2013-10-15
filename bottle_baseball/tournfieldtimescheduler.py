@@ -8,8 +8,10 @@ from datetime import timedelta
 from dateutil import parser
 from copy import deepcopy
 from collections import namedtuple
+from leaguedivprep import getTournAgeGenderDivision
 import logging
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+time_format_CONST = '%H:%M'
 
 class TournamentFieldTimeScheduler:
     def __init__(self, tdbinterface, tfield_tuple, divinfo, dindexerGet):
@@ -60,15 +62,42 @@ class TournamentFieldTimeScheduler:
             fieldset = reduce(set.union,
                               map(set,[self.divinfo_list[self.dindexerGet(x)]['fields'] for x in connected_div_list]))
             print 'fieldset', fieldset
-            field_cycle = cycle(fieldset)
+            #field_cycle = cycle(fieldset)
             current_gameday = 1
-            self.findNextEarliestFieldSlot(list(fieldset), current_gameday)
+            earliestfield_list = None
             for round_games in grouped_match_list:
                 round_id = round_games['round_id']
+                #current_gameday = (round_id-1)/2 + 1
                 rrgenobj = roundrobin(round_games['match_list'])
                 for rrgame in rrgenobj:
-                    rrfield_id = field_cycle.next()
-                    print round_id, rrgame, rrfield_id
+                    if not earliestfield_list:
+                        try:
+                            earliestfield_list = self.findNextEarliestFieldSlot(list(fieldset), current_gameday)
+                        except ValueError:
+                            current_gameday += 1
+                            earliestfield_list = self.findNextEarliestFieldSlot(list(fieldset), current_gameday)
+                    earliest_dict = earliestfield_list.pop()
+                    efield = earliest_dict['field_id']
+                    eindex = earliest_dict['index']
+                    selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][current_gameday-1][eindex]
+                    selected_tfstatus['isgame'] = True
+                    selected_tfstatus['teams'] = rrgame
+            for field_id in fieldset:
+                gameday_id = 1
+                for gameday_list in self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list']:
+                    if gameday_list:
+                        for match in gameday_list:
+                            if match['isgame']:
+                                gametime = match['start_time']
+                                teams = match['teams']
+                                div_id = teams['div_id']
+                                home_id = teams['home']
+                                away_id = teams['away']
+                                div = getTournAgeGenderDivision(div_id)
+                                print div.age, div.gender, gameday_id, field_id, home_id, away_id, teams, gametime
+                                self.tdbInterface.dbInterface.insertGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id)
+                    gameday_id += 1
+        self.tdbInterface.dbInterface.setSchedStatus_col()
 
     def getTournFieldSeasonStatus_list(self):
         # routine to return initialized list of field status slots -
@@ -105,8 +134,8 @@ class TournamentFieldTimeScheduler:
 
             # find gamedays with different field availability times
             ldays_list = f.get('limiteddays')
+            lallstatus_list = []
             if ldays_list:
-                lallstatus_list = []
                 for lday in ldays_list:
                     lgameday = lday['gameday']
                     lgamestart = parser.parse(lday['start_time'])
@@ -129,7 +158,7 @@ class TournamentFieldTimeScheduler:
                 if closed_list and gameday in closed_list:
                     # leave slotstatus_list entry as None
                     continue
-                elif ldays_list and lindexerGet(gameday):
+                elif lallstatus_list and lindexerGet(gameday) is not None:
                     lindex = lindexerGet(gameday)
                     # decrement index by one from gameday value as gameday is
                     # 1-indexed
@@ -144,15 +173,26 @@ class TournamentFieldTimeScheduler:
         return _List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
     def findNextEarliestFieldSlot(self, field_list, cur_gameday):
+        cur_gameday_ind = cur_gameday-1
         field_cycle = cycle(field_list)
-        isgame_list = [(f,
-                         self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday])
+        status_list = [(f,
+                        self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind])
                         for f in field_list]
-        print 'isgame', isgame_list
-        mintime_list = [(f,
-                         min(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday], key=itemgetter('start_time')))
-                        for f in field_list]
-        print 'mintime', mintime_list
+        #print 'status', status_list
+        firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False),
+                            s[1][[x['isgame'] for x in s[1]].index(False)]['start_time'])
+                            for s in status_list]
+        #print 'firstindex', firstindex_list
+        mintime = min(firstindex_list, key=itemgetter(2))
+        #print 'mintime', mintime
+#        mintime_list = [(f[0], f[1], f[2]) for f in firstindex_list if f[2]==mintime[2]]
+        mintime_list = [{'field_id':f[0], 'index':f[1], 'start_time':f[2]} for f in firstindex_list if f[2] == min(firstindex_list, key=itemgetter(2))[2]]
+        #print 'mintime_list', mintime_list
+        return mintime_list
+#        mintime_list = min([(s[0]
+#                         min(status_list, key=itemgetter('start_time')))
+#                        for i in firstindex_list]
+#        print 'mintime', mintime_list
 #        for f in field_list:
 #            sstatus = self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday]
 #            if sstatus:

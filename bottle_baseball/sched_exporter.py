@@ -21,7 +21,7 @@ class ScheduleExporter:
         self.leaguedivinfo = ldata_tuple.dict_list
         self.lindexerGet = ldata_tuple.indexerGet
 
-    def exportDivTeamSchedules(self, div_id, age, gen, numteams):
+    def exportDivTeamSchedules(self, div_id, age, gen, numteams, prefix=""):
         headers = ['Gameday#', 'Game Date', 'Start Time', 'Venue', 'Home Team', 'Away Team']
         datasheet_list = []
         for team_id in range(1, numteams+1):
@@ -38,7 +38,7 @@ class ScheduleExporter:
             datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
         cdir = os.path.dirname(__file__)
-        bookname_xls = age + gen +'_schedule.xls'
+        bookname_xls = prefix+age + gen +'_schedule.xls'
         bookname_html = age + gen +'_schedule.html'
         booknamefull_xls = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls', bookname_xls)
         booknamefull_html = os.path.join('~/workspace/datagraph/bottle_baseball/download/html', bookname_html)
@@ -53,7 +53,7 @@ class ScheduleExporter:
     def exportDivSchedules(self, div_id):
         pass
 
-    def exportTeamSchedules(self, div_id, age, gen, numteams):
+    def exportTeamSchedules(self, div_id, age, gen, numteams, prefix=""):
         headers = ['Gameday#', 'Game Date', 'Start Time', 'Venue', 'Home Team', 'Away Team']
         cdir = os.path.dirname(__file__)
         for team_id in range(1, numteams+1):
@@ -71,14 +71,14 @@ class ScheduleExporter:
                 team_id_str = '0'+str(team_id)
             else:
                 team_id_str = str(team_id)
-            sheet_xls_relpath = age + gen + team_id_str+ '_schedule.xls'
+            sheet_xls_relpath = prefix+age + gen + team_id_str+ '_schedule.xls'
             sheet_xls_abspath = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls',
                                              sheet_xls_relpath)
             with open(sheet_xls_abspath,'wb') as f:
                 f.write(datasheet.xls)
             f.close()
 
-    def exportDivSchedulesRefFormat(self):
+    def exportDivSchedulesRefFormat(self, prefix=""):
         headers = ['Date', 'Day', 'Time', 'Division', 'Home', 'Visitor', 'Field']
         datasheet = Dataset(title='RefschedulerFormat2013')
         datasheet.headers = list(headers)
@@ -92,7 +92,7 @@ class ScheduleExporter:
                            for x in schedule_list]
         for tabformat in tabformat_list:
             datasheet.append(tabformat)
-        sheet_xls_relpath = '2013PHMSAFall_schedule_RefFormat.xls'
+        sheet_xls_relpath = prefix+'2013PHMSAFall_schedule_RefFormat.xls'
         sheet_xls_abspath = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls',
                                          sheet_xls_relpath)
         with open(sheet_xls_abspath,'wb') as f:

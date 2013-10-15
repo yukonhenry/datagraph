@@ -115,7 +115,8 @@ def getCupSchedule(tourn_divinfo_col):
     tfield_tuple = getTournamentFieldInfo()
     tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col, tfield_tuple)
     tournamentsched.prepGenerate()
-    a = ""
+
+    a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
 
