@@ -109,13 +109,19 @@ def exportSchedule():
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 
+@route('/exporttournschedule/<tourn_divinfo_col>')
+def exportTournSchedule(tourn_divinfo_col):
+    callback_name = request.query.callback
+    tournamentSched = TournamentScheduler(mongoClient, tourn_divinfo_col)
+    tournamentSched.exportSchedule()
+    a = json.dumps({"status":'ready'})
+    return callback_name+'('+a+')'
+
 @route('/getcupschedule/<tourn_divinfo_col>')
 def getCupSchedule(tourn_divinfo_col):
     callback_name = request.query.callback
-    tfield_tuple = getTournamentFieldInfo()
-    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col, tfield_tuple)
+    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col)
     tournamentsched.prepGenerate()
-
     a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 

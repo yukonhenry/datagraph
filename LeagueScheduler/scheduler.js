@@ -6,15 +6,15 @@
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
 // dbootstrap reference: https://github.com/thesociable/dbootstrap
-require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready", 
+require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dojo/_base/declare", "dojo/_base/lang", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
-		"dojo/request", 
+		"dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"dijit/form/Button",
 		"dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection, 
+	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
 		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
@@ -38,11 +38,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				totalteams:"Total#Teams",
 				fields:"Fields (ID)",
 				gameinterval:"Game Interval(min)",
-				gamesperseason:"Games in Season"				
+				gamesperseason:"Games in Season"
 			},
-			selectionMode: "single"		
+			selectionMode: "single"
 		}, "divisionInfoGrid");
-		
+
 		var fieldInfoGrid = new CustomGrid({
 			columns: {
 				field_id:"Field ID",
@@ -76,7 +76,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			// generate dropdown menu for edit->delete schedule
 			deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
-				dbcollection_list, schedUtil, schedUtil.delete_dbcollection);	
+				dbcollection_list, schedUtil, schedUtil.delete_dbcollection);
 			// generate dropdown for 'generate cup schedule'
 			cupdbcollection_list = ldata.cupdbcollection_list;
 			cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
@@ -85,7 +85,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
-		
+
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data.div_id;
@@ -104,13 +104,13 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 					game_columns[item] = schedUtil.getFieldMap(item);
 				});
 
-				var game_array = sdata.game_list;				
+				var game_array = sdata.game_list;
 				var game_grid_list = new Array();
 				var listindex = 0;
 				arrayUtil.forEach(game_array, function(item,index) {
 					var gameday_id = item.GAMEDAY_ID;
 					var gameday_data = item.GAMEDAY_DATA;
-					var start_time = item.START_TIME; 
+					var start_time = item.START_TIME;
 					var game_grid_row = {};
 					// fill in the game day number and start time
 					game_grid_row[gameday_column_key_CONST] = schedUtil.getCalendarMap(gameday_id);
@@ -121,24 +121,24 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 					game_grid_list[listindex] = game_grid_row;
 					listindex++;
 				});
-				
+
 				// this will define number of columns (games per day)
 				if (gamesGrid) {
 					// clear grid by clearing dom node
 					dom.byId("scheduleInfoGrid").innerHTML = "";
 					delete gamesGrid;
-					
+
 				}
     			gamesGrid = new CustomGrid({
     				columns:game_columns,
     			},"scheduleInfoGrid");
-    			gamesGrid.renderArray(game_grid_list);    			
+    			gamesGrid.renderArray(game_grid_list);
     		});
 		});
 		grid.on("dgrid-deselect", function(event){
     		//console.log("Row de-selected: ", event.rows[0].data);
 		});
-		
+
 		fieldInfoGrid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var fidnum = event.rows[0].data.field_id;
@@ -166,7 +166,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 					gameday_id = item.GAMEDAY_ID;
 					item.GAMEDAY_ID = schedUtil.getCalendarMap(gameday_id);
 					item.START_TIME = schedUtil.tConvert(item.START_TIME)
-				});    		
+				});
     			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
 		});
@@ -176,7 +176,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 				schedUtil.updateDBstatusline(adata.dbstatus);
-/*				
+/*
 	        	if (game_listP) {
 	        		d3.select(schedulerDiv).selectAll("p").remove();
 	        	}
@@ -206,7 +206,15 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 	        	//console.log("getalldiv schedule status"+adata.status);
-			});			
+			});
+		}
+		var exportTournSchedule = function(evt) {
+			//dom.byId("status").innerHTML = "";
+	        script.get(constant.SERVER_PREFIX+"exporttournschedule/phmsacup2013", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {
+	        	//console.log("getalldiv schedule status"+adata.status);
+			});
 		}
 		var getDivisionTeamData = function(evt) {
 			var divisioncode = registry.byId("divisionSelect").get("value");
@@ -224,7 +232,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				columns: {
 					team_id:"Team ID",
 				},
-				selectionMode: "single"		
+				selectionMode: "single"
 			}, "divisionGridLinkTeams");
 			script.get(constant.SERVER_PREFIX+"divisiondata/"+divisioncode, {
 				jsonp:"callback"
@@ -243,7 +251,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
     			if (teamDataGrid) {
 					dom.byId("teamDataGrid").innerHTML = "";
 					// delete reference to obj
-					delete teamDataGrid;    				
+					delete teamDataGrid;
     			}
     			teamDataGrid = new CustomGrid({
     				columns: {
@@ -266,7 +274,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 						venue = item.VENUE;
 						item.VENUE = schedUtil.getFieldMap(venue);
 						item.START_TIME = schedUtil.tConvert(item.START_TIME);
-					});    		
+					});
     				teamDataGrid.renderArray(tdata_array);
     			});
 			});
@@ -288,8 +296,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				});
 				metrics_columns[earliest_count_CONST] = '# Earliest Games';
 				metrics_columns[latest_count_CONST] = '# Latest Games';
-				
-				dom.byId("metricsHeader").innerHTML = 
+
+				dom.byId("metricsHeader").innerHTML =
 					"Total game slots per team: <b>"+ldata_array[division_id-1].gamesperseason+"</b>";
 				// this will define number of columns (games per day)
 				if (metricsGrid) {
@@ -314,15 +322,15 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 					});
 					metrics_grid_row[earliest_count_CONST] = item.EARLIEST_COUNT;
 					metrics_grid_row[latest_count_CONST] = item.LATEST_COUNT;
-					
+
 					metricsGrid_list[listindex] = metrics_grid_row;
 					listindex++;
 				});
     			metricsGrid = new CustomGrid({
     				columns:metrics_columns,
     			},"metricsGrid");
-    			metricsGrid.renderArray(metricsGrid_list); 			
-    		});  
+    			metricsGrid.renderArray(metricsGrid_list);
+    		});
 		};
 		var editSeedGrid = function(evt) {
 			if (seedGrid) {
@@ -364,7 +372,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				divisionGrid.resize();
 			if (teamDataGrid)
 				teamDataGrid.resize();
-		}		
+		}
 		var resizeFieldsPaneGrids = function(evt) {
 			fieldInfoGrid.resize();
 			if (fieldScheduleGrid)
@@ -384,9 +392,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		// events for widgets should be in one file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget
 		ready(function() {
- 			parser.parse();	
+ 			parser.parse();
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
+			on(registry.byId("exporttourn_btn"), "click", exportTournSchedule);
 			//on(registry.byId("cup_btn"), "click", getCupSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
@@ -397,6 +406,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("newsched_item"), "click", initNewSchedule);
- 		}); 
+ 		});
 	}
 );

@@ -7,15 +7,16 @@ from tournfieldtimescheduler import TournamentFieldTimeScheduler
 from tourndbinterface import TournDBInterface
 from schedule_util import any_ismore, any_isless
 from sched_exporter import ScheduleExporter
+from leaguedivprep import getTournamentFieldInfo
 
 class TournamentScheduler:
-    def __init__(self, mongoClient, divinfo_col, tfield_tuple):
+    def __init__(self, mongoClient, divinfo_col):
         #self.dbInterface = MongoDBInterface(mongoClient, divinfo_col, rr_type_flag=False)
         self.tdbInterface = TournDBInterface(mongoClient, divinfo_col)
-        divinfo_tuple = self.tdbInterface.readDB()
-        self.tourn_divinfo = divinfo_tuple.dict_list
-        self.tindexerGet = divinfo_tuple.indexerGet
-        self.tfield_tuple = tfield_tuple
+        self.divinfo_tuple = self.tdbInterface.readDB()
+        self.tourn_divinfo = self.divinfo_tuple.dict_list
+        self.tindexerGet = self.divinfo_tuple.indexerGet
+        self.tfield_tuple = getTournamentFieldInfo()
 
     def prepGenerate(self):
         totalmatch_list = []
@@ -25,7 +26,14 @@ class TournamentScheduler:
             nb = int(division['totalbrackets'])
             ne = int(division['elimination_num'])
             div_id = int(division['div_id'])
-            bracket_list = self.createRRBrackets(nt, team_id_list, nb)
+            if div_id == 2:
+                bracket_list = [{'team_id_list':[11, 1, 18, 4], 'bracket_id':1},
+                {'team_id_list':[21, 12, 2, 15],'bracket_id': 2},
+                {'team_id_list':[14, 3, 6, 20],'bracket_id': 3},
+                {'team_id_list':[8, 17, 10, 13, 7],'bracket_id': 4},
+                {'team_id_list':[22, 5, 9, 16, 19],'bracket_id': 5}]
+            else:
+                bracket_list = self.createRRBrackets(nt, team_id_list, nb)
             logging.debug("tournsched:createRRbrack: div_id= %d bracket_list=%s",
                           div_id, bracket_list)
             print 'div_id bracketlist', div_id, bracket_list
@@ -68,15 +76,6 @@ class TournamentScheduler:
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
         tourn_ftscheduler.generateSchedule(totalmatch_list)
-        tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface)
-        for division in self.tourn_divinfo:
-            tschedExporter.exportDivTeamSchedules(div_id=int(division['div_id']), age=division['div_age'], gen=division['div_gen'],
-                                                  numteams=int(division['totalteams']),
-                                                  prefix='PHMSACup2013')
-        tschedExporter.exportTeamSchedules(div_id=int(division['div_id']), age=division['div_age'], gen=division['div_gen'],
-                                             numteams=int(division['totalteams']), prefix='PHMSACup2013')
-        tschedExporter.exportDivSchedules(division['div_id'])
-        #tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup2013')
 
     def getTeamID_list(self, numteams):
         team_id_list = range(1,numteams+1)
@@ -104,5 +103,21 @@ class TournamentScheduler:
             bracket_dict = {'bracket_id':bracket_id, 'team_id_list':team_id_list}
             bracket_list.append(bracket_dict)
             index = lastindex
-
         return bracket_list
+
+    def exportSchedule(self):
+        tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
+                                         divinfotuple=self.divinfo_tuple,
+                                         fieldtuple=self.tfield_tuple)
+        for division in self.tourn_divinfo:
+            tschedExporter.exportDivTeamSchedules(div_id=int(division['div_id']),
+                                                  age=division['div_age'],
+                                                  gen=division['div_gen'],
+                                                  numteams=int(division['totalteams']),
+                                                  prefix='PHMSACup2013')
+            tschedExporter.exportTeamSchedules(div_id=int(division['div_id']),
+                                               age=division['div_age'],
+                                               gen=division['div_gen'],
+                                               numteams=int(division['totalteams']), prefix='PHMSACup2013')
+            tschedExporter.exportDivSchedules(division['div_id'])
+            #tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup2013')

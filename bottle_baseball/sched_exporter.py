@@ -12,14 +12,16 @@ age_CONST = 'AGE'
 gen_CONST = 'GEN'
 
 class ScheduleExporter:
-    def __init__(self, dbinterface):
+    def __init__(self, dbinterface, divinfotuple,fieldtuple):
         self.dbinterface = dbinterface
-        fieldtuple = getFieldInfo()
+        if divinfotuple is None:
+            divinfotuple = getLeagueDivInfo()
+        self.leaguedivinfo = divinfotuple.dict_list
+        self.lindexerGet = divinfotuple.indexerGet
+        if fieldtuple is None:
+            fieldtuple = getFieldInfo()
         self.fieldinfo = fieldtuple.dict_list
         self.findexerGet = fieldtuple.indexerGet
-        ldata_tuple = getLeagueDivInfo()
-        self.leaguedivinfo = ldata_tuple.dict_list
-        self.lindexerGet = ldata_tuple.indexerGet
 
     def exportDivTeamSchedules(self, div_id, age, gen, numteams, prefix=""):
         headers = ['Gameday#', 'Game Date', 'Start Time', 'Venue', 'Home Team', 'Away Team']
@@ -39,7 +41,7 @@ class ScheduleExporter:
         book = Databook(datasheet_list)
         cdir = os.path.dirname(__file__)
         bookname_xls = prefix+age + gen +'_schedule.xls'
-        bookname_html = age + gen +'_schedule.html'
+        bookname_html = prefix+age + gen +'_schedule.html'
         booknamefull_xls = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls', bookname_xls)
         booknamefull_html = os.path.join('~/workspace/datagraph/bottle_baseball/download/html', bookname_html)
         with open(booknamefull_xls,'wb') as f:
