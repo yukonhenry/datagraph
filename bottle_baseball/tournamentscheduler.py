@@ -52,13 +52,15 @@ class TournamentScheduler:
             # calculate virtual number of game days required as parameter for
             # MatchGenerator object.  Value is equal to #games if #teams is even,
             # if odd, add one to #games.
-            virtualgamedays = ng if nt%2==0 else ng+1
-            logging.info("tournscheduler:prepGenerate: virtualgamedays=%d",
-                         virtualgamedays)
             match_list = []
             partialgame_list = []
             for bracket in bracket_list:
-                match = MatchGenerator(len(bracket['team_id_list']), virtualgamedays, maxGamesPerTeam=ng)
+                # calculate virtual number of game days required as parameter for
+                # MatchGenerator object.  Value is equal to #games if #teams is even,
+                # if odd, add one to #games.
+                numbracket_teams = len(bracket['team_id_list'])
+                virtualgamedays = ng if numbracket_teams%2==0 else ng+1
+                match = MatchGenerator(numbracket_teams, virtualgamedays, maxGamesPerTeam=ng)
                 bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
                 logging.info("tournscheduler:prepGenerate:div=%d bracket=%s bracketmatch_list=%s",
                              div_id, bracket, bracket_match_list)
@@ -78,7 +80,7 @@ class TournamentScheduler:
                                       'GAME_TEAM':game_team_list}])
 
             totalmatch_list.append({'div_id': division['div_id'],
-                                    'match_list':match_list})
+                                    'match_list':match_list, 'max_round':virtualgamedays})
         tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
@@ -127,4 +129,4 @@ class TournamentScheduler:
                                                gen=division['div_gen'],
                                                numteams=int(division['totalteams']), prefix='PHMSACup2013')
             tschedExporter.exportDivSchedules(division['div_id'])
-            tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup2013')
+            tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup')

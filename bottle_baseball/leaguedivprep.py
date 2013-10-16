@@ -111,15 +111,15 @@ for field in _field_info:
 # for tournament fields - node U10 is div_id 1 and so on
 _tournament_field_info = [
     {'field_id':9, 'primary':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 1',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6},
+    'start_time':'09:00', 'end_time':'16:30', 'numgamedays':6},
     {'field_id':10, 'primary':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 2',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6},
+    'start_time':'09:00', 'end_time':'16:30', 'numgamedays':6},
     {'field_id':11, 'primary':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 3',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6},
+    'start_time':'09:00', 'end_time':'16:30', 'numgamedays':6},
     {'field_id':12, 'primary':[1,2], 'secondary':[1,2], 'name':'Nancy Boyd Park',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6},
+    'start_time':'09:00', 'end_time':'16:30', 'numgamedays':6},
     {'field_id':13, 'primary':[1,2], 'secondary':[1,2], 'name':'Strandwood Elementary',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6},
+    'start_time':'09:00', 'end_time':'16:30', 'numgamedays':6},
 #   {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello Park',
 #   'start_time':'13:30', 'end_time':'16:30', 'closed_gameday_list':[4] },
     {'field_id':14, 'primary':[3,4], 'secondary':[1,2], 'name':'Sequoia Middle',
@@ -129,15 +129,15 @@ _tournament_field_info = [
     {'field_id':16, 'primary':[3,4], 'secondary':None, 'name':'Pleasant Hill Park',
     'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6},
     {'field_id':17, 'primary':[5,6], 'secondary':None, 'name':'Sequoia Middle Large',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6,
+    'start_time':'08:30', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':2, 'start_time':'09:30', 'end_time':'17:00'}]},
     {'field_id':18, 'primary':[5,6], 'secondary':None, 'name':'Hidden Lakes',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6,
+    'start_time':'08:30', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':2, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':4, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'13:30', 'end_time':'17:00'}]},
     {'field_id':19, 'primary':[5,6], 'secondary':None, 'name':'Waterfront',
-    'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6,
+    'start_time':'08:30', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':2, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':4, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'13:30', 'end_time':'17:00'}]}
@@ -357,8 +357,8 @@ def getFieldSeasonStatus_list():
                                 slotstatus_list[gameday-1] = None
 
                 fieldseason_status_list.append({'field_id':f['field_id'],
-                                                                                'slotstatus_list':slotstatus_list,
-                                                                                'gameslotsperday':sstatus_len})
+                                                'slotstatus_list':slotstatus_list,
+                                                'gameslotsperday':sstatus_len})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
@@ -427,9 +427,16 @@ _gameday_to_numericalcal = {1:'9/7/2013', 2:'9/14/2013', 3:'9/21/2013', 4:'9/28/
                                                         6:'10/12/2013', 7:'10/19/2013', 8:'10/26/2013', 9:'11/2/2013', 10:'11/9/2013',
                                                         11:'11/16/2013', 12:'11/23/2013'}
 
+_tourngameday_to_numericalcal = {1:'10/26/2013', 2:'10/27/2013', 3:'11/2/2013', 4:'11/3/2013', 5:'11/9/2013', 6:'11/10/2013'}
+_tourngameday_to_date = {1:'Saturday',2:'Sunday',3:'Saturday',4:'Sunday',5:'Saturday',6 :'Sunday'}
 def mapGamedayIdToCalendar(gameday_id, format=0):
         calformat = _gameday_to_cal.get(gameday_id) if format == 0 else _gameday_to_numericalcal.get(gameday_id)
         return calformat
+
+def tournMapGamedayIdToCalendar(gameday_id):
+    return _tourngameday_to_numericalcal.get(gameday_id)
+def tournMapGamedayIdToDate(gameday_id):
+    return _tourngameday_to_date.get(gameday_id)
 
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list

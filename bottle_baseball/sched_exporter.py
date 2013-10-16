@@ -1,5 +1,5 @@
 from tablib import Dataset, Databook
-from leaguedivprep import getLeagueDivInfo, mapGamedayIdToCalendar, getFieldInfo
+from leaguedivprep import getLeagueDivInfo, mapGamedayIdToCalendar, getFieldInfo,tournMapGamedayIdToCalendar, tournMapGamedayIdToDate
 from datetime import datetime
 from dateutil import parser
 import os
@@ -12,7 +12,7 @@ age_CONST = 'AGE'
 gen_CONST = 'GEN'
 
 class ScheduleExporter:
-    def __init__(self, dbinterface, divinfotuple,fieldtuple):
+    def __init__(self, dbinterface, divinfotuple=None,fieldtuple=None):
         self.dbinterface = dbinterface
         if divinfotuple is None:
             divinfotuple = getLeagueDivInfo()
@@ -82,19 +82,24 @@ class ScheduleExporter:
 
     def exportDivSchedulesRefFormat(self, prefix=""):
         headers = ['Date', 'Day', 'Time', 'Division', 'Home', 'Visitor', 'Field']
-        datasheet = Dataset(title='Cup'+'RefschedulerFormat2013')
+        datasheet = Dataset(title=prefix+'RefschedulerFormat2013')
         datasheet.headers = list(headers)
 
         schedule_list = self.dbinterface.findDivisionSchedulePHMSARefFormat()
-        tabformat_list = [(mapGamedayIdToCalendar(x[gameday_id_CONST],format=1), 'Saturday',
-                           datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"),
-                           x[age_CONST]+x[gen_CONST],
-                           x[home_CONST], x[away_CONST],
-                           self.fieldinfo[self.findexerGet(x[venue_CONST])]['name'])
-                           for x in schedule_list]
+        tabformat_list = [(tournMapGamedayIdToCalendar(x[gameday_id_CONST]), tournMapGamedayIdToDate(x[gameday_id_CONST]),
+            datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"),
+            x[age_CONST]+x[gen_CONST],
+            x[home_CONST], x[away_CONST],
+            self.fieldinfo[self.findexerGet(x[venue_CONST])]['name'])
+            for x in schedule_list] if prefix else [(mapGamedayIdToCalendar(x[gameday_id_CONST],format=1), 'Saturday',
+                datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"),
+                x[age_CONST]+x[gen_CONST],
+                x[home_CONST], x[away_CONST],
+                self.fieldinfo[self.findexerGet(x[venue_CONST])]['name'])
+                for x in schedule_list]
         for tabformat in tabformat_list:
             datasheet.append(tabformat)
-        sheet_xls_relpath = 'Cup'+'2013PHMSAFall_schedule_RefFormat.xls'
+        sheet_xls_relpath = prefix+'2013PHMSAFall_schedule_RefFormat.xls'
         sheet_xls_abspath = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls',
                                          sheet_xls_relpath)
         with open(sheet_xls_abspath,'wb') as f:
