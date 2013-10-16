@@ -77,13 +77,8 @@ class MongoDBInterface:
         # also see aggregatin 'mongodb definitive guide'
         # col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
         result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
-                                                 {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",
-                                                                   start_time_CONST:"$START_TIME"},
-                                                            'count':{"$sum":1},
-                                                            gameday_data_CONST:{"$push":{home_CONST:"$HOME",
-                                                                                         away_CONST:"$AWAY",
-                                                                                         venue_CONST:"$VENUE"}}
-                                                            }},
+                                               {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",
+                                               start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
                                                 {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
@@ -99,7 +94,7 @@ class MongoDBInterface:
 
     def findDivisionSchedulePHMSARefFormat(self):
         ''' query for all games, but sort according to date, time, division '''
-        game_curs = self.games_col.find({},{'_id':0})
+        game_curs = self.games_col.find({gameday_id_CONST:{"$exists":True}},{'_id':0})
         game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1), (age_CONST,1), (gen_CONST,1), (venue_CONST,1)])
         schedule_list = []
         for game in game_curs:
@@ -196,7 +191,7 @@ class MongoDBInterface:
                                                                                      'awayteam_id_list':"$awayteam_id_list",
                                                                                      'time':"$_id"}},
                                                             'earliest_data':{"$last":{'hometeam_id_list':"$hometeam_id_list",
-                                                                                      'awayteam_id_list':"$awayteam_id_list",
+                                                            'awayteam_id_list':"$awayteam_id_list",
                                                                                       'time':"$_id"}}}},
                                                  {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
         '''

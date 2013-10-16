@@ -12,6 +12,7 @@ from leaguedivprep import getTournAgeGenderDivision
 import logging
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 time_format_CONST = '%H:%M'
+min_slotgap_CONST = 2
 
 class TournamentFieldTimeScheduler:
     def __init__(self, tdbinterface, tfield_tuple, divinfo, dindexerGet):
@@ -24,6 +25,8 @@ class TournamentFieldTimeScheduler:
         tfstatus_tuple = self.getTournFieldSeasonStatus_list()
         self.tfstatus_list = tfstatus_tuple.dict_list
         self.tfindexerGet = tfstatus_tuple.indexerGet
+        # add field parameters to the divinfo list entries
+        # better to eventually move this to the tournamentscheduler constructor
         for tfield in self.tfieldinfo_list:
             f_id = tfield['field_id']
             for d_id in tfield['primary']:
@@ -43,7 +46,6 @@ class TournamentFieldTimeScheduler:
             # get the list of divisions that make up a connected component.
             # then get the matchlist corresponding to the connected divisions
             connecteddiv_match_list = [totalmatch_list[tmindexerGet(x)] for x in connected_div_list]
-            #print 'connectedmatch', connecteddiv_match_list
             # flatten out the list embed div_id value in each dictionary
             # also flatten out 'GAME_TEAM' list generate by the match generator
             flatmatch_list = [{'ROUND_ID':z['ROUND_ID'], 'HOME':p['HOME'], 'AWAY':p['AWAY'], 'DIV_ID':x['div_id']} for x in connecteddiv_match_list for y in x['match_list'] for z in y for p in z['GAME_TEAM']]
@@ -57,12 +59,16 @@ class TournamentFieldTimeScheduler:
             #         print key, key1, j
             grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], 'div_id':dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
             logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
+            for group in grouped_match_list:
+                print 'group', group
             #find the fields available for the connected_div_set by finding
             # the union of fields for each div
+            # another option is to  call set.update (see fieldtimeschedule fset)
             fieldset = reduce(set.union,
                               map(set,[self.divinfo_list[self.dindexerGet(x)]['fields'] for x in connected_div_list]))
-            print 'fieldset', fieldset
+            field_list = list(fieldset)
             #field_cycle = cycle(fieldset)
+            gaptuple = self.initTeamTimeGap_list(connected_div_list)
             current_gameday = 1
             earliestfield_list = None
             for round_games in grouped_match_list:
@@ -72,14 +78,17 @@ class TournamentFieldTimeScheduler:
                 for rrgame in rrgenobj:
                     if not earliestfield_list:
                         try:
-                            earliestfield_list = self.findNextEarliestFieldSlot(list(fieldset), current_gameday)
+                            earliestfield_list = self.findNextEarliestFieldSlot(field_list, current_gameday)
                         except ValueError:
                             current_gameday += 1
-                            earliestfield_list = self.findNextEarliestFieldSlot(list(fieldset), current_gameday)
+                            earliestfield_list = self.findNextEarliestFieldSlot(field_list, current_gameday)
                     earliest_dict = earliestfield_list.pop()
                     efield = earliest_dict['field_id']
-                    eindex = earliest_dict['index']
-                    selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][current_gameday-1][eindex]
+                    eslot = earliest_dict['index']
+                    validation_tuple = self.validateTimeSlot(rrgame['div_id'], current_gameday, eslot, rrgame['home'], rrgame['away'], gaptuple)
+                    if not validation_tuple[0]:
+                        altfield_list = self.findAlternateFieldSlot(field_list, current_gameday, validation_tuple[1], rrgame['div_id'],rrgame['home'], rrgame['away'], gaptuple)
+                    selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][current_gameday-1][eslot]
                     selected_tfstatus['isgame'] = True
                     selected_tfstatus['teams'] = rrgame
             for field_id in fieldset:
@@ -185,16 +194,54 @@ class TournamentFieldTimeScheduler:
         #print 'firstindex', firstindex_list
         mintime = min(firstindex_list, key=itemgetter(2))
         #print 'mintime', mintime
-#        mintime_list = [(f[0], f[1], f[2]) for f in firstindex_list if f[2]==mintime[2]]
         mintime_list = [{'field_id':f[0], 'index':f[1], 'start_time':f[2]} for f in firstindex_list if f[2] == min(firstindex_list, key=itemgetter(2))[2]]
         #print 'mintime_list', mintime_list
         return mintime_list
-#        mintime_list = min([(s[0]
-#                         min(status_list, key=itemgetter('start_time')))
-#                        for i in firstindex_list]
-#        print 'mintime', mintime_list
-#        for f in field_list:
-#            sstatus = self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday]
-#            if sstatus:
-#                mintime = min(sstatus,key=itemgetter('start_time'))
-#                print 'f mintime', f, mintime
+
+    def initTeamTimeGap_list(self, div_list):
+        gaplist = [{'div_id':self.divinfo_list[self.dindexerGet(x)]['div_id'], 'team_id':y, 'last_slot':-1, 'last_gameday':0} for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)]
+        # gapindexerGet must have a (div_id, team_id) tuple passed to it
+        gapindexerGet = lambda x: [i for i,p in enumerate(gaplist) if p['div_id'] == x[0] and p['team_id']==x[1]]
+
+        return _List_Indexer(gaplist, gapindexerGet)
+
+    def validateTimeSlot(self, div_id, gameday, slot_index, home, away, gaptuple):
+        gaplist = gaptuple.dict_list
+        gapindexerGet = gaptuple.indexerGet
+        target_slot = 0
+        for team in (home,away):
+            gapindex_list = gapindexerGet((div_id, team))
+            if len(gapindex_list) != 1:
+                raise CodeLogicError("tournftscheduler:initteamtimegap:gap list has multiple or No entries for div %d team %d indexlist %s" % (div_id, team, gapindex_list))
+            gapteam_dict = gaplist[gapindex_list[0]]
+            gapslot = gapteam_dict['last_slot']
+            gapday = gapteam_dict['last_gameday']
+            if (gapslot == -1 and gapday == 0):
+                validate = True
+            elif (gameday > gapday):
+                validate = True
+            elif (gapday == gameday and slot_index-gapslot > min_slotgap_CONST):
+                validate = True
+            else:
+                validate = False
+            if validate:
+                gapteam_dict['last_slot'] = slot_index
+                gapteam_dict['last_gameday'] = gameday
+            else:
+                logging.info("tourn_ftscheduler:validatetimeslot: TimeGap Validation Failed, div_id=%d slot_index=%d gameday=%d home=%d away=%d",
+                             div_id, slot_index, gameday, home, away)
+                # target slot is the minimu slot that gives the required game gap
+                target_slot = slot_index + min_slotgap_CONST + 1
+                break
+        return (validate, target_slot)
+
+    def findAlternateFieldSlot(self, field_list, gameday, target_slot, div_id, home, away, gaptuple):
+        gaplist = gaptuple.dict_list
+        gapindexerGet = gaptuple.indexerGet
+        gameday_ind = gameday-1
+        print 'target slot', target_slot, div_id, home, away
+        status_list = [(f,
+                        self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot])
+                        for f in field_list]
+        print 'status', status_list, gameday, target_slot, home, away
+

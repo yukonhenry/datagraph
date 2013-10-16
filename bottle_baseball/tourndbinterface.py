@@ -25,13 +25,14 @@ class TournDBInterface:
         divinfo_dict = json.loads(divinfo_str)
         for division in divinfo_dict:
             div_id = division['div_id']
-            document = {div_id_CONST:div_id, age_CONST:division['div_age'],
-                        gen_CONST:division['div_gen'], totalteams_CONST:division['totalteams'],
-                        totalbrackets_CONST: division['totalbrackets'],
-                        elimination_num_CONST:division['elimination_num'],
+            document = {div_id_CONST:int(div_id), age_CONST:division['div_age'],
+                        gen_CONST:division['div_gen'],
+                        totalteams_CONST:int(division['totalteams']),
+                        totalbrackets_CONST: int(division['totalbrackets']),
+                        elimination_num_CONST:int(division['elimination_num']),
                         field_id_list_CONST:division['field_id_str'].split(),
-                        gameinterval_CONST:division['gameinterval'],
-                        rr_gamedays_CONST:division['rr_gamedays']}
+                        gameinterval_CONST:int(division['gameinterval']),
+                        rr_gamedays_CONST:int(division['rr_gamedays'])}
             self.dbInterface.updateTournamentDivInfo(document, div_id)
 
     def readDB(self):

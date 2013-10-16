@@ -82,7 +82,7 @@ class ScheduleExporter:
 
     def exportDivSchedulesRefFormat(self, prefix=""):
         headers = ['Date', 'Day', 'Time', 'Division', 'Home', 'Visitor', 'Field']
-        datasheet = Dataset(title='RefschedulerFormat2013')
+        datasheet = Dataset(title='Cup'+'RefschedulerFormat2013')
         datasheet.headers = list(headers)
 
         schedule_list = self.dbinterface.findDivisionSchedulePHMSARefFormat()
@@ -94,7 +94,7 @@ class ScheduleExporter:
                            for x in schedule_list]
         for tabformat in tabformat_list:
             datasheet.append(tabformat)
-        sheet_xls_relpath = prefix+'2013PHMSAFall_schedule_RefFormat.xls'
+        sheet_xls_relpath = 'Cup'+'2013PHMSAFall_schedule_RefFormat.xls'
         sheet_xls_abspath = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls',
                                          sheet_xls_relpath)
         with open(sheet_xls_abspath,'wb') as f:

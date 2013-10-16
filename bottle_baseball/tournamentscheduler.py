@@ -21,17 +21,24 @@ class TournamentScheduler:
     def prepGenerate(self):
         totalmatch_list = []
         for division in self.tourn_divinfo:
-            nt = int(division['totalteams'])
+            nt = division['totalteams']
             team_id_list = self.getTeamID_list(nt)
-            nb = int(division['totalbrackets'])
-            ne = int(division['elimination_num'])
+            nb = division['totalbrackets']
+            ne = division['elimination_num']
             div_id = int(division['div_id'])
             if div_id == 2:
+                bracket_list = [{'team_id_list':[11, 16, 18, 4],'bracket_id': 1},
+                {'team_id_list': [21, 12, 2, 15], 'bracket_id': 2},
+                {'team_id_list': [14, 3, 6, 20], 'bracket_id': 3},
+                {'team_id_list': [8, 17, 10, 13, 7], 'bracket_id': 4},
+                {'team_id_list': [22, 5, 9, 1, 19], 'bracket_id': 5}]
+                '''
                 bracket_list = [{'team_id_list':[11, 1, 18, 4], 'bracket_id':1},
                 {'team_id_list':[21, 12, 2, 15],'bracket_id': 2},
                 {'team_id_list':[14, 3, 6, 20],'bracket_id': 3},
                 {'team_id_list':[8, 17, 10, 13, 7],'bracket_id': 4},
                 {'team_id_list':[22, 5, 9, 16, 19],'bracket_id': 5}]
+                '''
             else:
                 bracket_list = self.createRRBrackets(nt, team_id_list, nb)
             logging.debug("tournsched:createRRbrack: div_id= %d bracket_list=%s",
@@ -120,4 +127,4 @@ class TournamentScheduler:
                                                gen=division['div_gen'],
                                                numteams=int(division['totalteams']), prefix='PHMSACup2013')
             tschedExporter.exportDivSchedules(division['div_id'])
-            #tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup2013')
+            tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup2013')
