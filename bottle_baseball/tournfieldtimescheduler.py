@@ -56,8 +56,6 @@ class TournamentFieldTimeScheduler:
             flatmatch_list = [{'ROUND_ID':z['ROUND_ID'], 'HOME':p['HOME'], 'AWAY':p['AWAY'], 'DIV_ID':x['div_id']} for x in connecteddiv_match_list for y in x['match_list'] for z in y for p in z['GAME_TEAM']]
             # sort the list according to round_id (needed for groupby below), and then by div_id
             sorted_flatmatch_list = sorted(flatmatch_list, key=itemgetter('ROUND_ID', 'DIV_ID'))
-            for sorted_list in sorted_flatmatch_list:
-                print 'sorted', sorted_list
             # group list by round_id; dict value of 'match_list' key is a nested array, which sis created by an inner groupby based on div_id
             # The nested list will be passed to the roundrobin multiplexer
             #for key, items in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID')):
@@ -74,6 +72,9 @@ class TournamentFieldTimeScheduler:
             field_list = list(fieldset)
             #field_cycle = cycle(fieldset)
             self.initTeamTimeGap_list(connected_div_list)
+            if set(connected_div_list) == set([1,2]):
+                # if we are processing div U10, preallocate field time slots to each division (as they have different max rounds)
+                self.reserveFieldTimeSlots(connected_div_list, field_list)
             current_gameday = 1
             earliestfield_list = None
             for round_games in grouped_match_list:
@@ -139,17 +140,10 @@ class TournamentFieldTimeScheduler:
             numgamedays = f['numgamedays']
             gamestart = parser.parse(f['start_time'])
             end_time = parser.parse(f['end_time'])
-            ginterval_list = []
-            rrgamedays_list = []
-            for p in f['primary']:
-                divinfo = self.divinfo_list[self.dindexerGet(p)]
-                ginterval_list.append(int(divinfo['gameinterval']))
-                rrgamedays_list.append(int(divinfo['rr_gamedays']))
             # take max for now - this is a simplification
             # default for phmsa is that divisions that share a field have
             # same game intervals
-            ginterval = max(ginterval_list)
-            rrgamedays = max(rrgamedays_list)
+            ginterval = max(self.divinfo_list[self.dindexerGet(p)]['gameinterval'] for p in f['primary'])
             # convert to datetime compatible obj
             gameinterval = timedelta(0,0,0,0,ginterval)
             # slotstatus_list has a list of statuses, one for each gameslot
@@ -195,8 +189,7 @@ class TournamentFieldTimeScheduler:
                     slotstatus_list[gameday-1] = deepcopy(sstatus_list)
 
             fieldseason_status_list.append({'field_id':f['field_id'],
-                                            'slotstatus_list':slotstatus_list,
-                                            'rrgamedays':rrgamedays})
+                                            'slotstatus_list':slotstatus_list})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
         return _List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
@@ -268,7 +261,7 @@ class TournamentFieldTimeScheduler:
         status_list = [(f,
                         self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot])
                         for f in field_list if len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind]) > target_slot and not self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['isgame']]
-        print 'status gameday target div home away', status_list, gameday, target_slot, div_id, home, away
+        #print 'status gameday target div home away', status_list, gameday, target_slot, div_id, home, away
         if status_list:
             status = status_list[0]
             print 'alt field gameday target', status[0], gameday, target_slot
@@ -289,7 +282,7 @@ class TournamentFieldTimeScheduler:
                 return None
 
     def optimizeMatchOrder(self, rmlist, gameday):
-        print 'gameday', gameday
+        #print 'gameday', gameday
         for divmatch_list in rmlist:
             #print 'divmatch', divmatch_list
             for match in divmatch_list:
@@ -306,3 +299,34 @@ class TournamentFieldTimeScheduler:
                 #print 'cost match home away', cost, match, self.gaplist[self.gapindexerGet((div_id, home))[0]], self.gaplist[self.gapindexerGet((div_id, away))[0]]
             divmatch_list.sort(key=itemgetter('cost'))
             #print 'divmatch after sort', divmatch_list
+
+    def reserveFieldTimeSlots(self, connected_div_list, field_list):
+        max_rr_gamedays = max(self.divinfo_list[self.dindexerGet(div)]['rr_gamedays'] for div in connected_div_list)
+        total_gameday_slots = sum(len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][0]) for f in field_list)
+        # total slots that we are going to reserve for a div over max_rrgamedays
+        total_slots = total_gameday_slots * max_rr_gamedays
+        print 'reserving rrgame totalgame total', max_rr_gamedays, total_gameday_slots, total_slots
+        total_fields = len(field_list)
+        fstatus_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list']) for f in field_list]
+        fstatus_list_cycle = cycle(fstatus_list)
+        div_id_cycle = cycle(connected_div_list)
+        for slot_count in range(total_slots):
+            fstatus = fstatus_list_cycle.next()
+            div_id = div_id_cycle.next()
+            # gameday_ind is an INDEX and not an ID
+            gameday_ind = slot_count / total_gameday_slots
+            slot_index = slot_count % total_gameday_slots / total_fields
+            fstatus[1][gameday_ind][slot_index]['div_id'] = div_id
+        for fstatus in fstatus_list:
+            print 'field fstatus', fstatus[0], fstatus[1]
+        '''
+        for div_id in connected_div_list:
+            reserve_days = self.divinfo_list[self.dindexerGet(div_id)]['rr_gamedays']
+            #for f in field_list:
+            #    self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]
+
+            fstatus_list = [(f, self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list']) for f in field_list]
+            fstatus_cycle = cycle(fstatus_list)
+            for gameday_ind in range(reserve_days):
+        '''
+

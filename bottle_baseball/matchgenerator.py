@@ -380,7 +380,7 @@ class MatchGenerator:
         while (game_count < self.numGameSlots):
             game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count)
         print '****************************************'
-        print 'metrics_list', self.numTeams, self.metrics_list
+        #print 'metrics_list', self.numTeams, self.metrics_list
         self.adjustHomeAwayTeams()
         if teamid_map:
             self.mapTeamID(teamid_map)
