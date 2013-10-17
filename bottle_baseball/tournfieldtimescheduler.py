@@ -15,7 +15,7 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id gameday_id slot_index')
 time_format_CONST = '%H:%M'
 min_slotgap_CONST = 2
-min_u10slotgap_CONST = 3
+min_u10slotgap_CONST = 2
 u10div_tuple = (100,200)
 class TournamentFieldTimeScheduler:
     def __init__(self, tdbinterface, tfield_tuple, divinfo, dindexerGet):
@@ -93,6 +93,7 @@ class TournamentFieldTimeScheduler:
                     div_id = rrgame['div_id']
                     home = rrgame['home']
                     away = rrgame['away']
+                    print 'div home away', div_id, home, away, max_slot_index
                     search_tuple = self.getSearchStart_slot(div_id, home, away, max_slot_index)
                     current_gameday = search_tuple[0]
                     current_slot = search_tuple[1]
@@ -124,6 +125,10 @@ class TournamentFieldTimeScheduler:
                     efield = found_tuple.field_id
                     eslot = found_tuple.slot_index
                     egameday = found_tuple.gameday_id
+                    print 'field slot gameday', efield, eslot, egameday
+                    selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][egameday-1][eslot]
+                    logging.debug("tournftscheduler:generate:first revalidation success rrgame %s field %d slot %d", rrgame, efield, eslot)
+                    '''
                     validation_tuple = self.validateTimeSlot(div_id, efield, egameday, eslot, home, away)
                     if not validation_tuple[0]:
                         logging.debug("tournftscheduler:generate: validation failed div %d gameday %d eslot %d newgameday %d newslot %d field %d", div_id, current_gameday, eslot, validation_tuple[2], validation_tuple[1], efield)
@@ -139,12 +144,20 @@ class TournamentFieldTimeScheduler:
                             revalidation_tuple = self.validateTimeSlot(div_id, alt_field, alt_gameday, alt_slot, rrgame['home'], rrgame['away'])
                             if not revalidation_tuple[0]:
                                 raise CodeLogicError("tournftscheduler:generateSchedule: revalidation should have worked")
+                            else:
+                                logging.debug("tournftscheduler:generate:second revalidation success rrgame %s field %d slot %d", rrgame, alt_field, alt_slot)
                         else:
                             raise FieldAvailabilityError(div_id)
                     else:
-                        selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][current_gameday-1][eslot]
+                        selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][egameday-1][eslot]
+                        logging.debug("tournftscheduler:generate:first revalidation success rrgame %s field %d slot %d", rrgame, efield, eslot)
+                    '''
+                    if selected_tfstatus['isgame']:
+                        raise CodeLogicError("tournftscheduler:generate:game is already booked:")
                     selected_tfstatus['isgame'] = True
                     selected_tfstatus['teams'] = rrgame
+                    print 'assigning div home away', div_id, home, away
+
             for field_id in fieldset:
                 gameday_id = 1
                 for gameday_list in self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list']:
@@ -288,6 +301,7 @@ class TournamentFieldTimeScheduler:
         else:
             next_gameday = cur_gameday
             next_slot = cur_slot + minslot_gap + 1
+        print 'homegap awaygap gameday slot', homegap_dict, awaygap_dict, next_gameday, next_slot
         return (next_gameday, next_slot)
 
     def validateTimeSlot(self, div_id, field_id, gameday, slot_index, home, away):
@@ -322,6 +336,7 @@ class TournamentFieldTimeScheduler:
             if all(validate_flag):
                 validate = True
                 #print 'VALIDATE', div_id, home,away
+                logging.debug("tournftscheduler:validateTimeSlot: validation Success slot=%d target gameday=%d",slot_index, gameday)
                 for team in (home,away):
                     gapindex_list = self.gapindexerGet((div_id, team))
                     gapteam_dict = self.gaplist[gapindex_list[0]]
