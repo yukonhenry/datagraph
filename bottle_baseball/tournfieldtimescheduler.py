@@ -75,9 +75,14 @@ class TournamentFieldTimeScheduler:
             if set(connected_div_list) == set([1,2]):
                 # if we are processing div U10, preallocate field time slots to each division (as they have different max rounds)
                 self.reserveFieldTimeSlots(connected_div_list, field_list)
+#                for field in field_list:
+#                    print 'field tfstatus', field, self.tfstatus_list[self.tfindexerGet(field)]
+            current_gameday_list = [1,1]  # for U10
             current_gameday = 1
             earliestfield_list = None
             for round_games in grouped_match_list:
+                current_gameday_list = [1,1]  # for U10
+                current_gameday = 1
                 round_id = round_games['round_id']
                 #current_gameday = (round_id-1)/2 + 1
                 round_match_list = round_games['match_list']
@@ -85,28 +90,45 @@ class TournamentFieldTimeScheduler:
                     self.optimizeMatchOrder(round_match_list, current_gameday)
                 rrgenobj = roundrobin(round_games['match_list'])
                 for rrgame in rrgenobj:
+                    current_gameday_list = [1,1]  # for U10
+                    current_gameday = 1
+                    earliestfield_list = None
+                    div_id = rrgame['div_id']
+                    if div_id in (1,2):
+                        current_gameday = current_gameday_list[div_id-1]
                     if not earliestfield_list:
-                        try:
-                            earliestfield_list = self.findNextEarliestFieldSlot(field_list, current_gameday)
-                        except ValueError:
-                            current_gameday += 1
-                            earliestfield_list = self.findNextEarliestFieldSlot(field_list, current_gameday)
+                        accept_flag = False
+                        while True or current_gameday > 3:
+                            try:
+                                earliestfield_list = self.findNextEarliestFieldSlot(field_list, current_gameday, div_id)
+                            except ValueError:
+                                current_gameday += 1
+                            else:
+                                if not earliestfield_list:
+                                    current_gameday += 1
+                                else:
+                                    break
+                        if div_id in (1,2):
+                            current_gameday_list[div_id-1] = current_gameday
                     earliest_dict = earliestfield_list.pop()
                     efield = earliest_dict['field_id']
                     eslot = earliest_dict['index']
-                    validation_tuple = self.validateTimeSlot(rrgame['div_id'], current_gameday, eslot, rrgame['home'], rrgame['away'])
+                    validation_tuple = self.validateTimeSlot(div_id, current_gameday, eslot, rrgame['home'], rrgame['away'])
                     if not validation_tuple[0]:
-                        alt_tuple = self.findAlternateFieldSlot(field_list, current_gameday, validation_tuple[1], rrgame['div_id'],rrgame['home'], rrgame['away'])
+                        alt_tuple = self.findAlternateFieldSlot(field_list, current_gameday, validation_tuple[1], div_id, rrgame['home'], rrgame['away'])
                         if alt_tuple:
                             alt_field = alt_tuple.field_id
                             alt_gameday = alt_tuple.gameday_id
+                            #current_gameday = alt_gameday
+                            #if div_id in (1,2):
+                             #   current_gameday_list[div_id-1] = current_gameday
                             alt_slot = alt_tuple.slot_index
                             selected_tfstatus = self.tfstatus_list[self.tfindexerGet(alt_field)]['slotstatus_list'][alt_gameday-1][alt_slot]
-                            revalidation_tuple = self.validateTimeSlot(rrgame['div_id'], alt_gameday, alt_slot, rrgame['home'], rrgame['away'])
+                            revalidation_tuple = self.validateTimeSlot(div_id, alt_gameday, alt_slot, rrgame['home'], rrgame['away'])
                             if not revalidation_tuple[0]:
                                 raise CodeLogicError("tournftscheduler:generateSchedule: revalidation should have worked")
                         else:
-                            raise FieldAvailabilityError(rrgame['div_id'])
+                            raise FieldAvailabilityError(div_id)
                     else:
                         selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][current_gameday-1][eslot]
                     selected_tfstatus['isgame'] = True
@@ -193,20 +215,31 @@ class TournamentFieldTimeScheduler:
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
         return _List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
-    def findNextEarliestFieldSlot(self, field_list, cur_gameday):
+    def findNextEarliestFieldSlot(self, field_list, cur_gameday, div_id):
+        print 'gameday', cur_gameday
         cur_gameday_ind = cur_gameday-1
         field_cycle = cycle(field_list)
         status_list = [(f,
                         self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind])
                         for f in field_list]
-        #print 'status', status_list
-        firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False),
-                            s[1][[x['isgame'] for x in s[1]].index(False)]['start_time'])
-                            for s in status_list]
+        if div_id in (1,2):
+            allindex_list = [(s[0],[i for i,j in enumerate(s[1]) if not j['isgame'] and j['div_id']==div_id]) for s in status_list if not all(x['isgame'] for x in s[1])]
+            if not allindex_list:
+                return None
+            try:
+                firstindex_list = [(x[0],min(x[1])) for x in allindex_list]
+            except ValueError:
+                raise ValueError
+            print 'firstind for U10', div_id, allindex_list, firstindex_list
+        else:
+            firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False))
+                                for s in status_list if not all(x['isgame'] for x in s[1])]
+        if not firstindex_list:
+            return None
         #print 'firstindex', firstindex_list
-        mintime = min(firstindex_list, key=itemgetter(2))
+        mintime = min(firstindex_list, key=itemgetter(1))
         #print 'mintime', mintime
-        mintime_list = [{'field_id':f[0], 'index':f[1], 'start_time':f[2]} for f in firstindex_list if f[2] == min(firstindex_list, key=itemgetter(2))[2]]
+        mintime_list = [{'field_id':f[0], 'index':f[1]} for f in firstindex_list if f[1] == min(firstindex_list, key=itemgetter(1))[1]]
         #print 'mintime_list', mintime_list
         return mintime_list
 
@@ -216,6 +249,7 @@ class TournamentFieldTimeScheduler:
         self.gapindexerGet = lambda x: [i for i,p in enumerate(self.gaplist) if p['div_id'] == x[0] and p['team_id']==x[1]]
 
     def validateTimeSlot(self, div_id, gameday, slot_index, home, away):
+        # check if candidate time slot has enough gap with the previously assigned slot for the two teams in the match
         target_slot = 0 # default return value
         min_slotgap = min_u10slotgap_CONST if div_id in [1,2] else min_slotgap_CONST
         validate_flag = [False, False]
@@ -241,7 +275,7 @@ class TournamentFieldTimeScheduler:
                              div_id, slot_index, gameday, home, away)
                 # target slot is the minimu slot that gives the required game gap
                 target_tuple[i] = gapslot + min_slotgap + 1
-                print 'FALSE div slot target gameday home away', div_id, slot_index, target_slot, gameday, home, away
+                print 'FALSE div slot target gameday home away', div_id, slot_index, target_tuple[i], gameday, home, away
             if all(validate_flag):
                 validate = True
                 #print 'VALIDATE', div_id, home,away
@@ -258,9 +292,14 @@ class TournamentFieldTimeScheduler:
 
     def findAlternateFieldSlot(self, field_list, gameday, target_slot, div_id, home, away):
         gameday_ind = gameday-1
-        status_list = [(f,
-                        self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot])
-                        for f in field_list if len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind]) > target_slot and not self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['isgame']]
+        if div_id in (1,2):
+            status_list = [(f,
+                            self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot])
+                            for f in field_list if len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind]) > target_slot and not self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['isgame'] and self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['div_id']==div_id]
+        else:
+            status_list = [(f,
+                            self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot])
+                            for f in field_list if len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind]) > target_slot and not self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['isgame']]
         #print 'status gameday target div home away', status_list, gameday, target_slot, div_id, home, away
         if status_list:
             status = status_list[0]
@@ -269,10 +308,10 @@ class TournamentFieldTimeScheduler:
         else:
             next_gameday = gameday + 1
             try:
-                alt_list = self.findNextEarliestFieldSlot(field_list, next_gameday)
+                alt_list = self.findNextEarliestFieldSlot(field_list, next_gameday, div_id)
             except ValueError:
                 next_gameday += 1
-                alt_list = self.findNextEarliestFieldSlot(field_list, next_gameday)
+                alt_list = self.findNextEarliestFieldSlot(field_list, next_gameday, div_id)
             if alt_list:
                 alt_dict = alt_list[0]
                 alt_field = alt_dict['field_id']
@@ -302,12 +341,15 @@ class TournamentFieldTimeScheduler:
 
     def reserveFieldTimeSlots(self, connected_div_list, field_list):
         max_rr_gamedays = max(self.divinfo_list[self.dindexerGet(div)]['rr_gamedays'] for div in connected_div_list)
+
         total_gameday_slots = sum(len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][0]) for f in field_list)
         # total slots that we are going to reserve for a div over max_rrgamedays
-        total_slots = total_gameday_slots * max_rr_gamedays
-        print 'reserving rrgame totalgame total', max_rr_gamedays, total_gameday_slots, total_slots
+        total_slots = total_gameday_slots * (max_rr_gamedays+2)
+        #print 'reserving rrgame totalgame total', max_rr_gamedays, total_gameday_slots, total_slots
         total_fields = len(field_list)
+        print 'max_rr totalslots totalfields', max_rr_gamedays, total_slots, total_fields
         fstatus_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list']) for f in field_list]
+        #print 'fstatus_list', fstatus_list
         fstatus_list_cycle = cycle(fstatus_list)
         div_id_cycle = cycle(connected_div_list)
         for slot_count in range(total_slots):
@@ -317,8 +359,9 @@ class TournamentFieldTimeScheduler:
             gameday_ind = slot_count / total_gameday_slots
             slot_index = slot_count % total_gameday_slots / total_fields
             fstatus[1][gameday_ind][slot_index]['div_id'] = div_id
-        for fstatus in fstatus_list:
-            print 'field fstatus', fstatus[0], fstatus[1]
+
+#        for fstatus in fstatus_list:
+#           print 'field fstatus', fstatus[0], fstatus[1]
         '''
         for div_id in connected_div_list:
             reserve_days = self.divinfo_list[self.dindexerGet(div_id)]['rr_gamedays']
