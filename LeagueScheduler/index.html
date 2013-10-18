@@ -11,7 +11,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07l</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07m</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -128,8 +128,9 @@
                 <div data-dojo-type="dijit/form/DropDownButton" class="primary dijitDropDownButton">
                     <span>Generate Cup Sched</span>
                     <div data-dojo-type="dijit/DropDownMenu">
+                        <div data-dojo-type="dijit/MenuItem" id="elimination2013">Elimination Tournament</div>
                         <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Select League</span>
+                            <span>Select RR League</span>
                             <div data-dojo-type="dijit/DropDownMenu" id="cupdbcollection_submenu">
                             </div>
                         </div>

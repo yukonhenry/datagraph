@@ -360,6 +360,13 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(divnum_reg, "keyup", lang.hitch(newScheduler, newScheduler.processdivinfo_input));
 			on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.sendDivInfoToServer));
 		}
+		var elimination2013 = function(evt) {
+		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {
+	        	//console.log("getalldiv schedule status"+adata.status);
+			});
+		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
 		var resizeDivisionPaneGrids = function(evt) {
@@ -406,6 +413,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("newsched_item"), "click", initNewSchedule);
+			on(registry.byId("elimination2013"), "click", elimination2013);
  		});
 	}
 );

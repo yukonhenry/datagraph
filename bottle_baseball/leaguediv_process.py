@@ -14,6 +14,7 @@ from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInf
      getFieldInfo, getTournamentFieldInfo
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
+from eliminationscheduler import EliminationScheduler
 import logging
 from singletonlite import mongoClient
 from tourndbinterface import TournDBInterface
@@ -125,12 +126,12 @@ def getCupSchedule(tourn_divinfo_col):
     a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
-@route('/getelimschedule/<tourn_divinfo_col>')
-def getEliminationSchedule(tourn_divinfo_col):
+@route('/elimination2013/<tourn_divinfo_col>')
+def elimination2013(tourn_divinfo_col):
     callback_name = request.query.callback
-    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col)
-    tournamentsched.prepGenerate()
-    a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
+    elimsched = EliminationScheduler(mongoClient, tourn_divinfo_col)
+    elimsched.generate()
+    a = json.dumps({"dbstatus":elimsched.tdbInterface.dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
 @route('/divisiondata/<did:int>', method='GET')

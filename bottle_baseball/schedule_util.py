@@ -54,7 +54,7 @@ def nth_listitem(l, val, nth):
     nth = 0 returns -1
     if nth value does not exist, return -1 also (based on ValueError exception within function)'''
     i = -1
-    for j in xrange(nth):
+    for j in range(nth):
         try:
             i = l.index(val, i + 1)
         except ValueError:
