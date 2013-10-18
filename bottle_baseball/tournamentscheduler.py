@@ -27,12 +27,19 @@ class TournamentScheduler:
             ne = division['elimination_num']
             div_id = int(division['div_id'])
             if div_id == 2:
+                bracket_list=[{'team_id_list': [20, 1, 18], 'bracket_id': 1},
+                {'team_id_list': [4, 21, 14], 'bracket_id': 2},
+                {'team_id_list': [2, 15, 12], 'bracket_id': 3},
+                {'team_id_list': [3, 6, 11], 'bracket_id': 4},
+                {'team_id_list': [8, 17, 10], 'bracket_id': 5},
+                {'team_id_list': [13, 7, 22], 'bracket_id': 6},
+                {'team_id_list': [5, 9, 16, 19], 'bracket_id': 7}]
+                '''
                 bracket_list = [{'team_id_list':[11, 16, 18, 4],'bracket_id': 1},
                 {'team_id_list': [21, 12, 2, 15], 'bracket_id': 2},
                 {'team_id_list': [14, 3, 6, 20], 'bracket_id': 3},
                 {'team_id_list': [8, 17, 10, 13, 7], 'bracket_id': 4},
                 {'team_id_list': [22, 5, 9, 1, 19], 'bracket_id': 5}]
-                '''
                 bracket_list = [{'team_id_list':[11, 1, 18, 4], 'bracket_id':1},
                 {'team_id_list':[21, 12, 2, 15],'bracket_id': 2},
                 {'team_id_list':[14, 3, 6, 20],'bracket_id': 3},

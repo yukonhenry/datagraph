@@ -11,12 +11,17 @@ from collections import namedtuple
 from leaguedivprep import getTournAgeGenderDivision
 from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, CodeLogicError, SchedulerConfigurationError
 import logging
+from math import ceil
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id gameday_id slot_index')
 time_format_CONST = '%H:%M'
 min_slotgap_CONST = 2
-min_u10slotgap_CONST = 2
+min_u10slotgap_CONST = 3
 u10div_tuple = (100,200)
+
+_absolute_earliest_time = parser.parse('05:00')
+_min_timegap = timedelta(0,0,0,0,160) # in minutes
+
 class TournamentFieldTimeScheduler:
     def __init__(self, tdbinterface, tfield_tuple, divinfo, dindexerGet):
         self.tdbInterface = tdbinterface
@@ -71,20 +76,23 @@ class TournamentFieldTimeScheduler:
                               map(set,[self.divinfo_list[self.dindexerGet(x)]['fields'] for x in connected_div_list]))
             field_list = list(fieldset)
             max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['max_slot_index'] for f in field_list)
+
+            endtime_list = [(f,parser.parse(self.tfieldinfo_list[self.tfindexerGet(f)]['end_time'])) for f in field_list]
+            latest_endtime = max(endtime_list, key=itemgetter(1))[1]
             #field_cycle = cycle(fieldset)
             self.initTeamTimeGap_list(connected_div_list)
             if set(connected_div_list) == set(u10div_tuple):
                 # if we are processing div U10, preallocate field time slots to each division (as they have different max rounds)
                 self.reserveFieldTimeSlots(connected_div_list, field_list)
             current_gameday = 1
-            earliestfield_list = None
+            #earliestfield_list = None
             for round_games in grouped_match_list:
                 #current_gameday_list = [1,1]  # for U10
                 #current_gameday = 1
                 round_id = round_games['round_id']
                 round_match_list = round_games['match_list']
                 if round_id > 1:
-                    self.optimizeMatchOrder(round_match_list, current_gameday)
+                    self.optimizeMatchOrder(round_match_list)
                 rrgenobj = roundrobin(round_games['match_list'])
                 for rrgame in rrgenobj:
                     #current_gameday_list = [1,1]  # for U10
@@ -93,41 +101,22 @@ class TournamentFieldTimeScheduler:
                     div_id = rrgame['div_id']
                     home = rrgame['home']
                     away = rrgame['away']
-                    print 'div home away', div_id, home, away, max_slot_index
-                    search_tuple = self.getSearchStart_slot(div_id, home, away, max_slot_index)
+                    ginterval = self.divinfo_list[self.dindexerGet(div_id)]['gameinterval']
+                    gameinterval = timedelta(0,0,0,0,ginterval)
+                    search_tuple = self.getSearchStart_daytime(div_id, home, away, field_list, latest_endtime-gameinterval)
                     current_gameday = search_tuple[0]
-                    current_slot = search_tuple[1]
-                    found_tuple = self.findAlternateFieldSlot(field_list, current_gameday, current_slot, div_id, home, away)
-                    '''
-                    if not earliestfield_list:
-                        alt_tuple = self.findAlternateFieldSlot(field_list, validation_tuple[2], validation_tuple[1], div_id, rrgame['home'], rrgame['away'])
-                        while True or current_gameday > 3:
-                            try:
-                                earliestfield_list = self.findNextEarliestFieldSlot(field_list, current_gameday, div_id)
-                            except ValueError:
-                                logging.error("tournftscheduler:generate:findNextEarlies ValueError Exception div_id=%d, gameday=%d",div_id, current_gameday)
-                                current_gameday += 1
-                            else:
-                                if not earliestfield_list:
-                                    logging.debug("tournftscheduler:generate:findNextEarliest returns div_id=%d, gameday=%d",div_id, current_gameday)
-                                    current_gameday += 1
-                                else:
-                                    logging.debug("tournftscheduler:generate: findNextEarliest found=%s", earliestfield_list)
-                                    break
-                        else:
-                            logging.debug("tournftscheduler:generate: findNextEarliest iteration, max gameday exceeded")
-                        if div_id in u10div_tuple:
-                            current_gameday_list[div_id-1] = current_gameday
-                        '''
+                    current_start = search_tuple[1]
+                    # start time calc needs to be done here as start times for fields may change based non gameday
+                    starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list]
+                    found_tuple = self.findAlternateFieldSlot(field_list, current_gameday, current_start, starttime_list, endtime_list, gameinterval, div_id, home, away)
                     #earliest_dict = earliestfield_list.pop()
                     #efield = earliest_dict['field_id']
                     #eslot = earliest_dict['index']
                     efield = found_tuple.field_id
                     eslot = found_tuple.slot_index
                     egameday = found_tuple.gameday_id
-                    print 'field slot gameday', efield, eslot, egameday
                     selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][egameday-1][eslot]
-                    logging.debug("tournftscheduler:generate:first revalidation success rrgame %s field %d slot %d", rrgame, efield, eslot)
+                    logging.debug("tournftscheduler:generate:assignment success rrgame %s gameday %d field %d slot %d", rrgame, egameday, efield, eslot)
                     '''
                     validation_tuple = self.validateTimeSlot(div_id, efield, egameday, eslot, home, away)
                     if not validation_tuple[0]:
@@ -156,8 +145,7 @@ class TournamentFieldTimeScheduler:
                         raise CodeLogicError("tournftscheduler:generate:game is already booked:")
                     selected_tfstatus['isgame'] = True
                     selected_tfstatus['teams'] = rrgame
-                    print 'assigning div home away', div_id, home, away
-
+                    self.updateTeamTimeGap_list(div_id, home, away, egameday, selected_tfstatus['start_time']+gameinterval)
             for field_id in fieldset:
                 gameday_id = 1
                 for gameday_list in self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list']:
@@ -238,13 +226,13 @@ class TournamentFieldTimeScheduler:
 
             fieldseason_status_list.append({'field_id':f['field_id'],
                                             'slotstatus_list':slotstatus_list,
-                                            'max_slot_index':max_slot_index})
+                                            'max_slot_index':max_slot_index,
+                                            'end_time':end_time})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
         return _List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
     def findNextEarliestFieldSlot(self, field_list, cur_gameday, div_id):
         cur_gameday_ind = cur_gameday-1
-        field_cycle = cycle(field_list)
         status_list = [(f,
                         self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind])
                         for f in field_list]
@@ -270,39 +258,48 @@ class TournamentFieldTimeScheduler:
         return mintime_list
 
     def initTeamTimeGap_list(self, div_list):
-        self.gaplist = [{'div_id':self.divinfo_list[self.dindexerGet(x)]['div_id'], 'team_id':y, 'last_slot':-1, 'last_gameday':0} for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)]
+        self.gaplist = [{'div_id':self.divinfo_list[self.dindexerGet(x)]['div_id'], 'team_id':y, 'last_end':-1, 'last_gameday':0} for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)]
         # gapindexerGet must have a (div_id, team_id) tuple passed to it
         self.gapindexerGet = lambda x: [i for i,p in enumerate(self.gaplist) if p['div_id'] == x[0] and p['team_id']==x[1]]
 
-    def getSearchStart_slot(self, div_id, home, away, max_slot_index):
-        minslot_gap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
+    def updateTeamTimeGap_list(self, div_id, home, away, gameday, end_time):
+        for team in (home,away):
+            gapindex_list = self.gapindexerGet((div_id, team))
+            gapteam_dict = self.gaplist[gapindex_list[0]]
+            gapteam_dict['last_end'] = end_time
+            gapteam_dict['last_gameday'] = gameday
+
+    def getSearchStart_daytime(self, div_id, home, away, field_list, latest_starttime):
+        #minslot_gap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
         homegap_dict = self.gaplist[self.gapindexerGet((div_id, home))[0]]
         awaygap_dict = self.gaplist[self.gapindexerGet((div_id, away))[0]]
         homegap_gameday = homegap_dict['last_gameday']
         awaygap_gameday = awaygap_dict['last_gameday']
-        homegap_slot = homegap_dict['last_slot']
-        awaygap_slot = awaygap_dict['last_slot']
+        homegap_end = homegap_dict['last_end']
+        awaygap_end = awaygap_dict['last_end']
         if homegap_gameday == awaygap_gameday:
             maxgap_gameday = homegap_gameday
-            maxgap_slot = max(homegap_slot, awaygap_slot)
+            maxgap_end = max(homegap_end, awaygap_end)
         elif homegap_gameday > awaygap_gameday:
             maxgap_gameday = homegap_gameday
-            maxgap_slot = homegap_slot
+            maxgap_end = homegap_end
         else:
             maxgap_gameday = awaygap_gameday
-            maxgap_slot = awaygap_slot
-        cur_gameday = 1 if maxgap_gameday == 0 else maxgap_gameday
-        cur_slot = 0 if maxgap_slot == -1 else maxgap_slot
-        # need to add 1 below as minslot_gap expresses open in-between slots
-        next_slot = cur_slot + minslot_gap + 1
-        if next_slot > max_slot_index:
-            next_gameday = cur_gameday + 1
-            next_slot = 0
+            maxgap_end = awaygap_end
+        if maxgap_gameday == 0 :
+            next_gameday = 1
+            next_start = _absolute_earliest_time
         else:
-            next_gameday = cur_gameday
-            next_slot = cur_slot + minslot_gap + 1
-        print 'homegap awaygap gameday slot', homegap_dict, awaygap_dict, next_gameday, next_slot
-        return (next_gameday, next_slot)
+            next_gameday = maxgap_gameday
+            if maxgap_end == -1:
+                next_start == _absolute_earliest_time
+            else:
+                next_start = maxgap_end + _min_timegap
+                if next_start > latest_starttime:
+                    next_gameday += 1
+                    next_start = _absolute_earliest_time
+        #print 'homegap awaygap gameday slot', homegap_dict, awaygap_dict, next_gameday, next_end
+        return (next_gameday, next_start)
 
     def validateTimeSlot(self, div_id, field_id, gameday, slot_index, home, away):
         # check if candidate time slot has enough gap with the previously assigned slot for the two teams in the match
@@ -352,27 +349,41 @@ class TournamentFieldTimeScheduler:
                 logging.debug("tournftscheduler:validateTimeSlot: validation failed new target slot=%d target gameday=%d",target_slot, target_gameday)
         return (validate, target_slot, target_gameday)
 
-    def findAlternateFieldSlot(self, field_list, gameday, target_slot, div_id, home, away):
+    def findAlternateFieldSlot(self, field_list, gameday, target_start, starttime_list, endtime_list, gameinterval, div_id, home, away):
+        min_start = min(starttime_list, key=itemgetter(1))[1]
+        max_end = max(endtime_list, key=itemgetter(1))[1]
+        gameinterval_sec = gameinterval.total_seconds()
         gameday_ind = gameday-1
-        '''
-        if div_id in u10div_tuple:
-            status_list = [(f,
-                            self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot])
-                            for f in field_list if len(self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind]) > target_slot and not self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['isgame'] and self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]['div_id']==div_id]
-        else:
-        '''
         max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['max_slot_index'] for f in field_list)
-        slotstatus_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list']) for f in field_list]
-        for slot_index in (target_slot, max_slot_index+1):
-            status_list = [(s[0],s[1][gameday_ind][slot_index]) for s in slotstatus_list if len(s[1][gameday_ind])> slot_index and not s[1][gameday_ind][slot_index]['isgame']]
-        #print 'status gameday target div home away', status_list, gameday, target_slot, div_id, home, away
+        slotstatus_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind]) for f in field_list]
+
+        gamestart = min_start if target_start < min_start else target_start
+        while gamestart + gameinterval <= max_end:
+            s_set = set([s[0] for s in starttime_list if gamestart >= s[1]])
+            e_set = set([e[0] for e in endtime_list if gamestart+gameinterval <= e[1]])
+            f_list = list(s_set&e_set)
+            limitedstatus_list = [s for s in slotstatus_list if s[0] in f_list]
+            for limitedstatus in limitedstatus_list:
+                #http://stackoverflow.com/questions/3694835/python-2-6-5-divide-timedelta-with-timedelta
+                slot_index = int(ceil((gamestart - limitedstatus[1][0]['start_time']).total_seconds()/gameinterval_sec))
+                if slot_index >= len(limitedstatus[1]):
+                    continue
+                if not limitedstatus[1][slot_index]['isgame']:
+                    found_dict = {'field_id':limitedstatus[0],'slot_index':slot_index}
+                    break
+            else:
+                gamestart += gameinterval
+                continue
+            break
+            '''
             if status_list:
                 status = status_list[0]
                 logging.debug("tournftscheduler:findalt:alt found gameday=%d slot=%d", gameday, slot_index)
                 #print 'alt field gameday target', status[0], gameday, target_slot
                 break
+            '''
         else:
-            logging.debug("tournftscheduler:findaltfs:status_list is null gameday=%d target_slot=%d div_id=%d home=%d away=%d",gameday, target_slot, div_id, home, away)
+            logging.debug("tournftscheduler:findaltfs:status_list is null gameday=%d target_start=%s div_id=%d home=%d away=%d",gameday, target_start, div_id, home, away)
             next_gameday = gameday + 1
             alt_list = None
             while True or next_gameday > 3:
@@ -398,9 +409,10 @@ class TournamentFieldTimeScheduler:
                 return _ScheduleParam(alt_field, next_gameday, alt_slot)
             else:
                 return None
-        return _ScheduleParam(status[0], gameday, target_slot)
+        logging.debug("tournftscheduler:findalt: match slot found %s", found_dict)
+        return _ScheduleParam(found_dict['field_id'], gameday, found_dict['slot_index'])
 
-    def optimizeMatchOrder(self, rmlist, gameday):
+    def optimizeMatchOrder(self, rmlist):
         #print 'gameday', gameday
         for divmatch_list in rmlist:
             #print 'divmatch', divmatch_list
@@ -413,7 +425,13 @@ class TournamentFieldTimeScheduler:
                 # low cost if match has been scheduled earlier - cost is
                 # sum of cost for home and away games.  gameday multiplied by 10
                 # and added to slot number + 1 (because default slot is -1)
-                cost = sum(10*self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_gameday'] + self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_slot'] +1 for x in (home,away))
+                #cost = sum(10*self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_gameday'] + self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_end'] +1 for x in (home,away))
+                cost = sum(10*self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_gameday'] for x in (home,away))
+                for x in (home,away):
+                    last_end = self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_end']
+                    if last_end != -1:
+                    # note the difference against the earliest time or the division factor is not important - just needs to be consistent to calculate cost
+                        cost += int(ceil((last_end - parser.parse('09:00')).total_seconds()/_min_timegap.total_seconds()))
                 match['cost'] = cost
                 #print 'cost match home away', cost, match, self.gaplist[self.gapindexerGet((div_id, home))[0]], self.gaplist[self.gapindexerGet((div_id, away))[0]]
             divmatch_list.sort(key=itemgetter('cost'))

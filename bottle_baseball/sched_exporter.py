@@ -24,14 +24,14 @@ class ScheduleExporter:
         self.findexerGet = fieldtuple.indexerGet
 
     def exportDivTeamSchedules(self, div_id, age, gen, numteams, prefix=""):
-        headers = ['Gameday#', 'Game Date', 'Start Time', 'Venue', 'Home Team', 'Away Team']
+        headers = ['Gameday#', 'Game Date', 'Day', 'Start Time', 'Venue', 'Home Team', 'Away Team']
         datasheet_list = []
         for team_id in range(1, numteams+1):
             team_str = age+gen+str(team_id)
             datasheet = Dataset(title=team_str)
             datasheet.headers = list(headers)
             teamdata_list = self.dbinterface.findTeamSchedule(age, gen, team_id)
-            tabformat_list = [(x[gameday_id_CONST], mapGamedayIdToCalendar(x[gameday_id_CONST]),
+            tabformat_list = [(x[gameday_id_CONST], tournMapGamedayIdToCalendar(x[gameday_id_CONST]), tournMapGamedayIdToDate(x[gameday_id_CONST]),
                                datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"),
                                self.fieldinfo[self.findexerGet(x[venue_CONST])]['name'],
                                x[home_CONST], x[away_CONST]) for x in teamdata_list]

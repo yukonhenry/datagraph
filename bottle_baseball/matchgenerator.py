@@ -308,7 +308,7 @@ class MatchGenerator:
         #print 'target home count', self.targethome_count_list
         # while not all([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]):
         # iterate until all the metrics are at or within the target range intervalx
-        while sum([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]) < self.numTeams:
+        while sum([x in y for (x,y) in zip(self.metrics_list, self.targethome_count_list)]) < self.numTeams and count < 200:
             self.findandSwap()
             maxhome_count = max(self.metrics_list)
             minhome_count = min(self.metrics_list)
