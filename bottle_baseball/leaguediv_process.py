@@ -125,6 +125,13 @@ def getCupSchedule(tourn_divinfo_col):
     a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
+@route('/getelimschedule/<tourn_divinfo_col>')
+def getEliminationSchedule(tourn_divinfo_col):
+    callback_name = request.query.callback
+    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col)
+    tournamentsched.prepGenerate()
+    a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
+    return callback_name+'('+a+')'
 
 @route('/divisiondata/<did:int>', method='GET')
 def divisiondata(did):
