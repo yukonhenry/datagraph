@@ -21,18 +21,36 @@ class EliminationScheduler:
 
     def generate(self):
         totalmatch_list = []
+        match_id_count = 0
         for division in self.tourn_divinfo:
             nt = division['totalteams']
-            seed_id_list = range(1,nt+1)
+            team_id_list = range(1,nt+1)
             totalrounds = bisect_left(_power_2s_CONST,nt)
-            power2 = _power_2s_CONST[totalrounds]
+            maxpower2 = _power_2s_CONST[totalrounds]
             div_id = division['div_id']
-            r1_byeteams_num = power2 - nt
+            r1_byeteams_num = maxpower2 - nt
             r1_teams_num = nt - r1_byeteams_num
-            r1_list = seed_id_list[-r1_teams_num:]
-            print 'div nt p2 total bye teams r1', div_id, nt, power2, totalrounds, r1_byeteams_num, r1_teams_num, r1_list
-
             match_list = []
+            for round_id in range(1, totalrounds+1):
+                if round_id == 1:
+                    seed_id_list = team_id_list[-r1_teams_num:]
+                    numteams = r1_teams_num
+                else:
+                    numteams = maxpower2/_power_2s_CONST[round_id-1]
+                    seed_id_list = range(1,numteams+1)
+
+                # control number to determine pairings is the sum of the highest
+                # and lowest seed number of teams playing in round 1
+                #control_num = r1_list[-1] + r1_list[0]
+                rmatch_list = {'round_id': round_id,
+                    'match_list': [{'home':seed_id_list[x], 'away':seed_id_list[-x-1],
+                    'div_id':div_id, 'seed':seed_id_list[x], 'match_id':match_id_count+x+1} for x in range(numteams/2)]}
+                print '*************'
+                print 'div round', div_id, round_id
+                print 'rmatch',rmatch_list
+                print 'seed', seed_id_list
+                match_list.append(rmatch_list)
+                match_id_count += len(rmatch_list['match_list'])
             '''
             # number games per team in bracket is the minimum bracket size minus 1
             # all brackets in the division has the same number of games, e.g.
