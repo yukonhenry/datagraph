@@ -1,8 +1,8 @@
 from dbinterface import MongoDBInterface
 from random import shuffle, seed
 import logging
+from operator import itemgetter
 from sched_exceptions import CodeLogicError
-from matchgenerator import MatchGenerator
 from tournfieldtimescheduler import TournamentFieldTimeScheduler
 from tourndbinterface import TournDBInterface
 from schedule_util import any_ismore, any_isless
@@ -28,64 +28,55 @@ class EliminationScheduler:
             totalrounds = bisect_left(_power_2s_CONST,nt)
             maxpower2 = _power_2s_CONST[totalrounds]
             div_id = division['div_id']
-            r1_byeteams_num = maxpower2 - nt
-            r1_teams_num = nt - r1_byeteams_num
-            match_list = []
+            rmatch_list = []
             for round_id in range(1, totalrounds+1):
                 if round_id == 1:
-                    seed_id_list = team_id_list[-r1_teams_num:]
-                    numteams = r1_teams_num
+                    r1_byeteams_num = maxpower2 - nt
+                    numteams = nt - r1_byeteams_num
+                    seed_id_list = team_id_list[-numteams:]
+                    rteam_list = ['S'+str(s) for s in seed_id_list]
                 else:
                     numteams = maxpower2/_power_2s_CONST[round_id-1]
                     seed_id_list = range(1,numteams+1)
-
+                    # get difference between current seed list and last
+                    # round's seed list
+                    highseed_list = list(set(seed_id_list)-set(carryseed_list))
+                    # rm_list is from previous round, make sure to call this before
+                    # rmatch_dict in this round
+                    rm_list = rmatch_dict['match_list']
+                    rmindexerGet = lambda x: dict((p['next_w_seed'],i) for i,p in enumerate(rm_list)).get(x)
+                    # assign team ids to the seeded team list for the current round
+                    rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else 'S'+str(s) for s in seed_id_list]
+                #roundteam_list = [pm_list[x-1] for x in carryseed_list]
+                print '$$$$$$$$$'
+                print 'round rteam', round_id, rteam_list
                 # control number to determine pairings is the sum of the highest
                 # and lowest seed number of teams playing in round 1
                 #control_num = r1_list[-1] + r1_list[0]
-                rmatch_list = {'round_id': round_id,
-                    'match_list': [{'home':seed_id_list[x], 'away':seed_id_list[-x-1],
-                    'div_id':div_id, 'seed':seed_id_list[x], 'match_id':match_id_count+x+1} for x in range(numteams/2)]}
+                numgames = numteams/2
+                rmatch_dict = {'round_id': round_id, 'btype':'W',
+                    'numgames':numgames,
+                    'match_list': [{'home':rteam_list[x],'away':rteam_list[-x-1],
+                    'div_id':div_id,
+                    'next_w_seed':seed_id_list[x],
+                    'next_l_seed':seed_id_list[-x-1],
+                    'next_w_id':'W'+str(match_id_count+x+1),
+                    'next_l_id':'L'+str(match_id_count+x+1),
+                    'match_id':match_id_count+x+1}
+                    for x in range(numgames)]}
                 print '*************'
                 print 'div round', div_id, round_id
-                print 'rmatch',rmatch_list
+                print 'rmatch',rmatch_dict
                 print 'seed', seed_id_list
-                match_list.append(rmatch_list)
-                match_id_count += len(rmatch_list['match_list'])
+                rmatch_list.append(rmatch_dict)
+                if round_id > 1:
+                    self.createConsolationRound(rmatch_list)
+                # slicing for copying is fastest according to
+                # http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python/2612810
+                carryseed_list = [x['next_w_seed'] for x in rmatch_dict['match_list']]
+                match_id_count += len(rmatch_dict['match_list'])
             '''
-            # number games per team in bracket is the minimum bracket size minus 1
-            # all brackets in the division has the same number of games, e.g.
-            # if one bracket has three teams and another has four, each team plays
-            # 2 games
-            ng = nt/nb - 1
-            # calculate virtual number of game days required as parameter for
-            # MatchGenerator object.  Value is equal to #games if #teams is even,
-            # if odd, add one to #games.
-            match_list = []
-            partialgame_list = []
-            for bracket in bracket_list:
-                # calculate virtual number of game days required as parameter for
-                # MatchGenerator object.  Value is equal to #games if #teams is even,
-                # if odd, add one to #games.
-                numbracket_teams = len(bracket['team_id_list'])
-                virtualgamedays = ng if numbracket_teams%2==0 else ng+1
-                match = MatchGenerator(numbracket_teams, virtualgamedays, maxGamesPerTeam=ng)
-                bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
-                logging.info("tournscheduler:prepGenerate:div=%d bracket=%s bracketmatch_list=%s",
-                             div_id, bracket, bracket_match_list)
-                print 'div bracket numgames', div_id, bracket, match.numGames_list
-                if any_isless(match.numGames_list, ng):
-                    index_list = [i for i,j in enumerate(match.numGames_list) if j < ng]
-                    partialgame_list.append([bracket['team_id_list'][x] for x in index_list])
-                match_list.append(bracket_match_list)
-            if partialgame_list:
-                # create cross-bracket matches if necessary
-                if len(partialgame_list) != 2:
-                    raise CodeLogicError("TournScheduler:PrepGenerate: need to add handling for partial game list that has other than 2 sets")
-                else:
-                    game_team_list = [{'HOME':i,'AWAY':j} for i,j in zip(partialgame_list[0], partialgame_list[1])]
-                    print 'PARTIAL GAMETEAMLIST', game_team_list
-                    match_list.append([{'ROUND_ID':virtualgamedays,
-                                      'GAME_TEAM':game_team_list}])
+
 
             totalmatch_list.append({'div_id': division['div_id'],
                                     'match_list':match_list, 'max_round':virtualgamedays})
@@ -94,34 +85,11 @@ class EliminationScheduler:
                                                          self.tindexerGet)
         tourn_ftscheduler.generateSchedule(totalmatch_list)
         '''
-
-    def getTeamID_list(self, numteams):
-        team_id_list = range(1,numteams+1)
-        # ref http://docs.python.org/2/library/random.html#random.shuffle
-        # doc above for random shuffle (e.g. for an)
-        # start the seed with same number so random functions generates
-        # same resuts from run to run/
-        seed(0)
-        shuffle(team_id_list)
-        return team_id_list
-
-    def createRRBrackets(self, numteams, team_list, numbrackets):
-        if len(team_list) != numteams:
-            raise CodeLogicError("tournscheduler:createRRBrackets: team list len error")
-        min_per_brack = numteams/numbrackets
-        max_per_brack = min_per_brack + 1
-        numbracks_max = numteams % numbrackets
-        numbracks_min = numbrackets - numbracks_max
-        index = 0
-        bracket_list = []
-        for bracket_id in range(1, numbrackets+1):
-            bracketsize = min_per_brack if bracket_id <= numbracks_min else max_per_brack
-            lastindex = index + bracketsize
-            team_id_list = team_list[index:lastindex]
-            bracket_dict = {'bracket_id':bracket_id, 'team_id_list':team_id_list}
-            bracket_list.append(bracket_dict)
-            index = lastindex
-        return bracket_list
+    def createConsolationRound(self, match_list):
+        mtuple_list = [(y['next_l_id'],y['next_l_seed'])
+            for x in [-1,-2] for y in match_list[x]['match_list']]
+        mtuple_list.sort(key=itemgetter(1))
+        print 'match_tuple', mtuple_list
 
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
