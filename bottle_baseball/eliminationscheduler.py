@@ -29,7 +29,7 @@ class EliminationScheduler:
             totalrounds = bisect_left(_power_2s_CONST,nt)
             maxpower2 = _power_2s_CONST[totalrounds]
             div_id = division['div_id']
-            rmatch_list = []
+            match_list = []
             for round_id in range(1, totalrounds+1):
                 if round_id == 1:
                     r1_byeteams_num = maxpower2 - nt
@@ -79,19 +79,20 @@ class EliminationScheduler:
                               div_id, round_id)
                 logging.debug("elimsched:gen: seed list %s rmatch %s",
                               seed_id_list, rmatch_dict)
-                rmatch_list.append(rmatch_dict)
-                match_id_count += len(rmatch_dict['match_list'])
-                if round_id > 1:
-                    consolation_count = self.createConsolationRound(round_id, match_id_count, div_id, rmatch_list)
-                else:
-                    consolation_count = 0
+                match_list.append(rmatch_dict)
+
                 # slicing for copying is fastest according to
                 # http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python/2612810
                 carryseed_list = [x['next_w_seed'] for x in rmatch_dict['match_list']]
-                match_id_count += consolation_count
-            '''
+                match_id_count += len(rmatch_dict['match_list'])
             totalmatch_list.append({'div_id': division['div_id'],
-                                    'match_list':match_list, 'max_round':virtualgamedays})
+                                    'match_list':match_list,
+                                    'max_round':totalrounds})
+            if nt > 2:
+                self.createConsolationRound(div_id, match_list, totalrounds)
+            else:
+                logging.warning("elimsched:gen: there should at least be three teams in div %d to make scheduling meaningful", div_id)
+        '''
         tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
@@ -104,29 +105,40 @@ class EliminationScheduler:
         else:
             return None
 
-    def createConsolationRound(self, round_id, match_id_count, div_id, match_list):
+    def createConsolationRound(self, div_id, match_list, wrounds):
         # create the seed list for the consolation matches by getting
         # the 'losing' seed number from the previous round
         # x in [-1,-2] intended to get last and second-to-last match_list
+        # we're assuming wrounds has at least 2 rounds (4 teams)
         ctuple_list = [(y['next_l_id'],y['next_l_seed'])
-            for x in [-1,-2] for y in match_list[x]['match_list']]
+            for x in [0,1] for y in match_list[x]['match_list']]
         ctuple_list.sort(key=itemgetter(1))
+        wr12_losing_teams = len(ctuple_list)
         #min_seed = ctuple_list[0][1]
         #ctuple_list = [(x[0],x[1]) for x in ctuple_list]
-        logging.debug("elimsched:createConsol: ctuple %s",
-                      ctuple_list)
-        if round_id == 2:
-            cumulative_list = [{'match_id':y['match_id'],
-                'cumulative':y['cumulative']}
-                for x in (-1,-2) for y in match_list[x]['match_list']]
+        logging.debug("elimsched:createConsol: int ctuple %s len %d",
+                      ctuple_list, wr12_losing_teams)
+        maxpower2 = _power_2s_CONST[bisect_left(_power_2s_CONST, wr12_losing_teams)]
+        cbye_num = maxpower2 - wr12_losing_teams
+        cr1_num = wr12_losing_teams - cbye_num
+        logging.debug("elimsched:createConsol: maxpower2 %d cbye %d cr1 %d",
+                      maxpower2, cbye_num, cr1_num)
+        cmatch_list = []
+        cround_id = 1
+        while True:
+            if cround_id == 1:
+                mround_tuple = (1,2)
+                numgames = cr1_num/2
+                # get list of cumulative team field for all the match sources that will be used in this round.
+                # the match sources for the consolation round will be drawn fro previous consolation rounds and also winner rounds
+                # for the first round, the match sources will be drawn from the winning bracket matches
+                cumulative_list = [{'match_id':y['match_id'],
+                    'cumulative':y['cumulative']}
+                    for x in mround_tuple for y in match_list[x]['match_list']]
             cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
-        else:
-            cumulative_list = []
-            cindexerGet = None
-        numgames = len(ctuple_list)/2
-        rmatch_dict = {'round_id': round_id, 'btype':'L',
-            'numgames':numgames,
-            'match_list': [{'home':ctuple_list[x][0], 'away':ctuple_list[-x-1][0],
+            rmatch_dict = {'round_id': cround_id, 'btype':'L',
+                'numgames':numgames,
+                'match_list': [{'home':ctuple_list[x][0], 'away':ctuple_list[-x-1][0],
                 'div_id':div_id,
                 'cumulative':[self.getCumulative_teams(cumulative_list, cindexerGet,ctuple_list[y][0][1:]) for y in (x,-x-1)],
                 'next_w_seed':ctuple_list[x][1],
@@ -134,14 +146,13 @@ class EliminationScheduler:
                 'next_w_id':'W'+str(match_id_count+x+1),
                 'next_l_id':'L'+str(match_id_count+x+1),
                 'match_id':match_id_count+x+1} for x in range(numgames)]}
-        logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
-        logging.debug("elimsched:createConsole: Consolation div %d round %d",
-                      div_id, round_id)
-        logging.debug("elimsched:createConsole: Consolocation rmatch %s",
-                      rmatch_dict)
-        match_list.append(rmatch_dict)
-        return len(rmatch_dict['match_list'])
-
+            logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
+            logging.debug("elimsched:createConsole: Consolation div %d round %d",
+                          div_id, cround_id)
+            logging.debug("elimsched:createConsole: Consolocation rmatch %s",
+                          rmatch_dict)
+            cmatch_list.append(rmatch_dict)
+            cround_id += 1
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
                                          divinfotuple=self.divinfo_tuple,
