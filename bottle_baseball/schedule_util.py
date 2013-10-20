@@ -2,6 +2,7 @@
 from itertools import cycle, islice
 import networkx as nx
 from networkx import connected_components
+from collections import Iterable
 def roundrobin(iterable_list):
     '''ref http://docs.python.org/2/library/itertools.html
     # ref http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
@@ -160,3 +161,13 @@ def getConnectedDivisionGroup(fieldinfo_list):
     #determine schedule allocation of connected divisions
     #connected_graph = json_graph.node_link_data(G)
     return connected_div_components
+
+# flatten arbitrarily nested lists
+# http://stackoverflow.com/questions/2158395/flatten-an-irregular-list-of-lists-in-python
+def flatten(l):
+    for el in l:
+        if isinstance(el, Iterable) and not isinstance(el, basestring):
+            for sub in flatten(el):
+                yield sub
+        else:
+            yield el
