@@ -38,6 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				for (var i = 1; i < divnum+1; i++) {
 					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
 						totalteams:1, totalbrackets:1, elimination_num:1,
+						elimination_type:"",
 						field_id_str:"", gameinterval:1, rr_gamedays:1});
 				}
 				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
@@ -52,6 +53,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 		totalbrackets: editor({label:"Total RR Brackets", field:"totalbrackets", autoSave:true},
                 			"text", "dblclick"),
                 		elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true},
+                			"text", "dblclick"),
+						elimination_type: editor({label:"Elimination #", field:"elimination_type", autoSave:true},
                 			"text", "dblclick"),
                 		field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true},
                 			"text", "dblclick"),

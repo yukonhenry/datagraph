@@ -1,6 +1,6 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
-	"dojo/store/Memory","dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", 
-	"dgrid/Selection", "dojo/domReady!"], 
+	"dojo/store/Memory","dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard",
+	"dgrid/Selection", "dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, Memory, OnDemandGrid, editor, Keyboard, Selection){
 		return declare(null, {
 			div_id: 0, schedutil_obj: null, numteams:0,
@@ -33,7 +33,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
         		}, grid_name);
         		this.seedGrid.startup();
                 return this.seedGrid;
-            },        		
+            },
             editSeedGrid: function(event) {
         			var val = event.value;
         			console.log("val="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +

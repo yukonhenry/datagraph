@@ -36,6 +36,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
                 			"text", "dblclick"),
                 		elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true},
                 			"text", "dblclick"),
+						elimination_type: editor({label:"Elimination #", field:"elimination_type", autoSave:true},
+                			"text", "dblclick"),
                 		field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true},
                 			"text", "dblclick"),
                 		gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true},

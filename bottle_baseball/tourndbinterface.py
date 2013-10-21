@@ -9,6 +9,7 @@ div_id_CONST = 'DIV_ID'
 totalteams_CONST = 'TOTALTEAMS'
 totalbrackets_CONST = 'TOTALBRACKETS'
 elimination_num_CONST = 'ELIMINATION_NUM'
+elimination_type_CONST = 'ELIMINATION_TYPE'
 field_id_list_CONST = 'FIELD_ID_LIST'
 gameinterval_CONST = 'GAMEINTERVAL'
 rr_gamedays_CONST = 'RR_GAMEDAYS'
@@ -30,6 +31,7 @@ class TournDBInterface:
                         totalteams_CONST:int(division['totalteams']),
                         totalbrackets_CONST: int(division['totalbrackets']),
                         elimination_num_CONST:int(division['elimination_num']),
+                        elimination_type_CONST:division['elimination_type'],
                         field_id_list_CONST:division['field_id_str'].split(),
                         gameinterval_CONST:int(division['gameinterval']),
                         rr_gamedays_CONST:int(division['rr_gamedays'])}
@@ -45,6 +47,7 @@ class TournDBInterface:
                                  'totalteams':divinfo[totalteams_CONST],
                                  'totalbrackets':divinfo[totalbrackets_CONST],
                                  'elimination_num':divinfo[elimination_num_CONST],
+                                 'elimination_type':divinfo[elimination_type_CONST],
                                  'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST]),
                                  'gameinterval':divinfo[gameinterval_CONST],
                                  'rr_gamedays':divinfo[rr_gamedays_CONST]})

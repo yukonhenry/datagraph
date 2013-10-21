@@ -114,10 +114,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func) {
 				arrayUtil.forEach(submenu_list, function(item, index) {
-					smenuitem = new MenuItem({label: item, 
+					smenuitem = new MenuItem({label: item,
 						onClick: lang.hitch(onclick_context, onclick_func, item) });
     				submenu_reg.addChild(smenuitem);
-				});					
+				});
 			},
 			default_alert: function(item) {
 				alert(item);
@@ -128,7 +128,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			getCupSchedule: function(item) {
 				this.server_interface.getServerData("getcupschedule/"+item,
-					this.server_interface.server_ack);				
+					this.server_interface.server_ack);
 			},
 			getServerDBDivInfo: function(item) {
 				// note third parameter maps to query object, which in this case

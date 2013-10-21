@@ -19,11 +19,12 @@ class EliminationScheduler:
         self.tourn_divinfo = self.divinfo_tuple.dict_list
         self.tindexerGet = self.divinfo_tuple.indexerGet
         self.tfield_tuple = getTournamentFieldInfo()
+        self.totalmatch_list = []
 
     def generate(self):
-        totalmatch_list = []
         match_id_count = 0
         for division in self.tourn_divinfo:
+            elimination_type = division['elimination_type']
             numteams = division['totalteams']
             team_id_list = range(1,numteams+1)
             totalrounds = bisect_left(_power_2s_CONST,numteams)
@@ -88,19 +89,19 @@ class EliminationScheduler:
                 # http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python/2612810
                 carryseed_list = [x['next_w_seed'] for x in rmatch_dict['match_list']]
                 match_id_count += len(rmatch_dict['match_list'])
-            totalmatch_list.append({'div_id': division['div_id'],
-                                    'match_list':match_list,
-                                    'max_round':totalrounds})
+            self.totalmatch_list.append({'div_id': division['div_id'],
+                                        'tourntype':'E',
+                                        'match_list':match_list,
+                                        'max_round':totalrounds})
             if numteams > 2:
-                self.createConsolationRound(div_id, match_list,
-                                            totalrounds, match_id_count)
+                match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type)
             else:
                 logging.warning("elimsched:gen: there should at least be three teams in div %d to make scheduling meaningful", div_id)
         '''
         tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
-        tourn_ftscheduler.generateSchedule(totalmatch_list)
+        tourn_ftscheduler.generateSchedule(self.totalmatch_list)
         '''
     def getCumulative_teams(self, clist, cGet, match_id):
         if clist:
@@ -126,19 +127,20 @@ class EliminationScheduler:
                 index += 2
         return ls_list
 
-    def createConsolationRound(self, div_id, match_list, wrounds, match_id_count):
+    def createConsolationRound(self, div_id, match_list, wr_total, match_id_count,
+                               elimination_type):
         # create the seed list for the consolation matches by getting
         # the 'losing' seed number from the previous round
         # x in [-1,-2] intended to get last and second-to-last match_list
-        # we're assuming wrounds has at least 2 rounds (4 teams)
+        # we're assuming wr_total (rounds) has at least 2 rounds (4 teams)
         cmatch_list = []
         cround_id = 1
         rm_list = []
         while True:
             if cround_id == 1:
-                source_round = 2
+                wr_round = 2
                 # use range if tuple needs to represent range
-                cinitindex_tuple = (0,source_round-1)
+                cinitindex_tuple = (0,wr_round-1)
                 # get info for losing teams from the first two elimination rounds
                 ctuple_list = [(y['next_l_id'],y['next_l_seed'])
                     for x in cinitindex_tuple
@@ -159,52 +161,85 @@ class EliminationScheduler:
                 logging.debug("elimsched:createConsol: INIT cpower2 %d cbye %d nt %d seed list %s rteam %s remain %s",
                               cpower2, c1bye_num, nt, seed_id_list, rteam_list,
                               remain_ctuple_list)
+                # for cround 1, cumulative list will be made up exclusively from passed match list
                 cumulative_list = [{'match_id':y['match_id'],
                     'cumulative':y['cumulative']}
                     for x in cinitindex_tuple for y in match_list[x]['match_list']]
+                # save it for use in later rounds
+                wr_cumulative_list = cumulative_list[:]
             else:
                 rmindexerGet = lambda x: dict((p['next_w_seed'],i) for i,p in enumerate(rm_list)).get(x)
+                # for cround 2 and above, cumulative list will at include info from
+                # prev cround match list; in addition it may also utiliz match list
+                # info from previous wround match lists
+                cumulative_list = [{'match_id':x['match_id'],
+                    'cumulative':x['cumulative']} for x in rm_list]
                 if remain_ctuple_list:
                     cpower2 /= 2
+                    if cpower2 == len(remain_ctuple_list):
+                        # if an equal number of teams have come in from  the wround
+                        # bring the effective number back up
+                        cpower2 *= 2
                     remain_seed_list = [x[1] for x in remain_ctuple_list]
                     seed_id_list = carryseed_list + remain_seed_list
                     seed_id_list.sort()
                     rcindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(remain_ctuple_list)).get(x)
                     rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else remain_ctuple_list[rcindexerGet(s)][0] for s in seed_id_list]
                     remain_ctuple_list = []
+                    # adding the whole wround cumu list is overkill, but simple
+                    cumulative_list += wr_cumulative_list
                 else:
                     # increment incoming source round id from winning bracket
-                    source_round += 1
-                    sr_ind = source_round-1
+                    wr_round += 1
+                    wr_ind = wr_round-1
                     # get default bracket size in current round
                     cpower2 /= 2
-                    # get lowing team information from current source winner
+                    # get losing team information from current source winner
                     # round
-                    ctuple_list = [(y['next_l_id'],y['next_l_seed'])
-                        for y in match_list[sr_ind]['match_list']]
-                    cindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(ctuple_list)).get(x)
+                    if wr_round <= wr_total:
+                        ctuple_list = [(y['next_l_id'],y['next_l_seed'])
+                        for y in match_list[wr_ind]['match_list']]
+                        cindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(ctuple_list)).get(x)
+                        wr_cumulative_list = [{'match_id':y['match_id'],
+                        'cumulative':y['cumulative']}
+                        for y in match_list[wr_ind]['match_list']]
                     # get number of incoming teams from winner'sbracket
-                    incoming_nt = len(ctuple_list)
-                    if incoming_nt == len(carryseed_list):
-                        # bring the default bracket size back up
-                        cpower2 *= 2
-                        incoming_seed_list = [x[1] for x in ctuple_list]
-                        seed_id_list = carryseed_list + incoming_seed_list
-                        seed_id_list.sort()
-                        rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else ctuple_list[cindexerGet(s)][0] for s in seed_id_list]
-                    elif incoming_nt == len(carryseed_list)/2:
-                        remain_ctuple_list = ctuple_list[:]
+                        wr_nt = len(ctuple_list)
+                        if wr_nt == len(carryseed_list):
+                            # bring the default bracket size back up because of increase
+                            # in additional games
+                            cpower2 *= 2
+                            incoming_seed_list = [x[1] for x in ctuple_list]
+                            seed_id_list = carryseed_list + incoming_seed_list
+                            seed_id_list.sort()
+                            rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else ctuple_list[cindexerGet(s)][0] for s in seed_id_list]
+                            cumulative_list  += wr_cumulative_list
+                        elif wr_nt == len(carryseed_list)/2:
+                            # if only half the number of games are coming in, save for
+                            # the next cround.  For now, implement a round from previous
+                            # winners.
+                            remain_ctuple_list = ctuple_list[:]
+                            seed_id_list = carryseed_list
+                            seed_id_list.sort()
+                            rteam_list = [rm_list[rmindexerGet(s)]['next_w_id']
+                                for s in seed_id_list]
+                        else:
+                            # if there are any other number of teams coming in from the
+                            # wround, raise exception.  It might be a legitimate case,
+                            # so analyze crash.
+                            raise CodeLogicError("elimsched:createConsole: consolation bracket design assumptions not correct div=%d" % (div_id,))
+                    else:
                         seed_id_list = carryseed_list
                         seed_id_list.sort()
                         rteam_list = [rm_list[rmindexerGet(s)]['next_w_id']
                             for s in seed_id_list]
-                    else:
-                        raise CodeLogicError("elimsched:createConsole: consolation bracket design assumptions not correct div=%d" % (div_id,))
+                if elimination_type == 'D' and cpower2 == 1:
+                    cround_id -= 1   #decrement cround_id to recover last cround
+                    break
                 nt = cpower2
                 logging.debug("elimsched:createConsole: cround %d cpower %d nt %d seed %s rteamlist %s",
                             cround_id, cpower2, nt, seed_id_list, rteam_list)
-                cumulative_list = [{'match_id':x['match_id'],
-                    'cumulative':x['cumulative']} for x in rm_list]
+
                 logging.debug("elimsched:createConsole: cumu %s", cumulative_list)
             numgames = nt/2
             # get list of cumulative team field for all the match sources that will be used in this round.
@@ -213,7 +248,7 @@ class EliminationScheduler:
 
             cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
             #self.checkRepeatOpponent(cumulative_list, cindexerGet, rteam_list)
-            rmatch_dict = {'round_id': cround_id, 'btype':'L',
+            rmatch_dict = {'round_id': cround_id, 'btype':'C',
                 'numgames':numgames,
                 'match_list': [{'home':rteam_list[x], 'away':rteam_list[-x-1],
                 'div_id':div_id,
@@ -236,6 +271,13 @@ class EliminationScheduler:
             logging.debug("elimsched.createConsole: carryseed %s", carryseed_list)
             match_id_count += len(rm_list)
             cround_id += 1
+            if elimination_type == 'C' and cpower2 == 2:
+                break
+        logging.debug("elimsched:createConsole: div %d consolation sched complete; last match_id = %d", div_id, match_id_count)
+        self.totalmatch_list.append({'div_id': div_id, 'tourntype':'C',
+                                    'match_list':cmatch_list,
+                                    'max_round':cround_id})
+        return match_id_count
 
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
