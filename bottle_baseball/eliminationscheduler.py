@@ -71,15 +71,17 @@ class EliminationScheduler:
                     'div_id':div_id,
                     'cumulative':[rteam_list[y] if rteam_list[y][0]=='S' else self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
                     'next_w_seed':seed_id_list[x],
-                    'next_l_seed':seed_id_list[-x-1],
+                    'next_l_seed':lseed_list[x],
                     'next_w_id':'W'+str(match_id_count+x+1),
                     'next_l_id':'L'+str(match_id_count+x+1),
                     'match_id':match_id_count+x+1} for x in range(numgames)]}
 
                 logging.debug("elimsched:gen: div %d round %d",
                               div_id, round_id)
-                logging.debug("elimsched:gen: seed list %s rmatch %s",
-                              seed_id_list, rmatch_dict)
+                logging.debug("elimsched:gen: seed list %s lseed %s",
+                              seed_id_list, lseed_list)
+                for rm in rmatch_dict['match_list']:
+                    logging.debug("elimsched:gen: rm %s", rm)
                 match_list.append(rmatch_dict)
 
                 # slicing for copying is fastest according to
@@ -101,14 +103,28 @@ class EliminationScheduler:
         tourn_ftscheduler.generateSchedule(totalmatch_list)
         '''
     def getCumulative_teams(self, clist, cGet, match_id):
-        if cumulative_list:
+        if clist:
             return flatten(clist[cGet(int(match_id))]
                            ['cumulative'])
         else:
             return None
 
     def generate_lseed_list(self, round_id, seed_list):
-        pass
+        # create seeing list for losing bracket
+        # reverse order of incoming seeding list such that returned list can also
+        # be accessed starting index 0 (instead of index -1)
+        slen = len(seed_list)
+        if slen % 2:
+            raise CodeLogicError("elimsched:genlseed: seed list should be even")
+        ls_list = seed_list[::-1]
+        if round_id % 2 == 0:
+            # if round is an even number, then swap adjacent positions -
+            # index 0,1 <-> index 1,0; index 2,3 <->index 3,2, etc
+            index = 0
+            while index < slen:
+                ls_list[index], ls_list[index+1] = ls_list[index+1], ls_list[index]
+                index += 2
+        return ls_list
 
     def createConsolationRound(self, div_id, match_list, wrounds, match_id_count):
         # create the seed list for the consolation matches by getting
@@ -117,9 +133,12 @@ class EliminationScheduler:
         # we're assuming wrounds has at least 2 rounds (4 teams)
         cmatch_list = []
         cround_id = 1
+        rm_list = []
         while True:
             if cround_id == 1:
-                cinitindex_tuple = (0,1)
+                source_round = 2
+                # use range if tuple needs to represent range
+                cinitindex_tuple = (0,source_round-1)
                 # get info for losing teams from the first two elimination rounds
                 ctuple_list = [(y['next_l_id'],y['next_l_seed'])
                     for x in cinitindex_tuple
@@ -136,17 +155,61 @@ class EliminationScheduler:
                 nt = wr12_losing_teams - c1bye_num
                 seed_id_list = [x[1] for x in ctuple_list[-nt:]]
                 rteam_list = [x[0] for x in ctuple_list[-nt:]]
-                logging.debug("elimsched:createConsol: INIT cpower2 %d cbye %d nt %d seed list %s rteam %s",
-                              cpower2, c1bye_num, nt, seed_id_list, rteam_list)
+                remain_ctuple_list = ctuple_list[0:-nt]
+                logging.debug("elimsched:createConsol: INIT cpower2 %d cbye %d nt %d seed list %s rteam %s remain %s",
+                              cpower2, c1bye_num, nt, seed_id_list, rteam_list,
+                              remain_ctuple_list)
                 cumulative_list = [{'match_id':y['match_id'],
                     'cumulative':y['cumulative']}
                     for x in cinitindex_tuple for y in match_list[x]['match_list']]
             else:
-                pass
+                rmindexerGet = lambda x: dict((p['next_w_seed'],i) for i,p in enumerate(rm_list)).get(x)
+                if remain_ctuple_list:
+                    cpower2 /= 2
+                    remain_seed_list = [x[1] for x in remain_ctuple_list]
+                    seed_id_list = carryseed_list + remain_seed_list
+                    seed_id_list.sort()
+                    rcindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(remain_ctuple_list)).get(x)
+                    rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else remain_ctuple_list[rcindexerGet(s)][0] for s in seed_id_list]
+                    remain_ctuple_list = []
+                else:
+                    # increment incoming source round id from winning bracket
+                    source_round += 1
+                    sr_ind = source_round-1
+                    # get default bracket size in current round
+                    cpower2 /= 2
+                    # get lowing team information from current source winner
+                    # round
+                    ctuple_list = [(y['next_l_id'],y['next_l_seed'])
+                        for y in match_list[sr_ind]['match_list']]
+                    cindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(ctuple_list)).get(x)
+                    # get number of incoming teams from winner'sbracket
+                    incoming_nt = len(ctuple_list)
+                    if incoming_nt == len(carryseed_list):
+                        # bring the default bracket size back up
+                        cpower2 *= 2
+                        incoming_seed_list = [x[1] for x in ctuple_list]
+                        seed_id_list = carryseed_list + incoming_seed_list
+                        seed_id_list.sort()
+                        rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else ctuple_list[cindexerGet(s)][0] for s in seed_id_list]
+                    elif incoming_nt == len(carryseed_list)/2:
+                        remain_ctuple_list = ctuple_list[:]
+                        seed_id_list = carryseed_list
+                        seed_id_list.sort()
+                        rteam_list = [rm_list[rmindexerGet(s)]['next_w_id']
+                            for s in seed_id_list]
+                    else:
+                        raise CodeLogicError("elimsched:createConsole: consolation bracket design assumptions not correct div=%d" % (div_id,))
+                nt = cpower2
+                logging.debug("elimsched:createConsole: cround %d cpower %d nt %d seed %s rteamlist %s",
+                            cround_id, cpower2, nt, seed_id_list, rteam_list)
+                cumulative_list = [{'match_id':x['match_id'],
+                    'cumulative':x['cumulative']} for x in rm_list]
+                logging.debug("elimsched:createConsole: cumu %s", cumulative_list)
             numgames = nt/2
-                # get list of cumulative team field for all the match sources that will be used in this round.
-                # the match sources for the consolation round will be drawn fro previous consolation rounds and also winner rounds
-                # for the first round, the match sources will be drawn from the winning bracket matches
+            # get list of cumulative team field for all the match sources that will be used in this round.
+            # the match sources for the consolation round will be drawn fro previous consolation rounds and also winner rounds
+            # for the first round, the match sources will be drawn from the winning bracket matches
 
             cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
             #self.checkRepeatOpponent(cumulative_list, cindexerGet, rteam_list)
@@ -163,11 +226,17 @@ class EliminationScheduler:
             logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
             logging.debug("elimsched:createConsole: Consolation div %d round %d",
                           div_id, cround_id)
-            logging.debug("elimsched:createConsole: Consolocation rmatch %s",
-                          rmatch_dict)
+            #logging.debug("elimsched:createConsole: Consolocation rmatch %s",
+            #             rmatch_dict)
+            for rm in rmatch_dict['match_list']:
+                logging.debug("elimsched:createConsole: match %s", rm)
             cmatch_list.append(rmatch_dict)
-            match_id_count += len(rmatch_dict['match_list'])
+            rm_list = rmatch_dict['match_list']
+            carryseed_list = [x['next_w_seed'] for x in rm_list]
+            logging.debug("elimsched.createConsole: carryseed %s", carryseed_list)
+            match_id_count += len(rm_list)
             cround_id += 1
+
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
                                          divinfotuple=self.divinfo_tuple,
