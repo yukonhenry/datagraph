@@ -3,13 +3,14 @@ from random import shuffle, seed
 import logging
 from operator import itemgetter
 from sched_exceptions import CodeLogicError
-from tournfieldtimescheduler import TournamentFieldTimeScheduler
+from elimfieldtimescheduler import EliminationFieldTimeScheduler
 from tourndbinterface import TournDBInterface
 from schedule_util import flatten
 from sched_exporter import ScheduleExporter
 from leaguedivprep import getTournamentFieldInfo
 from bisect import bisect_left
-from itertools import chain
+from itertools import chain, groupby
+from schedule_util import roundrobin
 _power_2s_CONST = [1,2,4,8,16,32,64]
 class EliminationScheduler:
     def __init__(self, mongoClient, divinfo_col):
@@ -25,12 +26,14 @@ class EliminationScheduler:
         match_id_count = 0
         for division in self.tourn_divinfo:
             elimination_type = division['elimination_type']
+            btype = 'W'
             numteams = division['totalteams']
             team_id_list = range(1,numteams+1)
             totalrounds = bisect_left(_power_2s_CONST,numteams)
             maxpower2 = _power_2s_CONST[totalrounds]
             div_id = division['div_id']
             match_list = []
+            divmatch_list = []
             for round_id in range(1, totalrounds+1):
                 if round_id == 1:
                     r1bye_num = maxpower2 - numteams
@@ -42,9 +45,6 @@ class EliminationScheduler:
                 else:
                     nt = maxpower2/_power_2s_CONST[round_id-1]
                     seed_id_list = range(1,nt+1)
-                    # get difference between current seed list and last
-                    # round's seed list
-                    highseed_list = list(set(seed_id_list)-set(carryseed_list))
                     # rm_list is from previous round, make sure to call this before
                     # rmatch_dict in this round
                     rm_list = rmatch_dict['match_list']
@@ -54,6 +54,8 @@ class EliminationScheduler:
                     cumulative_list = [{'match_id':x['match_id'],
                         'cumulative':x['cumulative']} for x in rm_list]
                     cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
+                    # provide round sequencing information that will be usefol for
+                    # fieldtime scheduling
                 #roundteam_list = [pm_list[x-1] for x in carryseed_list]
                 logging.debug("elimsched:gen:**************")
                 logging.debug("elimsched:gen:round %d rteam %s",
@@ -66,8 +68,8 @@ class EliminationScheduler:
                 # ref http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
                 # for flattening two-deep and regular nested lists
                 lseed_list = self.generate_lseed_list(round_id, seed_id_list)
-                rmatch_dict = {'round_id': round_id, 'btype':'W',
-                    'numgames':numgames,
+                rmatch_dict = {'round_id': round_id, 'btype':btype,
+                    'numgames':numgames, 'depend':0,
                     'match_list': [{'home':rteam_list[x],'away':rteam_list[-x-1],
                     'div_id':div_id,
                     'cumulative':[rteam_list[y] if rteam_list[y][0]=='S' else self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
@@ -89,20 +91,18 @@ class EliminationScheduler:
                 # http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python/2612810
                 carryseed_list = [x['next_w_seed'] for x in rmatch_dict['match_list']]
                 match_id_count += len(rmatch_dict['match_list'])
-            self.totalmatch_list.append({'div_id': division['div_id'],
-                                        'tourntype':'E',
-                                        'match_list':match_list,
-                                        'max_round':totalrounds})
+            divmatch_list.append({'div_id': division['div_id'],
+                'elimination_type':elimination_type,
+                'btype':btype, 'divmatch_list':match_list,
+                'max_round':totalrounds})
             if numteams > 2:
-                match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type)
+                match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type, divmatch_list)
             else:
                 logging.warning("elimsched:gen: there should at least be three teams in div %d to make scheduling meaningful", div_id)
-        '''
-        tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
-                                                         self.tourn_divinfo,
-                                                         self.tindexerGet)
-        tourn_ftscheduler.generateSchedule(self.totalmatch_list)
-        '''
+            self.totalmatch_list.append({'div_id':div_id, 'divmatch_list':self.addOverallRoundID(divmatch_list)})
+        elim_ftscheduler = EliminationFieldTimeScheduler(self.tdbInterface, self.tfield_tuple, self.tourn_divinfo, self.tindexerGet)
+        elim_ftscheduler.generateSchedule(self.totalmatch_list)
+
     def getCumulative_teams(self, clist, cGet, match_id):
         if clist:
             return flatten(clist[cGet(int(match_id))]
@@ -128,7 +128,7 @@ class EliminationScheduler:
         return ls_list
 
     def createConsolationRound(self, div_id, match_list, wr_total, match_id_count,
-                               elimination_type):
+                               elimination_type, divmatch_list):
         # create the seed list for the consolation matches by getting
         # the 'losing' seed number from the previous round
         # x in [-1,-2] intended to get last and second-to-last match_list
@@ -136,8 +136,10 @@ class EliminationScheduler:
         cmatch_list = []
         cround_id = 1
         rm_list = []
+        btype = 'L'
         while True:
             if cround_id == 1:
+                overall_round = 1
                 wr_round = 2
                 # use range if tuple needs to represent range
                 cinitindex_tuple = (0,wr_round-1)
@@ -180,6 +182,7 @@ class EliminationScheduler:
                         # if an equal number of teams have come in from  the wround
                         # bring the effective number back up
                         cpower2 *= 2
+                        wr_round += 1 # for depend dict key
                     remain_seed_list = [x[1] for x in remain_ctuple_list]
                     seed_id_list = carryseed_list + remain_seed_list
                     seed_id_list.sort()
@@ -223,6 +226,7 @@ class EliminationScheduler:
                             seed_id_list.sort()
                             rteam_list = [rm_list[rmindexerGet(s)]['next_w_id']
                                 for s in seed_id_list]
+                            wr_round -= 1 # for depend key used for ordering
                         else:
                             # if there are any other number of teams coming in from the
                             # wround, raise exception.  It might be a legitimate case,
@@ -248,8 +252,8 @@ class EliminationScheduler:
 
             cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
             #self.checkRepeatOpponent(cumulative_list, cindexerGet, rteam_list)
-            rmatch_dict = {'round_id': cround_id, 'btype':'C',
-                'numgames':numgames,
+            rmatch_dict = {'round_id': cround_id, 'btype':btype,
+                'numgames':numgames, 'depend':wr_round,
                 'match_list': [{'home':rteam_list[x], 'away':rteam_list[-x-1],
                 'div_id':div_id,
                 'cumulative':[self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
@@ -274,10 +278,35 @@ class EliminationScheduler:
             if elimination_type == 'C' and cpower2 == 2:
                 break
         logging.debug("elimsched:createConsole: div %d consolation sched complete; last match_id = %d", div_id, match_id_count)
-        self.totalmatch_list.append({'div_id': div_id, 'tourntype':'C',
-                                    'match_list':cmatch_list,
-                                    'max_round':cround_id})
+        divmatch_list.append({'div_id': div_id,
+                            'elimination_type':elimination_type,
+                            'btype':btype,
+                            'divmatch_list':cmatch_list,
+                            'max_round':cround_id})
         return match_id_count
+
+    def addOverallRoundID(self, divmatch_list):
+        adjustedmatch_list = [{'div_id':dkey,
+            'divmatch_list':[x['divmatch_list'] for x in ditems]}
+            for dkey, ditems in groupby(divmatch_list,key=itemgetter('div_id'))]
+        # adjustedmatch_list should only have one element per div
+        divmatch_list = adjustedmatch_list[0]['divmatch_list']
+        rrgenobj = roundrobin(divmatch_list)
+        next_abs = 1
+        multiplex_match_list = []
+        for ind, rmatch_dict in enumerate(rrgenobj, start=1):
+            if rmatch_dict['btype'] == 'W':
+                rmatch_dict['abs_id'] = rmatch_dict['round_id']
+            else:
+                rmatch_dict['abs_id'] = max(rmatch_dict['depend']+1, next_abs)
+                next_abs = rmatch_dict['abs_id'] + 1
+#        for x in divmatch_list:
+#            for y in x:
+#                #logging.debug("elimsched:addOverallRoundID: div %d btype %s len %d",
+#                #    x['div_id'], x['btype'], len(x['match_list']))
+            logging.debug("elimsched:addOverallRoundID round %d ind %d btype %s abs %d", rmatch_dict['round_id'] , ind, rmatch_dict['btype'], rmatch_dict['abs_id'])
+            multiplex_match_list.append(rmatch_dict)
+        return sorted(multiplex_match_list, key=itemgetter('abs_id', 'btype'))
 
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
