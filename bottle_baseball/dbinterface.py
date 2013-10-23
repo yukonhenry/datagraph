@@ -33,6 +33,7 @@ totalbrackets_CONST = 'TOTALBRACKETS'
 elimination_num_CONST = 'ELIMINATION_NUM'
 field_id_list_CONST = 'FIELD_ID_LIST'
 sched_type_CONST = 'SCHED_TYPE'
+match_id_CONST = 'MATCH_ID'
 RR_CONST = 'RoundRobin'
 Tourn_CONST = 'Tournament'
 # global for namedtuple
@@ -53,6 +54,13 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document, safe=True)
 
+    def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id):
+        document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
+                    start_time_CONST:start_time_str,
+                    venue_CONST:venue, home_CONST:home, away_CONST:away,
+                    match_id_CONST:match_id}
+        docID = self.games_col.insert(document, safe=True)
+
     def updateTournamentDivInfo(self, document, div_id):
         docID = self.games_col.update({div_id_CONST:div_id},
                                       {"$set": document}, upsert=True, safe=True)
@@ -65,7 +73,7 @@ class MongoDBInterface:
         docID = self.games_col.update(query, updatefields, safe=True)
 
 
-    def findDivisionSchedule(self,age, gender):
+    def findDivisionSchedule(self,age, gender, min_game_id=None):
         # use mongodb aggregation framework to group results by shared gametime.
         # query for all rounds at once - alternate way is to loop query based
         # on round id/gameday id (knowing total number of games in season)
@@ -76,7 +84,10 @@ class MongoDBInterface:
         # http://stackoverflow.com/questions/14770170/how-to-find-mongo-documents-with-a-same-field
         # also see aggregatin 'mongodb definitive guide'
         # col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
-        result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
+        if min_game_id:
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+        else:
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
                                                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",
                                                start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
                                                 {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
@@ -89,7 +100,25 @@ class MongoDBInterface:
             gameday_data = result[gameday_data_CONST]
             game_list.append({gameday_id_CONST:gameday_id, start_time_CONST:start_time,
                               gameday_data_CONST:gameday_data})
-        #pdb.set_trace()
+        return game_list
+
+    def findElimTournDivisionSchedule(self,age, gender, min_game_id=None):
+        # see comments for findDivisionSchedule
+        # this db read involves match_id
+        if min_game_id:
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+        else:
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
+                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+        game_list = []
+        for result in result_list['result']:
+            #print 'result',result
+            sortkeys = result['_id']
+            gameday_id = sortkeys[gameday_id_CONST]
+            start_time = sortkeys[start_time_CONST]
+            gameday_data = result[gameday_data_CONST]
+            game_list.append({gameday_id_CONST:gameday_id, start_time_CONST:start_time,
+                              gameday_data_CONST:gameday_data})
         return game_list
 
     def findDivisionSchedulePHMSARefFormat(self):
@@ -253,9 +282,13 @@ class MongoDBInterface:
         return metrics_list
 
 
-    def dropGameDocuments(self):
+    def dropGameDocuments(self, gameday_list=None):
         # remove documents only have to do with game data
-        self.games_col.remove({gameday_id_CONST:{"$exists":True}})
+        if gameday_list:
+          for gameday_id in gameday_list:
+            self.games_col.remove({gameday_id_CONST:gameday_id})
+        else:
+          self.games_col.remove({gameday_id_CONST:{"$exists":True}})
         self.resetSchedStatus_col()
 
     def resetSchedStatus_col(self):

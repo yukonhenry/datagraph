@@ -3,7 +3,7 @@
 from schedule_util import getConnectedDivisionGroup
 from itertools import groupby, cycle
 from operator import itemgetter
-from schedule_util import roundrobin
+from schedule_util import roundrobin, all_same
 from datetime import timedelta
 from dateutil import parser
 from copy import deepcopy
@@ -17,11 +17,20 @@ _ScheduleParam = namedtuple('SchedParam', 'field_id gameday_id slot_index')
 time_format_CONST = '%H:%M'
 min_slotgap_CONST = 2
 min_u10slotgap_CONST = 3
-u10div_tuple = (100,200)
-
+gameday_list_CONST = [3,4,5,6]
 _absolute_earliest_time = parser.parse('05:00')
 _min_timegap = timedelta(0,0,0,0,160) # in minutes
+maxgameday_CONST = 8
+startgameday_CONST = 3
 
+_schedorder_gmap = [{'div_id':1, 'gmap':[3,3,4,-1,-1,-1,-1,-1,6]},
+    {'div_id':2, 'gmap':[3,3,4,-1,-1,-1,-1,-1,6]},
+    {'div_id':3, 'gmap':[1, 1,-1,-1,-1,-1,6,-1,-1]},
+    {'div_id':4, 'gmap':[1,-1,-1,-1,-1,-1,-1,-1,-1]},
+    {'div_id':5, 'gmap':[3, 3, 4, -1, -1,-1,-1,-1,-1,-1,-1]},
+    {'div_id':6, 'gmap':[1,-1,-1,-1,-1,-1,-1,-1,-1]}]
+
+_sindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_schedorder_gmap)).get(x)
 class EliminationFieldTimeScheduler:
     def __init__(self, tdbinterface, tfield_tuple, divinfo, dindexerGet):
         self.tdbInterface = tdbinterface
@@ -51,17 +60,29 @@ class EliminationFieldTimeScheduler:
 
     def generateSchedule(self, totalmatch_list):
         tmindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
-        #self.tdbInterface.dbInterface.dropGameDocuments()  # reset game schedule docs
+        # reset game schedule docs for eilimination tournament
+        self.tdbInterface.dbInterface.dropGameDocuments(gameday_list=gameday_list_CONST)  # reset game schedule docs
         for connected_div_list in self.connected_div_components:
             # get the list of divisions that make up a connected component.
             # then get the matchlist corresponding to the connected divisions
-            connecteddiv_match_list = [totalmatch_list[tmindexerGet(x)]['divmatch_list'] for x in connected_div_list]
-            #for x in connecteddiv_match_list:
-            #    logging.debug("elimftsched:gen: %s", x)
-            for rkey, ritems in groupby(connecteddiv_match_list, itemgetter('abs_id')):
-                logging.debug("elimftsched:gen:rkey %d ritem %s", rkey, ritems)
-                pass
-
+            # Also combine the separate lists corresponding to each division into
+            # one large division
+            connecteddiv_matchrange_list = [{'div_id':totalmatch_list[tmindexerGet(x)]['div_id'],
+                'match_id_range':totalmatch_list[tmindexerGet(x)]['match_id_range']} for x in connected_div_list]
+            connecteddiv_match_list = [y for x in connected_div_list
+                for y in totalmatch_list[tmindexerGet(x)]['divmatch_list']]
+            sorted_match_list = sorted(connecteddiv_match_list, key=itemgetter('absround_id', 'btype'))
+            #for x in sorted_match_list:
+            #   logging.debug("elimftsched:gen: sorted elem %s", x)
+            '''
+            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'depend':x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id', y['match_id']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
+            '''
+            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
+            grouped_param_list = [{'absround_id':arkey, 'param_list':[{'depend': x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'div_id':x['div_id']} for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
+            for x in grouped_match_list:
+                logging.debug("elimftsched:gen: grouped elem %s", x)
+            for x in grouped_param_list:
+                logging.debug("elimftsched:gen: grouped param %s", x)
             '''
             grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], 'div_id':dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
             logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
@@ -73,17 +94,14 @@ class EliminationFieldTimeScheduler:
                               map(set,[self.divinfo_list[self.dindexerGet(x)]['fields'] for x in connected_div_list]))
             field_list = list(fieldset)
             max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['max_slot_index'] for f in field_list)
-
             endtime_list = [(f,parser.parse(self.tfieldinfo_list[self.tfindexerGet(f)]['end_time'])) for f in field_list]
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
             #field_cycle = cycle(fieldset)
-            self.initTeamTimeGap_list(connected_div_list)
-            current_gameday = 1
+            self.initTeamTimeGap_list(connecteddiv_matchrange_list)
+            current_gameday = startgameday_CONST
             #earliestfield_list = None
             for round_games in grouped_match_list:
-                #current_gameday_list = [1,1]  # for U10
-                #current_gameday = 1
-                round_id = round_games['round_id']
+                absround_id = round_games['absround_id']
                 round_match_list = round_games['match_list']
                 #if round_id > 1:
                 #    self.optimizeMatchOrder(round_match_list)
@@ -95,9 +113,13 @@ class EliminationFieldTimeScheduler:
                     div_id = rrgame['div_id']
                     home = rrgame['home']
                     away = rrgame['away']
+                    match_id = rrgame['match_id']
+                    # get cumulative teams for elimination tournament
+                    # cumulative includes list of possible teams that could be
+                    # playing based on previous elimination game results
                     ginterval = self.divinfo_list[self.dindexerGet(div_id)]['gameinterval']
                     gameinterval = timedelta(0,0,0,0,ginterval)
-                    search_tuple = self.getSearchStart_daytime(div_id, home, away, field_list, latest_endtime-gameinterval)
+                    search_tuple = self.getSearchStart_daytime(div_id, home, away, field_list, latest_endtime-gameinterval, absround_id)
                     current_gameday = search_tuple[0]
                     current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based non gameday
@@ -110,13 +132,13 @@ class EliminationFieldTimeScheduler:
                     eslot = found_tuple.slot_index
                     egameday = found_tuple.gameday_id
                     selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][egameday-1][eslot]
-                    logging.debug("tournftscheduler:generate:assignment success rrgame %s gameday %d field %d slot %d", rrgame, egameday, efield, eslot)
-    '''
+                    logging.info("tournftscheduler:generate:assignment success rrgame %s gameday %d field %d slot %d absrnd %d", rrgame, egameday, efield, eslot, absround_id)
+                    logging.info("------------------------------")
                     if selected_tfstatus['isgame']:
                         raise CodeLogicError("tournftscheduler:generate:game is already booked:")
                     selected_tfstatus['isgame'] = True
                     selected_tfstatus['teams'] = rrgame
-                    self.updateTeamTimeGap_list(div_id, home, away, egameday, selected_tfstatus['start_time']+gameinterval)
+                    self.updateTeamTimeGap_list(div_id, home, away, egameday, selected_tfstatus['start_time']+gameinterval, match_id)
             for field_id in fieldset:
                 gameday_id = 1
                 for gameday_list in self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list']:
@@ -128,12 +150,12 @@ class EliminationFieldTimeScheduler:
                                 div_id = teams['div_id']
                                 home_id = teams['home']
                                 away_id = teams['away']
+                                match_id = teams['match_id']
                                 div = getTournAgeGenderDivision(div_id)
                                 print div.age, div.gender, gameday_id, field_id, home_id, away_id, teams, gametime
-                                self.tdbInterface.dbInterface.insertGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id)
+                                self.tdbInterface.dbInterface.insertElimGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id, match_id)
                     gameday_id += 1
-        self.tdbInterface.dbInterface.setSchedStatus_col()
-    '''
+        #self.tdbInterface.dbInterface.setSchedStatus_col()
 
     def getTournFieldSeasonStatus_list(self):
         # routine to return initialized list of field status slots -
@@ -208,18 +230,8 @@ class EliminationFieldTimeScheduler:
         status_list = [(f,
                         self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind])
                         for f in field_list]
-        if div_id in u10div_tuple:
-            allindex_list = [(s[0],[i for i,j in enumerate(s[1]) if not j['isgame'] and j['div_id']==div_id]) for s in status_list if not all(x['isgame'] for x in s[1])]
-            if not allindex_list:
-                return None
-            try:
-                firstindex_list = [(x[0],min(x[1])) for x in allindex_list]
-            except ValueError:
-                raise ValueError
-            print 'firstind for U10', div_id, allindex_list, firstindex_list
-        else:
-            firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False))
-                                for s in status_list if not all(x['isgame'] for x in s[1])]
+        firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False))
+            for s in status_list if not all(x['isgame'] for x in s[1])]
         if not firstindex_list:
             return None
         #print 'firstindex', firstindex_list
@@ -229,49 +241,65 @@ class EliminationFieldTimeScheduler:
         #print 'mintime_list', mintime_list
         return mintime_list
 
-    def initTeamTimeGap_list(self, div_list):
-        self.gaplist = [{'div_id':self.divinfo_list[self.dindexerGet(x)]['div_id'], 'team_id':y, 'last_end':-1, 'last_gameday':0} for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)]
+    def initTeamTimeGap_list(self, matchrange_list):
+        self.gaplist = [{'div_id': x['div_id'], 'team_id':y, 'last_end':-1, 'last_gameday':0} for x in matchrange_list for y in range(x['match_id_range'][0],x['match_id_range'][1]+1)]
         # gapindexerGet must have a (div_id, team_id) tuple passed to it
         self.gapindexerGet = lambda x: [i for i,p in enumerate(self.gaplist) if p['div_id'] == x[0] and p['team_id']==x[1]]
 
-    def updateTeamTimeGap_list(self, div_id, home, away, gameday, end_time):
-        for team in (home,away):
-            gapindex_list = self.gapindexerGet((div_id, team))
-            gapteam_dict = self.gaplist[gapindex_list[0]]
-            gapteam_dict['last_end'] = end_time
-            gapteam_dict['last_gameday'] = gameday
+    def updateTeamTimeGap_list(self, div_id, home, away, gameday, end_time, match_id):
+        gapindex_list = self.gapindexerGet((div_id, match_id))
+        gapteam_dict = self.gaplist[gapindex_list[0]]
+        gapteam_dict['last_end'] = end_time
+        gapteam_dict['last_gameday'] = gameday
 
-    def getSearchStart_daytime(self, div_id, home, away, field_list, latest_starttime):
-        #minslot_gap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
-        homegap_dict = self.gaplist[self.gapindexerGet((div_id, home))[0]]
-        awaygap_dict = self.gaplist[self.gapindexerGet((div_id, away))[0]]
-        homegap_gameday = homegap_dict['last_gameday']
-        awaygap_gameday = awaygap_dict['last_gameday']
-        homegap_end = homegap_dict['last_end']
-        awaygap_end = awaygap_dict['last_end']
-        if homegap_gameday == awaygap_gameday:
-            maxgap_gameday = homegap_gameday
-            maxgap_end = max(homegap_end, awaygap_end)
-        elif homegap_gameday > awaygap_gameday:
-            maxgap_gameday = homegap_gameday
-            maxgap_end = homegap_end
-        else:
-            maxgap_gameday = awaygap_gameday
-            maxgap_end = awaygap_end
-        if maxgap_gameday == 0 :
-            next_gameday = 1
-            next_start = _absolute_earliest_time
-        else:
-            next_gameday = maxgap_gameday
-            if maxgap_end == -1:
-                next_start == _absolute_earliest_time
+    def getSearchStart_daytime(self, div_id, home, away, field_list, latest_starttime, absround_id):
+        #team_list = self.processTeamType(cumulative)
+        team_list = [int(t[1:]) for t in (home, away) if t[0] !='S']
+        #logging.debug("elimftsched:getSearchStart: teamlist %s", team_list)
+        if team_list:
+            teamgap_gameday = [self.gaplist[self.gapindexerGet((div_id, team))[0]]['last_gameday'] for team in team_list]
+            teamgap_end = [self.gaplist[self.gapindexerGet((div_id, team))[0]]['last_end'] for team in team_list]
+            #logging.debug("elimftsched:getSearchStart: gameday %s gapend %s", teamgap_gameday, teamgap_end)
+            if all_same(teamgap_gameday):
+                maxgap_gameday = teamgap_gameday[0]
+                maxgap_end = max(teamgap_end)
             else:
-                next_start = maxgap_end + _min_timegap
-                if next_start > latest_starttime:
-                    next_gameday += 1
-                    next_start = _absolute_earliest_time
+                maxgap_gameday = max(teamgap_gameday)
+                max_ind = [i for i,j in enumerate(teamgap_gameday) if j==maxgap_gameday]
+                maxgap_end = max([teamgap_end[i] for i in max_ind])
+            if maxgap_gameday == 0:
+                # first game is startgameday_CONST
+                next_gameday = startgameday_CONST
+                next_start = _absolute_earliest_time
+            else:
+                next_gameday = maxgap_gameday
+                if maxgap_end == -1:
+                    next_start == _absolute_earliest_time
+                else:
+                    next_start = maxgap_end + _min_timegap
+                    if next_start > latest_starttime:
+                        next_gameday += 1
+                        next_start = _absolute_earliest_time
+        else:
+            next_gameday = startgameday_CONST
+            next_start = _absolute_earliest_time
+        target_gameday = _schedorder_gmap[_sindexerGet(div_id)]['gmap'][absround_id-1]
+        if next_gameday < target_gameday:
+            # if gameday is too soon, force it to the earliest target gameday
+            next_gameday = target_gameday
+            next_start = _absolute_earliest_time
         #print 'homegap awaygap gameday slot', homegap_dict, awaygap_dict, next_gameday, next_end
         return (next_gameday, next_start)
+
+    def processTeamType(self, cumulative):
+        team_list = []
+        for c in cumulative:
+            if isinstance(c, str):
+                team_list.append(int(c[1:]))
+            else:
+                for x in c:
+                    team_list.append(int(x[1:]))
+        return team_list
 
     def validateTimeSlot(self, div_id, field_id, gameday, slot_index, home, away):
         # check if candidate time slot has enough gap with the previously assigned slot for the two teams in the match
@@ -355,10 +383,10 @@ class EliminationFieldTimeScheduler:
                 break
             '''
         else:
-            logging.debug("tournftscheduler:findaltfs:status_list is null gameday=%d target_start=%s div_id=%d home=%d away=%d",gameday, target_start, div_id, home, away)
+            logging.debug("tournftscheduler:findaltfs:status_list is null gameday=%d target_start=%s div_id=%d home=%s away=%s",gameday, target_start, div_id, home, away)
             next_gameday = gameday + 1
             alt_list = None
-            while True or next_gameday > 3:
+            while True or next_gameday > maxgameday_CONST:
                 try:
                     alt_list = self.findNextEarliestFieldSlot(field_list, next_gameday, div_id)
                 except ValueError:
@@ -381,7 +409,7 @@ class EliminationFieldTimeScheduler:
                 return _ScheduleParam(alt_field, next_gameday, alt_slot)
             else:
                 return None
-        logging.debug("tournftscheduler:findalt: match slot found %s", found_dict)
+        logging.info("tournftscheduler:findalt: match slot found %s gameday %d", found_dict, gameday)
         return _ScheduleParam(found_dict['field_id'], gameday, found_dict['slot_index'])
 
     def optimizeMatchOrder(self, rmlist):

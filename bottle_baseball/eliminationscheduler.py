@@ -12,6 +12,7 @@ from bisect import bisect_left
 from itertools import chain, groupby
 from schedule_util import roundrobin
 _power_2s_CONST = [1,2,4,8,16,32,64]
+startgameday_CONST = 3  # make sure value matches same const in elimftsched
 class EliminationScheduler:
     def __init__(self, mongoClient, divinfo_col):
         #self.dbInterface = MongoDBInterface(mongoClient, divinfo_col, rr_type_flag=False)
@@ -25,6 +26,7 @@ class EliminationScheduler:
     def generate(self):
         match_id_count = 0
         for division in self.tourn_divinfo:
+            match_id_begin = match_id_count
             elimination_type = division['elimination_type']
             btype = 'W'
             numteams = division['totalteams']
@@ -69,7 +71,7 @@ class EliminationScheduler:
                 # for flattening two-deep and regular nested lists
                 lseed_list = self.generate_lseed_list(round_id, seed_id_list)
                 rmatch_dict = {'round_id': round_id, 'btype':btype,
-                    'numgames':numgames, 'depend':0,
+                    'numgames':numgames, 'depend':0, 'div_id':div_id,
                     'match_list': [{'home':rteam_list[x],'away':rteam_list[-x-1],
                     'div_id':div_id,
                     'cumulative':[rteam_list[y] if rteam_list[y][0]=='S' else self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
@@ -99,14 +101,15 @@ class EliminationScheduler:
                 match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type, divmatch_list)
             else:
                 logging.warning("elimsched:gen: there should at least be three teams in div %d to make scheduling meaningful", div_id)
-            self.totalmatch_list.append({'div_id':div_id, 'divmatch_list':self.addOverallRoundID(divmatch_list)})
+            self.totalmatch_list.append({'div_id':div_id, 'divmatch_list':self.addOverallRoundID(divmatch_list), 'match_id_range':(match_id_begin+1, match_id_count)})
         elim_ftscheduler = EliminationFieldTimeScheduler(self.tdbInterface, self.tfield_tuple, self.tourn_divinfo, self.tindexerGet)
         elim_ftscheduler.generateSchedule(self.totalmatch_list)
 
     def getCumulative_teams(self, clist, cGet, match_id):
         if clist:
-            return flatten(clist[cGet(int(match_id))]
-                           ['cumulative'])
+            # generator created - watch out for iterating through gen
+            return list(flatten(clist[cGet(int(match_id))]
+                           ['cumulative']))
         else:
             return None
 
@@ -253,7 +256,7 @@ class EliminationScheduler:
             cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
             #self.checkRepeatOpponent(cumulative_list, cindexerGet, rteam_list)
             rmatch_dict = {'round_id': cround_id, 'btype':btype,
-                'numgames':numgames, 'depend':wr_round,
+                'numgames':numgames, 'depend':wr_round, 'div_id':div_id,
                 'match_list': [{'home':rteam_list[x], 'away':rteam_list[-x-1],
                 'div_id':div_id,
                 'cumulative':[self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
@@ -274,9 +277,10 @@ class EliminationScheduler:
             carryseed_list = [x['next_w_seed'] for x in rm_list]
             logging.debug("elimsched.createConsole: carryseed %s", carryseed_list)
             match_id_count += len(rm_list)
-            cround_id += 1
             if elimination_type == 'C' and cpower2 == 2:
                 break
+            else:
+                cround_id += 1
         logging.debug("elimsched:createConsole: div %d consolation sched complete; last match_id = %d", div_id, match_id_count)
         divmatch_list.append({'div_id': div_id,
                             'elimination_type':elimination_type,
@@ -286,6 +290,13 @@ class EliminationScheduler:
         return match_id_count
 
     def addOverallRoundID(self, divmatch_list):
+        schedorder_list = [{'div_id':1, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
+            {'div_id':2, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
+            {'div_id':3, 'order_list':[1,2,2,3,4,4,7,5,6]},
+            {'div_id':4, 'order_list':[1,2,3,3,5,4,8,6,7]},
+            {'div_id':5, 'order_list':[1,2,2,3,3,4,5,5,7,6]},
+            {'div_id':6, 'order_list':[1,2,2,3,4,4,6,5]}]
+        sindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(schedorder_list)).get(x)
         adjustedmatch_list = [{'div_id':dkey,
             'divmatch_list':[x['divmatch_list'] for x in ditems]}
             for dkey, ditems in groupby(divmatch_list,key=itemgetter('div_id'))]
@@ -294,33 +305,21 @@ class EliminationScheduler:
         rrgenobj = roundrobin(divmatch_list)
         next_abs = 1
         multiplex_match_list = []
-        for ind, rmatch_dict in enumerate(rrgenobj, start=1):
+        for ind, rmatch_dict in enumerate(rrgenobj):
+            div_id = rmatch_dict['div_id']
+            olist = schedorder_list[sindexerGet(div_id)]['order_list']
             if rmatch_dict['btype'] == 'W':
-                rmatch_dict['abs_id'] = rmatch_dict['round_id']
+                rmatch_dict['absround_id'] = olist[ind]
             else:
-                rmatch_dict['abs_id'] = max(rmatch_dict['depend']+1, next_abs)
-                next_abs = rmatch_dict['abs_id'] + 1
-#        for x in divmatch_list:
-#            for y in x:
-#                #logging.debug("elimsched:addOverallRoundID: div %d btype %s len %d",
-#                #    x['div_id'], x['btype'], len(x['match_list']))
-            logging.debug("elimsched:addOverallRoundID round %d ind %d btype %s abs %d", rmatch_dict['round_id'] , ind, rmatch_dict['btype'], rmatch_dict['abs_id'])
+                rmatch_dict['absround_id'] = olist[ind]
+            logging.info("elimsched:addOverallRoundID div %d round %d ind %d btype %s abs %d", rmatch_dict['div_id'], rmatch_dict['round_id'] , ind+1, rmatch_dict['btype'], rmatch_dict['absround_id'])
             multiplex_match_list.append(rmatch_dict)
-        return sorted(multiplex_match_list, key=itemgetter('abs_id', 'btype'))
+        logging.info("*******************")
+        return sorted(multiplex_match_list, key=itemgetter('absround_id', 'btype'))
 
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
                                          divinfotuple=self.divinfo_tuple,
                                          fieldtuple=self.tfield_tuple)
-        for division in self.tourn_divinfo:
-            tschedExporter.exportDivTeamSchedules(div_id=int(division['div_id']),
-                                                  age=division['div_age'],
-                                                  gen=division['div_gen'],
-                                                  nt=int(division['totalteams']),
-                                                  prefix='PHMSACup2013')
-            tschedExporter.exportTeamSchedules(div_id=int(division['div_id']),
-                                               age=division['div_age'],
-                                               gen=division['div_gen'],
-                                               nt=int(division['totalteams']), prefix='PHMSACup2013')
-            tschedExporter.exportDivSchedules(division['div_id'])
-            tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup')
+        tschedExporter.exportDivSchedules(startgameday_CONST, prefix='PHMSACup2013Elimination')
+        tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup')

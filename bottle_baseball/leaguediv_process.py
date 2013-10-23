@@ -118,6 +118,14 @@ def exportTournSchedule(tourn_divinfo_col):
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 
+@route('/exportelimschedule/<tourn_divinfo_col>')
+def exportElimSchedule(tourn_divinfo_col):
+    callback_name = request.query.callback
+    elimsched = EliminationScheduler(mongoClient, tourn_divinfo_col)
+    elimsched.exportSchedule()
+    a = json.dumps({"status":'ready'})
+    return callback_name+'('+a+')'
+
 @route('/getcupschedule/<tourn_divinfo_col>')
 def getCupSchedule(tourn_divinfo_col):
     callback_name = request.query.callback

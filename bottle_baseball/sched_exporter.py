@@ -10,6 +10,8 @@ home_CONST = 'HOME'
 away_CONST = 'AWAY'
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
+match_id_CONST = 'MATCH_ID'
+gameday_data_CONST = 'GAMEDAY_DATA'
 
 class ScheduleExporter:
     def __init__(self, dbinterface, divinfotuple=None,fieldtuple=None):
@@ -52,8 +54,30 @@ class ScheduleExporter:
             f.write(book.html)
         f.close()
         '''
-    def exportDivSchedules(self, div_id):
-        pass
+    def exportDivSchedules(self, startgameday, prefix=""):
+        headers = ['Match ID', 'Gameday#', 'Game Date', 'Day', 'Time', 'Division', 'Home', 'Away', 'Field']
+        datasheet_list = []
+        for division in self.leaguedivinfo:
+            div_id = division['div_id']
+            div_age = division['div_age']
+            div_gen = division['div_gen']
+            div_str =  div_age + div_gen
+            datasheet = Dataset(title=div_str)
+            datasheet.headers = list(headers)
+            divdata_list = self.dbinterface.findElimTournDivisionSchedule(div_age, div_gen, min_game_id=startgameday)
+            tabformat_list = [(y[match_id_CONST], x[gameday_id_CONST], tournMapGamedayIdToCalendar(x[gameday_id_CONST]), tournMapGamedayIdToDate(x[gameday_id_CONST]), datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"), div_str, y[home_CONST], y[away_CONST], self.fieldinfo[self.findexerGet(y[venue_CONST])]['name']) for x in divdata_list for y in x[gameday_data_CONST]]
+            for tabformat in tabformat_list:
+                datasheet.append(tabformat)
+            datasheet_list.append(datasheet)
+        book = Databook(datasheet_list)
+        cdir = os.path.dirname(__file__)
+        bookname_xls = prefix+'.xls'
+        bookname_html = prefix+'.html'
+        booknamefull_xls = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls', bookname_xls)
+        booknamefull_html = os.path.join('~/workspace/datagraph/bottle_baseball/download/html', bookname_html)
+        with open(booknamefull_xls,'wb') as f:
+            f.write(book.xls)
+        f.close()
 
     def exportTeamSchedules(self, div_id, age, gen, numteams, prefix=""):
         headers = ['Gameday#', 'Game Date', 'Start Time', 'Venue', 'Home Team', 'Away Team']
@@ -99,7 +123,7 @@ class ScheduleExporter:
                 for x in schedule_list]
         for tabformat in tabformat_list:
             datasheet.append(tabformat)
-        sheet_xls_relpath = prefix+'2013PHMSAFall_schedule_RefFormat.xls'
+        sheet_xls_relpath = prefix+'_RefFormat.xls'
         sheet_xls_abspath = os.path.join('/home/henry/workspace/datagraph/bottle_baseball/download/xls',
                                          sheet_xls_relpath)
         with open(sheet_xls_abspath,'wb') as f:
