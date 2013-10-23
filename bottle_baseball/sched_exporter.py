@@ -12,6 +12,7 @@ age_CONST = 'AGE'
 gen_CONST = 'GEN'
 match_id_CONST = 'MATCH_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
+comment_CONST = 'COMMENT'
 
 class ScheduleExporter:
     def __init__(self, dbinterface, divinfotuple=None,fieldtuple=None):
@@ -55,7 +56,7 @@ class ScheduleExporter:
         f.close()
         '''
     def exportDivSchedules(self, startgameday, prefix=""):
-        headers = ['Match ID', 'Gameday#', 'Game Date', 'Day', 'Time', 'Division', 'Home', 'Away', 'Field']
+        headers = ['Match ID', 'Gameday#', 'Game Date', 'Day', 'Time', 'Division', 'Home', 'Away', 'Field', '', 'Comment']
         datasheet_list = []
         for division in self.leaguedivinfo:
             div_id = division['div_id']
@@ -65,9 +66,10 @@ class ScheduleExporter:
             datasheet = Dataset(title=div_str)
             datasheet.headers = list(headers)
             divdata_list = self.dbinterface.findElimTournDivisionSchedule(div_age, div_gen, min_game_id=startgameday)
-            tabformat_list = [(y[match_id_CONST], x[gameday_id_CONST], tournMapGamedayIdToCalendar(x[gameday_id_CONST]), tournMapGamedayIdToDate(x[gameday_id_CONST]), datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"), div_str, y[home_CONST], y[away_CONST], self.fieldinfo[self.findexerGet(y[venue_CONST])]['name']) for x in divdata_list for y in x[gameday_data_CONST]]
+            tabformat_list = [(y[match_id_CONST], x[gameday_id_CONST], tournMapGamedayIdToCalendar(x[gameday_id_CONST]), tournMapGamedayIdToDate(x[gameday_id_CONST]), datetime.strptime(x[start_time_CONST],"%H:%M").strftime("%I:%M %p"), div_str, y[home_CONST], y[away_CONST], self.fieldinfo[self.findexerGet(y[venue_CONST])]['name'], '', y[comment_CONST]) for x in divdata_list for y in x[gameday_data_CONST]]
             for tabformat in tabformat_list:
                 datasheet.append(tabformat)
+            datasheet.append_separator("Prefix Legend: 'S'-Seeded Team#, 'W'-Winning Team (See Match ID), 'L'-Losing Team)")
             datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
         cdir = os.path.dirname(__file__)

@@ -79,7 +79,8 @@ class EliminationScheduler:
                     'next_l_seed':lseed_list[x],
                     'next_w_id':'W'+str(match_id_count+x+1),
                     'next_l_id':'L'+str(match_id_count+x+1),
-                    'match_id':match_id_count+x+1} for x in range(numgames)]}
+                    'match_id':match_id_count+x+1,
+                    'comment':""} for x in range(numgames)]}
 
                 logging.debug("elimsched:gen: div %d round %d",
                               div_id, round_id)
@@ -93,12 +94,27 @@ class EliminationScheduler:
                 # http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python/2612810
                 carryseed_list = [x['next_w_seed'] for x in rmatch_dict['match_list']]
                 match_id_count += len(rmatch_dict['match_list'])
+            rmatch_dict['match_list'][0]['comment'] = 'Championship Game'
             divmatch_list.append({'div_id': division['div_id'],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
                 'max_round':totalrounds})
             if numteams > 2:
+                last_match_id_count = match_id_count
                 match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type, divmatch_list)
+                if elimination_type =='D':
+                    rm_list = rmatch_dict['match_list']
+                    rmindexerGet = lambda x: dict((p['next_w_seed'],i) for i,p in enumerate(rm_list)).get(x)
+                    rteam = rm_list[rmindexerGet(carryseed_list[0])]['next_w_id']
+                    rmatch_dict = {'round_id': round_id+1, 'btype':btype,
+                    'numgames':1, 'depend':0, 'div_id':div_id,
+                    'match_list': [{'home':rteam,
+                    'away':'W'+str(match_id_count),
+                    'div_id':div_id,
+                    'match_id':match_id_count+1,
+                    'comment':'Championship Game ('+rteam+' secures 1st place w tie)'}]}
+                    match_list.append(rmatch_dict)
+                    match_id_count += 1
             else:
                 logging.warning("elimsched:gen: there should at least be three teams in div %d to make scheduling meaningful", div_id)
             self.totalmatch_list.append({'div_id':div_id, 'divmatch_list':self.addOverallRoundID(divmatch_list), 'match_id_range':(match_id_begin+1, match_id_count)})
@@ -153,7 +169,6 @@ class EliminationScheduler:
                 ctuple_list.sort(key=itemgetter(1))
                 wr12_losing_teams = len(ctuple_list)
                 #min_seed = ctuple_list[0][1]
-                #ctuple_list = [(x[0],x[1]) for x in ctuple_list]
                 logging.debug("elimsched:createConsol: INIT ctuple %s INIT losing teams %d",
                               ctuple_list, wr12_losing_teams)
                 # get power of 2 greater than #teams
@@ -264,7 +279,8 @@ class EliminationScheduler:
                 'next_l_seed':seed_id_list[-x-1],
                 'next_w_id':'W'+str(match_id_count+x+1),
                 'next_l_id':'L'+str(match_id_count+x+1),
-                'match_id':match_id_count+x+1} for x in range(numgames)]}
+                'match_id':match_id_count+x+1,
+                'comment':""} for x in range(numgames)]}
             logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
             logging.debug("elimsched:createConsole: Consolation div %d round %d",
                           div_id, cround_id)
@@ -278,6 +294,7 @@ class EliminationScheduler:
             logging.debug("elimsched.createConsole: carryseed %s", carryseed_list)
             match_id_count += len(rm_list)
             if elimination_type == 'C' and cpower2 == 2:
+                rmatch_dict['match_list'][0]['comment'] = "3rd Place Game"
                 break
             else:
                 cround_id += 1

@@ -34,6 +34,7 @@ elimination_num_CONST = 'ELIMINATION_NUM'
 field_id_list_CONST = 'FIELD_ID_LIST'
 sched_type_CONST = 'SCHED_TYPE'
 match_id_CONST = 'MATCH_ID'
+comment_CONST = 'COMMENT'
 RR_CONST = 'RoundRobin'
 Tourn_CONST = 'Tournament'
 # global for namedtuple
@@ -54,11 +55,11 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document, safe=True)
 
-    def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id):
+    def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id, comment):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away,
-                    match_id_CONST:match_id}
+                    match_id_CONST:match_id, comment_CONST:comment}
         docID = self.games_col.insert(document, safe=True)
 
     def updateTournamentDivInfo(self, document, div_id):
@@ -106,10 +107,10 @@ class MongoDBInterface:
         # see comments for findDivisionSchedule
         # this db read involves match_id
         if min_game_id:
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         else:
             result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
-                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
             #print 'result',result

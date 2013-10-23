@@ -28,7 +28,7 @@ _schedorder_gmap = [{'div_id':1, 'gmap':[3,3,4,-1,-1,-1,-1,-1,6]},
     {'div_id':3, 'gmap':[1, 1,-1,-1,-1,-1,6,-1,-1]},
     {'div_id':4, 'gmap':[1,-1,-1,-1,-1,-1,-1,-1,-1]},
     {'div_id':5, 'gmap':[3, 3, 4, -1, -1,-1,-1,-1,-1,-1,-1]},
-    {'div_id':6, 'gmap':[1,-1,-1,-1,-1,-1,-1,-1,-1]}]
+    {'div_id':6, 'gmap':[3, 3, 4,-1,-1,-1,-1,-1,-1]}]
 
 _sindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_schedorder_gmap)).get(x)
 class EliminationFieldTimeScheduler:
@@ -77,7 +77,7 @@ class EliminationFieldTimeScheduler:
             '''
             grouped_match_list = [{'absround_id':arkey,'match_list':[[{'depend':x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id', y['match_id']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             '''
-            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
+            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id'], 'comment':y['comment']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             grouped_param_list = [{'absround_id':arkey, 'param_list':[{'depend': x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'div_id':x['div_id']} for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             for x in grouped_match_list:
                 logging.debug("elimftsched:gen: grouped elem %s", x)
@@ -123,7 +123,7 @@ class EliminationFieldTimeScheduler:
                     current_gameday = search_tuple[0]
                     current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based non gameday
-                    starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list]
+                    starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list if self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1]]
                     found_tuple = self.findAlternateFieldSlot(field_list, current_gameday, current_start, starttime_list, endtime_list, gameinterval, div_id, home, away)
                     #earliest_dict = earliestfield_list.pop()
                     #efield = earliest_dict['field_id']
@@ -151,9 +151,10 @@ class EliminationFieldTimeScheduler:
                                 home_id = teams['home']
                                 away_id = teams['away']
                                 match_id = teams['match_id']
+                                comment = teams['comment']
                                 div = getTournAgeGenderDivision(div_id)
                                 print div.age, div.gender, gameday_id, field_id, home_id, away_id, teams, gametime
-                                self.tdbInterface.dbInterface.insertElimGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id, match_id)
+                                self.tdbInterface.dbInterface.insertElimGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id, match_id, comment)
                     gameday_id += 1
         #self.tdbInterface.dbInterface.setSchedStatus_col()
 

@@ -153,10 +153,14 @@ _tournament_field_info = [
     {'gameday':4, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':5, 'start_time':'08:30', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'13:30', 'end_time':'17:00'},
-    {'gameday':1, 'start_time':'08:30', 'end_time':'17:00'}]}
-#    {'field_id':20, 'primary':[5,6], 'secondary':None, 'name':'College Park Turf',
-#    'start_time':'13:30', 'end_time':'18:00', 'numgamedays':6,
-#    'closed_gameday_list':[1,3,5]}
+    {'gameday':1, 'start_time':'08:30', 'end_time':'17:00'}]},
+    {'field_id':20, 'primary':[5,6], 'secondary':None, 'name':'College Park Turf',
+    'start_time':'14:00', 'end_time':'18:00', 'numgamedays':6,
+    #'closed_gameday_list':[1,3,5]}
+    'limiteddays':[{'gameday':1, 'start_time':'14:00', 'end_time':'14:30'},
+    {'gameday':2, 'start_time':'14:00', 'end_time':'15:30'},
+    {'gameday':3, 'start_time':'14:00', 'end_time':'15:30'},
+    {'gameday':5, 'start_time':'14:00', 'end_time':'15:30'}]}
 #    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elementary',
 #     'start_time':'09:00', 'end_time':'18:00',
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
