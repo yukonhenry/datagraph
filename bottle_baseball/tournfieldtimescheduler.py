@@ -107,7 +107,8 @@ class TournamentFieldTimeScheduler:
                     current_gameday = search_tuple[0]
                     current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based non gameday
-                    starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list]
+                    starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list if self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1]]
+                    #starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list]
                     found_tuple = self.findAlternateFieldSlot(field_list, current_gameday, current_start, starttime_list, endtime_list, gameinterval, div_id, home, away)
                     #earliest_dict = earliestfield_list.pop()
                     #efield = earliest_dict['field_id']

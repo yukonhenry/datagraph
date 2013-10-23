@@ -94,7 +94,8 @@ class EliminationScheduler:
                 # http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python/2612810
                 carryseed_list = [x['next_w_seed'] for x in rmatch_dict['match_list']]
                 match_id_count += len(rmatch_dict['match_list'])
-            rmatch_dict['match_list'][0]['comment'] = 'Championship Game'
+            if elimination_type != 'D':
+                rmatch_dict['match_list'][0]['comment'] = 'Championship Game'
             divmatch_list.append({'div_id': division['div_id'],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
