@@ -35,6 +35,7 @@ field_id_list_CONST = 'FIELD_ID_LIST'
 sched_type_CONST = 'SCHED_TYPE'
 match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
+round_CONST = 'ROUND'
 RR_CONST = 'RoundRobin'
 Tourn_CONST = 'Tournament'
 # global for namedtuple
@@ -55,11 +56,11 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.games_col.insert(document, safe=True)
 
-    def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id, comment):
+    def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id, comment, around):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away,
-                    match_id_CONST:match_id, comment_CONST:comment}
+                    match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
     def updateTournamentDivInfo(self, document, div_id):
@@ -107,10 +108,10 @@ class MongoDBInterface:
         # see comments for findDivisionSchedule
         # this db read involves match_id
         if min_game_id:
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT", round_CONST:"$ROUND"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         else:
             result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
-                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT", round_CONST:"$ROUND"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
             #print 'result',result
@@ -122,10 +123,10 @@ class MongoDBInterface:
                               gameday_data_CONST:gameday_data})
         return game_list
 
-    def findDivisionSchedulePHMSARefFormat(self):
+    def findDivisionSchedulePHMSARefFormat(self, min_game_id=1):
         ''' query for all games, but sort according to date, time, division '''
-        game_curs = self.games_col.find({gameday_id_CONST:{"$exists":True}},{'_id':0})
-        game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1), (age_CONST,1), (gen_CONST,1), (venue_CONST,1)])
+        game_curs = self.games_col.find({gameday_id_CONST:{"$exists":True}, gameday_id_CONST:{"$gte":min_game_id}},{'_id':0})
+        game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1), (age_CONST,1), (gen_CONST,1), (venue_CONST,1), (match_id_CONST,1), (round_CONST,1)])
         schedule_list = []
         for game in game_curs:
             schedule_list.append({gameday_id_CONST:game[gameday_id_CONST],
@@ -134,7 +135,9 @@ class MongoDBInterface:
                                   gen_CONST:game[gen_CONST],
                                   home_CONST:game[home_CONST],
                                   away_CONST:game[away_CONST],
-                                  venue_CONST:game[venue_CONST]})
+                                  venue_CONST:game[venue_CONST],
+                                  match_id_CONST:game[match_id_CONST],
+                                  round_CONST:game[round_CONST]})
         return schedule_list
 
     def findTeamSchedule(self, age, gender, team_id):
@@ -151,18 +154,19 @@ class MongoDBInterface:
                                    away_CONST:team_game[away_CONST]})
         return team_game_list
 
-    def findFieldSchedule(self, venue_id):
-        field_game_curs = self.games_col.find({venue_CONST:venue_id},
-                                              {'_id':0, venue_CONST:0})
+    def findFieldSchedule(self, venue_id, min_game_id=None, tourntype=None):
+        if min_game_id is None:
+            field_game_curs = self.games_col.find({venue_CONST:venue_id},
+                                                  {'_id':0, venue_CONST:0})
+        else:
+            field_game_curs = self.games_col.find({venue_CONST:venue_id, gameday_id_CONST:{"$gte":min_game_id}},{'_id':0, venue_CONST:0})
         field_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
         field_game_list = []
         for field_game in field_game_curs:
-            field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST],
-                                    start_time_CONST:field_game[start_time_CONST],
-                                    age_CONST:field_game[age_CONST],
-                                    gen_CONST:field_game[gen_CONST],
-                                    home_CONST:field_game[home_CONST],
-                                    away_CONST:field_game[away_CONST]})
+            if tourntype is None:
+                field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST]})
+            else:
+                field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST], match_id_CONST:field_game[match_id_CONST], round_CONST:field_game[round_CONST]})
         return field_game_list
 
     def getTimeSlotMetrics(self, age, gender, fields, numgamesperseason):

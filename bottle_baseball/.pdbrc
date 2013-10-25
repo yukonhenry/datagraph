@@ -14,6 +14,8 @@
 #b fieldtimescheduler.py:351, home_currentel_dict['early'] > 1 or away_currentel_dict['early'] > 1
 #b leaguedivprep.py:100
 #b fieldtimescheduler.py:245, div_id==1 and round_id==11 and home_id==9 and away_id==13
-#b elimfieldtimescheduler.py:248, div_id==1 and home=='W8' and away=='W15'
+b elimfieldtimescheduler.py:362, div_id==3
+b elimfieldtimescheduler.py:411, div_id==3
+b elimfieldtimescheduler.py:415, div_id==3
 #b elimfieldtimescheduler.py:338
-b sched_exporter.py:67
+b sched_exporter.py:185

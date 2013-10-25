@@ -12,7 +12,7 @@ def main():
     for i in range(6):
         print l, i, nth_listitem(l,1,i)
     '''
-    elimination2013('phmsacup2013')
+    #elimination2013('phmsacup2013')
     exportElimSchedule('phmsacup2013')
 if __name__ == '__main__':
     main()

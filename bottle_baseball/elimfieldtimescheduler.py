@@ -11,7 +11,7 @@ from collections import namedtuple
 from leaguedivprep import getTournAgeGenderDivision
 from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, CodeLogicError, SchedulerConfigurationError
 import logging
-from math import ceil
+from math import ceil, floor
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id gameday_id slot_index')
 time_format_CONST = '%H:%M'
@@ -77,7 +77,7 @@ class EliminationFieldTimeScheduler:
             '''
             grouped_match_list = [{'absround_id':arkey,'match_list':[[{'depend':x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id', y['match_id']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             '''
-            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id'], 'comment':y['comment']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
+            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id'], 'comment':y['comment'], 'round':y['round']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             grouped_param_list = [{'absround_id':arkey, 'param_list':[{'depend': x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'div_id':x['div_id']} for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             for x in grouped_match_list:
                 logging.debug("elimftsched:gen: grouped elem %s", x)
@@ -152,9 +152,10 @@ class EliminationFieldTimeScheduler:
                                 away_id = teams['away']
                                 match_id = teams['match_id']
                                 comment = teams['comment']
+                                around = teams['round']
                                 div = getTournAgeGenderDivision(div_id)
                                 print div.age, div.gender, gameday_id, field_id, home_id, away_id, teams, gametime
-                                self.tdbInterface.dbInterface.insertElimGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id, match_id, comment)
+                                self.tdbInterface.dbInterface.insertElimGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id, match_id, comment, around)
                     gameday_id += 1
         #self.tdbInterface.dbInterface.setSchedStatus_col()
 
@@ -230,7 +231,7 @@ class EliminationFieldTimeScheduler:
         cur_gameday_ind = cur_gameday-1
         status_list = [(f,
                         self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind])
-                        for f in field_list]
+                        for f in field_list if self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind]]
         firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False))
             for s in status_list if not all(x['isgame'] for x in s[1])]
         if not firstindex_list:
@@ -366,7 +367,17 @@ class EliminationFieldTimeScheduler:
             limitedstatus_list = [s for s in slotstatus_list if s[0] in f_list]
             for limitedstatus in limitedstatus_list:
                 #http://stackoverflow.com/questions/3694835/python-2-6-5-divide-timedelta-with-timedelta
-                slot_index = int(ceil((gamestart - limitedstatus[1][0]['start_time']).total_seconds()/gameinterval_sec))
+                # function has to be ceil to ensure that minimum gap times are
+                # met
+                # however, take care of situaions where different fields have different start times
+                # this is a hack
+                # if division is U12 only, if the target_start was way early and
+                # before the min_start, then it must be the first slot we are talking
+                # about, so we should deduct slot by one
+                if div_id in (3,4) and target_start < min_start:
+                    slot_index = int(floor((gamestart - limitedstatus[1][0]['start_time']).total_seconds()/gameinterval_sec))
+                else:
+                    slot_index = int(ceil((gamestart - limitedstatus[1][0]['start_time']).total_seconds()/gameinterval_sec))
                 if slot_index >= len(limitedstatus[1]):
                     continue
                 if not limitedstatus[1][slot_index]['isgame']:

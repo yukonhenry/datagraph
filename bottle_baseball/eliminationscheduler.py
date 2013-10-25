@@ -80,7 +80,7 @@ class EliminationScheduler:
                     'next_w_id':'W'+str(match_id_count+x+1),
                     'next_l_id':'L'+str(match_id_count+x+1),
                     'match_id':match_id_count+x+1,
-                    'comment':""} for x in range(numgames)]}
+                    'comment':"", 'round':'Elim'} for x in range(numgames)]}
 
                 logging.debug("elimsched:gen: div %d round %d",
                               div_id, round_id)
@@ -96,6 +96,7 @@ class EliminationScheduler:
                 match_id_count += len(rmatch_dict['match_list'])
             if elimination_type != 'D':
                 rmatch_dict['match_list'][0]['comment'] = 'Championship Game'
+                rmatch_dict['match_list'][0]['round'] = 'Champ'
             divmatch_list.append({'div_id': division['div_id'],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
@@ -113,6 +114,7 @@ class EliminationScheduler:
                     'away':'W'+str(match_id_count),
                     'div_id':div_id,
                     'match_id':match_id_count+1,
+                    'round': 'Champ',
                     'comment':'Championship Game ('+rteam+' secures 1st place w tie)'}]}
                     match_list.append(rmatch_dict)
                     match_id_count += 1
@@ -281,7 +283,7 @@ class EliminationScheduler:
                 'next_w_id':'W'+str(match_id_count+x+1),
                 'next_l_id':'L'+str(match_id_count+x+1),
                 'match_id':match_id_count+x+1,
-                'comment':""} for x in range(numgames)]}
+                'comment':"", 'round':'Elim'} for x in range(numgames)]}
             logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
             logging.debug("elimsched:createConsole: Consolation div %d round %d",
                           div_id, cround_id)
@@ -296,6 +298,7 @@ class EliminationScheduler:
             match_id_count += len(rm_list)
             if elimination_type == 'C' and cpower2 == 2:
                 rmatch_dict['match_list'][0]['comment'] = "3rd Place Game"
+                rmatch_dict['match_list'][0]['round'] = "3rd Place"
                 break
             else:
                 cround_id += 1
@@ -311,7 +314,7 @@ class EliminationScheduler:
         schedorder_list = [{'div_id':1, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
             {'div_id':2, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
             {'div_id':3, 'order_list':[1,2,2,3,4,4,7,5,6]},
-            {'div_id':4, 'order_list':[1,2,3,3,5,4,8,6,7]},
+            {'div_id':4, 'order_list':[1,2,2,3,5,4,8,6,7]},
             {'div_id':5, 'order_list':[1,2,2,3,3,4,5,5,7,6]},
             {'div_id':6, 'order_list':[1,2,2,3,4,4,6,5]}]
         sindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(schedorder_list)).get(x)
@@ -339,5 +342,7 @@ class EliminationScheduler:
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
                                          divinfotuple=self.divinfo_tuple,
                                          fieldtuple=self.tfield_tuple)
-        tschedExporter.exportDivSchedules(startgameday_CONST, prefix='PHMSACup2013Elimination')
-        tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup')
+        #tschedExporter.exportDivSchedules(startgameday_CONST, prefix='PHMSACup2013ElimU12')
+        tschedExporter.exportDivSchedulesRefFormat(startgameday_CONST, prefix='PHMSACupElimU12')
+        #tschedExporter.exportFieldSchedule(startgameday_CONST, prefix='PHMSACup2013ElimU12')
+

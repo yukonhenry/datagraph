@@ -125,6 +125,7 @@ class TournamentScheduler:
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
                                          divinfotuple=self.divinfo_tuple,
                                          fieldtuple=self.tfield_tuple)
+        '''
         for division in self.tourn_divinfo:
             tschedExporter.exportDivTeamSchedules(div_id=int(division['div_id']),
                                                   age=division['div_age'],
@@ -135,5 +136,7 @@ class TournamentScheduler:
                                                age=division['div_age'],
                                                gen=division['div_gen'],
                                                numteams=int(division['totalteams']), prefix='PHMSACup2013')
-            tschedExporter.exportDivSchedules(division['div_id'])
-            tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup')
+        '''
+        tschedExporter.exportFieldScheduleOld(prefix="PHMSACup2013")
+            #tschedExporter.exportDivSchedules(division['div_id'])
+            #tschedExporter.exportDivSchedulesRefFormat(prefix='PHMSACup')
