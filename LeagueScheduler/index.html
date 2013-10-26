@@ -137,7 +137,18 @@
                     </div>
                 </div>
     			<button class="primary" id="export_btn" data-dojo-type="dijit/form/Button" type="button">Export</button>
-                <button class="primary" id="exporttourn_btn" data-dojo-type="dijit/form/Button" type="button">Export Tournament</button><br>
+                <button class="primary" id="exporttourn_btn" data-dojo-type="dijit/form/Button" type="button">Export Tournament</button>
+                <div data-dojo-type="dijit/form/DropDownButton" class="primary dijitDropDownButton">
+                    <span>Export Cup Hardcopy</span>
+                    <div data-dojo-type="dijit/DropDownMenu">
+                        <div data-dojo-type="dijit/MenuItem" id="elimination2013">Elimination Tournament</div>
+                        <div data-dojo-type="dijit/PopupMenuItem">
+                            <span>Select RR League</span>
+                            <div data-dojo-type="dijit/DropDownMenu" id="cupdbcollection_submenu">
+                            </div>
+                        </div>
+                    </div>
+                </div><br>
                 </span>
                 <div id="dbstatus1_txt"></div>
     		</div>
