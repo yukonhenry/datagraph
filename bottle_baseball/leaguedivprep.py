@@ -77,15 +77,7 @@ _field_info = [
         {'field_id':15, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elem',
          'start_time':'09:00', 'end_time':'18:00'},
         {'field_id':16, 'primary':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
-         'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':17, 'primary':[9,10], 'secondary':None, 'name':'Sequoia Middle Large',
-         'start_time':'09:00', 'end_time':'17:00'},
-        {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Hidden Lakes',
-         'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':19, 'primary':[9,10], 'secondary':None, 'name':'Waterfront',
-         'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':20, 'primary':[9,10], 'secondary':None, 'name':'College Park Turf',
-         'start_time':'13:00', 'end_time':'18:00'}
+         'start_time':'09:00', 'end_time':'18:00'}
 #    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elem',
 #     'start_time':'09:00', 'end_time':'18:00',
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}

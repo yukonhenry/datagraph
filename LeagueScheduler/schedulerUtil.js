@@ -1,11 +1,11 @@
 /* look at examples in http://dojotoolkit.org/documentation/tutorials/1.9/modules/
 for loadable module design and syntax  also ref
-http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and 
+http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
 define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
-	"LeagueScheduler/editgrid", "dojo/domReady!"], 
+	"LeagueScheduler/editgrid", "dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, declare, lang, arrayUtil, registry, MenuItem,
 		EditGrid){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
@@ -86,7 +86,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			createTeamSchedLinks: function(ldata_array, dom_name) {
 				// loop through each division, and with second loop that loops
-				// through each team_id, create string for <a href= 
+				// through each team_id, create string for <a href=
 				// then create dom entry w. domConstruct.create call
 				// http://dojotoolkit.org/documentation/tutorials/1.9/dom_functions/
 				target_dom = dom.byId(dom_name);
@@ -128,6 +128,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			getCupSchedule: function(item) {
 				this.server_interface.getServerData("getcupschedule/"+item,
+					this.server_interface.server_ack);
+			},
+			export_rr2013: function(item) {
+				this.server_interface.getServerData("export_rr2013/"+item,
 					this.server_interface.server_ack);
 			},
 			getServerDBDivInfo: function(item) {

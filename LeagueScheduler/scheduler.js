@@ -82,6 +82,9 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(cupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.getCupSchedule);
+			exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
+			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
+				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
@@ -208,14 +211,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 	        	//console.log("getalldiv schedule status"+adata.status);
 			});
 		}
-		var exportTournSchedule = function(evt) {
-			//dom.byId("status").innerHTML = "";
-	        script.get(constant.SERVER_PREFIX+"exporttournschedule/phmsacup2013", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {
-	        	//console.log("getalldiv schedule status"+adata.status);
-			});
-		}
 		var getDivisionTeamData = function(evt) {
 			var divisioncode = registry.byId("divisionSelect").get("value");
 			if (divisionGrid) {
@@ -278,6 +273,19 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
     				teamDataGrid.renderArray(tdata_array);
     			});
 			});
+		}
+		var getElimDivisionData = function(evt) {
+			var divisioncode = registry.byId("elimDivisionSelect").get("value");
+			if (elimDivisionGrid) {
+				// clear grid by clearing dom node
+				dom.byId("divisionGridLinkTeams").innerHTML = "";
+				// delete reference to obj
+				delete divisionGrid;
+				// remove event listener
+				// http://dojotoolkit.org/documentation/tutorials/1.8/events/
+				if (divisionGridHandle)
+					divisionGridHandle.remove();
+			}
 		}
 		var getTeamMetrics = function(evt) {
 			var division_id = registry.byId("divisionSelectForMetrics").get("value");
@@ -367,6 +375,14 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 	        	//console.log("getalldiv schedule status"+adata.status);
 			});
 		}
+		var export_elim2013 = function(evt) {
+			//dom.byId("status").innerHTML = "";
+	        script.get(constant.SERVER_PREFIX+"export_elim2013/phmsacup2013", {
+	        	jsonp:"callback"
+	        }).then(function(adata) {exp
+	        	//console.log("getalldiv schedule status"+adata.status);
+			});
+		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
 		var resizeDivisionPaneGrids = function(evt) {
@@ -395,25 +411,29 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			if (schedUtil && schedUtil.editGrid && schedUtil.editGrid.divInfoGrid)
 				schedUtil.editGrid.divInfoGrid.resize();
 		}
-
+		var resizeTournamentPaneGrids = function(evt) {
+			// todo
+		}
 		// events for widgets should be in one file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget
 		ready(function() {
  			parser.parse();
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
-			on(registry.byId("exporttourn_btn"), "click", exportTournSchedule);
+			//on(registry.byId("exporttourn_btn"), "click", exportTournSchedule);
 			//on(registry.byId("cup_btn"), "click", getCupSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
-			//on(registry.byId("divSelectForEdit"),"change", editSeedGrid);
 			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
 			on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
+			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			on(registry.byId("newsched_item"), "click", initNewSchedule);
 			on(registry.byId("elimination2013"), "click", elimination2013);
+			on(registry.byId("export_elimination2013"), "click", export_elim2013);
+			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
  		});
 	}
 );

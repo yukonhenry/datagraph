@@ -110,16 +110,16 @@ def exportSchedule():
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 
-@route('/exporttournschedule/<tourn_divinfo_col>')
-def exportTournSchedule(tourn_divinfo_col):
+@route('/export_rr2013/<tourn_divinfo_col>')
+def export_rr2013(tourn_divinfo_col):
     callback_name = request.query.callback
     tournamentSched = TournamentScheduler(mongoClient, tourn_divinfo_col)
     tournamentSched.exportSchedule()
     a = json.dumps({"status":'ready'})
     return callback_name+'('+a+')'
 
-@route('/exportelimschedule/<tourn_divinfo_col>')
-def exportElimSchedule(tourn_divinfo_col):
+@route('/export_elim2013/<tourn_divinfo_col>')
+def export_elim2013(tourn_divinfo_col):
     callback_name = request.query.callback
     elimsched = EliminationScheduler(mongoClient, tourn_divinfo_col)
     elimsched.exportSchedule()

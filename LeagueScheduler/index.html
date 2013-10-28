@@ -11,7 +11,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07n</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07o</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -105,20 +105,6 @@
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
                 <div id="divisionInfoInputGridErrorNode" class="style_none"></div>
                 <div id="divisionInfoInputGrid"></div>
-                <!--
-                <span class="dijit dijitReset dijitInline primary dijitButton" role="presentation">
-                <button style="display: inline" id="new_btn" data-dojo-type="dijit/form/Button" type="button" title="Click to Create New Schedule">NEW Schedule</button> </span>
-                <div id="newsched_name" class="style_none">
-                    <label for="newsched_input">Input Schedule Name</label>
-                    <input type="text" name="newsched_input" id="newsched_input" value="newdb" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
-                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                </div>
-    			<br><b>Edit Division Parameters</b>
-                <label for="divSelectForEdit">Select Division</label>
-                <select id="divSelectForEdit" data-dojo-type="dijit/form/Select" name="divSelectForEdit">
-                </select>
-    			<div id="seedGrid"></div>
-                -->
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
     			<b>Generate Schedule</b>
@@ -130,21 +116,22 @@
                     <div data-dojo-type="dijit/DropDownMenu">
                         <div data-dojo-type="dijit/MenuItem" id="elimination2013">Elimination Tournament</div>
                         <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Select RR League</span>
+                            <span>Select RR Round</span>
                             <div data-dojo-type="dijit/DropDownMenu" id="cupdbcollection_submenu">
                             </div>
                         </div>
                     </div>
                 </div>
     			<button class="primary" id="export_btn" data-dojo-type="dijit/form/Button" type="button">Export</button>
-                <button class="primary" id="exporttourn_btn" data-dojo-type="dijit/form/Button" type="button">Export Tournament</button>
+                <!--
+                <button class="primary" id="exporttourn_btn" data-dojo-type="dijit/form/Button" type="button">Export Tournament</button> -->
                 <div data-dojo-type="dijit/form/DropDownButton" class="primary dijitDropDownButton">
-                    <span>Export Cup Hardcopy</span>
+                    <span>Export Cup Sched</span>
                     <div data-dojo-type="dijit/DropDownMenu">
-                        <div data-dojo-type="dijit/MenuItem" id="elimination2013">Elimination Tournament</div>
+                        <div data-dojo-type="dijit/MenuItem" id="export_elimination2013">Elim Tournament</div>
                         <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Select RR League</span>
-                            <div data-dojo-type="dijit/DropDownMenu" id="cupdbcollection_submenu">
+                            <span>Select RR Round</span>
+                            <div data-dojo-type="dijit/DropDownMenu" id="exportcupdbcollection_submenu">
                             </div>
                         </div>
                     </div>
@@ -152,6 +139,13 @@
                 </span>
                 <div id="dbstatus1_txt"></div>
     		</div>
+            <div data-dojo-type="dijit/layout/ContentPane" title="Tournament" id="tournamentPane">
+                <label for="elimDivisionSelect">Select Division</label>
+                <select id="elimDivisionSelect" data-dojo-type="dijit/form/Select" name="elimdivisionSelect">
+                </select>
+                <b>Selection division</b>
+                <div id="elimDivisionGrid"></div>
+            </div>
     	</div>
     </body>
 </html>
