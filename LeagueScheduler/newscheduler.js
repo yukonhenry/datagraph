@@ -1,8 +1,8 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "dojo/domReady!"],
+	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/divinfo", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
-		OnDemandGrid, editor, Keyboard, Selection) {
+		OnDemandGrid, editor, Keyboard, Selection, divinfo) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			divnum_reg: null, divInfoStore:null, divInfoGrid:null,
@@ -42,27 +42,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						field_id_str:"", gameinterval:1, rr_gamedays:1});
 				}
 				this.divInfoStore = new Memory({data:divInfo_list, idProperty:"div_id"});
+				divinfo_grid = new divinfo;
+				columnsdef_obj = divinfo_grid.columnsdef_obj;
 				this.divInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
             		store: this.divInfoStore,
-            		columns: {
-                		div_id: "Div ID",
-                		div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
-                		div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
-                		totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true},
-                			"text", "dblclick"),
-                		totalbrackets: editor({label:"Total RR Brackets", field:"totalbrackets", autoSave:true},
-                			"text", "dblclick"),
-                		elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true},
-                			"text", "dblclick"),
-						elimination_type: editor({label:"Elimination Type", field:"elimination_type", autoSave:true},
-                			"text", "dblclick"),
-                		field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true},
-                			"text", "dblclick"),
-                		gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true},
-                			"text", "dblclick"),
-                        rr_gamedays: editor({label:"Number RR Gamedays", field:"rr_gamedays", autoSave:true},
-                            "text", "dblclick")
-                	}
+            		columns: columnsdef_obj
                 }, this.divInfoGridName);
 				this.divInfoGrid.startup();
 				this.divInfoGrid.on("dgrid-error", function(event) {

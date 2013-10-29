@@ -154,15 +154,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 					if (!this.server_interface)
 						console.log("no server interface");
-					this.editGrid = new EditGrid({divinfo_list:divdata.divinfo_list,
+					this.editGrid = new EditGrid({griddata_list:divdata.divinfo_list,
 						colname:colname,
 						server_interface:this.server_interface,
-						divInfoGridName:"divisionInfoInputGrid",
+						grid_name:"divisionInfoInputGrid",
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						text_node:dom.byId("divisionInfoNodeText"),
 						submitbtn_reg:registry.byId("updatesubmit_btn"),
 						updatediv_node:dom.byId("divisionInfoUpdateBtnText")});
-					this.editGrid.recreateDivInfoGrid();
+					this.editGrid.recreateSchedInfoGrid();
 				} else {
 					alert("same schedule selected");
 				}
