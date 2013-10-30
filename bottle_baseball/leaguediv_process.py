@@ -85,8 +85,7 @@ def get_alldivSchedule():
         nt = division['totalteams']
         ng = division['gamesperseason']
         match = MatchGenerator(nt, ng)
-        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(),
-                                 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
+        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
     # get list of connected divisions through field constraints
     #connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     #connected_div_components = connected_components(connectedG)
@@ -221,6 +220,14 @@ def delete_dbcol(delcol_name):
 
 @route('/get_dbcol/<getcol_name>')
 def get_dbcol(getcol_name):
+    callback_name = request.query.callback
+    tdbInterface = TournDBInterface(mongoClient, getcol_name)
+    divinfo_list = tdbInterface.readDB().dict_list
+    a = json.dumps({'divinfo_list':divinfo_list})
+    return callback_name+'('+a+')'
+
+@route('/get_scheddbcol/<getcol_name>')
+def get_scheddbcol(getcol_name):
     callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
     divinfo_list = tdbInterface.readDB().dict_list

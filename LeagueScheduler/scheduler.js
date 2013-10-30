@@ -85,6 +85,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
+			scheddbcollection_smenu_reg = registry.byId("scheddbcollection_submenu");
+			//schedUtil.generateDBCollection_smenu(scheddbcollection_smenu_reg, dbcollection_list, schedUtil, )
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);

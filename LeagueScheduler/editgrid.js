@@ -7,7 +7,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
-			schedInfoStore:null, schedInfoGrid:null, updatediv_node:null,
+			schedInfoStore:null, schedInfoGrid:null, updatebtn_node:null,
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			constructor: function(args) {
@@ -23,7 +23,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
-				this.makeVisible(this.updatediv_node);
+				this.makeVisible(this.updatebtn_node);
 				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:"div_id"});
 				divinfo_grid = new divinfo;
 				columnsdef_obj = divinfo_grid.columnsdef_obj;
@@ -58,7 +58,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_name).innerHTML = "";
 					delete this.schedInfoGrid;
-					this.makeInVisible(this.updatediv_node);
+					this.makeInVisible(this.updatebtn_node);
 					delete this.schedInfoStore;
 				}
 				if (this.errorHandle) {

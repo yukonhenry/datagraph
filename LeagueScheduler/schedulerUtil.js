@@ -122,8 +122,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			default_alert: function(item) {
 				alert(item);
 			},
-			delete_dbcollection: function(item) {
-				this.server_interface.getServerData("delete_dbcol/"+item,
+			delete_divdbcollection: function(item) {
+				this.server_interface.getServerData("delete_divdbcol/"+item,
 					this.server_interface.server_ack);
 			},
 			getCupSchedule: function(item) {
@@ -161,7 +161,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						text_node:dom.byId("divisionInfoNodeText"),
 						submitbtn_reg:registry.byId("updatesubmit_btn"),
-						updatediv_node:dom.byId("divisionInfoUpdateBtnText")});
+						updatebtn_node:dom.byId("divisionInfoUpdateBtnText")});
 					this.editGrid.recreateSchedInfoGrid();
 				} else {
 					alert("same schedule selected");
