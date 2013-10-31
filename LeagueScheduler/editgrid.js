@@ -19,14 +19,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			makeInvisible: function(dom_name) {
 				domClass.replace(dom_name, "style_none", "style_inline");
 			},
-			recreateSchedInfoGrid: function() {
+			recreateSchedInfoGrid: function(columnsdef_obj) {
 				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatebtn_node);
 				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:"div_id"});
-				divinfo_grid = new divinfo;
-				columnsdef_obj = divinfo_grid.columnsdef_obj;
+				//divinfo_grid = new divinfo;
+				//columnsdef_obj = divinfo_grid.columnsdef_obj;
 				this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
 					store: this.schedInfoStore,
 					columns : columnsdef_obj

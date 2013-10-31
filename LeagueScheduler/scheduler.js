@@ -12,10 +12,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
+		"LeagueScheduler/divinfo",
 		"dijit/form/Button",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -69,24 +70,25 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
-			dbcollection_list = ldata.dbcollection_list;
-			dbcollection_smenu_reg = registry.byId("dbcollection_submenu");
-			schedUtil.generateDBCollection_smenu(dbcollection_smenu_reg,
-				dbcollection_list, schedUtil, schedUtil.getServerDBDivInfo);
+			var dbcollection_list = ldata.dbcollection_list;
+			schedUtil.generateSchedDB_smenu(dbcollection_list, "dbcollection_submenu", new divinfo);
 			// generate dropdown menu for edit->delete schedule
-			deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
+			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
 				dbcollection_list, schedUtil, schedUtil.delete_dbcollection);
 			// generate dropdown for 'generate cup schedule'
-			cupdbcollection_list = ldata.cupdbcollection_list;
-			cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
+			var cupdbcollection_list = ldata.cupdbcollection_list;
+			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(cupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.getCupSchedule);
-			exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
+			var exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
 			scheddbcollection_smenu_reg = registry.byId("scheddbcollection_submenu");
-			//schedUtil.generateDBCollection_smenu(scheddbcollection_smenu_reg, dbcollection_list, schedUtil, )
+			//var schedinfo_grid = new schedinfo;
+			//columnsdef_obj = schedinfo_grid.columnsdef_obj;
+			//options_obj = {'columnsdef_obj':columnsdef_obj};
+			//schedUtil.generateDBCollection_smenu(scheddbcollection_smenu_reg, dbcollection_list, schedUtil, schedUtil.getServerDBSchedInfo, options_obj)
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);

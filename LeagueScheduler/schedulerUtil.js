@@ -110,43 +110,63 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
+			generateSchedDB_smenu: function(dbcollection_list, db_smenu_name, schedtype_grid) {
+				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
+				var columnsdef_obj = schedtype_grid.columnsdef_obj;
+				var options_obj = {'columnsdef_obj':columnsdef_obj};
+				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, this, this.getServerDBDivInfo, options_obj);
+			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
-			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func) {
+			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
+				var options_obj = options_obj || {};
 				arrayUtil.forEach(submenu_list, function(item, index) {
+					options_obj.item = item;
 					smenuitem = new MenuItem({label: item,
-						onClick: lang.hitch(onclick_context, onclick_func, item) });
+						onClick: lang.hitch(onclick_context, onclick_func, options_obj) });
     				submenu_reg.addChild(smenuitem);
 				});
 			},
-			default_alert: function(item) {
+			default_alert: function(options_obj) {
+				var item = options_obj.item;
 				alert(item);
 			},
-			delete_divdbcollection: function(item) {
+			delete_divdbcollection: function(options_obj) {
+				var item = options_obj.item;
 				this.server_interface.getServerData("delete_divdbcol/"+item,
 					this.server_interface.server_ack);
 			},
-			getCupSchedule: function(item) {
+			getCupSchedule: function(options_obj) {
+				var item = options_obj.item;
 				this.server_interface.getServerData("getcupschedule/"+item,
 					this.server_interface.server_ack);
 			},
-			export_rr2013: function(item) {
+			export_rr2013: function(options_obj) {
+				var item = options_obj.item;
 				this.server_interface.getServerData("export_rr2013/"+item,
 					this.server_interface.server_ack);
 			},
-			getServerDBDivInfo: function(item) {
+			getServerDBDivInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
+				var item = options_obj.item;
 				this.server_interface.getServerData("get_dbcol/"+item,
-					lang.hitch(this, this.createEditGrid), null, item);
+					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
-			createEditGrid: function(divdata, colname) {
+			getServerDBSchedInfo: function(options_obj) {
+				var item = options_obj.item;
+				this.server_interface.getServerData("get_scheddbcol/"+item,
+					lang.hitch(this, this.createEditGrid), null, options_obj);
+			},
+			createEditGrid: function(divdata, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
+				var colname = options_obj.item;
+				var columnsdef_obj = options_obj.columnsdef_obj;
 				if (!this.editGrid || colname != this.editGrid.colname) {
 					if (this.editGrid) {
 						this.editGrid.cleanup();
@@ -162,7 +182,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						text_node:dom.byId("divisionInfoNodeText"),
 						submitbtn_reg:registry.byId("updatesubmit_btn"),
 						updatebtn_node:dom.byId("divisionInfoUpdateBtnText")});
-					this.editGrid.recreateSchedInfoGrid();
+					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
 				} else {
 					alert("same schedule selected");
 				}
