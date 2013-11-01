@@ -116,11 +116,11 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateDB_smenu: function(dbcollection_list, db_smenu_name, schedtype_grid, serv_function) {
+			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function) {
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
-				var columnsdef_obj = schedtype_grid.columnsdef_obj;
+				var columnsdef_obj = sched_context.columnsdef_obj;
 				var options_obj = {'columnsdef_obj':columnsdef_obj};
-				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, this, serv_function, options_obj);
+				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, sched_context, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
@@ -151,24 +151,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var item = options_obj.item;
 				this.server_interface.getServerData("export_rr2013/"+item,
 					this.server_interface.server_ack);
-			},
-			getServerDBDivInfo: function(options_obj) {
-				// note third parameter maps to query object, which in this case
-				// there is none.  But we need to provide some argument as js does
-				// not support named function arguments.  Also specifying "" as the
-				// parameter instead of null might be a better choice as the query
-				// object will be emitted in the jsonp request (though not consumed
-				// at the server)
-				var item = options_obj.item;
-				this.server_interface.getServerData("get_dbcol/"+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
-			},
-			getServerDBSchedInfo: function(options_obj) {
-				var item = options_obj.item;
-				this.makeVisible(dom.byId("schedDBSelectDiv"));
-				this.generateDivSelectDropDown(registry.byId("schedDBDivisionSelect"));
-				this.server_interface.getServerData("get_scheddbcol/"+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			createEditGrid: function(divdata, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col

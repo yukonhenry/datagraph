@@ -71,7 +71,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
 			var dbcollection_list = ldata.dbcollection_list;
-			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", new divinfo, schedUtil.getServerDBDivInfo);
+			var divinfo_obj = new divinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
+			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", divinfo_obj, divinfo_obj.getServerDBDivInfo);
 			// generate dropdown menu for edit->delete schedule
 			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
@@ -84,7 +85,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
-			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", new schedinfo, schedUtil.getServerDBSchedInfo);
+			var schedinfo_obj = new schedinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
+			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", schedinfo_obj, schedinfo_obj.getServerDBSchedInfo);
 			//scheddbcollection_smenu_reg = registry.byId("scheddbcollection_submenu");
 			//var schedinfo_grid = new schedinfo;
 			//columnsdef_obj = schedinfo_grid.columnsdef_obj;
@@ -264,7 +266,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
     			},"teamDataGrid");
     			script.get(constant.SERVER_PREFIX+"teamdata/"+rowid,{
     				jsonp:"callback",
-    				query:{division_code:divisioncode}
+    				query:{divisioncode:divisioncode}
     			}).then(function(tdata){
     				tdata_array = tdata.teamdata_list;
 					arrayUtil.forEach(tdata_array, function(item, index) {
