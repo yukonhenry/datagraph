@@ -1,9 +1,9 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
-	"LeagueScheduler/divinfo", "dojo/domReady!"],
+	"dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
-		OnDemandGrid, editor, Keyboard, Selection, divinfo) {
+		OnDemandGrid, editor, Keyboard, Selection) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
@@ -25,8 +25,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatebtn_node);
 				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:"div_id"});
-				//divinfo_grid = new divinfo;
-				//columnsdef_obj = divinfo_grid.columnsdef_obj;
 				this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
 					store: this.schedInfoStore,
 					columns : columnsdef_obj

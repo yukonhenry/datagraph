@@ -3,10 +3,10 @@ for loadable module design and syntax  also ref
 http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
-define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang",
+define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang", "dojo/dom-class",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
 	"LeagueScheduler/editgrid", "dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, declare, lang, arrayUtil, registry, MenuItem,
+	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil, registry, MenuItem,
 		EditGrid){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
@@ -116,7 +116,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateSchedDB_smenu: function(dbcollection_list, db_smenu_name, schedtype_grid, serv_function) {
+			generateDB_smenu: function(dbcollection_list, db_smenu_name, schedtype_grid, serv_function) {
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
 				var columnsdef_obj = schedtype_grid.columnsdef_obj;
 				var options_obj = {'columnsdef_obj':columnsdef_obj};
@@ -128,7 +128,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var options_obj = options_obj || {};
 				arrayUtil.forEach(submenu_list, function(item, index) {
 					options_obj.item = item;
-					smenuitem = new MenuItem({label: item,
+					var smenuitem = new MenuItem({label: item,
 						onClick: lang.hitch(onclick_context, onclick_func, options_obj) });
     				submenu_reg.addChild(smenuitem);
 				});

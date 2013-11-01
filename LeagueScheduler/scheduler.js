@@ -12,11 +12,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
-		"LeagueScheduler/divinfo",
+		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo",
 		"dijit/form/Button",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -71,7 +71,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
 			var dbcollection_list = ldata.dbcollection_list;
-			schedUtil.generateSchedDB_smenu(dbcollection_list, "dbcollection_submenu", new divinfo, schedUtil.getServerDBDivInfo);
+			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", new divinfo, schedUtil.getServerDBDivInfo);
 			// generate dropdown menu for edit->delete schedule
 			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
@@ -84,7 +84,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
-			schedUtil.generateSchedDB_smenu(dbcollection_list, "scheddbcollection_submenu", new schedinfo, schedUtil.getServerDBSchedInfo);
+			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", new schedinfo, schedUtil.getServerDBSchedInfo);
 			//scheddbcollection_smenu_reg = registry.byId("scheddbcollection_submenu");
 			//var schedinfo_grid = new schedinfo;
 			//columnsdef_obj = schedinfo_grid.columnsdef_obj;
