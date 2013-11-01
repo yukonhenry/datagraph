@@ -56,6 +56,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 				});
 			},
+			makeVisible: function(dom_name) {
+				domClass.replace(dom_name, "style_inline", "style_none");
+			},
+			makeInvisible: function(dom_name) {
+				domClass.replace(dom_name, "style_none", "style_inline");
+			},
 			generateDivSelectDropDown: function(select_reg) {
 				// ref http://stackoverflow.com/questions/13932225/dojo-and-dynamically-added-options-to-dijit-form-select
 				option_array = [{label:"Select Division", value:"", selected:true}];
@@ -110,11 +116,11 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateSchedDB_smenu: function(dbcollection_list, db_smenu_name, schedtype_grid) {
+			generateSchedDB_smenu: function(dbcollection_list, db_smenu_name, schedtype_grid, serv_function) {
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
 				var columnsdef_obj = schedtype_grid.columnsdef_obj;
 				var options_obj = {'columnsdef_obj':columnsdef_obj};
-				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, this, this.getServerDBDivInfo, options_obj);
+				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, this, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
@@ -159,6 +165,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			getServerDBSchedInfo: function(options_obj) {
 				var item = options_obj.item;
+				this.makeVisible(dom.byId("schedDBSelectDiv"));
+				this.generateDivSelectDropDown(registry.byId("schedDBDivisionSelect"));
 				this.server_interface.getServerData("get_scheddbcol/"+item,
 					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},

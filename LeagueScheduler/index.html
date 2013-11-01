@@ -11,7 +11,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07r</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.07s</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -121,6 +121,11 @@
                 <!-- note button below is of type button rather than submit because of problems with the 'submit' event action -->
                 <div class="style_none" id="divisionInfoUpdateBtnText">
                     <span id="divisionInfoNodeText"></span><button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="updatesubmitButton" id="updatesubmit_btn" value="Submit">Update Division Info</button>
+                </div><br>
+                <div class="style_none" id="schedDBSelectDiv">
+                    <label for="schedDBDivisionSelect">Select Division</label>
+                    <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
+                    </select>
                 </div>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
                 <div id="divisionInfoInputGridErrorNode" class="style_none"></div>
