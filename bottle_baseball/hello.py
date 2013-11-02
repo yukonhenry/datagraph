@@ -101,8 +101,8 @@ def getpathdata():
     return callback_name+'('+a+');'
 '''
 def main():
-    logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
-    #logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     if socket.gethostname() == 'web380.webfaction.com':
         run(port = 31032, server = 'cherrypy')
 #        run(host='localhost',port = 31032)  # check webfaction port setting

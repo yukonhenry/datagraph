@@ -3,6 +3,7 @@
 from dbinterface import MongoDBInterface
 import simplejson as json
 from collections import namedtuple
+import logging
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
 div_id_CONST = 'DIV_ID'
@@ -54,8 +55,11 @@ class TournDBInterface:
         d_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divinfo_list)).get(x)
         return _List_Indexer(divinfo_list, d_indexerGet)
 
-    def readSchedDB(self):
-        divlist = self.dbInterface.getTournamentDivInfo().dict_list
+    def readSchedDB(self, age, gender):
+        game_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
+        for game in game_list:
+            logging.debug("tourndbinter:readscheddb game %s", game)
+
         divinfo_list = []
         for divinfo in divlist:
             divinfo_list.append({'div_id':divinfo[div_id_CONST],

@@ -11,7 +11,7 @@ from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
-     getFieldInfo, getTournamentFieldInfo
+     getFieldInfo, getTournamentFieldInfo, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 from eliminationscheduler import EliminationScheduler
@@ -229,7 +229,9 @@ def get_dbcol(getcol_name):
 @route('/get_scheddbcol/<getcol_name>')
 def get_scheddbcol(getcol_name):
     callback_name = request.query.callback
+    divcode = int(request.query.divisioncode)
+    div = getTournAgeGenderDivision(divcode)
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
-    divinfo_list = tdbInterface.readDB().dict_list
+    divinfo_list = tdbInterface.readSchedDB(div.age, div.gender).dict_list
     a = json.dumps({'divinfo_list':divinfo_list})
     return callback_name+'('+a+')'

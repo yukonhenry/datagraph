@@ -394,7 +394,7 @@ def getTeamID(agediv, gender, team_id):
         return overall_id
 
 def getTournAgeGenderDivision(div_id):
-        return getAgeGenderDivision(div_id + 4)
+    return getAgeGenderDivision(div_id + 4)
 
 def getAgeGenderDivision(div_id):
         Division = namedtuple('Division', 'age gender')
