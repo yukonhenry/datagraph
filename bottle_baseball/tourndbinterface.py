@@ -14,6 +14,10 @@ elimination_type_CONST = 'ELIMINATION_TYPE'
 field_id_list_CONST = 'FIELD_ID_LIST'
 gameinterval_CONST = 'GAMEINTERVAL'
 rr_gamedays_CONST = 'RR_GAMEDAYS'
+gameday_id_CONST = 'GAMEDAY_ID'
+match_id_CONST = 'MATCH_ID'
+start_time_CONST = 'START_TIME'
+gameday_data_CONST = 'GAMEDAY_DATA'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
@@ -56,22 +60,11 @@ class TournDBInterface:
         return _List_Indexer(divinfo_list, d_indexerGet)
 
     def readSchedDB(self, age, gender):
-        game_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
-        for game in game_list:
-            logging.debug("tourndbinter:readscheddb game %s", game)
-
-        divinfo_list = []
-        for divinfo in divlist:
-            divinfo_list.append({'div_id':divinfo[div_id_CONST],
-                                 'div_age':divinfo[age_CONST],
-                                 'div_gen':divinfo[gen_CONST],
-                                 'totalteams':divinfo[totalteams_CONST],
-                                 'totalbrackets':divinfo[totalbrackets_CONST],
-                                 'elimination_num':divinfo[elimination_num_CONST],
-                                 'elimination_type':divinfo[elimination_type_CONST],
-                                 'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST]),
-                                 'gameinterval':divinfo[gameinterval_CONST],
-                                 'rr_gamedays':divinfo[rr_gamedays_CONST]})
-        d_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divinfo_list)).get(x)
-        return _List_Indexer(divinfo_list, d_indexerGet)
+        dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
+        game_list = []
+        for dbgame in dbgame_list:
+            print dbgame
+            game_list.append({'gameday_id':dbgame[gameday_id_CONST],
+                             'start_time':dbgame[start_time_CONST]})
+        return dbgame_list
 

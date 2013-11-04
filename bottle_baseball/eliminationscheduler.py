@@ -311,6 +311,7 @@ class EliminationScheduler:
         return match_id_count
 
     def addOverallRoundID(self, divmatch_list):
+        # TODO: need to correct schedorder for divid 5 below
         schedorder_list = [{'div_id':1, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
             {'div_id':2, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
             {'div_id':3, 'order_list':[1,2,2,3,4,4,7,5,6]},

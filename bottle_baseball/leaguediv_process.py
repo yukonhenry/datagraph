@@ -232,6 +232,6 @@ def get_scheddbcol(getcol_name):
     divcode = int(request.query.divisioncode)
     div = getTournAgeGenderDivision(divcode)
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
-    divinfo_list = tdbInterface.readSchedDB(div.age, div.gender).dict_list
-    a = json.dumps({'divinfo_list':divinfo_list})
+    game_list = tdbInterface.readSchedDB(div.age, div.gender)
+    a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'

@@ -152,7 +152,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				this.server_interface.getServerData("export_rr2013/"+item,
 					this.server_interface.server_ack);
 			},
-			createEditGrid: function(divdata, options_obj) {
+			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
 				var colname = options_obj.item;
@@ -164,7 +164,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 					if (!this.server_interface)
 						console.log("no server interface");
-					this.editGrid = new EditGrid({griddata_list:divdata.divinfo_list,
+					this.editGrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
 						colname:colname,
 						server_interface:this.server_interface,
 						grid_name:"divisionInfoInputGrid",

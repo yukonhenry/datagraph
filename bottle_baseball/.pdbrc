@@ -15,8 +15,8 @@
 #b leaguedivprep.py:100
 #b fieldtimescheduler.py:245, div_id==1 and round_id==11 and home_id==9 and away_id==13
 #b elimfieldtimescheduler.py:362, div_id==3
-#b elimfieldtimescheduler.py:411, div_id==3
-#b elimfieldtimescheduler.py:415, div_id==3
+#b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
+#b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
 #b elimfieldtimescheduler.py:338
 #b sched_exporter.py:185
-b tourndbinterface.py:63
+b tourndbinterface.py:66
