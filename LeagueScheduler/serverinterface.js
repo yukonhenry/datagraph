@@ -21,7 +21,6 @@ function(dom, declare, lang, script) {
 				console.log("request to "+wholeURL+" returned");
 				then_function(data, options_obj);
 			});
-			return data;
 		},
 		server_ack: function(adata) {
 				console.log("data returned"+adata.test);

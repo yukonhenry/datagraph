@@ -4,7 +4,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 	function(dom, declare, lang, arrayUtil, registry, editor){
 		return declare(null, {
 			columnsdef_obj : {
-				gameday_id: "Game day#",
+				gameday: "Game day",
 				start_time: "Time",
 				match_id: "Match ID",
 				venue: "Venue",
@@ -24,30 +24,33 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				select_reg.on("change", lang.hitch(this, function(evt) {
 					var divisioncode = select_reg.get("value");
 					this.server_interface.getServerData("get_scheddbcol/"+item,
-						lang.hitch(this.schedutil_obj,
-						           this.schedutil_obj.createEditGrid),
+						lang.hitch(this, this.convertServerDataFormat),
 						{divisioncode:divisioncode}, options_obj);
 				}));
 			},
-			convertServerDataFormat: function(server_data) {
-				game_array = server_data.game_list;
+			convertServerDataFormat: function(server_data, options_obj) {
+				var game_array = server_data.game_list;
 				var game_grid_list = new Array();
-				var listindex = 0;
-				arrayUtil.forEach(game_array, function(item, index) {
-					var gameday_id = item.GAMEDAY_ID;
+				arrayUtil.forEach(game_array, lang.hitch(this, function(item, index) {
+					var gameday = this.schedutil_obj.getTournCalendarMap(item.GAMEDAY_ID);
 					var gameday_data = item.GAMEDAY_DATA;
-					var start_time = item.START_TIME;
-					var game_grid_row = {};
+					var start_time = this.schedutil_obj.tConvert(item.START_TIME);
 					// fill in the game day number and start time
-					game_grid_row[gameday_column_key_CONST] = schedUtil.getCalendarMap(gameday_id);
-					game_grid_row[time_column_key_CONST] = schedUtil.tConvert(start_time);
-					arrayUtil.forEach(gameday_data, function(item2, index2) {
-						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
+					var game_grid_row_list = arrayUtil.map(gameday_data, function(item2, index2) {
+						return {
+							gameday : gameday,
+							start_time : start_time,
+							match_id : item2.MATCH_ID,
+							venue : item2.VENUE,
+							home: item2.HOME,
+							away: item2.AWAY,
+							comment: item2.COMMENT
+						};
 					});
-					game_grid_list[listindex] = game_grid_row;
-					listindex++;
-
-				});
+					game_grid_list = game_grid_list.concat(game_grid_row_list);
+				}));
+				this.schedutil_obj.createEditGrid({game_list:game_grid_list}, options_obj);
+				return game_grid_list;
 			}
 		});
 });
