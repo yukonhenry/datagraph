@@ -63,8 +63,8 @@ def leaguedivinfo(tid):
 	divindex = leaguediv_indexerGet(tid)
 	if divindex is not None:
 		div = ldata_divinfo[divindex]
-		age = div['agediv']
-		gender = div['gender']
+		age = div['div_age']
+		gender = div['div_gen']
 		game_list = dbInterface.findDivisionSchedule(age, gender)
 		a = json.dumps({"game_list":game_list, "fields":div['fields']})
 		return callback_name+'('+a+')'
@@ -77,7 +77,7 @@ def get_alldivSchedule():
     # and pymango doc http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.ensure_index
     # http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.create_index
     # apparently the need to create a unique index is not needed if an upsert (see below) call is made.
-    # div_schedule_col.create_index([('age', ASCENDING),('gender',ASCENDING)], unique=True, dropDups=True)
+    # div_schedule_col.create_index([('age', ASCENDING),('div_gen',ASCENDING)], unique=True, dropDups=True)
     callback_name = request.query.callback
     ldata_divinfo = getLeagueDivInfo().dict_list
     total_match_list = []
@@ -100,9 +100,9 @@ def exportSchedule():
     schedExporter = ScheduleExporter(dbInterface)
     ldata_divinfo = getLeagueDivInfo().dict_list
     for division in ldata_divinfo:
-        schedExporter.exportDivTeamSchedules(div_id=division['div_id'], age=division['agediv'], gen=division['gender'],
+        schedExporter.exportDivTeamSchedules(div_id=division['div_id'], age=division['div_age'], gen=division['div_gen'],
                                              numteams=division['totalteams'])
-        schedExporter.exportTeamSchedules(div_id=division['div_id'], age=division['agediv'], gen=division['gender'],
+        schedExporter.exportTeamSchedules(div_id=division['div_id'], age=division['div_age'], gen=division['div_gen'],
                                              numteams=division['totalteams'])
         schedExporter.exportDivSchedules(division['div_id'])
         schedExporter.exportDivSchedulesRefFormat()
@@ -155,8 +155,8 @@ def teamdata(tid):
     # divcode is 0-index based; see html and js code
     divcode = int(request.query.division_code)
     divdata = getDivisionData(divcode)
-    age = divdata['agediv']
-    gender = divdata['gender']
+    age = divdata['div_age']
+    gender = divdata['div_gen']
     teamdata_list = dbInterface.findTeamSchedule(age, gender, tid)
     # http://stackoverflow.com/questions/13708857/mongodb-aggregation-framework-nested-arrays-subtract-expression
     # http://docs.mongodb.org/manual/reference/aggregation/

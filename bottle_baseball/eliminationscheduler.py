@@ -343,7 +343,7 @@ class EliminationScheduler:
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
                                          divinfotuple=self.divinfo_tuple,
                                          fieldtuple=self.tfield_tuple)
-        #tschedExporter.exportDivSchedules(startgameday_CONST, prefix='PHMSACup2013ElimU12')
+        tschedExporter.exportDivSchedules(startgameday_CONST, prefix='PHMSACup2013ElimU12')
         tschedExporter.exportDivSchedulesRefFormat(startgameday_CONST, prefix='PHMSACupElimU12')
-        #tschedExporter.exportFieldSchedule(startgameday_CONST, prefix='PHMSACup2013ElimU12')
+        tschedExporter.exportFieldSchedule(startgameday_CONST, prefix='PHMSACup2013ElimU12')
 

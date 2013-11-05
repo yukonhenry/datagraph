@@ -11,15 +11,18 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				home: editor({label:"Home Team", field:"home", autoSave:true},"text","dblclick"),
 				away: editor({label:"Away Team", field:"away", autoSave:true},"text","dblclick"),
 				comment: "Comment"
-			}, server_interface:null, schedutil_obj:null,
+			}, server_interface:null, schedutil_obj:null, divinfo_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
 			getServerDBSchedInfo: function(options_obj) {
 				var item = options_obj.item;
+				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
+					this.divinfo_list = data.divinfo_list;
+				}));
 				this.schedutil_obj.makeVisible(dom.byId("schedDBSelectDiv"));
 				var select_reg = registry.byId("schedDBDivisionSelect");
-				this.schedutil_obj.generateDivSelectDropDown(select_reg);
+				this.schedutil_obj.generateDivSelectDropDown(select_reg, this.divinfo_list);
 				options_obj.serverdata_key = 'game_list'
 				select_reg.on("change", lang.hitch(this, function(evt) {
 					var divisioncode = select_reg.get("value");

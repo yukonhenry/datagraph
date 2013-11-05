@@ -66,14 +66,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			makeInvisible: function(dom_name) {
 				domClass.replace(dom_name, "style_none", "style_inline");
 			},
-			generateDivSelectDropDown: function(select_reg) {
+			generateDivSelectDropDown: function(select_reg, divinfo_list) {
 				// ref http://stackoverflow.com/questions/13932225/dojo-and-dynamically-added-options-to-dijit-form-select
-				option_array = [{label:"Select Division", value:"", selected:true}];
-				arrayUtil.forEach(this.leaguedata, function(item, index) {
-					divstr = item.agediv + item.gender;
+				// for closure http://stackoverflow.com/questions/4726611/function-used-from-within-javascript-dojo-closure-using-this-notation-is-undef
+				// without 3rd argument for  forEach, scope is global
+				var divinfo_list = divinfo_list || this.leaguedata;
+				var option_array = [{label:"Select Division", value:"", selected:true}];
+				arrayUtil.forEach(divinfo_list, function(item, index) {
+					divstr = item.div_age + item.div_gen;
 					// division code is 1-index based so increment by 1
 					option_array.push({label:divstr, value:index+1, selected:false});
-				});
+				}, this);
 				select_reg.addOption(option_array);
 			},
 			getNumberTeams: function(div_id) {
@@ -87,7 +90,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				target_dom = dom.byId(dom_name);
 				hrefstr = "";
 				arrayUtil.forEach(ldata_array, function(item, index) {
-					divstr = item.agediv + item.gender;
+					divstr = item.div_age + item.div_gen;
 					urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
 					labelstr = divstr + " Schedule";
 					hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
@@ -102,7 +105,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				target_dom = dom.byId(dom_name);
 				target_dom.innerHTML = "";
 				arrayUtil.forEach(ldata_array, function(item, index) {
-					divstr = item.agediv + item.gender;
+					divstr = item.div_age + item.div_gen;
 					numteams = item.totalteams;
 					divheaderstr = "<u>"+divstr+" Teams</u><br>";
 					hrefstr = "";

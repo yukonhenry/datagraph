@@ -17,21 +17,21 @@ import logging
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 _league_div = [
-{ 'div_id':1, 'agediv':'U06', 'gender':'B', 'totalteams':15,
+{ 'div_id':1, 'div_age':'U06', 'div_gen':'B', 'totalteams':15,
   'gameinterval':60, 'gamesperseason':10},
-{ 'div_id':2, 'agediv':'U06', 'gender':'G', 'totalteams':8,
+{ 'div_id':2, 'div_age':'U06', 'div_gen':'G', 'totalteams':8,
   'gameinterval':60, 'gamesperseason':10},
-{ 'div_id':3, 'agediv':'U08', 'gender':'B', 'totalteams':41,
+{ 'div_id':3, 'div_age':'U08', 'div_gen':'B', 'totalteams':41,
   'gameinterval':70, 'gamesperseason':10},
-{ 'div_id':4, 'agediv':'U08', 'gender':'G', 'totalteams':28,
+{ 'div_id':4, 'div_age':'U08', 'div_gen':'G', 'totalteams':28,
   'gameinterval':70, 'gamesperseason':10},
-{ 'div_id':5, 'agediv':'U10', 'gender':'B', 'totalteams':23,
+{ 'div_id':5, 'div_age':'U10', 'div_gen':'B', 'totalteams':23,
   'gameinterval':80, 'gamesperseason':10},
-{ 'div_id':6, 'agediv':'U10', 'gender':'G', 'totalteams':22,
+{ 'div_id':6, 'div_age':'U10', 'div_gen':'G', 'totalteams':22,
   'gameinterval':80, 'gamesperseason':10},
-{ 'div_id':7, 'agediv':'U12', 'gender':'B', 'totalteams':15,
+{ 'div_id':7, 'div_age':'U12', 'div_gen':'B', 'totalteams':15,
   'gameinterval':90, 'gamesperseason':10},
-{ 'div_id':8, 'agediv':'U12', 'gender':'G', 'totalteams':13,
+{ 'div_id':8, 'div_age':'U12', 'div_gen':'G', 'totalteams':13,
   'gameinterval':90, 'gamesperseason':10}
 ]
 #assign team numbers
@@ -165,31 +165,31 @@ _tournament_field_info = [
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
 
-def getTournDivID(agediv, gender):
-    return getDivID(agediv, gender) - 4
+def getTournDivID(age, gender):
+    return getDivID(age, gender) - 4
 
-def getDivID(agediv, gender):
-    if agediv == 'U06':
+def getDivID(age, gender):
+    if age == 'U06':
         if gender == 'B':
             div_id = 1
         else:
             div_id = 2
-    elif agediv == 'U08':
+    elif age == 'U08':
         if gender == 'B':
             div_id = 3
         else:
             div_id = 4
-    elif agediv == 'U10':
+    elif age == 'U10':
         if gender == 'B':
             div_id = 5
         else:
             div_id = 6
-    elif agediv == 'U12':
+    elif age == 'U12':
         if gender == 'B':
             div_id = 7
         else:
             div_id = 8
-    elif agediv == 'U14':
+    elif age == 'U14':
         if gender == 'B':
             div_id = 9
         else:
@@ -200,32 +200,32 @@ def getDivID(agediv, gender):
 
 
 _coach_conflict_info = [
-        {'coach_id':1, 'conflict':({'agediv':'U06','gender':'B', 'team_id':1},{'agediv':'U08','gender':'B', 'team_id':3})},
-        {'coach_id':2, 'conflict':({'agediv':'U08','gender':'G', 'team_id':5},{'agediv':'U10','gender':'G', 'team_id':2})},
-        {'coach_id':3, 'conflict':({'agediv':'U08','gender':'G', 'team_id':7},{'agediv':'U08','gender':'B', 'team_id':9})}
+        {'coach_id':1, 'conflict':({'div_age':'U06','div_gen':'B', 'team_id':1},{'div_age':'U08','div_gen':'B', 'team_id':3})},
+        {'coach_id':2, 'conflict':({'div_age':'U08','div_gen':'G', 'team_id':5},{'div_age':'U10','div_gen':'G', 'team_id':2})},
+        {'coach_id':3, 'conflict':({'div_age':'U08','div_gen':'G', 'team_id':7},{'div_age':'U08','div_gen':'B', 'team_id':9})}
 
 ]
 
 _team_timeconstraint_info = [
-        {'agediv':'U10', 'gender':'G', 'team_id':16,
+        {'div_age':'U10', 'div_gen':'G', 'team_id':16,
          'desired':[{'id':1, 'gameday_id':1, 'end_before':'10:30', 'priority':1}]},
 
-        {'agediv':'U12', 'gender':'G', 'team_id':4,
+        {'div_age':'U12', 'div_gen':'G', 'team_id':4,
          'desired':[{'id':2, 'gameday_id':5, 'start_after':'13:30', 'priority':1}]},
 
-         {'agediv':'U12', 'gender':'B', 'team_id':1,
+         {'div_age':'U12', 'div_gen':'B', 'team_id':1,
          'desired':[{'id':3, 'gameday_id':6, 'start_after':'13:30', 'priority':1}]},
 
-        {'agediv':'U12', 'gender':'G', 'team_id':2,
+        {'div_age':'U12', 'div_gen':'G', 'team_id':2,
          'desired':[{'id':4, 'gameday_id':6, 'start_after':'13:30', 'priority':1}]},
 
-        {'agediv':'U12', 'gender':'B', 'team_id':2,
+        {'div_age':'U12', 'div_gen':'B', 'team_id':2,
          'desired':[{'id':5, 'gameday_id':7, 'start_after':'13:30', 'priority':1}]},
 
-        {'agediv':'U12', 'gender':'G', 'team_id':3,
+        {'div_age':'U12', 'div_gen':'G', 'team_id':3,
          'desired':[{'id':6, 'gameday_id':7, 'start_after':'13:30', 'priority':1}]},
 
-        {'agediv':'U12', 'gender':'B', 'team_id':9,
+        {'div_age':'U12', 'div_gen':'B', 'team_id':9,
          'desired':[{'id':7, 'gameday_id':1, 'start_after':'11:30', 'priority':2},
                                 {'id':8, 'gameday_id':2, 'start_after':'11:30', 'priority':2},
                                 {'id':9, 'gameday_id':3, 'end_before':'12:30','start_after':'15:30', 'priority':2},
@@ -234,7 +234,7 @@ _team_timeconstraint_info = [
                                 {'id':12, 'gameday_id':6, 'start_after':'11:00', 'priority':2},
                                 {'id':13, 'gameday_id':7, 'end_before':'15:30', 'priority':2}]},
 
-        {'agediv':'U10', 'gender':'B', 'team_id':12,
+        {'div_age':'U10', 'div_gen':'B', 'team_id':12,
          'desired':[{'id':14, 'gameday_id':1, 'start_after':'11:30', 'priority':2},
                                 {'id':15, 'gameday_id':2, 'start_after':'11:30', 'priority':2},
                                 {'id':16, 'gameday_id':3, 'end_before':'12:30','start_after':'15:30', 'priority':2},
@@ -243,7 +243,7 @@ _team_timeconstraint_info = [
                                 {'id':19, 'gameday_id':6, 'start_after':'11:00', 'priority':2},
                                 {'id':20, 'gameday_id':7, 'end_before':'15:30', 'priority':2}]},
 
-        {'agediv':'U10', 'gender':'G', 'team_id':3,
+        {'div_age':'U10', 'div_gen':'G', 'team_id':3,
          'desired':[{'id':21, 'gameday_id':1, 'start_after':'12:30','priority':3},
                                 {'id':22, 'gameday_id':2, 'start_after':'12:30','priority':3},
                                 {'id':23, 'gameday_id':3, 'start_after':'12:30','priority':3},
@@ -255,14 +255,14 @@ _team_timeconstraint_info = [
                                 {'id':29, 'gameday_id':9, 'start_after':'12:30','priority':3}]}
 ]
 for team in _team_timeconstraint_info:
-        div_id = getDivID(team['agediv'], team['gender'])
+        div_id = getDivID(team['div_age'], team['div_gen'])
         team['div_id'] = div_id
 
-_swap_team_info = [{'agediv':'U12', 'gender':'G', 'team1_id':1, 'team2_id':4},
-                                     {'agediv':'U10', 'gender':'B', 'team1_id':16, 'team2_id':3}
+_swap_team_info = [{'div_age':'U12', 'div_gen':'G', 'team1_id':1, 'team2_id':4},
+                                     {'div_age':'U10', 'div_gen':'B', 'team1_id':16, 'team2_id':3}
                                      ]
 for team in _swap_team_info:
-        div_id = getDivID(team['agediv'], team['gender'])
+        div_id = getDivID(team['div_age'], team['div_gen'])
         team['div_id'] = div_id
 
 def getLeagueDivInfo():
@@ -382,8 +382,8 @@ def getFieldSeasonStatus_list():
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
-def getTeamID(agediv, gender, team_id):
-        div_id = getDivID(agediv, gender)
+def getTeamID(div_age, gender, team_id):
+        div_id = getDivID(div_age, gender)
         for div in _league_div:
                 if div[_id] == div_id:
                         id_range = div['team_id_range']
@@ -481,8 +481,8 @@ conflictG = nx.Graph()
 for coach in _coach_conflict_info:
         prev_node = None
         for team in coach['conflict']:
-                a = team['agediv']
-                g = team['gender']
+                a = team['div_age']
+                g = team['div_gen']
                 div_id = getDivID(a,g)
                 if not conflictG.has_node(div_id):
                         conflictG.add_node(div_id)

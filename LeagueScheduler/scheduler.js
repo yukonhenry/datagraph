@@ -34,8 +34,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
-				agediv:"Age Group",
-				gender:"Boy/Girl",
+				div_age:"Age Group",
+				div_gen:"Boy/Girl",
 				totalteams:"Total#Teams",
 				fields:"Fields (ID)",
 				gameinterval:"Game Interval(min)",
@@ -87,11 +87,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
 			var schedinfo_obj = new schedinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
 			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", schedinfo_obj, schedinfo_obj.getServerDBSchedInfo);
-			//scheddbcollection_smenu_reg = registry.byId("scheddbcollection_submenu");
-			//var schedinfo_grid = new schedinfo;
-			//columnsdef_obj = schedinfo_grid.columnsdef_obj;
-			//options_obj = {'columnsdef_obj':columnsdef_obj};
-			//schedUtil.generateDBCollection_smenu(scheddbcollection_smenu_reg, dbcollection_list, schedUtil, schedUtil.getServerDBSchedInfo, options_obj)
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);

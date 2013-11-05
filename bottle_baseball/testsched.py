@@ -13,7 +13,7 @@ def main():
         print l, i, nth_listitem(l,1,i)
     '''
     #get_alldivSchedule()
-    elimination2013('phmsacup2013')
-    #export_elim2013('phmsacup2013')
+    #elimination2013('phmsacup2013')
+    export_elim2013('phmsacup2013')
 if __name__ == '__main__':
     main()
