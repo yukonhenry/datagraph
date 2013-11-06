@@ -6,6 +6,6 @@
 
 .dgrid .dgrid-scroller {
     position: relative;
-    max-height: 230px;
+    max-height: 250px;
     overflow: auto;
 }

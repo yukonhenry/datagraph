@@ -10,6 +10,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			schedInfoStore:null, schedInfoGrid:null, updatebtn_node:null,
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
+			divisioncode:null, idproperty:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -24,7 +25,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatebtn_node);
-				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:"div_id"});
+				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
 				this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
 					store: this.schedInfoStore,
 					columns : columnsdef_obj
@@ -56,7 +57,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_name).innerHTML = "";
 					delete this.schedInfoGrid;
-					this.makeInVisible(this.updatebtn_node);
+					this.makeInvisible(this.updatebtn_node);
 					delete this.schedInfoStore;
 				}
 				if (this.errorHandle) {

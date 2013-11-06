@@ -24,7 +24,8 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "dojo/domReady!"]
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
-				options_obj.serverdata_key = 'divinfo_list'
+				options_obj.serverdata_key = 'divinfo_list';
+				options_obj.idproperty = 'div_id';
 				this.server_interface.getServerData("get_dbcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
 			}

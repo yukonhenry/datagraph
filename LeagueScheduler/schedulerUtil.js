@@ -165,7 +165,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
 				var colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
-				if (!this.editGrid || colname != this.editGrid.colname) {
+				var divisioncode = options_obj.divisioncode || 0;
+				if (!this.editGrid || colname != this.editGrid.colname ||
+				    divisioncode != this.editGrid.divisioncode) {
 					if (this.editGrid) {
 						this.editGrid.cleanup();
 						delete this.editGrid;
@@ -174,12 +176,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						console.log("no server interface");
 					this.editGrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
 						colname:colname,
+						divisioncode:divisioncode,
 						server_interface:this.server_interface,
 						grid_name:"divisionInfoInputGrid",
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						text_node:dom.byId("divisionInfoNodeText"),
 						submitbtn_reg:registry.byId("updatesubmit_btn"),
-						updatebtn_node:dom.byId("divisionInfoUpdateBtnText")});
+						updatebtn_node:dom.byId("divisionInfoUpdateBtnText"),
+						idproperty:options_obj.idproperty});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
 				} else {
 					alert("same schedule selected");
