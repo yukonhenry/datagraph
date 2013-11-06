@@ -16,20 +16,21 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				lang.mixin(this, args);
 			},
 			getServerDBSchedInfo: function(options_obj) {
+				this.schedutil_obj.makeVisible(dom.byId("schedDBSelectDiv"));
 				var item = options_obj.item;
 				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
 					this.divinfo_list = data.divinfo_list;
-				}));
-				this.schedutil_obj.makeVisible(dom.byId("schedDBSelectDiv"));
-				var select_reg = registry.byId("schedDBDivisionSelect");
-				this.schedutil_obj.generateDivSelectDropDown(select_reg, this.divinfo_list);
-				options_obj.serverdata_key = 'game_list'
-				select_reg.on("change", lang.hitch(this, function(evt) {
+					var select_reg = registry.byId("schedDBDivisionSelect");
+					this.schedutil_obj.generateDivSelectDropDown(select_reg, this.divinfo_list);
+					options_obj.serverdata_key = 'game_list'
+					select_reg.on("change", lang.hitch(this, function(evt) {
 					var divisioncode = select_reg.get("value");
 					this.server_interface.getServerData("get_scheddbcol/"+item,
 						lang.hitch(this, this.convertServerDataFormat),
 						{divisioncode:divisioncode}, options_obj);
+					}));
 				}));
+
 			},
 			convertServerDataFormat: function(server_data, options_obj) {
 				var game_array = server_data.game_list;
