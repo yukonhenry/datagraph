@@ -166,7 +166,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var divisioncode = options_obj.divisioncode || 0;
+				var idproperty = options_obj.idproperty;
 				if (!this.editGrid || colname != this.editGrid.colname ||
+				    idproperty != this.editGrid.idproperty ||
 				    divisioncode != this.editGrid.divisioncode) {
 					if (this.editGrid) {
 						this.editGrid.cleanup();

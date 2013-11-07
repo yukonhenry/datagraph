@@ -59,6 +59,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					delete this.schedInfoGrid;
 					this.makeInvisible(this.updatebtn_node);
 					delete this.schedInfoStore;
+					this.divisioncode = 0;
 				}
 				if (this.errorHandle) {
 					this.error_node.innerHTML = "";
