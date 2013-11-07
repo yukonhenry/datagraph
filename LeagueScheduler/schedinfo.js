@@ -1,7 +1,7 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
-       "dojo/_base/array", "dijit/registry", "dgrid/editor", "dojo/domReady!"],
-	function(dom, declare, lang, arrayUtil, registry, editor){
+       "dojo/_base/array", "dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
+	function(dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
 		return declare(null, {
 			columnsdef_obj : {
 				gameday: "Game day",
@@ -16,11 +16,14 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				lang.mixin(this, args);
 			},
 			getServerDBSchedInfo: function(options_obj) {
-				this.schedutil_obj.makeVisible(dom.byId("schedDBSelectDiv"));
 				var item = options_obj.item;
 				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
+					var schedDBSelectDiv_dom = dom.byId("schedDBSelectDiv");
+					baseinfoSingleton.set_select_dom(schedDBSelectDiv_dom);
+					this.schedutil_obj.makeVisible(schedDBSelectDiv_dom);
 					this.divinfo_list = data.divinfo_list;
 					var select_reg = registry.byId("schedDBDivisionSelect");
+					baseinfoSingleton.set_select_reg(select_reg);
 					this.schedutil_obj.generateDivSelectDropDown(select_reg, this.divinfo_list);
 					options_obj.serverdata_key = 'game_list';
 					select_reg.on("change", lang.hitch(this, function(evt) {

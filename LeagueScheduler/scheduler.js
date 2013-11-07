@@ -422,8 +422,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
  			parser.parse();
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
-			//on(registry.byId("exporttourn_btn"), "click", exportTournSchedule);
-			//on(registry.byId("cup_btn"), "click", getCupSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);

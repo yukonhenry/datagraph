@@ -1,5 +1,5 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "dojo/domReady!"], function(declare, lang, editor){
+define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"], function(declare, lang, editor, baseinfoSingleton){
 		return declare(null, {
 			columnsdef_obj : {
 				div_id: "Div ID",
@@ -26,6 +26,10 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "dojo/domReady!"]
 				var item = options_obj.item;
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = 'div_id';
+				if (baseinfoSingleton) {
+					baseinfoSingleton.get_select_reg().destroy();
+					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
+				}
 				this.server_interface.getServerData("get_dbcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
 			}
