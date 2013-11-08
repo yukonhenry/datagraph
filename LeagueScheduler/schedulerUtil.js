@@ -74,7 +74,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var divinfo_list = (typeof divinfo_list === "undefined") ? this.leaguedata : divinfo_list;
 				var option_array = [{label:"Select Division", value:"", selected:true}];
 				arrayUtil.forEach(divinfo_list, function(item, index) {
-					divstr = item.div_age + item.div_gen;
+					var divstr = item.div_age + item.div_gen;
 					// division code is 1-index based so increment by 1
 					option_array.push({label:divstr, value:index+1, selected:false});
 				}, this);

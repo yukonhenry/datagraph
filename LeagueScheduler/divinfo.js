@@ -26,8 +26,8 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 				var item = options_obj.item;
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = 'div_id';
-				if (baseinfoSingleton) {
-					baseinfoSingleton.get_select_reg().destroy();
+				if (baseinfoSingleton.get_select_reg()) {
+					//baseinfoSingleton.get_select_reg().destroy();
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
 				this.server_interface.getServerData("get_dbcol/"+item,
