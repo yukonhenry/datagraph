@@ -40,11 +40,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					lang.hitch(this, this.editschedInfoGrid));
 				this.submitHandle = this.submitbtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
+				this.rowSelectHandle = this.schedInfoGrid.on("dgrid-select",lang.hitch(this, this.rowSelectHandler));
 			},
 			editschedInfoGrid: function(event) {
 				var val = event.value;
         		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
         			'col='+event.cell.column.field);
+			},
+			rowSelectHandler: function(event) {
+
 			},
 			sendDivInfoToServer: function(event) {
 				storedata_json = JSON.stringify(this.schedInfoStore.query());
@@ -70,6 +74,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.datachangeHandle.remove();
 				if (this.submitHandle)
 					this.submitHandle.remove();
+				if (this.rowSelectHandle)
+					this.rowSelectHandle.remove();
 			}
 		});
 	})
