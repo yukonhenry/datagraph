@@ -1,16 +1,16 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
+	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
-	"dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
-		OnDemandGrid, editor, Keyboard, Selection) {
+	"LeagueScheduler/bracketinfo", "dojo/domReady!"],
+	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
+		OnDemandGrid, editor, Keyboard, Selection, BracketInfo) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
 			schedInfoStore:null, schedInfoGrid:null, updatebtn_node:null,
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
-			divisioncode:null, idproperty:null,
+			divisioncode:null, idproperty:null, bracketinfo:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -40,7 +40,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					lang.hitch(this, this.editschedInfoGrid));
 				this.submitHandle = this.submitbtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
-				this.rowSelectHandle = this.schedInfoGrid.on("dgrid-select",lang.hitch(this, this.rowSelectHandler));
+				if (this.idproperty == 'div_id') {
+					if (this.rowSelectHandle){
+						this.rowSelectHandle.remove();
+					}
+					this.rowSelectHandle = this.schedInfoGrid.on("dgrid-select",lang.hitch(this, this.rowSelectHandler));
+				}
 			},
 			editschedInfoGrid: function(event) {
 				var val = event.value;
@@ -48,7 +53,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
         			'col='+event.cell.column.field);
 			},
 			rowSelectHandler: function(event) {
-
+				var eventdata = event.rows[0].data
+				var div_id = eventdata.div_id;
+				var div_age = eventdata.div_age;
+				var div_gen = eventdata.div_gen;
+				var totalbrackets = eventdata.totalbrackets;
+				dom.byId("bracketInfoNodeText").innerHTML = "Enter Bracket Info for "+div_age+div_gen;
+				if (this.bracketinfo) {
+					this.bracketinfo.cleanup();
+					delete this.bracketinfo;
+				}
+				this.bracketinfo = new BracketInfo({totalbrackets:totalbrackets,
+					bracketinfo_name:"bracketInfoInputGrid"});
+				this.bracketinfo.createBracketInfoGrid();
 			},
 			sendDivInfoToServer: function(event) {
 				storedata_json = JSON.stringify(this.schedInfoStore.query());
@@ -57,7 +74,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.server_interface.getServerData("create_newdbcol/"+this.colname,
 					this.server_interface.server_ack, {divinfo_data:storedata_json});
 			},
-			cleanup: function(event) {
+			cleanup: function() {
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_name).innerHTML = "";
 					delete this.schedInfoGrid;
