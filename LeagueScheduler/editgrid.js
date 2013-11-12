@@ -1,9 +1,9 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory",
+	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/bracketinfo", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
-		OnDemandGrid, editor, Keyboard, Selection, BracketInfo) {
+		registry, OnDemandGrid, editor, Keyboard, Selection, BracketInfo) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
@@ -41,6 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.submitHandle = this.submitbtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
 				if (this.idproperty == 'div_id') {
+					console.log("checked="+registry.byId("bracketenable_btn").get("checked"));
 					if (this.rowSelectHandle){
 						this.rowSelectHandle.remove();
 					}

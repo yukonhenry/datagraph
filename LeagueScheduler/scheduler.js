@@ -358,17 +358,19 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedConfig.testValue(1);
 		}
 		var initNewSchedule = function(evt) {
-			var form_reg = registry.byId("newsched_form_id");
+			var form_name = "newsched_form_id";
+			var form_reg = registry.byId(form_name);
 			var input_reg = registry.byId("newsched_input_id");
 			var divnum_reg = registry.byId("divnum_input_id");
-			var submitbtn_reg = registry.byId("submit_btn");
-			newScheduler = new newscheduler({dbname_reg:input_reg, form_reg:form_reg,
+			//var submitbtn_reg = registry.byId("submit_btn");
+			newScheduler = new newscheduler({dbname_reg:input_reg,
+				form_name:form_name, form_reg:form_reg,
 				divnum_reg:divnum_reg, server_interface:serverInterface,
-				divInfoGridName:"divisionInfoInputGrid",
-				error_node:dom.byId("divisionInfoInputGridErrorNode")});
-			newScheduler.makeVisible("newsched_form_id");
-			on(divnum_reg, "keyup", lang.hitch(newScheduler, newScheduler.processdivinfo_input));
-			on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.sendDivInfoToServer));
+				divinfogrid_name:"divisionInfoInputGrid",
+				error_node:dom.byId("divisionInfoInputGridErrorNode"),
+				schedutil_obj:schedUtil});
+			newScheduler.showConfig("newsched_form_id");
+			//on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.sendDivInfoToServer));
 		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {

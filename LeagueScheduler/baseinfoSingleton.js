@@ -2,7 +2,7 @@
 // http://www.anujgakhar.com/2013/08/29/singletons-in-dojo/
 define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 		var baseinfoSingleton = declare(null, {
-			select_reg:null, select_dom:null,
+			select_reg:null, select_dom:null, active_grid:null,
 			set_select_reg: function(select_reg) {
 				this.select_reg = select_reg;
 			},
@@ -14,6 +14,12 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			},
 			get_select_dom: function() {
 				return this.select_dom;
+			},
+			set_active_grid: function(active_grid) {
+				this.active_grid = active_grid;
+			},
+			get_active_grid: function() {
+				return this.active_grid;
 			}
 		});
 		if (!_instance) {

@@ -11,7 +11,7 @@
         <title>PHMSA AYSO Fall 2013</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08e</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08f</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -19,7 +19,7 @@
 			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
 			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox",
             "dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip",
-            "dijit/form/Button",
+            "dijit/form/Button", "dijit/form/ToggleButton",
             "dojo/domReady!"],
 			function(dbootstrap, dom){
     			var greeting = dom.byId("greeting");
@@ -115,13 +115,14 @@
                     <input type="text" name="divnum_input" id="divnum_input_id" value="1" required="true" data-dojo-type="dijit/form/NumberTextBox" title="Enter Number of Divisions and press ENTER" style="width:6em"
                     data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Divisions', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Divisions (positive ineteger)'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'divnum_input_id', position:['below','after']">Specify Number of Divisions and press ENTER</span>
-                    </div><br>
+                    </div>
                     <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="submitButton" id="submit_btn" value="Submit">Save Division Info</button>
                 </div>
                 <!-- note button below is of type button rather than submit because of problems with the 'submit' event action -->
                 <div class="style_none" id="divisionInfoUpdateBtnText">
                     <span id="divisionInfoNodeText"></span>
                     <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="updatesubmitButton" id="updatesubmit_btn" value="Submit">Update Division Info</button>
+                    <button class="dijitToggleButton primary" data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:'dijitCheckBoxIcon', checked: true" id="bracketenable_btn">Enable Bracket Edit</button>
                 </div><br>
                 <div class="style_none" id="schedDBSelectDiv">
                     <label for="schedDBDivisionSelect">Select Division</label>
