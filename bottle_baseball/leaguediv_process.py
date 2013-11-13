@@ -208,14 +208,24 @@ def create_newdbcol(newcol_name):
     divinfo_data = request.query.divinfo_data
     tdbInterface = TournDBInterface(mongoClient, newcol_name)
     tdbInterface.writeDB(divinfo_data)
+    schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'
 
 @route('/delete_dbcol/<delcol_name>')
 def delete_dbcol(delcol_name):
     callback_name = request.query.callback
-    print 'delete', delcol_name
-    a = json.dumps({'test':'werjler'})
+    tdbInterface = TournDBInterface(mongoClient, delcol_name)
+    tdbInterface.dbInterface.dropDB_col()
+    schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    a = json.dumps({"dbcollection_list":schedcol_list})
+    return callback_name+'('+a+')'
+
+@route('/delete_divdbcol/<deldivcol_name>')
+def delete_divdbcol(deldivcol_name):
+    callback_name = request.query.callback
+    print 'delete div db', deldivcol_name
+    a = json.dumps({'test':'adsfer'})
     return callback_name+'('+a+')'
 
 @route('/get_dbcol/<getcol_name>')

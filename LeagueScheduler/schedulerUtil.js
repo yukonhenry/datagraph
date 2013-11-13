@@ -145,6 +145,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var item = options_obj.item;
 				alert(item);
 			},
+			delete_dbcollection: function(options_obj) {
+				var item = options_obj.item;
+				this.server_interface.getServerData("delete_dbcol/"+item,
+					this.regenDelDBCollection_smenu);
+			},
+			regenDelDBCollection_smenu: function(adata) {
+				var dbcollection_list = adata.dbcollection_list;
+				var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
+				this.generateDBCollection_smenu(deldbcollection_smenu_reg,
+				dbcollection_list, this, this.delete_dbcollection);
+			},
 			delete_divdbcollection: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("delete_divdbcol/"+item,

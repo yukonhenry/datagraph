@@ -20,8 +20,9 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				if (this.schedutil_obj.editGrid) {
 					this.schedutil_obj.editGrid.cleanup();
 					delete this.schedutil_obj.editGrid;
-					this.select_reg_handle.remove();
 				}
+				if (this.select_reg_handle)
+					this.select_reg_handle.remove();
 				if (!this.schedDBSelectDiv_dom) {
 					this.schedDBSelectDiv_dom = dom.byId("schedDBSelectDiv");
 					baseinfoSingleton.set_select_dom(this.schedDBSelectDiv_dom);

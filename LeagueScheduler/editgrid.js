@@ -1,9 +1,10 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
+	"dijit/form/ToggleButton",
 	"LeagueScheduler/bracketinfo", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, BracketInfo) {
+		registry, OnDemandGrid, editor, Keyboard, Selection, ToggleButton, BracketInfo) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
@@ -11,6 +12,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
+			tbutton_reg:null, schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -29,7 +31,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
 					store: this.schedInfoStore,
 					columns : columnsdef_obj
-                }, this.grid_name);
+				}, this.grid_name);
 				this.schedInfoGrid.startup();
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
@@ -41,11 +43,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.submitHandle = this.submitbtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
 				if (this.idproperty == 'div_id') {
-					console.log("checked="+registry.byId("bracketenable_btn").get("checked"));
-					if (this.rowSelectHandle){
-						this.rowSelectHandle.remove();
-					}
+					this.tbutton_reg = new ToggleButton({showLabel: true, checked: false,
+						onChange: lang.hitch(this, function(val){
+							if (val) {
+								this.tbutton_reg.set('label','Disable Bracket Edit');
+							}
+							else {
+								this.tbutton_reg.set('label', 'Enable Bracket Edit');
+							}
+							// based on change of toggle, turn on/off bracket edit
+							this.manageBracketEdit(val);
+						}),
+						label: "Enable Bracket Edit"}, "bracketenable_btn");
+
+				}
+			},
+			manageBracketEdit: function(val) {
+				// depending on toggle value enable/disable bracket editing
+				if (this.rowSelectHandle){
+					this.rowSelectHandle.remove();
+				}
+				if (val) {
 					this.rowSelectHandle = this.schedInfoGrid.on("dgrid-select",lang.hitch(this, this.rowSelectHandler));
+				} else {
+					if (this.bracketinfo) {
+						this.bracketinfo.bracketinfotext_node.innerHTML = "";
+						this.bracketinfo.cleanup();
+						delete this.bracketinfo;
+					}
 				}
 			},
 			editschedInfoGrid: function(event) {
@@ -55,18 +80,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			rowSelectHandler: function(event) {
 				var eventdata = event.rows[0].data
-				var div_id = eventdata.div_id;
-				var div_age = eventdata.div_age;
-				var div_gen = eventdata.div_gen;
+				var div_str = eventdata.div_age + eventdata.div_gen;
 				var totalbrackets = eventdata.totalbrackets;
-				dom.byId("bracketInfoNodeText").innerHTML = "Enter Bracket Info for "+div_age+div_gen;
 				if (this.bracketinfo) {
 					this.bracketinfo.cleanup();
 					delete this.bracketinfo;
 				}
 				this.bracketinfo = new BracketInfo({totalbrackets:totalbrackets,
-					bracketinfo_name:"bracketInfoInputGrid"});
-				this.bracketinfo.createBracketInfoGrid();
+					bracketinfo_name:"bracketInfoInputGrid",
+					bracketinfotext_node:dom.byId("bracketInfoNodeText")});
+				this.bracketinfo.createBracketInfoGrid(div_str);
 			},
 			sendDivInfoToServer: function(event) {
 				storedata_json = JSON.stringify(this.schedInfoStore.query());

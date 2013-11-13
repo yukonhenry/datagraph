@@ -331,3 +331,6 @@ class MongoDBInterface:
             divinfo_list.append(div_dict)
         d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         return _List_Indexer(divinfo_list, d_indexerGet)
+
+    def dropDB_col(self):
+        self.games_col.drop()

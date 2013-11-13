@@ -370,7 +370,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				error_node:dom.byId("divisionInfoInputGridErrorNode"),
 				schedutil_obj:schedUtil});
 			newScheduler.showConfig("newsched_form_id");
-			//on(submitbtn_reg, "click", lang.hitch(newScheduler, newScheduler.sendDivInfoToServer));
 		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {

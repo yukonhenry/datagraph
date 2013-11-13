@@ -43,7 +43,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							text_node:dom.byId("divisionInfoNodeText"),
 							submitbtn_reg:registry.byId("updatesubmit_btn"),
 							updatebtn_node:dom.byId("divisionInfoUpdateBtnText"),
-							idproperty:'div_id'});
+							idproperty:'div_id',
+							schedutil_obj:this.schedutil_obj});
 						var divinfo_obj = new divinfo;
 						var columnsdef_obj = divinfo_obj.columnsdef_obj;
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);

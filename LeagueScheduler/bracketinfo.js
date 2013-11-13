@@ -7,10 +7,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_
 				team_list:editor({label:"Team List", field:"team_list", autoSave:true},"text","dblclick"),
 			}, totalbrackets:0, server_interface:null, schedutil_obj:null,
 			bracketinfo_name:"", bracketinfo_store:null, bracketinfo_grid:null,
+			bracketinfotext_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
-			createBracketInfoGrid: function() {
+			createBracketInfoGrid: function(div_str) {
+				this.bracketinfotext_node.innerHTML="Enter Bracket Info for "+div_str;
 				var bracketinfo_list = new Array();
 				for (var i = 1; i < this.totalbrackets+1; i++) {
 					bracketinfo_list.push({bracket_id:i,team_list:""});

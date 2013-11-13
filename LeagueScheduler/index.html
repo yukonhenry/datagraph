@@ -8,10 +8,10 @@
         <link rel="stylesheet" href="../dbootstrap/build/theme/dbootstrap/theme/dbootstrap/dbootstrap.css" media="screen">
         <link rel="stylesheet" href="style.css" media="screen">
         <link rel="stylesheet" href="scheduledgridstyle.css" media="screen">
-        <title>PHMSA AYSO Fall 2013</title>
+        <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08f</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08h</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -122,7 +122,10 @@
                 <div class="style_none" id="divisionInfoUpdateBtnText">
                     <span id="divisionInfoNodeText"></span>
                     <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="updatesubmitButton" id="updatesubmit_btn" value="Submit">Update Division Info</button>
+                    <!--
                     <button class="dijitToggleButton primary" data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:'dijitCheckBoxIcon', checked: true" id="bracketenable_btn">Enable Bracket Edit</button>
+                    <button class="dijitButton info" data-dojo-type="dijit/form/Button" type="button" id="bracketenable_btn"></button> -->
+                    <button class="dijitToggleButton info" id="bracketenable_btn">Test</button>
                 </div><br>
                 <div class="style_none" id="schedDBSelectDiv">
                     <label for="schedDBDivisionSelect">Select Division</label>
