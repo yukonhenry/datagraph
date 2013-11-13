@@ -72,21 +72,25 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			// generate dropdown menu for edit->existing schedules
 			var dbcollection_list = ldata.dbcollection_list;
 			var divinfo_obj = new divinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
-			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", divinfo_obj, divinfo_obj.getServerDBDivInfo);
+			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", divinfo_obj, divinfo_obj.getServerDBDivInfo,{db_type:'db'});
 			// generate dropdown menu for edit->delete schedule
 			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
-				dbcollection_list, schedUtil, schedUtil.delete_dbcollection);
+				dbcollection_list, schedUtil, schedUtil.delete_dbcollection,
+				{db_type:'db'});
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.cupdbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(cupdbcollection_smenu_reg,
-				cupdbcollection_list, schedUtil, schedUtil.getCupSchedule);
+				cupdbcollection_list, schedUtil, schedUtil.getCupSchedule,
+				{db_type:'gen'});
 			var exportcupdbcollection_smenu_reg = registry.byId("exportcupdbcollection_submenu")
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
-				cupdbcollection_list, schedUtil, schedUtil.export_rr2013);
+				cupdbcollection_list, schedUtil, schedUtil.export_rr2013,
+				{db_type:'export'});
 			var schedinfo_obj = new schedinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
-			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", schedinfo_obj, schedinfo_obj.getServerDBSchedInfo);
+			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", schedinfo_obj, schedinfo_obj.getServerDBSchedInfo,
+				{db_type:'db'});
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);

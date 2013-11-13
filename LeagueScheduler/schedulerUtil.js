@@ -22,11 +22,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
 			leaguedata: null, server_interface:null, editGrid:null,
+			dbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
 				// than declare.safeMixin
 				lang.mixin(this, args);
+				this.dbmenureg_list = new Array();
 			},
 			getCalendarMap: function(gameday_id) {
 				return calendarMapObj[gameday_id];
@@ -124,16 +126,22 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function) {
+			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function, options_obj) {
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
 				var columnsdef_obj = sched_context.columnsdef_obj;
-				var options_obj = {'columnsdef_obj':columnsdef_obj};
+				var options_obj.columnsdef_obj = columnsdef_obj;
 				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, sched_context, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
 				var options_obj = options_obj || {};
+				if (typeof options_obj.db_type !== 'undefined') {
+					var db_type = options_obj.db_type;
+					if (db_type == 'db') {
+						this.dbmenureg_list.push(submenu_reg);
+					}
+				}
 				arrayUtil.forEach(submenu_list, function(item, index) {
 					options_obj.item = item;
 					var smenuitem = new MenuItem({label: item,
@@ -148,12 +156,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			delete_dbcollection: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("delete_dbcol/"+item,
-					this.regenDelDBCollection_smenu);
+					lang.hitch(this,this.regenDelDBCollection_smenu));
 			},
 			regenDelDBCollection_smenu: function(adata) {
 				var dbcollection_list = adata.dbcollection_list;
-				var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
-				this.generateDBCollection_smenu(deldbcollection_smenu_reg,
+				arrayUtil.forEach(this.dbmenureg_list, function(item, index) {
+					item.destroyDescendants();
+				});
+				// TODO fix below
+				this.generateDBCollection_smenu(this.deldbsmenu_reg,
 				dbcollection_list, this, this.delete_dbcollection);
 			},
 			delete_divdbcollection: function(options_obj) {
