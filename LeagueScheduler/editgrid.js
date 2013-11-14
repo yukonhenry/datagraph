@@ -64,6 +64,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.rowSelectHandle.remove();
 				}
 				if (val) {
+					// if toggle switch is true
 					this.rowSelectHandle = this.schedInfoGrid.on("dgrid-select",lang.hitch(this, this.rowSelectHandler));
 				} else {
 					if (this.bracketinfo) {
