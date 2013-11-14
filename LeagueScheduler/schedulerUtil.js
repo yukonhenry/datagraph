@@ -127,27 +127,28 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				});  //foreach
 			},  //createTeamSchedLinks
 			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function, options_obj) {
+				var options_obj = options_obj || {};
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
 				var columnsdef_obj = sched_context.columnsdef_obj;
-				var options_obj.columnsdef_obj = columnsdef_obj;
+				options_obj.columnsdef_obj = columnsdef_obj;
 				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, sched_context, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
 				var options_obj = options_obj || {};
-				if (typeof options_obj.db_type !== 'undefined') {
-					var db_type = options_obj.db_type;
-					if (db_type == 'db') {
-						this.dbmenureg_list.push(submenu_reg);
-					}
-				}
 				arrayUtil.forEach(submenu_list, function(item, index) {
 					options_obj.item = item;
 					var smenuitem = new MenuItem({label: item,
 						onClick: lang.hitch(onclick_context, onclick_func, options_obj) });
     				submenu_reg.addChild(smenuitem);
 				});
+				if (typeof options_obj.db_type !== 'undefined') {
+					var db_type = options_obj.db_type;
+					if (db_type == 'db') {
+						this.dbmenureg_list.push(submenu_reg);
+					}
+				}
 			},
 			default_alert: function(options_obj) {
 				var item = options_obj.item;
@@ -156,16 +157,18 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			delete_dbcollection: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("delete_dbcol/"+item,
-					lang.hitch(this,this.regenDelDBCollection_smenu));
+					lang.hitch(this, this.regenDelDBCollection_smenu,
+					           options_obj));
 			},
-			regenDelDBCollection_smenu: function(adata) {
-				var dbcollection_list = adata.dbcollection_list;
-				arrayUtil.forEach(this.dbmenureg_list, function(item, index) {
-					item.destroyDescendants();
+			regenDelDBCollection_smenu: function(adata, options_obj) {
+				//var dbcollection_list = adata.dbcollection_list;
+				item_name = options_obj.item;
+				arrayUtil.forEach(this.dbmenureg_list, function(dbmenureg, index) {
+					arrayUtil.forEach(dbmenureg, function(smenuitem, index2) {
+						if (smenuitem.get('label') == item_name)
+							dbmenureg.removeChild(smenuitem);
+					});
 				});
-				// TODO fix below
-				this.generateDBCollection_smenu(this.deldbsmenu_reg,
-				dbcollection_list, this, this.delete_dbcollection);
 			},
 			delete_divdbcollection: function(options_obj) {
 				var item = options_obj.item;
