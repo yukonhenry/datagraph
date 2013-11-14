@@ -142,7 +142,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					var smenuitem = new MenuItem({label: item,
 						onClick: lang.hitch(onclick_context, onclick_func, options_obj) });
     				submenu_reg.addChild(smenuitem);
-				});
+				}, this);
 				if (typeof options_obj.db_type !== 'undefined') {
 					var db_type = options_obj.db_type;
 					if (db_type == 'db') {
@@ -157,18 +157,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			delete_dbcollection: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("delete_dbcol/"+item,
-					lang.hitch(this, this.regenDelDBCollection_smenu,
-					           options_obj));
+					lang.hitch(this, this.regenDelDBCollection_smenu),"", options_obj);
 			},
 			regenDelDBCollection_smenu: function(adata, options_obj) {
 				//var dbcollection_list = adata.dbcollection_list;
-				item_name = options_obj.item;
+				var item_name = options_obj.item;
 				arrayUtil.forEach(this.dbmenureg_list, function(dbmenureg, index) {
-					arrayUtil.forEach(dbmenureg, function(smenuitem, index2) {
+					arrayUtil.forEach(dbmenureg.getChildren(), function(smenuitem, index2) {
 						if (smenuitem.get('label') == item_name)
 							dbmenureg.removeChild(smenuitem);
-					});
-				});
+					}, this);
+				}, this);
 			},
 			delete_divdbcollection: function(options_obj) {
 				var item = options_obj.item;
