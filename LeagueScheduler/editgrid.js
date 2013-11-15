@@ -13,6 +13,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, schedutil_obj:null,
+			server_callback:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -96,8 +97,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				storedata_json = JSON.stringify(this.schedInfoStore.query());
 				//this.schedInfoStore.query().forEach(function(division) {
         		//});
+				var server_callback = this.server_callback || this.server_interface.server_ack;
+				var options_obj = {item:this.colname};
 				this.server_interface.getServerData("create_newdbcol/"+this.colname,
-					this.server_interface.server_ack, {divinfo_data:storedata_json});
+					server_callback, {divinfo_data:storedata_json}, options_obj);
 			},
 			cleanup: function() {
 				if (this.schedInfoGrid) {
