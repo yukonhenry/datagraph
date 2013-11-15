@@ -245,7 +245,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				}
 				divisionGrid.renderArray(division_list);
 			});
-			divisionGridHandle = divisionGrid.on("dgrid-select", function(event){
+			divisionGridHandle = divisionGrid.on("dgrid-select", lang.hitch(this, function(event) {
     			// Report the item from the selected row to the console.
     			// Note the last field is an element of the row.
     			var rowid = event.rows[0].data.team_id;
@@ -267,7 +267,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
     				jsonp:"callback",
     				query:{divisioncode:divisioncode}
     			}).then(function(tdata){
-    				tdata_array = tdata.teamdata_list;
+    				var tdata_array = tdata.teamdata_list;
 					arrayUtil.forEach(tdata_array, function(item, index) {
 						// fields names are keys to the column dictionary						console.log("tdata "+item);
 						gameday_id = item.GAMEDAY_ID;
@@ -278,7 +278,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 					});
     				teamDataGrid.renderArray(tdata_array);
     			});
-			});
+			}));
 		}
 		var getElimDivisionData = function(evt) {
 			var divisioncode = registry.byId("elimDivisionSelect").get("value");

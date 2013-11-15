@@ -103,12 +103,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					server_callback, {divinfo_data:storedata_json}, options_obj);
 			},
 			cleanup: function() {
+				if (this.bracketinfo) {
+					this.bracketinfo.cleanup();
+					delete this.bracketinfo;
+				}
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_name).innerHTML = "";
 					delete this.schedInfoGrid;
 					this.makeInvisible(this.updatebtn_node);
 					delete this.schedInfoStore;
 					this.divisioncode = 0;
+					this.text_node.innerHTML = "";
 				}
 				if (this.errorHandle) {
 					this.error_node.innerHTML = "";

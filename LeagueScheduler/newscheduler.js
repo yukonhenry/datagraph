@@ -1,17 +1,22 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/divinfo", "LeagueScheduler/editgrid", "dojo/domReady!"],
+	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/divinfo", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, divinfo, EditGrid) {
+		registry, OnDemandGrid, editor, Keyboard, Selection, divinfo, EditGrid,
+		baseinfoSingleton) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			divnum_reg: null, divinfo_store:null, divinfo_grid:null,
 			divinfogrid_name:"", error_node:null, newcol_name:"",
-			schedutil_obj:null, form_name:"",
+			schedutil_obj:null, form_name:"", editgrid:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
 			showConfig: function() {
+				var active_grid = baseinfoSingleton.get_active_grid();
+				if (active_grid) {
+					active_grid.cleanup();
+				}
 				this.schedutil_obj.makeVisible(this.form_name);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
@@ -49,6 +54,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						var divinfo_obj = new divinfo;
 						var columnsdef_obj = divinfo_obj.columnsdef_obj;
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+						baseinfoSingleton.set_active_grid(this.editgrid);
 						//on(this.divInfoGrid, "dgrid-datachange",
 						//	lang.hitch(this, this.editDivInfoGrid));
 					} else {

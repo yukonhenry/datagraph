@@ -153,7 +153,7 @@ def divisiondata(did):
 def teamdata(tid):
     callback_name = request.query.callback
     # divcode is 0-index based; see html and js code
-    divcode = int(request.query.division_code)
+    divcode = int(request.query.divisioncode)
     divdata = getDivisionData(divcode)
     age = divdata['div_age']
     gender = divdata['div_gen']
