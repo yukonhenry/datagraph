@@ -3,6 +3,7 @@
 define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 		var baseinfoSingleton = declare(null, {
 			select_reg:null, select_dom:null, active_grid:null,
+			dbname_list:null,
 			set_select_reg: function(select_reg) {
 				this.select_reg = select_reg;
 			},
@@ -20,6 +21,25 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			},
 			get_active_grid: function() {
 				return this.active_grid;
+			},
+			set_dbname_list: function(dlist) {
+				this.dbname_list = dlist;
+			},
+			get_dbname_list: function() {
+				return this.dbname_list;
+			},
+			addto_dbname_list: function(elem) {
+				this.dbname_list.push(elem);
+			},
+			// remove by value: http://stackoverflow.com/questions/3954438/remove-item-from-array-by-value
+			removefrom_dbname_list: function(elem) {
+				var index = this.dbname_list.indexOf(elem);
+				if (index == -1)
+					return false;
+				else {
+					this.dbname_list.splice(index, 1);
+					return true;
+				}
 			}
 		});
 		if (!_instance) {

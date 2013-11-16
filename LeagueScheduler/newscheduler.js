@@ -26,8 +26,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			processdivinfo_input: function(event) {
 				if (event.keyCode == keys.ENTER) {
 					if (this.form_reg.validate()) {
-						confirm('Input Name is Valid, creating new Schedule DB');
+						confirm('Input format is Valid, creating new Schedule DB');
 						this.newcol_name = this.dbname_reg.get("value");
+						if (!this.nodupname_validate(this.newcol_name)) {
+							alert("Selected sched name already exists, choose another");
+							return;
+						}
 						//divnum is the total # of divisions
 						var divnum = this.divnum_reg.get("value");
 						var divInfo_list = new Array();
@@ -62,5 +66,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}
 				}
 			},
+			nodupname_validate: function(col_name) {
+				// if name exists in the current list (index > -1) then
+				// return false (test failed)
+				var dbname_list = baseinfoSingleton.get_dbname_list();
+				if (dbname_list.indexOf(col_name) > -1)
+					return false;
+				else
+					return true;
+			}
 		});
 	})

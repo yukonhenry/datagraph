@@ -2,9 +2,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dijit/form/ToggleButton",
-	"LeagueScheduler/bracketinfo", "dojo/domReady!"],
+	"LeagueScheduler/bracketinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, ToggleButton, BracketInfo) {
+		registry, OnDemandGrid, editor, Keyboard, Selection, ToggleButton, BracketInfo, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
@@ -101,6 +101,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var options_obj = {item:this.colname};
 				this.server_interface.getServerData("create_newdbcol/"+this.colname,
 					server_callback, {divinfo_data:storedata_json}, options_obj);
+				baseinfoSingleton.addto_dbname_list(this.colname);
 			},
 			cleanup: function() {
 				if (this.bracketinfo) {
