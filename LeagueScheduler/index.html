@@ -11,7 +11,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08j</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08k</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -103,6 +103,12 @@
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Specify Fields</span>
                             <div data-dojo-type="dijit/DropDownMenu">
+                                <div data-dojo-type="dijit/MenuItem" id="newfieldlist_item">New Field List</div>
+                                <div data-dojo-type="dijit/PopupMenuItem">
+                                    <span>Edit Field List</span>
+                                    <div data-dojo-type="dijit/DropDownMenu" id="editfieldlist_submenu">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -121,21 +127,28 @@
                     data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Divisions', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Divisions (positive ineteger)'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'divnum_input_id', position:['below','after']">Specify Number of Divisions and press ENTER</span>
                     </div>
-                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="submitButton" id="submit_btn" value="Submit">Save Division Info</button>
                 </div>
                 <!-- note button below is of type button rather than submit because of problems with the 'submit' event action -->
                 <div class="style_none" id="divisionInfoUpdateBtnText">
                     <span id="divisionInfoNodeText"></span>
                     <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="updatesubmitButton" id="updatesubmit_btn" value="Submit">Update Division Info</button>
-                    <!--
-                    <button class="dijitToggleButton primary" data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:'dijitCheckBoxIcon', checked: true" id="bracketenable_btn">Enable Bracket Edit</button>
-                    <button class="dijitButton info" data-dojo-type="dijit/form/Button" type="button" id="bracketenable_btn"></button> -->
                     <button class="dijitToggleButton info" id="bracketenable_btn">Test</button>
                 </div><br>
                 <div class="style_none" id="schedDBSelectDiv">
                     <label for="schedDBDivisionSelect">Select Division</label>
                     <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
                     </select>
+                </div>
+                <div data-dojo-type="dijit/form/Form" id="fieldconfig_form_id" data-dojo-id="fieldconfig_form_id" class="style_none">
+                    <label for="fieldlistname_input_id">Enter Field Collection Name</label>
+                    <input type="text" name="fieldlistname_input" id="fieldlistname_input_id" value="PHMSA" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Field Collection Name"
+                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter Field List name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter field list name'"/>
+                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldnum_input_id', position:['below','after']">Specify Field List Name</span></div>
+                    <label for="fieldnum_input_id">Number of Fields</label>
+                    <input type="text" name="fieldnum_input" id="fieldnum_input_id" value="1" required="true" data-dojo-type="dijit/form/NumberTextBox" title="Enter Number of Fields and press ENTER" style="width:6em"
+                    data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Fields', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Fields (positive ineteger)'"/>
+                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldnum_input_id', position:['below','after']">Specify Number of Fields and press ENTER</span>
+                    </div>
                 </div>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
                 <div id="divisionInfoInputGridErrorNode" class="style_none"></div>

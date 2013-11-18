@@ -12,10 +12,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
-		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/baseinfoSingleton",
+		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, baseinfoSingleton) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -28,7 +28,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var seedGrid = null;
 		var divisionGridHandle = null;
 		var ldata_array = null;
-		var schedUtil = newScheduler = null;
+		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
@@ -367,14 +367,28 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var form_reg = registry.byId(form_name);
 			var input_reg = registry.byId("newsched_input_id");
 			var divnum_reg = registry.byId("divnum_input_id");
-			//var submitbtn_reg = registry.byId("submit_btn");
-			newScheduler = new newscheduler({dbname_reg:input_reg,
+			var newScheduler = new newscheduler({dbname_reg:input_reg,
 				form_name:form_name, form_reg:form_reg,
-				divnum_reg:divnum_reg, server_interface:serverInterface,
-				divinfogrid_name:"divisionInfoInputGrid",
-				error_node:dom.byId("divisionInfoInputGridErrorNode"),
-				schedutil_obj:schedUtil});
-			newScheduler.showConfig("newsched_form_id");
+				entrynum_reg:divnum_reg, server_interface:serverInterface,
+				schedutil_obj:schedUtil,
+				info_obj: new divinfo,
+				idproperty:'div_id',
+				server_path:"create_newdbcol/"});
+			newScheduler.showConfig(form_name);
+		}
+		var initNewFieldList = function(evt) {
+			var form_name = "fieldconfig_form_id";
+			var form_reg = registry.byId(form_name);
+			var input_reg = registry.byId("fieldlistname_input_id");
+			var fieldnum_reg = registry.byId("fieldnum_input_id");
+			var newFieldGroup = new newscheduler({dbname_reg:input_reg,
+				form_name:form_name, form_reg:form_reg,
+				entrynum_reg:fieldnum_reg, server_interface:serverInterface,
+				schedutil_obj:schedUtil,
+				info_obj: new FieldInfo,
+				idproperty:'field_id',
+				server_path:"create_newfieldcol/"});
+			newFieldGroup.showConfig(form_name);
 		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
@@ -438,6 +452,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			on(registry.byId("newsched_item"), "click", initNewSchedule);
+			on(registry.byId("newfieldlist_item"), "click", initNewFieldList);
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);

@@ -172,6 +172,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						}
 					}, this);
 				}, this);
+				// also delete current active grid if it corresponds to the deleted db
+				if (baseinfoSingleton.get_active_grid_name() == item_name) {
+					var active_grid = baseinfoSingleton.get_active_grid();
+					if (active_grid) {
+						active_grid.cleanup();
+					}
+				}
 			},
 			regenAddDBCollection_smenu: function(adata, options_obj) {
 				var item_name = options_obj.item;
@@ -212,6 +219,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					if (this.editGrid) {
 						this.editGrid.cleanup();
 						delete this.editGrid;
+					} else {
+						var active_grid = baseinfoSingleton.get_active_grid();
+						if (active_grid) {
+							active_grid.cleanup();
+							baseinfoSingleton.reset_active_grid();
+						}
 					}
 					if (!this.server_interface)
 						console.log("no server interface");
@@ -227,6 +240,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						idproperty:options_obj.idproperty});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
 					baseinfoSingleton.set_active_grid(this.editGrid);
+					baseinfoSingleton.set_active_grid_name(colname);
 				} else {
 					alert("same schedule selected");
 				}

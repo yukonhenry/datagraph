@@ -32,6 +32,17 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 				}
 				this.server_interface.getServerData("get_dbcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
+			},
+			getInitialList: function(divnum) {
+				var divInfo_list = new Array();
+				for (var i = 1; i < divnum+1; i++) {
+					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
+					                  totalteams:1, totalbrackets:1,
+					                  elimination_num:1,
+					                  elimination_type:"",field_id_str:"",
+					                  gameinterval:1, rr_gamedays:1});
+				}
+				return divInfo_list;
 			}
 		});
 });

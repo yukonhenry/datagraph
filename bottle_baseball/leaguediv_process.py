@@ -245,3 +245,13 @@ def get_scheddbcol(getcol_name):
     game_list = tdbInterface.readSchedDB(div.age, div.gender)
     a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'
+
+@route('/create_newfieldcol/<newcol_name>')
+def create_newfieldcol(newcol_name):
+    callback_name = request.query.callback
+    fieldinfo_data = request.query.fieldinfo_data
+    tdbInterface = TournDBInterface(mongoClient, newcol_name)
+    tdbInterface.writeDB(divinfo_data)
+    schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    a = json.dumps({'test':'asdf'})
+    return callback_name+'('+a+')'

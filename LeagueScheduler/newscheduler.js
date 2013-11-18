@@ -1,14 +1,14 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/divinfo", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
+	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, divinfo, EditGrid,
+		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
-			divnum_reg: null, divinfo_store:null, divinfo_grid:null,
-			divinfogrid_name:"", error_node:null, newcol_name:"",
-			schedutil_obj:null, form_name:"", editgrid:null,
+			entrynum_reg: null, error_node:null,
+			newcol_name:"", schedutil_obj:null, form_name:"", editgrid:null,
+			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -16,11 +16,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var active_grid = baseinfoSingleton.get_active_grid();
 				if (active_grid) {
 					active_grid.cleanup();
+					baseinfoSingleton.reset_active_grid();
 				}
 				this.schedutil_obj.makeVisible(this.form_name);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
-				this.keyup_handle = this.divnum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
+				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
 			},
 			// ref http://dojotoolkit.org/documentation/tutorials/1.9/key_events/
 			processdivinfo_input: function(event) {
@@ -32,15 +33,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
+						var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions
-						var divnum = this.divnum_reg.get("value");
-						var divInfo_list = new Array();
-						for (var i = 1; i < divnum+1; i++) {
-							divInfo_list.push({div_id:i, div_age:"", div_gen:"",
-							totalteams:1, totalbrackets:1, elimination_num:1,
-							elimination_type:"",
-							field_id_str:"", gameinterval:1, rr_gamedays:1});
-						}
+						var divnum = this.entrynum_reg.get("value");
+						var divInfo_list = divinfo_obj.getInitialList(divnum);
 						this.schedutil_obj.makeInvisible(this.form_name);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
@@ -52,15 +48,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							text_node:dom.byId("divisionInfoNodeText"),
 							submitbtn_reg:registry.byId("updatesubmit_btn"),
 							updatebtn_node:dom.byId("divisionInfoUpdateBtnText"),
-							idproperty:'div_id',
-							schedutil_obj:this.schedutil_obj,
-							server_callback:lang.hitch(this.schedutil_obj,this.schedutil_obj.regenAddDBCollection_smenu)});
-						var divinfo_obj = new divinfo;
+							idproperty:this.idproperty,
+							server_callback:lang.hitch(this.schedutil_obj,this.schedutil_obj.regenAddDBCollection_smenu),
+							server_path:this.server_path,
+							server_key:this.server_key});
 						var columnsdef_obj = divinfo_obj.columnsdef_obj;
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);
-						//on(this.divInfoGrid, "dgrid-datachange",
-						//	lang.hitch(this, this.editDivInfoGrid));
+						baseinfoSingleton.set_active_grid_name(this.newcol_name);
 					} else {
 						alert('Input name is Invalid, please correct');
 					}

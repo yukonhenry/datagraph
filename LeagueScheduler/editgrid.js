@@ -1,9 +1,10 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
+	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dijit/form/ToggleButton",
 	"LeagueScheduler/bracketinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, Memory,
+	function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
+	         arrayUtil, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, ToggleButton, BracketInfo, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
@@ -12,8 +13,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
-			tbutton_reg:null, schedutil_obj:null,
-			server_callback:null,
+			tbutton_reg:null,
+			server_callback:null, server_path:"", server_key:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -44,19 +45,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.submitHandle = this.submitbtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
 				if (this.idproperty == 'div_id') {
-					this.tbutton_reg = new ToggleButton({showLabel: true, checked: false,
-						onChange: lang.hitch(this, function(val){
-							if (val) {
-								this.tbutton_reg.set('label','Disable Bracket Edit');
-							}
-							else {
-								this.tbutton_reg.set('label', 'Enable Bracket Edit');
-							}
-							// based on change of toggle, turn on/off bracket edit
-							this.manageBracketEdit(val);
-						}),
-						label: "Enable Bracket Edit"}, "bracketenable_btn");
-
+					this.tbutton_reg = baseinfoSingleton.get_tbutton_reg();
+					if (!this.tbutton_reg) {
+						this.tbutton_reg = new ToggleButton({showLabel: true, checked: false,
+							onChange: lang.hitch(this, function(val){
+								if (val) {
+									this.tbutton_reg.set('label','Disable Bracket Edit');
+								} else {
+									this.tbutton_reg.set('label', 'Enable Bracket Edit');
+								}
+								// based on change of toggle, turn on/off bracket edit
+								this.manageBracketEdit(val);
+							}),
+							label: "Enable Bracket Edit", type:"button"}, "bracketenable_btn");
+						this.tbutton_reg.startup();
+						baseinfoSingleton.set_tbutton_reg(this.tbutton_reg);
+					} else {
+						// togglebutton widget already exists, merely show
+						// ref http://stackoverflow.com/questions/18096763/how-can-i-hide-a-dijit-form-button
+						//domClass.add(this.tbutton_reg.domNode, "dijitToggleButton info");
+						domStyle.set(this.tbutton_reg.domNode, 'display', 'inline');
+					}
 				}
 			},
 			manageBracketEdit: function(val) {
@@ -95,12 +104,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			sendDivInfoToServer: function(event) {
 				storedata_json = JSON.stringify(this.schedInfoStore.query());
-				//this.schedInfoStore.query().forEach(function(division) {
-        		//});
 				var server_callback = this.server_callback || this.server_interface.server_ack;
+				var server_path = this.server_path || "create_newdbcol/";
+				var server_key = this.server_key || 'divinfo_data';
+				var server_key_obj = {};
+				server_key_obj[server_key] = storedata_json;
 				var options_obj = {item:this.colname};
-				this.server_interface.getServerData("create_newdbcol/"+this.colname,
-					server_callback, {divinfo_data:storedata_json}, options_obj);
+				this.server_interface.getServerData(server_path+this.colname,
+					server_callback, server_key_obj, options_obj);
 				baseinfoSingleton.addto_dbname_list(this.colname);
 			},
 			cleanup: function() {
@@ -127,6 +138,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.submitHandle.remove();
 				if (this.rowSelectHandle)
 					this.rowSelectHandle.remove();
+				if (this.tbutton_reg)
+					domStyle.set(this.tbutton_reg.domNode, 'display', 'none');
 			}
 		});
 	})
