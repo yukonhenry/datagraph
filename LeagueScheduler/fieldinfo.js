@@ -11,7 +11,7 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
-			getServerDBDivInfo: function(options_obj) {
+			getServerDBFieldInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the

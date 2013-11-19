@@ -6,8 +6,7 @@ http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
 define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang", "dojo/dom-class",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
 	"LeagueScheduler/editgrid","LeagueScheduler/divinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil, registry, MenuItem,
-		EditGrid, DivInfo, baseinfoSingleton){
+	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil, registry, MenuItem, EditGrid, DivInfo, baseinfoSingleton){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};
@@ -138,11 +137,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
 				var options_obj = options_obj || {};
 				arrayUtil.forEach(submenu_list, function(item, index) {
-					options_obj.item = item;
 					var smenuitem = new MenuItem({label: item,
-						onClick: lang.hitch(onclick_context, onclick_func, options_obj) });
+						onClick: function() {
+							// update options_obj in actual onclick handler
+							// when it is called
+							options_obj.item = item;
+							var onclick_direct = lang.hitch(onclick_context, onclick_func);
+							onclick_direct(options_obj);}});
     				submenu_reg.addChild(smenuitem);
-				}, this);
+				}, this.generateDBCollection_smenu);  // context should be function
 				if (typeof options_obj.db_type !== 'undefined') {
 					var db_type = options_obj.db_type;
 					if (db_type == 'db') {
