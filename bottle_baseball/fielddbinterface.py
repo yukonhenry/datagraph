@@ -4,43 +4,30 @@ from dbinterface import MongoDBInterface, DB_Col_Type
 import simplejson as json
 from collections import namedtuple
 import logging
-age_CONST = 'AGE'
-gen_CONST = 'GEN'
-div_id_CONST = 'DIV_ID'
-totalteams_CONST = 'TOTALTEAMS'
-totalbrackets_CONST = 'TOTALBRACKETS'
-elimination_num_CONST = 'ELIMINATION_NUM'
-elimination_type_CONST = 'ELIMINATION_TYPE'
-field_id_list_CONST = 'FIELD_ID_LIST'
-gameinterval_CONST = 'GAMEINTERVAL'
-rr_gamedays_CONST = 'RR_GAMEDAYS'
-gameday_id_CONST = 'GAMEDAY_ID'
-match_id_CONST = 'MATCH_ID'
-start_time_CONST = 'START_TIME'
-gameday_data_CONST = 'GAMEDAY_DATA'
+
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
-''' class to convert process new tournament schedule.  All namespace conversion between
-js object keys and db document keys happen here '''
-class TournDBInterface:
-    def __init__(self, mongoClient, newcol_name):
-        self.dbInterface = MongoDBInterface(mongoClient, newcol_name, db_col_type=DB_Col_Type.ElimTourn)
+field_id_CONST = 'FIELD_ID'
+field_name_CONST = 'FIELD_NAME'
+primaryuse_list_CONST = 'PRIMARYUSE_LIST'
+start_time_CONST = 'START_TIME'
+end_time_CONST = 'END_TIME'
 
-    def writeDB(self, divinfo_str):
-        divinfo_dict = json.loads(divinfo_str)
-        for division in divinfo_dict:
-            div_id = division['div_id']
-            document = {div_id_CONST:int(div_id), age_CONST:division['div_age'],
-                        gen_CONST:division['div_gen'],
-                        totalteams_CONST:int(division['totalteams']),
-                        totalbrackets_CONST: int(division['totalbrackets']),
-                        elimination_num_CONST:int(division['elimination_num']),
-                        elimination_type_CONST:division['elimination_type'],
-                        field_id_list_CONST:division['field_id_str'].split(),
-                        gameinterval_CONST:int(division['gameinterval']),
-                        rr_gamedays_CONST:int(division['rr_gamedays'])}
-            self.dbInterface.updateTournamentDivInfo(document, div_id)
+class FieldDBInterface:
+    def __init__(self, mongoClient, newcol_name):
+        self.dbInterface = MongoDBInterface(mongoClient, newcol_name, db_col_type=DB_Col_Type.FieldInfo)
+
+    def writeDB(self, fieldinfo_str):
+        fieldinfo_dict = json.loads(fieldinfo_str)
+        for fieldinfo in fieldinfo_dict:
+            field_id = fieldinfo['field_id']
+            document = {field_id_CONST:int(field_id),
+                        field_name_CONST:fieldinfo['field_name'],
+                        primaryuse_list_CONST:fieldinfo['primaryuse'].split(),
+                        start_time_CONST:fieldinfo['start_time'],
+                        end_time_CONST:fieldinfo['end_time'])}
+            self.dbInterface.updateFieldInfo(document, field_id)
 
     def readDB(self):
         divlist = self.dbInterface.getTournamentDivInfo().dict_list

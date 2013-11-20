@@ -11,7 +11,6 @@ from leaguedivprep import getTournamentFieldInfo
 
 class TournamentScheduler:
     def __init__(self, mongoClient, divinfo_col):
-        #self.dbInterface = MongoDBInterface(mongoClient, divinfo_col, rr_type_flag=False)
         self.tdbInterface = TournDBInterface(mongoClient, divinfo_col)
         self.divinfo_tuple = self.tdbInterface.readDB()
         self.tourn_divinfo = self.divinfo_tuple.dict_list

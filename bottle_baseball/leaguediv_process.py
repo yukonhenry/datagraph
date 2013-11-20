@@ -18,6 +18,7 @@ from eliminationscheduler import EliminationScheduler
 import logging
 from singletonlite import mongoClient
 from tourndbinterface import TournDBInterface
+from fielddbinterface import FieldDBInterface
 
 dbInterface = MongoDBInterface(mongoClient)
 
@@ -250,8 +251,8 @@ def get_scheddbcol(getcol_name):
 def create_newfieldcol(newcol_name):
     callback_name = request.query.callback
     fieldinfo_data = request.query.fieldinfo_data
-    tdbInterface = TournDBInterface(mongoClient, newcol_name)
-    tdbInterface.writeDB(divinfo_data)
-    schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    fdbInterface = FieldDBInterface(mongoClient, newcol_name)
+    fdbInterface.writeDB(fieldinfo_data)
+    schedcol_list = fdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'

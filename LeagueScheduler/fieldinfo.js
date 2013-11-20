@@ -4,7 +4,7 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 			columnsdef_obj : {
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
-				primary_use: editor({label:"Used by", field:"primary_use", autoSave:true}, "text", "dblclick"),
+				primaryuse: editor({label:"Used by", field:"primary_use", autoSave:true}, "text", "dblclick"),
 				start_time: editor({label:"Start Time", field:"start_time", autoSave:true}, "text", "dblclick"),
 				end_time: editor({label:"End Time", field:"end_time", autoSave:true}, "text", "dblclick")
 			}, server_interface:null, schedutil_obj:null,
@@ -31,7 +31,7 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 				var fieldinfo_list = new Array();
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
-					                    primary_use:"", start_time:"",
+					                    primaryuse:"", start_time:"",
 					                    end_time:""});
 				}
 				return fieldinfo_list;

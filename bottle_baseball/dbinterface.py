@@ -7,6 +7,7 @@ from collections import Counter, namedtuple
 from leaguedivprep import getDivID
 import logging
 import socket
+from flufl.enum import Enum
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 gameday_data_CONST = 'GAMEDAY_DATA'
@@ -36,17 +37,23 @@ sched_type_CONST = 'SCHED_TYPE'
 match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
 round_CONST = 'ROUND'
-RR_CONST = 'RoundRobin'
-Tourn_CONST = 'Tournament'
+field_id_CONST = 'FIELD_ID'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
+# http://pythonhosted.org/flufl.enum/docs/using.html
+class DB_Col_Type(Enum):
+    RoundRobinTourn = 1
+    ElimTourn = 2
+    FieldInfo = 3
+
 class MongoDBInterface:
-    def __init__(self, mongoClient, collection_name='games', rr_type_flag=True):
+    def __init__(self, mongoClient, collection_name='games',
+                 db_col_type=DB_Col_Type.RoundRobinTourn):
         self.schedule_db = mongoClient.schedule_db
 #        self.games_col = self.schedule_db.games
         self.games_col = self.schedule_db[collection_name]
-        self.sched_type = RR_CONST if rr_type_flag else Tourn_CONST
+        self.sched_type = str(db_col_type)
         if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
             self.games_col.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type}, safe=True)
 
@@ -65,6 +72,10 @@ class MongoDBInterface:
 
     def updateTournamentDivInfo(self, document, div_id):
         docID = self.games_col.update({div_id_CONST:div_id},
+                                      {"$set": document}, upsert=True, safe=True)
+
+    def updateFieldInfo(self, document, field_id):
+        docID = self.games_col.update({field_id_CONST:field_id},
                                       {"$set": document}, upsert=True, safe=True)
 
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
@@ -321,7 +332,7 @@ class MongoDBInterface:
         sc_list = self.schedule_db.collection_names(include_system_collections=False)
         # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
         schedcollect_list = [x for x in sc_list
-                             if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:Tourn_CONST}) ]
+                             if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:str(DB_Col_Type.ElimTourn)}) ]
         return schedcollect_list
 
     def getTournamentDivInfo(self):
