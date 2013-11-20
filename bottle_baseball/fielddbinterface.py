@@ -24,34 +24,21 @@ class FieldDBInterface:
             field_id = fieldinfo['field_id']
             document = {field_id_CONST:int(field_id),
                         field_name_CONST:fieldinfo['field_name'],
-                        primaryuse_list_CONST:fieldinfo['primaryuse'].split(),
+                        primaryuse_list_CONST:fieldinfo['primaryuse_str'].split(),
                         start_time_CONST:fieldinfo['start_time'],
                         end_time_CONST:fieldinfo['end_time'])}
             self.dbInterface.updateFieldInfo(document, field_id)
 
     def readDB(self):
-        divlist = self.dbInterface.getTournamentDivInfo().dict_list
-        divinfo_list = []
-        for divinfo in divlist:
-            divinfo_list.append({'div_id':divinfo[div_id_CONST],
-                                 'div_age':divinfo[age_CONST],
-                                 'div_gen':divinfo[gen_CONST],
-                                 'totalteams':divinfo[totalteams_CONST],
-                                 'totalbrackets':divinfo[totalbrackets_CONST],
-                                 'elimination_num':divinfo[elimination_num_CONST],
-                                 'elimination_type':divinfo[elimination_type_CONST],
-                                 'field_id_str':','.join(str(f) for f in divinfo[field_id_list_CONST]),
-                                 'gameinterval':divinfo[gameinterval_CONST],
-                                 'rr_gamedays':divinfo[rr_gamedays_CONST]})
-        d_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divinfo_list)).get(x)
-        return _List_Indexer(divinfo_list, d_indexerGet)
+        flist = self.dbInterface.getFieldInfo().dict_list
+        fieldinfo_list = []
+        for fieldinfo in flist:
+            fieldinfo_list.append({'field_id':fieldinfo[field_id_CONST],
+                                 'field_name':fieldinfo[field_name_CONST],
+                                 'primaryuse_str':'-'.join(str(f) for f in fieldinfo[primaryuse_list_CONST]),
+                                 'start_time':fieldinfo[start_time_CONST],
+                                 'end_time':fieldinfo[end_time_CONST]})
+        f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
+        return _List_Indexer(fieldinfo_list, f_indexerGet)
 
-    def readSchedDB(self, age, gender):
-        dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
-        game_list = []
-        for dbgame in dbgame_list:
-            print dbgame
-            game_list.append({'gameday_id':dbgame[gameday_id_CONST],
-                             'start_time':dbgame[start_time_CONST]})
-        return dbgame_list
 

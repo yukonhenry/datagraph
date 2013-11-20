@@ -343,5 +343,13 @@ class MongoDBInterface:
         d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         return _List_Indexer(divinfo_list, d_indexerGet)
 
+    def getFieldInfo(self):
+        result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0})
+        fieldinfo_list = []
+        for field_dict in result_list:
+            fieldinfo_list.append(field_dict)
+        f_indexerGet = lambda x: dict((p[field_id_CONST],i) for i,p in enumerate(fieldinfo_list)).get(x)
+        return _List_Indexer(fieldinfo_list, f_indexerGet)
+
     def dropDB_col(self):
         self.games_col.drop()

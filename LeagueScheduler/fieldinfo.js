@@ -4,7 +4,7 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 			columnsdef_obj : {
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
-				primaryuse: editor({label:"Used by", field:"primary_use", autoSave:true}, "text", "dblclick"),
+				primaryuse_str: editor({label:"Used by", field:"primaryuse_str", autoSave:true}, "text", "dblclick"),
 				start_time: editor({label:"Start Time", field:"start_time", autoSave:true}, "text", "dblclick"),
 				end_time: editor({label:"End Time", field:"end_time", autoSave:true}, "text", "dblclick")
 			}, server_interface:null, schedutil_obj:null,
