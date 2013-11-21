@@ -78,7 +78,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
 				dbcollection_list, schedUtil, schedUtil.delete_dbcollection,
-				{db_type:'db'});
+				{db_type:'db', server_path:"delete_dbcol/"});
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.cupdbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
@@ -92,6 +92,15 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var schedinfo_obj = new schedinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
 			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", schedinfo_obj, schedinfo_obj.getServerDBSchedInfo,
 				{db_type:'db'});
+			// create menu for the field collections lists
+			var fielddb_list = ldata.fielddb_list;
+			var fieldinfo_obj = new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil});
+			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu", fieldinfo_obj, fieldinfo_obj.getServerDBFieldInfo,
+				{db_type:'db'});
+			var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
+			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
+				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
+				{db_type:'db', server_path:"delete_fieldcol/"});
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);

@@ -11,7 +11,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08l</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08o</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -72,14 +72,14 @@
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Division Info</span>
                             <div data-dojo-type="dijit/DropDownMenu">
-                                <div data-dojo-type="dijit/MenuItem" id="newsched_item">New Schedule</div>
+                                <div data-dojo-type="dijit/MenuItem" id="newsched_item">New Division Info</div>
                                 <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Existing Schedule</span>
+                                    <span>Edit Division Info</span>
                                     <div data-dojo-type="dijit/DropDownMenu" id="dbcollection_submenu">
                                     </div>
                                 </div>
                                 <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Delete Schedule</span>
+                                    <span>Delete Division Info</span>
                                     <div data-dojo-type="dijit/DropDownMenu" id="deldbcollection_submenu">
                                     </div>
                                 </div>
@@ -107,6 +107,11 @@
                                 <div data-dojo-type="dijit/PopupMenuItem">
                                     <span>Edit Field List</span>
                                     <div data-dojo-type="dijit/DropDownMenu" id="editfieldlist_submenu">
+                                    </div>
+                                </div>
+                                <div data-dojo-type="dijit/PopupMenuItem">
+                                    <span>Delete Field List</span>
+                                    <div data-dojo-type="dijit/DropDownMenu" id="delfielddb_submenu">
                                     </div>
                                 </div>
                             </div>

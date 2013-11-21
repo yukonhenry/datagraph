@@ -320,12 +320,14 @@ class MongoDBInterface:
     def getSchedStatus(self):
         return self.games_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
 
-    def getScheduleCollections(self):
+    def getScheduleCollections(self, db_col_type_list = []):
         # ref http://api.mongodb.org/python/current/api/pymongo/database.html
         # make sure python version >= 2.7 for include_system_collections
         sc_list = self.schedule_db.collection_names(include_system_collections=False)
         # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
-        schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1]
+        schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1 and any(self.schedule_db[x].find_one({sched_type_CONST:str(y)}) for y in db_col_type_list)]
+
+        #schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1]
         return schedcollect_list
 
     def getCupScheduleCollections(self):
@@ -344,7 +346,7 @@ class MongoDBInterface:
         return _List_Indexer(divinfo_list, d_indexerGet)
 
     def getFieldInfo(self):
-        result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0})
+        result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)
         fieldinfo_list = []
         for field_dict in result_list:
             fieldinfo_list.append(field_dict)

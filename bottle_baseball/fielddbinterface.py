@@ -26,7 +26,7 @@ class FieldDBInterface:
                         field_name_CONST:fieldinfo['field_name'],
                         primaryuse_list_CONST:fieldinfo['primaryuse_str'].split(),
                         start_time_CONST:fieldinfo['start_time'],
-                        end_time_CONST:fieldinfo['end_time'])}
+                        end_time_CONST:fieldinfo['end_time']}
             self.dbInterface.updateFieldInfo(document, field_id)
 
     def readDB(self):

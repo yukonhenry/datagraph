@@ -9,7 +9,7 @@ from networkx.readwrite import json_graph
 from networkx import connected_components
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
-from dbinterface import MongoDBInterface
+from dbinterface import MongoDBInterface, DB_Col_Type
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
      getFieldInfo, getTournamentFieldInfo, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
@@ -39,20 +39,23 @@ http://bottlepy.org/docs/dev/tutorial.html#request-routing
 '''
 @route('/leaguedivinfo')
 def leaguedivinfo_all():
-	callback_name = request.query.callback
-	ldata_tuple = getLeagueDivInfo()
-	field_tuple = getFieldInfo()
-	dbstatus = dbInterface.getSchedStatus()
-	schedcol_list = dbInterface.getScheduleCollections()
-	cupschedcol_list = dbInterface.getCupScheduleCollections()
-	logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
-	a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
+    callback_name = request.query.callback
+    ldata_tuple = getLeagueDivInfo()
+    field_tuple = getFieldInfo()
+    dbstatus = dbInterface.getSchedStatus()
+    schedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.RoundRobinTourn, DB_Col_Type.ElimTourn])
+    cupschedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.ElimTourn])
+    #cupschedcol_list = dbInterface.getCupScheduleCollections()
+    fielddb_list = dbInterface.getScheduleCollections([DB_Col_Type.FieldInfo])
+    logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
+    a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "dbstatus":dbstatus,
                     "dbcollection_list":schedcol_list,
+                    "fielddb_list": fielddb_list,
                     "cupdbcollection_list":cupschedcol_list})
-	return callback_name+'('+a+')'
+    return callback_name+'('+a+')'
 
 # Get per-division schedule
 @route('/leaguedivinfo/<tid:int>', method='GET')
@@ -209,7 +212,7 @@ def create_newdbcol(newcol_name):
     divinfo_data = request.query.divinfo_data
     tdbInterface = TournDBInterface(mongoClient, newcol_name)
     tdbInterface.writeDB(divinfo_data)
-    schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'
 
@@ -218,8 +221,9 @@ def delete_dbcol(delcol_name):
     callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, delcol_name)
     tdbInterface.dbInterface.dropDB_col()
-    schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
-    a = json.dumps({"dbcollection_list":schedcol_list})
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    #a = json.dumps({"dbcollection_list":schedcol_list})
+    a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
 
 @route('/delete_divdbcol/<deldivcol_name>')
@@ -255,4 +259,22 @@ def create_newfieldcol(newcol_name):
     fdbInterface.writeDB(fieldinfo_data)
     #schedcol_list = fdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'asdf'})
+    return callback_name+'('+a+')'
+
+@route('/get_fieldcol/<getcol_name>')
+def get_fieldcol(getcol_name):
+    callback_name = request.query.callback
+    fdbInterface = FieldDBInterface(mongoClient, getcol_name)
+    fieldinfo_list = fdbInterface.readDB().dict_list
+    a = json.dumps({'fieldinfo_list':fieldinfo_list})
+    return callback_name+'('+a+')'
+
+@route('/delete_fieldcol/<delcol_name>')
+def delete_fieldcol(delcol_name):
+    callback_name = request.query.callback
+    fdbInterface = FieldDBInterface(mongoClient, delcol_name)
+    fdbInterface.dbInterface.dropDB_col()
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    #a = json.dumps({"dbcollection_list":schedcol_list})
+    a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'

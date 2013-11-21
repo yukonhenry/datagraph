@@ -160,7 +160,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			delete_dbcollection: function(options_obj) {
 				var item = options_obj.item;
-				this.server_interface.getServerData("delete_dbcol/"+item,
+				var server_path = options_obj.server_path;
+				this.server_interface.getServerData(server_path+item,
 					lang.hitch(this, this.regenDelDBCollection_smenu),"", options_obj);
 			},
 			regenDelDBCollection_smenu: function(adata, options_obj) {
@@ -240,7 +241,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						text_node:dom.byId("divisionInfoNodeText"),
 						submitbtn_reg:registry.byId("updatesubmit_btn"),
 						updatebtn_node:dom.byId("divisionInfoUpdateBtnText"),
-						idproperty:options_obj.idproperty});
+						idproperty:options_obj.idproperty,
+						server_path:options_obj.server_path,
+						server_key:options_obj.server_key});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
 					baseinfoSingleton.set_active_grid(this.editGrid);
 					baseinfoSingleton.set_active_grid_name(colname);
