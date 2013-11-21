@@ -170,9 +170,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			regenDelDBCollection_smenu: function(adata, options_obj) {
 				var item_name = options_obj.item;
+				var dbmenureg_list = (options_obj.db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
 				// update dbname list - only do after delete at db succeeded
 				baseinfoSingleton.removefrom_dbname_list(item_name);
-				arrayUtil.forEach(this.dbmenureg_list, function(dbmenudata, index) {
+				arrayUtil.forEach(dbmenureg_list, function(dbmenudata, index) {
 					var dbmenureg = dbmenudata.reg;
 					arrayUtil.forEach(dbmenureg.getChildren(), function(smenuitem, index2) {
 						if (smenuitem.get('label') == item_name) {

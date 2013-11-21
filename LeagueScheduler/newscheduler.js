@@ -65,6 +65,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			nodupname_validate: function(col_name) {
 				// if name exists in the current list (index > -1) then
 				// return false (test failed)
+				// currently dbname_list includes list of all db names
+				// and doesn't distinguish between various field/div db's
 				var dbname_list = baseinfoSingleton.get_dbname_list();
 				if (dbname_list.indexOf(col_name) > -1)
 					return false;
