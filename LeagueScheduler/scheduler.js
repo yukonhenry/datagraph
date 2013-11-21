@@ -96,11 +96,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var fielddb_list = ldata.fielddb_list;
 			var fieldinfo_obj = new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil});
 			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu", fieldinfo_obj, fieldinfo_obj.getServerDBFieldInfo,
-				{db_type:'db'});
+				{db_type:'fielddb'});
 			var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
 			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
 				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
-				{db_type:'db', server_path:"delete_fieldcol/"});
+				{db_type:'fielddb', server_path:"delete_fieldcol/"});
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
@@ -380,6 +380,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				form_name:form_name, form_reg:form_reg,
 				entrynum_reg:divnum_reg, server_interface:serverInterface,
 				schedutil_obj:schedUtil,
+				callback: lang.hitch(schedUtil, schedUtil.regenAddDBCollection_smenu),
 				info_obj: new divinfo,
 				idproperty:'div_id',
 				server_path:"create_newdbcol/"});
@@ -394,6 +395,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				form_name:form_name, form_reg:form_reg,
 				entrynum_reg:fieldnum_reg, server_interface:serverInterface,
 				schedutil_obj:schedUtil,
+				callback: lang.hitch(schedUtil,schedUtil.regenAddFieldDBCollection_smenu),
 				info_obj: new FieldInfo,
 				idproperty:'field_id',
 				server_path:"create_newfieldcol/",
