@@ -129,7 +129,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 				if (this.errorHandle) {
 					this.error_node.innerHTML = "";
-					delete this.error_node;
+					//delete this.error_node;
 					this.errorHandle.remove();
 				}
 				if (this.datachangeHandle)

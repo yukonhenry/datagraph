@@ -23,7 +23,9 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 				return this.active_grid;
 			},
 			reset_active_grid: function() {
-				this.active_grid = null;
+				delete this.active_grid;
+				//this.active_grid = null;
+				this.active_grid_name = "";
 			},
 			set_active_grid_name: function(active_grid_name) {
 				this.active_grid_name = active_grid_name;
