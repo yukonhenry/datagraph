@@ -4,6 +4,7 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 		var baseinfoSingleton = declare(null, {
 			select_reg:null, select_dom:null, active_grid:null,
 			dbname_list:null, active_grid_name:"", tbutton_reg:null,
+			visible_form_name:"",
 			set_select_reg: function(select_reg) {
 				this.select_reg = select_reg;
 			},
@@ -58,6 +59,15 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			get_tbutton_reg: function() {
 				return this.tbutton_reg;
 			},
+			set_visible_form_name: function(form_name) {
+				this.visible_form_name = form_name;
+			},
+			reset_visible_form_name: function(form_name) {
+				this.visible_form_name = "";
+			},
+			get_visible_form_name: function() {
+				return this.visible_form_name;
+			}
 		});
 		if (!_instance) {
 			var _instance = new baseinfoSingleton();
