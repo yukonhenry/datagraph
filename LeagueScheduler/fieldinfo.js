@@ -1,11 +1,18 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"], function(declare, lang, editor, baseinfoSingleton){
+define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dojo/domReady!"], function(declare, lang, editor, baseinfoSingleton, TimeTextBox){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
 				primaryuse_str: editor({label:"Used by", field:"primaryuse_str", autoSave:true}, "text", "dblclick"),
-				start_time: editor({label:"Start Time", field:"start_time", autoSave:true}, "text", "dblclick"),
+				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, editorArgs:{ value: new Date(),
+        constraints: {
+            timePattern: 'HH:mm:ss',
+            clickableIncrement: 'T00:15:00',
+            visibleIncrement: 'T00:15:00',
+            visibleRange: 'T01:00:00'
+        }
+    }}, TimeTextBox, "dblclick"),
 				end_time: editor({label:"End Time", field:"end_time", autoSave:true}, "text", "dblclick")
 			}, server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
