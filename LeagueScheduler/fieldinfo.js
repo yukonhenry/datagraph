@@ -6,7 +6,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
 				primaryuse_str: editor({label:"Used by", field:"primaryuse_str", autoSave:true}, "text", "dblclick"),
 				start_time: editor({label:"Start Time", field:"start_time", autoSave:true,
-					editorArgs:{ value: new Date(),
+					editorArgs:{
 						constraints: {
 							timePattern: 'HH:mm:ss',
 							clickableIncrement: 'T00:15:00',
@@ -15,7 +15,14 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 							//min: 'T08:00:00',
 							//max:'T18:00:00'
 						},
-					}, /*
+					},
+					set: function(item) {
+						var start_time_obj = item.start_time;
+						var start_time = start_time_obj.toLocaleTimeString();
+						console.log("setitem="+start_time);
+						return start_time;
+					},
+					/*
 					get:function(item) {
 						console.log("getitem="+item);
 						var new_date = new Date(item.start_time);
@@ -23,13 +30,45 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						return new_time;
 					}, */
 					renderCell: function(object, value) {
-						console.log("renderCell="+object+" "+value);
-						return put("div", value?value.toLocaleTimeString():"T08:00:00");
+						console.log("obj value="+object+" "+value);
+						if (typeof value == "string")
+							return put("div", value);
+						else {
+							// if the type if a Date object (only type of obj) possible
+							// here, extract (local) timestring
+							return put("div", value?value.toLocaleTimeString():"");
+						}
 					}
 				}, TimeTextBox, "dblclick"),
-				end_time: editor({label:"End Time", field:"end_time", autoSave:true}, "text", "dblclick")
+				end_time: editor({label:"End Time", field:"end_time", autoSave:true,
+					editorArgs:{
+						constraints: {
+							timePattern: 'HH:mm:ss',
+							clickableIncrement: 'T00:15:00',
+							visibleIncrement: 'T00:15:00',
+							visibleRange: 'T01:00:00'
+							//min: 'T08:00:00',
+							//max:'T18:00:00'
+						},
+					},
+					set: function(item) {
+						var end_time_obj = item.end_time;
+						var end_time = end_time_obj.toLocaleTimeString();
+						console.log("set end item="+end_time);
+						return end_time;
+					},
+					renderCell: function(object, value) {
+						console.log("end time obj value="+object+" "+value);
+						if (typeof value == "string")
+							return put("div", value);
+						else {
+							// if the type if a Date object (only type of obj) possible
+							// here, extract (local) timestring
+							return put("div", value?value.toLocaleTimeString():"");
+						}
+					},
+				}, TimeTextBox, "dblclick")
 			}, server_interface:null, schedutil_obj:null,
-			early_time:null, late_time:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
