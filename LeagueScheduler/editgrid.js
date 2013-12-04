@@ -88,6 +88,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var val = event.value;
         		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
         			'col='+event.cell.column.field);
+        		var columntype = event.cell.column.field;
+        		event.grid.columns.start_time.columntype = columntype;
 			},
 			rowSelectHandler: function(event) {
 				var eventdata = event.rows[0].data

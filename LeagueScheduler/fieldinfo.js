@@ -5,7 +5,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
 				primaryuse_str: editor({label:"Used by", field:"primaryuse_str", autoSave:true}, "text", "dblclick"),
-				start_time: editor({label:"Start Time", field:"start_time", autoSave:true,
+				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:"",
 					editorArgs:{
 						constraints: {
 							timePattern: 'HH:mm:ss',
@@ -17,10 +17,10 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						},
 					},
 					set: function(item) {
-						var start_time_obj = item.start_time;
-						var start_time = start_time_obj.toLocaleTimeString();
-						console.log("setitem="+start_time);
-						return start_time;
+						var column_obj = item[this.columntype];
+						var time_str = column_obj.toLocaleTimeString();
+						console.log("setitem="+time_str);
+						return time_str;
 					},
 					/*
 					get:function(item) {
@@ -40,7 +40,8 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						}
 					}
 				}, TimeTextBox, "dblclick"),
-				end_time: editor({label:"End Time", field:"end_time", autoSave:true,
+				end_time: editor({label:"End Time", field:"end_time",
+				                 autoSave:true, columntype:"",
 					editorArgs:{
 						constraints: {
 							timePattern: 'HH:mm:ss',
@@ -50,13 +51,13 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 							//min: 'T08:00:00',
 							//max:'T18:00:00'
 						},
-					},
+					}, /*
 					set: function(item) {
 						var end_time_obj = item.end_time;
 						var end_time = end_time_obj.toLocaleTimeString();
 						console.log("set end item="+end_time);
 						return end_time;
-					},
+					}, */
 					renderCell: function(object, value) {
 						console.log("end time obj value="+object+" "+value);
 						if (typeof value == "string")
