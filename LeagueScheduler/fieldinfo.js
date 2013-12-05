@@ -5,7 +5,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
 				primaryuse_str: editor({label:"Used by", field:"primaryuse_str", autoSave:true}, "text", "dblclick"),
-				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:"",
+				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 					editorArgs:{
 						constraints: {
 							timePattern: 'HH:mm:ss',
@@ -16,19 +16,26 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 							//max:'T18:00:00'
 						},
 					},
+					/*
 					set: function(item) {
 						var column_obj = item[this.columntype];
-						var time_str = column_obj.toLocaleTimeString();
-						console.log("setitem="+time_str);
-						return time_str;
+						if (typeof column_obj == "string")
+							return column_obj;
+						else {
+							var time_str = column_obj.toLocaleTimeString();
+							console.log("setitem="+time_str);
+							return time_str;
+						}
+					},*/
+					set: function(item) {
+						if (this.columntype) {
+							var column_obj = item.start_time;
+							var time_str = column_obj.toLocaleTimeString();
+							console.log("setitem="+time_str);
+							this.columntype = false;
+							return time_str;
+						}
 					},
-					/*
-					get:function(item) {
-						console.log("getitem="+item);
-						var new_date = new Date(item.start_time);
-						var new_time = new_date.toTimeString();
-						return new_time;
-					}, */
 					renderCell: function(object, value) {
 						console.log("obj value="+object+" "+value);
 						if (typeof value == "string")
@@ -41,23 +48,37 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 					}
 				}, TimeTextBox, "dblclick"),
 				end_time: editor({label:"End Time", field:"end_time",
-				                 autoSave:true, columntype:"",
+				                 autoSave:true, columntype:false,
 					editorArgs:{
 						constraints: {
 							timePattern: 'HH:mm:ss',
 							clickableIncrement: 'T00:15:00',
 							visibleIncrement: 'T00:15:00',
 							visibleRange: 'T01:00:00'
-							//min: 'T08:00:00',
-							//max:'T18:00:00'
 						},
-					}, /*
+					},
+					/*
 					set: function(item) {
-						var end_time_obj = item.end_time;
-						var end_time = end_time_obj.toLocaleTimeString();
-						console.log("set end item="+end_time);
-						return end_time;
-					}, */
+						// only need to implement set function on the last column item as every defined set function for all columns is called regardless of which column cell was modified.
+						var column_obj = item[this.columntype];
+						if (typeof column_obj == "string")
+							return column_obj;
+						else {
+							var time_str = column_obj.toLocaleTimeString();
+							console.log("setitem="+time_str);
+							return time_str;
+						}
+					},
+					*/
+					set: function(item) {
+						if (this.columntype) {
+							var column_obj = item.end_time;
+							var time_str = column_obj.toLocaleTimeString();
+							console.log("end setitem="+time_str);
+							this.columntype = false;
+							return time_str;
+						}
+					},
 					renderCell: function(object, value) {
 						console.log("end time obj value="+object+" "+value);
 						if (typeof value == "string")
