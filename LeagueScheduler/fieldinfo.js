@@ -1,5 +1,5 @@
-define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(declare, lang, editor, baseinfoSingleton, TimeTextBox, DateTextBox, put, Calendar){
+define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(declare, lang, editor, baseinfoSingleton, TimeTextBox, DateTextBox, button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -37,7 +37,6 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						}
 					},
 					renderCell: function(object, value) {
-						console.log("obj value="+object+" "+value);
 						if (typeof value == "string")
 							return put("div", value);
 						else {
@@ -76,13 +75,17 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						}
 					},
 				}, TimeTextBox, "dblclick"),
+				/*
 				dates: editor({label:"Dates", field:"dates", autoSave:true,
 					editorArgs:{ value: new Date(),
 						constraints: {
 							//min:"2008-03-16"
-						} /*
+						}
+						*/
+						/*
 						dateInterval:"day",
 						style: "position:relative;width:600px;height:600px" */
+						/*
 					},
 					renderCell: function(object, value) {
 						console.log("obj value="+object+" "+value);
@@ -93,7 +96,13 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						}
 					}
 				},
-				DateTextBox, "dblclick")
+				DateTextBox, "dblclick") */
+				// http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+				dates: {label:"Dates", field:"dates",
+					renderCell: function(object, value) {
+						return put("div", new button());
+					},
+				}
 			}, server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
