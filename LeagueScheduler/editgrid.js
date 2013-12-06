@@ -1,11 +1,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
-	"dijit/form/ToggleButton",
+	"dgrid/CellSelection", "dijit/form/ToggleButton",
 	"LeagueScheduler/bracketinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
 	         arrayUtil, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, ToggleButton, BracketInfo, baseinfoSingleton) {
+		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection, ToggleButton, BracketInfo, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null, text_node:null,
 			server_interface:null, colname:null,
@@ -13,7 +13,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
-			tbutton_reg:null,
+			tbutton_reg:null, cellselect_flag:false,
 			server_callback:null, server_path:"", server_key:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -30,10 +30,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatebtn_node);
 				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
-				this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
-					store: this.schedInfoStore,
-					columns : columnsdef_obj
-				}, this.grid_name);
+				if (this.cellselect_flag) {
+					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, CellSelection]))({
+						store: this.schedInfoStore,
+						columns : columnsdef_obj,
+						selectionMode:"single"
+					}, this.grid_name);
+				} else {
+					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
+						store: this.schedInfoStore,
+						columns : columnsdef_obj,
+						selectionMode:"single"
+					}, this.grid_name);
+				}
 				this.schedInfoGrid.startup();
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");

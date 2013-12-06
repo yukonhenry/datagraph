@@ -98,10 +98,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				},
 				DateTextBox, "dblclick") */
 				// http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-				dates: {label:"Dates", field:"dates",
-					renderCell: function(object, value) {
-						return put("div", new button());
-					},
+				dates: "Select Dates"
 				}
 			}, server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
@@ -119,6 +116,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				options_obj.idproperty = 'field_id';
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.server_path = "create_newfieldcol/";
+				options_obj.cellselect_flag = true;
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
@@ -139,7 +137,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 					                    primaryuse_str:"",
-					                    start_time:"", end_time:"", dates:""});
+					                    start_time:"", end_time:"", dates:"Calendar"});
 //					                    start_time: today_9am.toLocaleTimeString(),
 //					                    end_time:today_5pm.toLocaleTimeString()});
 				}

@@ -41,6 +41,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						var divisioncode = this.select_reg.get("value");
 						options_obj.divisioncode = divisioncode;
 						options_obj.idproperty = 'match_id';
+						options_obj.cellselect_flag = false;
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
 							{divisioncode:divisioncode}, options_obj);
