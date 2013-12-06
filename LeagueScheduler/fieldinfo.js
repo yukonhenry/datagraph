@@ -1,5 +1,5 @@
-define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox",
-       "put-selector/put", "dojo/domReady!"], function(declare, lang, editor, baseinfoSingleton, TimeTextBox, put){
+define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(declare, lang, editor, baseinfoSingleton, TimeTextBox, DateTextBox, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -57,19 +57,6 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 							visibleRange: 'T01:00:00'
 						},
 					},
-					/*
-					set: function(item) {
-						// only need to implement set function on the last column item as every defined set function for all columns is called regardless of which column cell was modified.
-						var column_obj = item[this.columntype];
-						if (typeof column_obj == "string")
-							return column_obj;
-						else {
-							var time_str = column_obj.toLocaleTimeString();
-							console.log("setitem="+time_str);
-							return time_str;
-						}
-					},
-					*/
 					set: function(item) {
 						if (this.columntype) {
 							var column_obj = item.end_time;
@@ -80,7 +67,6 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						}
 					},
 					renderCell: function(object, value) {
-						console.log("end time obj value="+object+" "+value);
 						if (typeof value == "string")
 							return put("div", value);
 						else {
@@ -89,7 +75,25 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 							return put("div", value?value.toLocaleTimeString():"");
 						}
 					},
-				}, TimeTextBox, "dblclick")
+				}, TimeTextBox, "dblclick"),
+				dates: editor({label:"Dates", field:"dates", autoSave:true,
+					editorArgs:{ value: new Date(),
+						constraints: {
+							//min:"2008-03-16"
+						} /*
+						dateInterval:"day",
+						style: "position:relative;width:600px;height:600px" */
+					},
+					renderCell: function(object, value) {
+						console.log("obj value="+object+" "+value);
+						if (typeof value == "string")
+							return put("div", value);
+						else {
+							return put("div", value?value.toString():"");
+						}
+					}
+				},
+				DateTextBox, "dblclick")
 			}, server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -126,7 +130,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 					                    primaryuse_str:"",
-					                    start_time:"", end_time:""});
+					                    start_time:"", end_time:"", dates:""});
 //					                    start_time: today_9am.toLocaleTimeString(),
 //					                    end_time:today_5pm.toLocaleTimeString()});
 				}

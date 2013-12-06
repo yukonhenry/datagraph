@@ -104,3 +104,7 @@ div.bar {
   background-color: #fcc;
   color:  #900;
 }
+.dojoxCalendar{
+  font-size: 12px;
+  font-family:Myriad,Helvetica,Tahoma,Arial,clean,sans-serif;
+}
