@@ -13,7 +13,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			grid_name:null, error_node:null, submitbtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
-			tbutton_reg:null, cellselect_flag:false,
+			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_callback:null, server_path:"", server_key:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -53,6 +53,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					lang.hitch(this, this.editschedInfoGrid));
 				this.submitHandle = this.submitbtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
+				if (this.cellselect_flag) {
+					this.manageCellSelect();
+				}
 				if (this.idproperty == 'div_id') {
 					this.tbutton_reg = baseinfoSingleton.get_tbutton_reg();
 					if (!this.tbutton_reg) {
@@ -76,6 +79,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						domStyle.set(this.tbutton_reg.domNode, 'display', 'inline');
 					}
 				}
+			},
+			manageCellSelect: function() {
+				if (this.cellselect_handle)
+					this.cellselect_handle.remove();
+				this.cellselect_handle = this.schedInfoGrid.on("dgrid-select", lang.hitch(this, this.cellSelectHandler));
 			},
 			manageBracketEdit: function(val) {
 				// depending on toggle value enable/disable bracket editing
@@ -113,6 +121,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					bracketinfotext_node:dom.byId("bracketInfoNodeText")});
 				this.bracketinfo.createBracketInfoGrid(div_str);
 			},
+			cellSelectHandler: function(event) {
+				var eventcell = event.cells[0];
+				var column_name = eventcell.column.id;
+				if (column_name == 'dates') {
+					var row_id = eventcell.row.id;
+				}
+			},
 			sendDivInfoToServer: function(event) {
 				storedata_json = JSON.stringify(this.schedInfoStore.query());
 				var server_callback = this.server_callback || this.server_interface.server_ack;
@@ -149,6 +164,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.submitHandle.remove();
 				if (this.rowSelectHandle)
 					this.rowSelectHandle.remove();
+				if (this.cellselect_handle)
+					this.cellselect_handle.remove();
 				if (this.tbutton_reg)
 					domStyle.set(this.tbutton_reg.domNode, 'display', 'none');
 			}

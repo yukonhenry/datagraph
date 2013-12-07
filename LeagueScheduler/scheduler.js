@@ -399,7 +399,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				info_obj: new FieldInfo,
 				idproperty:'field_id',
 				server_path:"create_newfieldcol/",
-				server_key:'fieldinfo_data'});
+				server_key:'fieldinfo_data',
+				cellselect_flag:true});
 			newFieldGroup.showConfig(form_name);
 		}
 		var elimination2013 = function(evt) {

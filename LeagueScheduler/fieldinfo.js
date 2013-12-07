@@ -1,5 +1,5 @@
 define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(declare, lang, editor, baseinfoSingleton, TimeTextBox, DateTextBox, button, put, Calendar){
+       function(declare, lang, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -98,7 +98,15 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				},
 				DateTextBox, "dblclick") */
 				// http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-				dates: "Select Dates"
+				dates: {label:"Select Dates", field:"dates",
+					renderCell: function(object, value) {
+						var button = new Button({label:"dates",
+							onClick:lang.hitch(this, function() {
+								console.log("click here")
+							})
+						})
+						return button.domNode;
+					}
 				}
 			}, server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
@@ -116,7 +124,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				options_obj.idproperty = 'field_id';
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.server_path = "create_newfieldcol/";
-				options_obj.cellselect_flag = true;
+				options_obj.cellselect_flag = false;
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
@@ -142,6 +150,9 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 //					                    end_time:today_5pm.toLocaleTimeString()});
 				}
 				return fieldinfo_list;
+			},
+			processcell_click: function(object) {
+				console.log('processcell');
 			}
 		});
 });

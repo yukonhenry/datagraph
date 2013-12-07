@@ -9,6 +9,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			entrynum_reg: null, error_node:null,
 			newcol_name:"", schedutil_obj:null, form_name:"", editgrid:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
+			cellselect_flag:false,
 			callback:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -54,7 +55,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							idproperty:this.idproperty,
 							server_callback:this.callback,
 							server_path:this.server_path,
-							server_key:this.server_key});
+							server_key:this.server_key,
+							cellselect_flag:this.cellselect_flag});
 						var columnsdef_obj = divinfo_obj.columnsdef_obj;
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);
