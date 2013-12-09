@@ -15,6 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_callback:null, server_path:"", server_key:"",
+			info_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -124,8 +125,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			cellSelectHandler: function(event) {
 				var eventcell = event.cells[0];
 				var column_name = eventcell.column.id;
-				if (column_name == 'dates') {
+				if (column_name == 'dates' && this.info_obj) {
 					var row_id = eventcell.row.id;
+					this.info_obj.edit_calendar(row_id);
 				}
 			},
 			sendDivInfoToServer: function(event) {

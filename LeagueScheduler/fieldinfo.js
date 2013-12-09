@@ -75,39 +75,20 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 						}
 					},
 				}, TimeTextBox, "dblclick"),
-				/*
-				dates: editor({label:"Dates", field:"dates", autoSave:true,
-					editorArgs:{ value: new Date(),
-						constraints: {
-							//min:"2008-03-16"
-						}
-						*/
-						/*
-						dateInterval:"day",
-						style: "position:relative;width:600px;height:600px" */
-						/*
-					},
-					renderCell: function(object, value) {
-						console.log("obj value="+object+" "+value);
-						if (typeof value == "string")
-							return put("div", value);
-						else {
-							return put("div", value?value.toString():"");
-						}
-					}
-				},
-				DateTextBox, "dblclick") */
 				// http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+				/*
 				dates: {label:"Select Dates", field:"dates",
 					renderCell: function(object, value) {
 						var button = new Button({label:"dates",
-							onClick:lang.hitch(this, function() {
-								console.log("click here")
-							})
+							onClick: function() {
+								var onclick_direct = lang.hitch(this, this.processcell_click);
+								onclick_direct(object);
+							}
 						})
 						return button.domNode;
 					}
-				}
+				} */
+				dates: {label:"Config Dates", field:"dates"}
 			}, server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -124,7 +105,8 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				options_obj.idproperty = 'field_id';
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.server_path = "create_newfieldcol/";
-				options_obj.cellselect_flag = false;
+				options_obj.cellselect_flag = true;
+				options_obj.info_obj = this;
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
@@ -153,6 +135,14 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 			},
 			processcell_click: function(object) {
 				console.log('processcell');
+			},
+			edit_calendar: function(row_id) {
+				console.log("calrow="+row_id);
+				var calendar = new Calendar({
+					dateInterval: "day",
+					style: "position:relative;width:600px;height:600px"
+				}, "bracketInfoInputGrid");
+				calendar.startup();
 			}
 		});
 });

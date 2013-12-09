@@ -36,10 +36,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
-						var divinfo_obj = this.info_obj;
+						//var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions
 						var divnum = this.entrynum_reg.get("value");
-						var divInfo_list = divinfo_obj.getInitialList(divnum);
+						var divInfo_list = this.info_obj.getInitialList(divnum);
 						this.schedutil_obj.makeInvisible(this.form_name);
 						baseinfoSingleton.reset_visible_form_name(this.form_name);
 						if (this.keyup_handle)
@@ -56,8 +56,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							server_callback:this.callback,
 							server_path:this.server_path,
 							server_key:this.server_key,
-							cellselect_flag:this.cellselect_flag});
-						var columnsdef_obj = divinfo_obj.columnsdef_obj;
+							cellselect_flag:this.cellselect_flag,
+							info_obj:this.info_obj});
+						var columnsdef_obj = this.info_obj.columnsdef_obj;
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
