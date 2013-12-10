@@ -75,7 +75,7 @@
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Basic Sched Config</span>
                             <div data-dojo-type="dijit/DropDownMenu">
-                                <div data-dojo-type="dijit/MenuItem" id="newsched_param">New Schedule Parameters</div>
+                                <div data-dojo-type="dijit/MenuItem" id="newsched_item">New Schedule Parameters</div>
                                 <div data-dojo-type="dijit/PopupMenuItem">
                                     <span>Edit Schedule Parameters</span>
                                     <div data-dojo-type="dijit/DropDownMenu" id="schedcollection_submenu">
@@ -141,6 +141,14 @@
                 http://dojotoolkit.org/reference-guide/1.9/dijit/registry.html#data-dojo-id-jsid-before-dojo-1-6
                 http://stackoverflow.com/questions/12469140/difference-between-id-and-data-dojo-id
                 -->
+                <!-- basic sched parameters -->
+                <div data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id" class="style_none">
+                    <label for="newsched_input_id">New Schedule Name</label>
+                    <input type="text" name="newsched_input" id="newsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
+                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Enter Schedule Name and Press ENTER</span></div>
+                </div>
+                <!-- Division Info input form -->
                 <div data-dojo-type="dijit/form/Form" id="newdivinfo_form_id" data-dojo-id="newdivinfo_form_id" class="style_none">
                     <label for="newdivinfo_input_id">New Schedule Name</label>
                     <input type="text" name="newdivinfo_input" id="newdivinfo_input_id" value="phmsacup2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"

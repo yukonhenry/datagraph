@@ -406,6 +406,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				text_node_str: 'Field List Name'});
 			newFieldGroup.showConfig(form_name);
 		}
+		var initNewSchedule = function(evt) {
+			var form_name = "newsched_form_id";
+			var form_reg = registry.byId(form_name);
+			var input_reg = registry.byId("newsched_input_id");
+		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
 	        	jsonp:"callback"
@@ -469,6 +474,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			on(registry.byId("newdivinfo_item"), "click", initNewDivInfo);
 			on(registry.byId("newfieldlist_item"), "click", initNewFieldList);
+			on(registry.byId("newsched_item"), "click", initNewSchedule);
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
