@@ -107,6 +107,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				options_obj.server_path = "create_newfieldcol/";
 				options_obj.cellselect_flag = true;
 				options_obj.info_obj = this;
+				options_obj.text_node_str = "Field List Name";
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
@@ -141,7 +142,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				var calendar = new Calendar({
 					dateInterval: "day",
 					style: "position:relative;width:600px;height:600px"
-				}, "bracketInfoInputGrid");
+				}, "calendarGrid");
 				calendar.startup();
 			}
 		});

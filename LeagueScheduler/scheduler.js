@@ -13,9 +13,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
+		"dojox/calendar/Calendar",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, Calendar) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -371,10 +372,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(seedGrid, "dgrid-datachange", lang.hitch(schedConfig, schedConfig.editSeedGrid));
 			schedConfig.testValue(1);
 		}
-		var initNewSchedule = function(evt) {
-			var form_name = "newsched_form_id";
+		var initNewDivInfo = function(evt) {
+			var form_name = "newdivinfo_form_id";
 			var form_reg = registry.byId(form_name);
-			var input_reg = registry.byId("newsched_input_id");
+			var input_reg = registry.byId("newdivinfo_input_id");
 			var divnum_reg = registry.byId("divnum_input_id");
 			var newScheduler = new newscheduler({dbname_reg:input_reg,
 				form_name:form_name, form_reg:form_reg,
@@ -383,7 +384,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				callback: lang.hitch(schedUtil, schedUtil.regenAddDBCollection_smenu),
 				info_obj: new divinfo,
 				idproperty:'div_id',
-				server_path:"create_newdbcol/"});
+				server_path:"create_newdbcol/",
+				text_node_str: 'Schedule Name'});
 			newScheduler.showConfig(form_name);
 		}
 		var initNewFieldList = function(evt) {
@@ -400,7 +402,8 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				idproperty:'field_id',
 				server_path:"create_newfieldcol/",
 				server_key:'fieldinfo_data',
-				cellselect_flag:true});
+				cellselect_flag:true,
+				text_node_str: 'Field List Name'});
 			newFieldGroup.showConfig(form_name);
 		}
 		var elimination2013 = function(evt) {
@@ -464,7 +467,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
-			on(registry.byId("newsched_item"), "click", initNewSchedule);
+			on(registry.byId("newdivinfo_item"), "click", initNewDivInfo);
 			on(registry.byId("newfieldlist_item"), "click", initNewFieldList);
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);

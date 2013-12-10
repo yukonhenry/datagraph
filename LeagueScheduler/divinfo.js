@@ -29,6 +29,7 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 				options_obj.server_key = 'divinfo_data';
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
+				options_obj.text_node_str = "Division List Name";
 				if (baseinfoSingleton.get_select_reg()) {
 					//baseinfoSingleton.get_select_reg().destroy();
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());

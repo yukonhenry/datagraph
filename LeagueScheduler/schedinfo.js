@@ -42,6 +42,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						options_obj.divisioncode = divisioncode;
 						options_obj.idproperty = 'match_id';
 						options_obj.cellselect_flag = false;
+						options_obj.text_node_str = 'Schedule Name';
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
 							{divisioncode:divisioncode}, options_obj);

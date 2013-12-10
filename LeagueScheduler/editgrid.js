@@ -7,7 +7,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	         arrayUtil, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection, ToggleButton, BracketInfo, baseinfoSingleton) {
 		return declare(null, {
-			griddata_list:null, text_node:null,
+			griddata_list:null, text_node:null, text_node_str:"",
 			server_interface:null, colname:null,
 			schedInfoStore:null, schedInfoGrid:null, updatebtn_node:null,
 			grid_name:null, error_node:null, submitbtn_reg:null,
@@ -26,7 +26,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				domClass.replace(dom_name, "style_none", "style_inline");
 			},
 			recreateSchedInfoGrid: function(columnsdef_obj) {
-				this.text_node.innerHTML = "Schedule Name: <b>"+this.colname+"</b>";
+				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatebtn_node);

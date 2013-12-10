@@ -266,7 +266,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
-						info_obj:options_obj.info_obj});
+						info_obj:options_obj.info_obj,
+						text_node_str:options_obj.text_node_str});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
 					baseinfoSingleton.set_active_grid(this.editGrid);
 					baseinfoSingleton.set_active_grid_name(colname);
