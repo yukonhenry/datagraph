@@ -108,8 +108,14 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				options_obj.cellselect_flag = true;
 				options_obj.info_obj = this;
 				options_obj.text_node_str = "Field List Name";
+				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
+				}
+				var form_name = baseinfoSingleton.get_visible_form_name();
+				if (form_name) {
+					baseinfoSingleton.reset_visible_form_name();
+					this.schedutil_obj.makeInvisible(form_name);
 				}
 				this.server_interface.getServerData("get_fieldcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
@@ -138,9 +144,9 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				console.log('processcell');
 			},
 			edit_calendar: function(row_id) {
-				console.log("calrow="+row_id);
 				var calendar = new Calendar({
 					dateInterval: "day",
+					date: new Date(),
 					style: "position:relative;width:600px;height:600px"
 				}, "calendarGrid");
 				calendar.startup();

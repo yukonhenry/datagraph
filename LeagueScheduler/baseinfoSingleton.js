@@ -62,7 +62,7 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			set_visible_form_name: function(form_name) {
 				this.visible_form_name = form_name;
 			},
-			reset_visible_form_name: function(form_name) {
+			reset_visible_form_name: function() {
 				this.visible_form_name = "";
 			},
 			get_visible_form_name: function() {

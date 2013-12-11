@@ -249,7 +249,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					var visible_form_name = baseinfoSingleton.get_visible_form_name();
 					if (visible_form_name) {
 						this.makeInvisible(visible_form_name);
-						baseinfoSingleton.reset_visible_form_name(visible_form_name);
+						baseinfoSingleton.reset_visible_form_name();
 					}
 					if (!this.server_interface)
 						console.log("no server interface");

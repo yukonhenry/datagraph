@@ -55,8 +55,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							this.keyup_handle.remove();
 						//enable season start/end date input datetime textbox and button
 						this.schedutil_obj.makeVisible(this.seasoncalendar_input_name);
-						baseinfoSingleton.reset_visible_form_name(this.seasoncalendar_input_name);
+						baseinfoSingleton.set_visible_form_name(this.seasoncalendar_input_name);
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
+						if (this.sdates_handle)
+							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
 					lang.hitch(this, this.getSeasonDatesFromInput));
 					} else {

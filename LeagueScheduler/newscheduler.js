@@ -41,7 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						var divnum = this.entrynum_reg.get("value");
 						var divInfo_list = this.info_obj.getInitialList(divnum);
 						this.schedutil_obj.makeInvisible(this.form_name);
-						baseinfoSingleton.reset_visible_form_name(this.form_name);
+						baseinfoSingleton.reset_visible_form_name();
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						this.editgrid = new EditGrid({griddata_list:divInfo_list,
