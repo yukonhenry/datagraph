@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.08y</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09b</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -147,6 +147,14 @@
                     <input type="text" name="newsched_input" id="newsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Enter Schedule Name and Press ENTER</span></div>
+                </div>
+                <div class="style_none" id="seasoncalendar_input">
+                    <span id="newsched_text"></span><br>
+                    <label for="seasonstart_date">Season Start Date:</label>
+                    <input id="seasonstart_date" data-dojo-type="dijit/form/DateTextBox">
+                    <label for="seasonend_date">Season End Date:</label>
+                    <input id="seasonend_date" data-dojo-type="dijit/form/DateTextBox">
+                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="seasondatesButton" id="seasondates_btn" value="Submit">Submit Season Dates</button>
                 </div>
                 <!-- Division Info input form -->
                 <div data-dojo-type="dijit/form/Form" id="newdivinfo_form_id" data-dojo-id="newdivinfo_form_id" class="style_none">

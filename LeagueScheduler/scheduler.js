@@ -13,10 +13,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
-		"dojox/calendar/Calendar",
+		"LeagueScheduler/newschedulerbase", "dojox/calendar/Calendar",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, Calendar) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, Calendar) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -31,6 +31,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var ldata_array = null;
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
+		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -61,6 +62,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			fieldInfoGrid.renderArray(fdata_array);
 			dbstatus = ldata.dbstatus;
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
+			newSchedulerBase.set_schedutil_obj(schedUtil);
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
@@ -95,7 +97,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				{db_type:'db'});
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
-			var fieldinfo_obj = new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil});
+			var fieldinfo_obj = new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil, newschedulerbase_obj:newSchedulerBase});
 			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu", fieldinfo_obj, fieldinfo_obj.getServerDBFieldInfo,
 				{db_type:'fielddb'});
 			var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
@@ -386,7 +388,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				idproperty:'div_id',
 				server_path:"create_newdbcol/",
 				text_node_str: 'Schedule Name'});
-			newScheduler.showConfig(form_name);
+			newScheduler.showConfig();
 		}
 		var initNewFieldList = function(evt) {
 			var form_name = "fieldconfig_form_id";
@@ -404,12 +406,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				server_key:'fieldinfo_data',
 				cellselect_flag:true,
 				text_node_str: 'Field List Name'});
-			newFieldGroup.showConfig(form_name);
-		}
-		var initNewSchedule = function(evt) {
-			var form_name = "newsched_form_id";
-			var form_reg = registry.byId(form_name);
-			var input_reg = registry.byId("newsched_input_id");
+			newFieldGroup.showConfig();
 		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
@@ -474,7 +471,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			on(registry.byId("newdivinfo_item"), "click", initNewDivInfo);
 			on(registry.byId("newfieldlist_item"), "click", initNewFieldList);
-			on(registry.byId("newsched_item"), "click", initNewSchedule);
+			on(registry.byId("newsched_item"), "click", lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);

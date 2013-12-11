@@ -89,7 +89,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 					}
 				} */
 				dates: {label:"Config Dates", field:"dates"}
-			}, server_interface:null, schedutil_obj:null,
+			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
