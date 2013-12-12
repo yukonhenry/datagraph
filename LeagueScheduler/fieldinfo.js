@@ -143,6 +143,9 @@ define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observa
 			processcell_click: function(object) {
 				console.log('processcell');
 			},
+			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
+			// for dojox calendar specifics
+			// also check api for for dojox/calendar/Calendar
 			edit_calendar: function(row_id) {
 				var today = new Date();
 				var data_obj = null;
@@ -163,6 +166,11 @@ define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observa
 					style: "position:relative;width:600px;height:600px"
 				}, "calendarGrid");
 				calendar.startup();
+				calendar.set("createOnGridClick", true);
+				calendar.set("createItemFunc", this.createItem);
+			},
+			createItem: function(view, date, event) {
+				console.log('ok item');
 			}
 		});
 });
