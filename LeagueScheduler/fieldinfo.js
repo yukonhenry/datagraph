@@ -1,5 +1,5 @@
-define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(declare, lang, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
+define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -144,9 +144,22 @@ define(["dojo/_base/declare","dojo/_base/lang", "dgrid/editor", "LeagueScheduler
 				console.log('processcell');
 			},
 			edit_calendar: function(row_id) {
+				var today = new Date();
+				var data_obj = null;
+				if (this.newschedulerbase_obj) {
+					data_obj = {id:0, summary:"Calendar 1",
+						startTime:this.newschedulerbase_obj.seasonstart_date,
+						endTime:this.newschedulerbase_obj.seasonend_date}
+				} else {
+					data_obj = {id:0, summary:"Calendar 1",
+						startTime:date.add(today,"month",-1),
+						endTime:date.add(today,"year",1)}
+				}
+				var data_list = [data_obj];
 				var calendar = new Calendar({
 					dateInterval: "day",
-					date: new Date(),
+					date: today,
+					store: new Observable(new Memory({data:data_list})),
 					style: "position:relative;width:600px;height:600px"
 				}, "calendarGrid");
 				calendar.startup();

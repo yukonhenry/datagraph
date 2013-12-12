@@ -15,11 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				lang.mixin(this, args);
 			},
 			showConfig: function() {
-				var active_grid = baseinfoSingleton.get_active_grid();
-				if (active_grid) {
-					active_grid.cleanup();
-					baseinfoSingleton.reset_active_grid();
-				}
+				this.cleanup();
 				this.schedutil_obj.makeVisible(this.form_name);
 				baseinfoSingleton.set_visible_form_name(this.form_name);
 				if (this.keyup_handle)
@@ -78,6 +74,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					return false;
 				else
 					return true;
+			},
+			cleanup: function() {
+				// cleanup here is cleaning up what is left over from other
+				// forms and grids
+				var active_grid = baseinfoSingleton.get_active_grid();
+				if (active_grid) {
+					active_grid.cleanup();
+					baseinfoSingleton.reset_active_grid();
+				}
+				var form_name = baseinfoSingleton.get_visible_form_name();
+				if (form_name) {
+					baseinfoSingleton.reset_visible_form_name();
+					this.schedutil_obj.makeInvisible(form_name);
+				}
 			}
+
 		});
 	})
