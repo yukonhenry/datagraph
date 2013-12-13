@@ -108,3 +108,8 @@ div.bar {
   font-size: 12px;
   font-family:Myriad,Helvetica,Tahoma,Arial,clean,sans-serif;
 }
+/* http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html */
+#borderContainer {
+    width: 100%;
+    height: 100%;
+}

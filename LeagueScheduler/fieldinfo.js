@@ -134,7 +134,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observa
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 					                    primaryuse_str:"",
-					                    start_time:"", end_time:"", dates:"Calendar"});
+					                    start_time:"", end_time:"", dates:"Config Here"});
 //					                    start_time: today_9am.toLocaleTimeString(),
 //					                    end_time:today_5pm.toLocaleTimeString()});
 				}

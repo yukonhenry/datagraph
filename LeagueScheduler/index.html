@@ -14,13 +14,13 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09c</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09d</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
 			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
-			"dijit/layout/TabContainer", "dijit/layout/ContentPane","dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox",
+			"dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox",
             "dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip",
             "dijit/form/Button", "dijit/form/ToggleButton",
             "dojo/domReady!"],
@@ -195,7 +195,18 @@
                 <div id="divisionInfoInputGrid"></div><br>
                 <span id="bracketInfoNodeText"></span>
                 <div id="bracketInfoInputGrid"></div>
-                <div id="calendarGrid"></div>
+                <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->
+                <div data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true" id="borderContainer">
+                    <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'" style="width: 100px;" id="calendarConfig">
+                        <div id="tp2" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
+                            Click arrow to close me.
+                        </div>
+                    </div>
+                    <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
+                        <div id="calendarGrid"></div>
+                    </div>
+                </div>
+                <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
     			<b>Generate Schedule</b>
