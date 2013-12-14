@@ -1,5 +1,5 @@
-define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
+define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(dom, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -112,10 +112,10 @@ define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observa
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
-				var form_name = baseinfoSingleton.get_visible_form_name();
-				if (form_name) {
-					baseinfoSingleton.reset_visible_form_name();
-					this.schedutil_obj.makeInvisible(form_name);
+				var form_dom = baseinfoSingleton.get_visible_form_dom();
+				if (form_dom) {
+					baseinfoSingleton.reset_visible_form_dom();
+					this.schedutil_obj.makeInvisible(form_dom);
 				}
 				this.server_interface.getServerData("get_fieldcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
@@ -147,6 +147,7 @@ define(["dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observa
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
 			edit_calendar: function(row_id) {
+				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {

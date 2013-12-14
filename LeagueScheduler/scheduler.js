@@ -377,10 +377,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var initNewDivInfo = function(evt) {
 			var form_name = "newdivinfo_form_id";
 			var form_reg = registry.byId(form_name);
+			var form_dom = dom.byId(form_name);
 			var input_reg = registry.byId("newdivinfo_input_id");
 			var divnum_reg = registry.byId("divnum_input_id");
 			var newScheduler = new newscheduler({dbname_reg:input_reg,
-				form_name:form_name, form_reg:form_reg,
+				form_dom:form_dom, form_reg:form_reg,
 				entrynum_reg:divnum_reg, server_interface:serverInterface,
 				schedutil_obj:schedUtil,
 				callback: lang.hitch(schedUtil, schedUtil.regenAddDBCollection_smenu),
@@ -393,14 +394,15 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var initNewFieldList = function(evt) {
 			var form_name = "fieldconfig_form_id";
 			var form_reg = registry.byId(form_name);
+			var form_dom = dom.byId(form_name);
 			var input_reg = registry.byId("fieldlistname_input_id");
 			var fieldnum_reg = registry.byId("fieldnum_input_id");
 			var newFieldGroup = new newscheduler({dbname_reg:input_reg,
-				form_name:form_name, form_reg:form_reg,
+				form_dom:form_dom, form_reg:form_reg,
 				entrynum_reg:fieldnum_reg, server_interface:serverInterface,
 				schedutil_obj:schedUtil,
 				callback: lang.hitch(schedUtil,schedUtil.regenAddFieldDBCollection_smenu),
-				info_obj: new FieldInfo,
+				info_obj: new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil}),
 				idproperty:'field_id',
 				server_path:"create_newfieldcol/",
 				server_key:'fieldinfo_data',

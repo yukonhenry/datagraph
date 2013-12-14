@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09d</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09e</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -196,15 +196,22 @@
                 <span id="bracketInfoNodeText"></span>
                 <div id="bracketInfoInputGrid"></div>
                 <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->
-                <div data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true" id="borderContainer">
-                    <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'" style="width: 100px;" id="calendarConfig">
-                        <div id="tp1" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
-                            <div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
-                            Click arrow to close me.
-                            </div>
+                <!-- if id is changed, make sure to check css style reference id -->
+                <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true" >
+                    <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
+                        <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
+                            <!--
+                            <div data-dojo-type="dijit/layout/ContentPane" title="Cal Config"> -->
+                                <div data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
+                                <label for="fieldsched_input_id">Event Name</label><br>
+                                <input type="text" name="fieldsched_input" id="fieldsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
+                                data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                                <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldsched_input_id', position:['below','after']">Enter Event Name and Press ENTER</span></div>
+                                </div>
+                            <!--</div>-->
                         </div>
                     </div>
-                    <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
+                    <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
                         <div id="calendarGrid"></div>
                     </div>
                 </div>

@@ -246,10 +246,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 							baseinfoSingleton.reset_active_grid();
 						}
 					}
-					var visible_form_name = baseinfoSingleton.get_visible_form_name();
-					if (visible_form_name) {
-						this.makeInvisible(visible_form_name);
-						baseinfoSingleton.reset_visible_form_name();
+					var visible_form_dom = baseinfoSingleton.get_visible_form_dom();
+					if (visible_form_dom) {
+						this.makeInvisible(visible_form_dom);
+						baseinfoSingleton.reset_visible_form_dom();
 					}
 					if (!this.server_interface)
 						console.log("no server interface");

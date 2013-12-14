@@ -7,7 +7,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			entrynum_reg: null, error_node:null,
-			newcol_name:"", schedutil_obj:null, form_name:"", editgrid:null,
+			newcol_name:"", schedutil_obj:null, form_dom:null, editgrid:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			callback:null, text_node_str:null,
@@ -16,8 +16,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			showConfig: function() {
 				this.cleanup();
-				this.schedutil_obj.makeVisible(this.form_name);
-				baseinfoSingleton.set_visible_form_name(this.form_name);
+				this.schedutil_obj.makeVisible(this.form_dom);
+				baseinfoSingleton.set_visible_form_dom(this.form_dom);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
@@ -36,8 +36,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						//divnum is the total # of divisions
 						var divnum = this.entrynum_reg.get("value");
 						var divInfo_list = this.info_obj.getInitialList(divnum);
-						this.schedutil_obj.makeInvisible(this.form_name);
-						baseinfoSingleton.reset_visible_form_name();
+						this.schedutil_obj.makeInvisible(this.form_dom);
+						baseinfoSingleton.reset_visible_form_dom();
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						this.editgrid = new EditGrid({griddata_list:divInfo_list,
@@ -83,10 +83,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					active_grid.cleanup();
 					baseinfoSingleton.reset_active_grid();
 				}
-				var form_name = baseinfoSingleton.get_visible_form_name();
-				if (form_name) {
-					baseinfoSingleton.reset_visible_form_name();
-					this.schedutil_obj.makeInvisible(form_name);
+				var form_dom = baseinfoSingleton.get_visible_form_dom();
+				if (form_dom) {
+					baseinfoSingleton.reset_visible_form_dom();
+					this.schedutil_obj.makeInvisible(form_dom);
 				}
 			}
 

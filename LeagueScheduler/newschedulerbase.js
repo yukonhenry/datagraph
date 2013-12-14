@@ -6,10 +6,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		baseinfoSingleton) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
-			newsched_dom:"", schedutil_obj:null, form_name:"",
+			newsched_dom:"", schedutil_obj:null,
+			form_name:"", form_dom:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
-			seasoncalendar_input_name:"", seasondates_btn_reg:null,
+			seasoncalendar_input_dom:null,seasondates_btn_reg:null,
 			callback:null, text_node_str:null,
 			seasonstart_date:null, seasonend_date:null,
 			constructor: function(args) {
@@ -18,8 +19,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			initialize: function(arg_obj) {
 				this.form_name = "newsched_form_id";
 				this.form_reg = registry.byId(this.form_name);
+				this.form_dom = dom.byId(this.form_name);
 				this.dbname_reg = registry.byId("newsched_input_id");
-				this.seasoncalendar_input_name = "seasoncalendar_input";
+				this.seasoncalendar_input_dom = dom.byId("seasoncalendar_input");
 				this.seasondates_btn_reg = registry.byId("seasondates_btn");
 				this.newsched_dom = dom.byId("newsched_text");
 				this.showConfig();
@@ -33,8 +35,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					active_grid.cleanup();
 					baseinfoSingleton.reset_active_grid();
 				}
-				this.schedutil_obj.makeVisible(this.form_name);
-				baseinfoSingleton.set_visible_form_name(this.form_name);
+				this.schedutil_obj.makeVisible(this.form_dom);
+				baseinfoSingleton.set_visible_form_dom(this.form_dom);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.dbname_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
@@ -50,12 +52,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							return;
 						}
 						// disable schedule name form
-						this.schedutil_obj.makeInvisible(this.form_name);
+						this.schedutil_obj.makeInvisible(this.form_dom);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						//enable season start/end date input datetime textbox and button
-						this.schedutil_obj.makeVisible(this.seasoncalendar_input_name);
-						baseinfoSingleton.set_visible_form_name(this.seasoncalendar_input_name);
+						this.schedutil_obj.makeVisible(this.seasoncalendar_input_dom);
+						baseinfoSingleton.set_visible_form_dom(this.seasoncalendar_input_dom);
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
 						if (this.sdates_handle)
 							this.sdates_handle.remove();
