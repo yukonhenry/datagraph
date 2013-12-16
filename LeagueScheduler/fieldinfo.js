@@ -148,6 +148,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/s
 			// also check api for for dojox/calendar/Calendar
 			edit_calendar: function(row_id) {
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
+				//this.schedutil_obj.makeVisible(dom.byId("fieldsched_form_id"));
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {
