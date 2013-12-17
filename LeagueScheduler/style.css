@@ -1,21 +1,22 @@
 html, body {
+    width: 100%;
     height: 100%;
     margin: 0;
     overflow: auto;
     padding: 0;
 }
- 
+
 #appLayout {
     height: 100%;
 }
 #leftCol {
     width: 14em;
 }
- 
+
 .claro .demoLayout .edgePanel {
     background-color: #d0e9fc;
 }
- 
+
 #viewsChart {
     width: 550px;
     height: 550px;
@@ -37,7 +38,7 @@ html, body {
 	height: 800px;
 	background-color: #00d;
 	float: right;
-	
+
 }
 /* See the folliwng d3js tutorial */
 /* http://alignedleft.com/tutorials/d3/drawing-divs/ */
@@ -47,7 +48,7 @@ div.bar {
 	width: 20px;
 	height: 75px;
 	margin-right: 2px;
-	background-color: teal; 
+	background-color: teal;
 }
 
 /* following are from http://bl.ocks.org/4063550 */
@@ -113,7 +114,8 @@ div.bar {
     width: 100%;
     height: 100%;
 }
+
 #borderContainer_LeftContentPane {
-  width: auto;
+  width: 300px;
   height: auto;
 }

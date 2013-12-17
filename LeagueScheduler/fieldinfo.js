@@ -166,16 +166,17 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 						endTime:date.add(today,"year",1)}
 				}
 				var data_list = [data_obj];
+				/*
 				var calendar = new Calendar({
 					dateInterval: "day",
 					date: today,
 					store: new Observable(new Memory({data:data_list})),
-					style: "position:relative;width:600px;height:600px",
-					region:'center'
+					style: "position:inherited;width:600px;height:600px",
 				}, "calendarGrid");
 				calendar.startup();
 				calendar.set("createOnGridClick", true);
 				calendar.set("createItemFunc", this.createItem);
+				*/
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
