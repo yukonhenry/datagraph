@@ -142,12 +142,12 @@
                 http://stackoverflow.com/questions/12469140/difference-between-id-and-data-dojo-id
                 -->
                 <!-- basic sched parameters -->
-                <div data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id" class="style_none">
+                <form data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id" class="style_none">
                     <label for="newsched_input_id">New Schedule Name</label>
                     <input type="text" name="newsched_input" id="newsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Enter Schedule Name and Press ENTER</span></div>
-                </div>
+                </form>
                 <div class="style_none" id="seasoncalendar_input">
                     <span id="newsched_text"></span><br>
                     <label for="seasonstart_date">Season Start Date:</label>
@@ -157,7 +157,7 @@
                     <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="seasondatesButton" id="seasondates_btn" value="Submit">Submit Season Dates</button>
                 </div>
                 <!-- Division Info input form -->
-                <div data-dojo-type="dijit/form/Form" id="newdivinfo_form_id" data-dojo-id="newdivinfo_form_id" class="style_none">
+                <form data-dojo-type="dijit/form/Form" id="newdivinfo_form_id" data-dojo-id="newdivinfo_form_id" class="style_none">
                     <label for="newdivinfo_input_id">New Schedule Name</label>
                     <input type="text" name="newdivinfo_input" id="newdivinfo_input_id" value="phmsacup2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
@@ -167,7 +167,7 @@
                     data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Divisions', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Divisions (positive ineteger)'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'divnum_input_id', position:['below','after']">Specify Number of Divisions and press ENTER</span>
                     </div>
-                </div>
+                </form>
                 <!-- note button below is of type button rather than submit because of problems with the 'submit' event action -->
                 <div class="style_none" id="divisionInfoUpdateBtnText">
                     <span id="divisionInfoNodeText"></span>
@@ -179,7 +179,7 @@
                     <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
                     </select>
                 </div>
-                <div data-dojo-type="dijit/form/Form" id="fieldconfig_form_id" data-dojo-id="fieldconfig_form_id" class="style_none">
+                <form data-dojo-type="dijit/form/Form" id="fieldconfig_form_id" data-dojo-id="fieldconfig_form_id" class="style_none">
                     <label for="fieldlistname_input_id">Enter Field Collection Name</label>
                     <input type="text" name="fieldlistname_input" id="fieldlistname_input_id" value="PHMSA" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Field Collection Name"
                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter Field List name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter field list name'"/>
@@ -189,7 +189,7 @@
                     data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Fields', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Fields (positive ineteger)'"/>
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldnum_input_id', position:['below','after']">Specify Number of Fields and press ENTER</span>
                     </div>
-                </div>
+                </form>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
                 <div id="divisionInfoInputGridErrorNode" class="style_none"></div>
                 <div id="divisionInfoInputGrid"></div><br>
@@ -197,17 +197,17 @@
                 <div id="bracketInfoInputGrid"></div>
                 <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->
                 <!-- if id is changed, make sure to check css style reference id -->
-                <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true">
-                    <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'" style="display:inline">
+                <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true, style:'display:none'">
+                    <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
                         <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
                             <!--
                             <div data-dojo-type="dijit/layout/ContentPane" title="Cal Config"> -->
-                                <div data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
+                                <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
                                 <label for="fieldsched_input_id">Event Name</label><br>
                                 <input type="text" name="fieldsched_input" id="fieldsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
                                 data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
                                 <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldsched_input_id', position:['below','after']">Enter Event Name and Press ENTER</span></div>
-                                </div>
+                                </form>
                             <!--</div>-->
                         </div>
                     </div>

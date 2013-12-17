@@ -1,5 +1,5 @@
-define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(dom, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
+define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(parser, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -149,6 +149,11 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/s
 			edit_calendar: function(row_id) {
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				//this.schedutil_obj.makeVisible(dom.byId("fieldsched_form_id"));
+				//domStyle.set("borderContainer","display", "inline");
+				var container_reg = registry.byId("borderContainer");
+				container_reg.domNode.style.display = 'inline';
+				//container_reg.layout();
+				//parser.parse();
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {
@@ -165,7 +170,8 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/s
 					dateInterval: "day",
 					date: today,
 					store: new Observable(new Memory({data:data_list})),
-					style: "position:relative;width:600px;height:600px"
+					style: "position:relative;width:600px;height:600px",
+					region:'center'
 				}, "calendarGrid");
 				calendar.startup();
 				calendar.set("createOnGridClick", true);
