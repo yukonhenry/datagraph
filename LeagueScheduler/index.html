@@ -14,13 +14,13 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09e</h1>
+        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09h</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
 			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
-			"dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox",
+			"dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox",
             "dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip",
             "dijit/form/Button", "dijit/form/ToggleButton",
             "dojo/domReady!"],
@@ -197,23 +197,32 @@
                 <div id="bracketInfoInputGrid"></div>
                 <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->
                 <!-- if id is changed, make sure to check css style reference id -->
-                <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true, style:'display:inline'">
+                <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
                     <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
                         <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
                             <!--
                             <div data-dojo-type="dijit/layout/ContentPane" title="Cal Config"> -->
+                                <label for="fieldselect_id">Select Field</label>
+                                <select id="fieldselect_id" data-dojo-type="dijit/form/Select">
+                                </select>
                                 <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
                                 <label for="fieldsched_input_id">Event Name</label><br>
-                                <input type="text" name="fieldsched_input" id="fieldsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
+                                <input type="text" name="fieldsched_input" id="fieldsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox"
                                 data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                                <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldsched_input_id', position:['below','after']">Enter Event Name and Press ENTER</span></div>
+                                <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldsched_input_id', position:['below','after']">Enter Event Name and Press ENTER</span></div><br>
+                                <label for="startdate_id">Start Date and Time:</label>
+                                <input id="startdate_id" class="datetextbox" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:100px'">
+                                <input id="starttime_id" data-dojo-type="dijit/form/TimeTextBox"><br>
+                                <label for="enddate_id">End Date and Time:</label>
+                                <input id="enddate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:100px'">
+                                <input id="endtime_id" data-dojo-type="dijit/form/TimeTextBox"><br>
+                                <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="startenddatetime_btn" value="Submit">Update</button>
                                 </form>
                             <!--</div>-->
                         </div>
                     </div>
                     <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
-                        test123
-                        <!--<div id="calendarGrid"></div> -->
+                        <div id="calendarGrid_id"></div>
                     </div>
                 </div>
                 <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->

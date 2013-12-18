@@ -109,6 +109,9 @@ div.bar {
   font-size: 12px;
   font-family:Myriad,Helvetica,Tahoma,Arial,clean,sans-serif;
 }
+.datetextbox {
+  width:50px;
+}
 /* http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html */
 #borderContainer {
     width: 100%;
@@ -116,6 +119,6 @@ div.bar {
 }
 
 #borderContainer_LeftContentPane {
-  width: 300px;
+  width: auto;
   height: auto;
 }

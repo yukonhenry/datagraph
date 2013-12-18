@@ -33,7 +33,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							return;
 						}
 						//var divinfo_obj = this.info_obj;
-						//divnum is the total # of divisions
+						//divnum is the total # of divisions or other entity like fields
 						var divnum = this.entrynum_reg.get("value");
 						var divInfo_list = this.info_obj.getInitialList(divnum);
 						this.schedutil_obj.makeInvisible(this.form_dom);

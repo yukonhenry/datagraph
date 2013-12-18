@@ -90,6 +90,7 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 				} */
 				dates: {label:"Config Dates", field:"dates"}
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
+			fieldnum:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -122,6 +123,7 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 			},
 			getInitialList: function(fieldnum) {
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
+				this.fieldnum = fieldnum;
 				var fieldinfo_list = new Array();
 				var current_date = new Date();
 				var today = new Date();
@@ -134,7 +136,7 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 					                    primaryuse_str:"",
-					                    start_time:"", end_time:"", dates:"Config Here"});
+					                    start_time:"", end_time:"", dates:"Config Field "+i});
 //					                    start_time: today_9am.toLocaleTimeString(),
 //					                    end_time:today_5pm.toLocaleTimeString()});
 				}
@@ -148,12 +150,18 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 			// also check api for for dojox/calendar/Calendar
 			edit_calendar: function(row_id) {
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
-				//this.schedutil_obj.makeVisible(dom.byId("fieldsched_form_id"));
-				//domStyle.set("borderContainer","display", "inline");
-				var container_reg = registry.byId("borderContainer");
-				container_reg.domNode.style.display = 'inline';
-				//container_reg.layout();
-				//parser.parse();
+				// to make border container use visibility property instead of display
+				// property, as usage of latter (inline, block, any other property)
+				// makes panes under the bordercontainer overlap when the second pane is a dynamically created widget (like the dojox calendar)
+				dom.byId("borderContainer").style.visibility = 'visible';
+				// create drop down to select (either) field
+				var fieldselect_reg = registry.byId("fieldselect_id");
+				var fieldselect_list = new Array();
+				for (var i = 1; i < this.fieldnum+1; i++) {
+					fieldselect_list.push({label:'Field '+i, value:i, selected:false});
+				}
+				fieldselect_list[row_id-1].selected = true;
+				fieldselect_reg.addOption(fieldselect_list);
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {
@@ -166,17 +174,15 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 						endTime:date.add(today,"year",1)}
 				}
 				var data_list = [data_obj];
-				/*
 				var calendar = new Calendar({
 					dateInterval: "day",
 					date: today,
 					store: new Observable(new Memory({data:data_list})),
-					style: "position:inherited;width:600px;height:600px",
-				}, "calendarGrid");
+					style: "position:inherit;width:600px;height:600px",
+				}, "calendarGrid_id");
 				calendar.startup();
 				calendar.set("createOnGridClick", true);
 				calendar.set("createItemFunc", this.createItem);
-				*/
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
