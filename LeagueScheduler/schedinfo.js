@@ -1,7 +1,7 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
        "dojo/_base/array", "dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
+	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
 		return declare(null, {
 			columnsdef_obj : {
 				gameday: "Game day",

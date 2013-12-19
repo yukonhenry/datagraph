@@ -1,5 +1,5 @@
-define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(parser, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
+define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -90,7 +90,7 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 				} */
 				dates: {label:"Config Dates", field:"dates"}
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
-			fieldnum:0,
+			fieldnum:0, calendar_id:0, storeobj_list:null, calendar_store:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -162,23 +162,33 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 				}
 				fieldselect_list[row_id-1].selected = true;
 				fieldselect_reg.addOption(fieldselect_list);
+				var startenddatetime_reg = registry.byId("startenddatetime_btn");
+				// note use of third parameter (optional arg to event handler) to lang.hitch
+				startenddatetime_reg.on("click", lang.hitch(this, this.processdatetime_submit, row_id));
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {
 					data_obj = {id:0, summary:"Calendar 1",
 						startTime:this.newschedulerbase_obj.seasonstart_date,
-						endTime:this.newschedulerbase_obj.seasonend_date}
+						endTime:this.newschedulerbase_obj.seasonend_date,
+						calendar: "Calendar2"}
 				} else {
 					data_obj = {id:0, summary:"Calendar 1",
 						startTime:date.add(today,"month",-1),
-						endTime:date.add(today,"year",1)}
+						endTime:date.add(today,"year",1),
+						calendar: "Calendar2"}
 				}
-				var data_list = [data_obj];
+				//this.storeobj_list = [data_obj];
+				this.storeobj_list = new Array();
+				this.calendar_store = new Observable(new Memory({data:this.storeobj_list}));
 				var calendar = new Calendar({
 					dateInterval: "day",
 					date: today,
-					store: new Observable(new Memory({data:data_list})),
+					store: this.calendar_store,
 					style: "position:inherit;width:600px;height:600px",
+					cssClassFunc: function(item) {
+						return item.calendar;
+					}
 				}, "calendarGrid_id");
 				calendar.startup();
 				calendar.set("createOnGridClick", true);
@@ -186,6 +196,22 @@ define(["dojo/parser", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
+			},
+			processdatetime_submit: function(row_id, event) {
+				var startdate_reg = registry.byId("startdate_id");
+				var starttime_reg = registry.byId("starttime_id");
+				var enddate_reg = registry.byId("enddate_id");
+				var endtime_reg = registry.byId("endtime_id");
+				// get respective Date objects
+				var startdate = startdate_reg.get("value");
+				var starttime = starttime_reg.get("value");
+				var enddate = enddate_reg.get("value");
+				var endtime = endtime_reg.get("value");
+				var data_obj = {id:this.calendar_id, summary:"Calendar "+row_id,
+					startTime:startdate, endTime:enddate,
+					calendar:"Calendar"+row_id};
+				this.calendar_store.add(data_obj);
+				this.calendar_id++;
 			}
 		});
 });

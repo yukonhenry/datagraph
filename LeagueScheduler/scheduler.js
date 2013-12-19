@@ -104,6 +104,9 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
 				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
 				{db_type:'fielddb', server_path:"delete_fieldcol/"});
+			// reset content pane scroll to top
+			var pane_dom = dom.byId("editPane");
+			pane_dom.scrollTop = 0;
 		}
 		//});
 		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
@@ -452,6 +455,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			if (active_grid) {
 				active_grid.schedInfoGrid.resize();
 			}
+			//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
+			// ensure edit pane scroll resets to t op
+			var pane_dom = dom.byId("editPane");
+			pane_dom.scrollTop = 0;
 			//to resize bracket info grid also
 		}
 		var resizeTournamentPaneGrids = function(evt) {
