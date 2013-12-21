@@ -198,20 +198,36 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				console.log('ok item');
 			},
 			processdatetime_submit: function(row_id, event) {
+				var fieldevent_reg = registry.byId("fieldevent_id");
+				var fieldevent_str = fieldevent_reg.get("value");
+				/*
 				var startdate_reg = registry.byId("startdate_id");
-				var starttime_reg = registry.byId("starttime_id");
 				var enddate_reg = registry.byId("enddate_id");
-				var endtime_reg = registry.byId("endtime_id");
 				// get respective Date objects
 				var startdate = startdate_reg.get("value");
-				var starttime = starttime_reg.get("value");
 				var enddate = enddate_reg.get("value");
-				var endtime = endtime_reg.get("value");
-				var data_obj = {id:this.calendar_id, summary:"Calendar "+row_id,
-					startTime:startdate, endTime:enddate,
-					calendar:"Calendar"+row_id};
-				this.calendar_store.add(data_obj);
-				this.calendar_id++;
+				*/
+				var eventdate_reg = registry.byId("eventdate_id");
+				var starttime_reg = registry.byId("starttime_id");
+				var endtime_reg = registry.byId("endtime_id");
+				// get respective Date/Time strings
+				var eventdate_str = eventdate_reg.get("value").toDateString();
+				var starttime_str = starttime_reg.get("value").toTimeString();
+				var endtime_str = endtime_reg.get("value").toTimeString();
+				var start_datetime_obj = new Date(eventdate_str+' '+
+					starttime_str);
+				var end_datetime_obj = new Date(eventdate_str+' '+
+					endtime_str);
+				if (date.compare(end_datetime_obj, start_datetime_obj) > 0) {
+					var data_obj = {id:this.calendar_id,
+						summary:"Evt"+row_id+':'+fieldevent_str,
+						startTime:start_datetime_obj, endTime:end_datetime_obj,
+						calendar:"Calendar"+row_id};
+					this.calendar_store.add(data_obj);
+					this.calendar_id++;
+				} else {
+					alert("end time must be later than start time");
+				}
 			}
 		});
 });

@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">PHMSA League Scheduler ver2013_1.0 0.09i</h1>
+        <h1 id="greeting">Event Scheduler ver2013_1.0 0.09l</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -141,6 +141,14 @@
                                 </div>
                             </div>
                         </div>
+                        <div data-dojo-type="dijit/PopupMenuItem">
+                            <span>Restrictions/Priorities</span>
+                            <div data-dojo-type="dijit/DropDownMenu">
+                                <div data-dojo-type="dijit/MenuItem" id="newconstraint_item">
+                                    New Restriction/Priority
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!--reference on use of different kinds of id's:
@@ -209,25 +217,32 @@
                 <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
                     <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
                         <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
+                            <label for="fieldselect_id">Select Venue</label>
+                            <select id="fieldselect_id" data-dojo-type="dijit/form/Select">
+                            </select>
+                            <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
+                            <label for="fieldevent_id">Event Name</label><br>
+                            <input type="text" id="fieldevent_id" value="Sports" required="true" data-dojo-type="dijit/form/ValidationTextBox"
+                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                            <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldevent_id', position:['below','after']">Enter Event Type and Name</span></div><br>
                             <!--
-                            <div data-dojo-type="dijit/layout/ContentPane" title="Cal Config"> -->
-                                <label for="fieldselect_id">Select Field</label>
-                                <select id="fieldselect_id" data-dojo-type="dijit/form/Select">
-                                </select>
-                                <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
-                                <label for="fieldsched_input_id">Event Name</label><br>
-                                <input type="text" name="fieldsched_input" id="fieldsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox"
-                                data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                                <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldsched_input_id', position:['below','after']">Enter Event Name and Press ENTER</span></div><br>
-                                <label for="startdate_id">Start Date/Time:</label><br>
-                                <input id="startdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
-                                <input id="starttime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:100px'"><br>
-                                <label for="enddate_id">End Date/Time:</label><br>
-                                <input id="enddate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
-                                <input id="endtime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:100px'"><br>
-                                <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="startenddatetime_btn" value="Submit">Update</button>
-                                </form>
-                            <!--</div>-->
+                            <label for="startdate_id">Start Date/Time:</label><br>
+                            <input id="startdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
+                            <input id="starttime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:100px'"><br>
+                            <label for="enddate_id">End Date/Time:</label><br>
+                            <input id="enddate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
+                            <input id="endtime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:100px'">
+                            -->
+                            <label for="eventdate_id">Event Date:</label><br>
+                            <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
+                            <br>
+                            <label for="starttime_id">Start:</label>
+                            <input id="starttime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
+                            <label for="endtime_id">End:</label>
+                            <input id="endtime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
+                            <br>
+                            <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="startenddatetime_btn" value="Submit">Update</button>
+                            </form>
                         </div>
                     </div>
                     <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
