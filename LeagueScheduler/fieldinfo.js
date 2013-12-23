@@ -219,12 +219,34 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				var end_datetime_obj = new Date(eventdate_str+' '+
 					endtime_str);
 				if (date.compare(end_datetime_obj, start_datetime_obj) > 0) {
-					var data_obj = {id:this.calendar_id,
-						summary:"Evt"+row_id+':'+fieldevent_str,
-						startTime:start_datetime_obj, endTime:end_datetime_obj,
-						calendar:"Calendar"+row_id};
-					this.calendar_store.add(data_obj);
-					this.calendar_id++;
+					// after checking end date is later than start time
+					var overlapped_list = this.calendar_store.query(function(object){
+						return date.compare(start_datetime_obj,
+							object.startTime, "date") == 0 &&
+							date.compare(end_datetime_obj,
+							object.endTime, "date") == 0;
+					}).filter(function(object) {
+						//ref http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+						// http://stackoverflow.com/questions/13387490/determining-if-two-time-ranges-overlap-at-any-point
+						// overlap happens when
+						// (StartA <= EndB) and (EndA >= StartB)
+						// 'A'suffix comes from start_datetime_obj and end_datetime_obj function variables
+						// 'B'suffix is from object
+						return date.compare(start_datetime_obj,
+							object.endTime,"time") < 0 &&
+							date.compare(end_datetime_obj, object.startTime,
+								"time") > 0;
+					})
+					if (!overlapped_list.length) {
+						var data_obj = {id:this.calendar_id,
+							summary:"Evt"+row_id+':'+fieldevent_str,
+							startTime:start_datetime_obj, endTime:end_datetime_obj,
+							calendar:"Calendar"+row_id};
+						this.calendar_store.add(data_obj);
+						this.calendar_id++;
+					} else {
+						alert("time overlap, reselect");
+					}
 				} else {
 					alert("end time must be later than start time");
 				}
