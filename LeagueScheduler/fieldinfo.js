@@ -162,9 +162,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				}
 				fieldselect_list[row_id-1].selected = true;
 				fieldselect_reg.addOption(fieldselect_list);
-				var startenddatetime_reg = registry.byId("startenddatetime_btn");
+				var datetimeset_reg = registry.byId("datetimeset_btn");
 				// note use of third parameter (optional arg to event handler) to lang.hitch
-				startenddatetime_reg.on("click", lang.hitch(this, this.processdatetime_submit, row_id));
+				datetimeset_reg.on("click", lang.hitch(this, this.datetimeset_submit, row_id));
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {
@@ -193,11 +193,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				calendar.startup();
 				calendar.set("createOnGridClick", true);
 				calendar.set("createItemFunc", this.createItem);
+				calendar.on("itemClick", this.itemProcess);
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
 			},
-			processdatetime_submit: function(row_id, event) {
+			datetimeset_submit: function(row_id, event) {
 				var fieldevent_reg = registry.byId("fieldevent_id");
 				var fieldevent_str = fieldevent_reg.get("value");
 				/*
@@ -239,17 +240,24 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					})
 					if (!overlapped_list.length) {
 						var data_obj = {id:this.calendar_id,
-							summary:"Evt"+row_id+':'+fieldevent_str,
+							// tried to put in newline to break the string below,
+							// but it appears that text in calendar item doesn't
+							// accept newline char
+							summary:"Evt"+row_id+':'+fieldevent_str+' '+
+								"Block:"+this.calendar_id,
 							startTime:start_datetime_obj, endTime:end_datetime_obj,
 							calendar:"Calendar"+row_id};
 						this.calendar_store.add(data_obj);
 						this.calendar_id++;
 					} else {
-						alert("time overlap, reselect");
+						alert("time overlap, reselect time, or change event");
 					}
 				} else {
 					alert("end time must be later than start time");
 				}
+			},
+			itemProcess: function(event) {
+				console.log("item clicked="+event.item.summary);
 			}
 		});
 });
