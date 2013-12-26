@@ -91,6 +91,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				dates: {label:"Config Dates", field:"dates"}
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
 			fieldnum:0, calendar_id:0, storeobj_list:null, calendar_store:null,
+			fieldevent_reg:null, eventdate_reg:null,
+			starttime_reg:null, endtime_reg:null,
+			datetimeset_handle:null, datetimedel_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -162,9 +165,19 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				}
 				fieldselect_list[row_id-1].selected = true;
 				fieldselect_reg.addOption(fieldselect_list);
+				// set registers for field time parameters entry
+				this.fieldevent_reg = registry.byId("fieldevent_id");
+				this.eventdate_reg = registry.byId("eventdate_id");
+				this.starttime_reg = registry.byId("starttime_id");
+				this.endtime_reg = registry.byId("endtime_id");
+
 				var datetimeset_reg = registry.byId("datetimeset_btn");
 				// note use of third parameter (optional arg to event handler) to lang.hitch
-				datetimeset_reg.on("click", lang.hitch(this, this.datetimeset_submit, row_id));
+				if (this.datetimeset_handle) {
+					this.datetimeset_handle.remove();
+				}
+				this.datetimeset_handle = datetimeset_reg.on("click",
+					lang.hitch(this, this.datetimeset_submit, row_id));
 				var today = new Date();
 				var data_obj = null;
 				if (this.newschedulerbase_obj) {
@@ -193,14 +206,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				calendar.startup();
 				calendar.set("createOnGridClick", true);
 				calendar.set("createItemFunc", this.createItem);
-				calendar.on("itemClick", this.itemProcess);
+				calendar.on("itemClick", lang.hitch(this,this.itemProcess));
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
 			},
 			datetimeset_submit: function(row_id, event) {
-				var fieldevent_reg = registry.byId("fieldevent_id");
-				var fieldevent_str = fieldevent_reg.get("value");
+				var fieldevent_str = this.fieldevent_reg.get("value");
 				/*
 				var startdate_reg = registry.byId("startdate_id");
 				var enddate_reg = registry.byId("enddate_id");
@@ -208,13 +220,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				var startdate = startdate_reg.get("value");
 				var enddate = enddate_reg.get("value");
 				*/
-				var eventdate_reg = registry.byId("eventdate_id");
-				var starttime_reg = registry.byId("starttime_id");
-				var endtime_reg = registry.byId("endtime_id");
 				// get respective Date/Time strings
-				var eventdate_str = eventdate_reg.get("value").toDateString();
-				var starttime_str = starttime_reg.get("value").toTimeString();
-				var endtime_str = endtime_reg.get("value").toTimeString();
+				var eventdate_str = this.eventdate_reg.get("value").toDateString();
+				var starttime_str = this.starttime_reg.get("value").toTimeString();
+				var endtime_str = this.endtime_reg.get("value").toTimeString();
 				var start_datetime_obj = new Date(eventdate_str+' '+
 					starttime_str);
 				var end_datetime_obj = new Date(eventdate_str+' '+
@@ -243,6 +252,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 							// tried to put in newline to break the string below,
 							// but it appears that text in calendar item doesn't
 							// accept newline char
+							fieldevent_str:fieldevent_str,
 							summary:"Evt"+row_id+':'+fieldevent_str+' '+
 								"Block:"+this.calendar_id,
 							startTime:start_datetime_obj, endTime:end_datetime_obj,
@@ -253,11 +263,30 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						alert("time overlap, reselect time, or change event");
 					}
 				} else {
-					alert("end time must be later than start time");
+					alert("end time must be later than start timse");
 				}
 			},
 			itemProcess: function(event) {
-				console.log("item clicked="+event.item.summary);
+				var select_id = event.item.id;
+				this.calendar_store.query({id:select_id}
+					).forEach(lang.hitch(this,function(obj) {
+						var start_datetime = obj.startTime;
+						var end_datetime = obj.endTime;
+						this.fieldevent_reg.set('value', obj.fieldevent_str);
+						this.eventdate_reg.set('value', start_datetime);
+						this.starttime_reg.set('value', start_datetime);
+						this.endtime_reg.set('value', end_datetime);
+						var datetimedel_reg = registry.byId("datetimedel_btn");
+						// note use of third parameter (optional arg to event handler) to lang.hitch
+						if (this.datetimedel_handle) {
+							this.datetimedel_handle.remove();
+						}
+						this.datetimedel_handle = datetimedel_reg.on("click",
+							lang.hitch(this, this.datetimedel_submit, obj.id));
+					}));
+			},
+			datetimedel_submit: function(id, event) {
+				this.calendar_store.remove(id);
 			}
 		});
 });

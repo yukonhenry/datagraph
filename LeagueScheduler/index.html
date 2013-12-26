@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2013_1.0 0.09n</h1>
+        <h1 id="greeting">Event Scheduler ver2013_1.0 0.09p</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -237,12 +237,12 @@
                             <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
                             <br>
                             <label for="starttime_id">Start:</label>
-                            <input id="starttime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
+                            <input id="starttime_id" value="T08:00:00" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
                             <label for="endtime_id">End:</label>
-                            <input id="endtime_id" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
+                            <input id="endtime_id" value="T09:00:00"data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
                             <br>
                             <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimeset_btn" value="Submit">Update</button>
-                            <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedelete_btn" value="Submit">Delete</button>
+                            <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedel_btn" value="Submit">Delete</button>
                             </form>
                         </div>
                     </div>
