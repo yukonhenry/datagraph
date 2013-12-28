@@ -180,6 +180,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					lang.hitch(this, this.datetimeset_submit, row_id));
 				var today = new Date();
 				var data_obj = null;
+				/*
 				if (this.newschedulerbase_obj) {
 					data_obj = {id:0, summary:"Calendar 1",
 						startTime:this.newschedulerbase_obj.seasonstart_date,
@@ -191,7 +192,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						endTime:date.add(today,"year",1),
 						calendar: "Calendar2"}
 				}
-				//this.storeobj_list = [data_obj];
+				*/
 				this.storeobj_list = new Array();
 				this.calendar_store = new Observable(new Memory({data:this.storeobj_list}));
 				var calendar = new Calendar({
@@ -248,6 +249,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 								"time") > 0;
 					})
 					if (!overlapped_list.length) {
+						// no time overlap detected
 						var data_obj = {id:this.calendar_id,
 							// tried to put in newline to break the string below,
 							// but it appears that text in calendar item doesn't

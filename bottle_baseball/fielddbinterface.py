@@ -41,4 +41,8 @@ class FieldDBInterface:
         f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
+    def updateFieldTimes(self, fieldtime_str):
+        fieldtime_dict = json.loads(fieldtime_str)
+        for fieldtime in fieldtime_dict:
+            field_id = fieldtime['field_id']
 
