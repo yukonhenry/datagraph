@@ -1,7 +1,7 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry",
+	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
+	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys,
 		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
 		return declare(null, {

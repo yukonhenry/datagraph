@@ -91,9 +91,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				dates: {label:"Config Dates", field:"dates"}
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
 			fieldnum:0, calendar_id:0, storeobj_list:null, calendar_store:null,
-			fieldevent_reg:null, eventdate_reg:null,
+			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			datetimeset_handle:null, datetimedel_handle:null,
+			oldrow_id:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -158,19 +159,41 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				// makes panes under the bordercontainer overlap when the second pane is a dynamically created widget (like the dojox calendar)
 				dom.byId("borderContainer").style.visibility = 'visible';
 				// create drop down to select (either) field
-				var fieldselect_reg = registry.byId("fieldselect_id");
-				var fieldselect_list = new Array();
-				for (var i = 1; i < this.fieldnum+1; i++) {
-					fieldselect_list.push({label:'Field '+i, value:i, selected:false});
+				if (this.fieldselect_reg) {
+					// if select already exists,
+					// look at dijit/form/Select api for getOptions, updateOption
+					// parameters
+					var cur_option = this.fieldselect_reg.getOptions(this.oldrow_id-1);
+					cur_option.selected = false;
+					this.fieldselect_reg.updateOption(cur_option);
+					cur_option = this.fieldselect_reg.getOptions(row_id-1);
+					cur_option.selected = true;
+					this.fieldselect_reg.updateOption(cur_option);
+					this.server_interface.getServerData("update_fieldtimes/"+row_id,
+						this.server_interface.server_ack,
+						lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
+				} else {
+					this.fieldselect_reg = registry.byId("fieldselect_id");
+					var fieldselect_list = new Array();
+					for (var i = 1; i < this.fieldnum+1; i++) {
+						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
+					}
+					fieldselect_list[row_id-1].selected = true;
+					this.fieldselect_reg.addOption(fieldselect_list);
 				}
-				fieldselect_list[row_id-1].selected = true;
-				fieldselect_reg.addOption(fieldselect_list);
+				// ref http://dojotoolkit.org/documentation/tutorials/1.9/selects_using_stores/
+				// (section without stores) to properly configure select widget
+				// programmatically
+				// also see same reference - apparently select widget
+				// needs to be started up again if options change
+				// (just add or delete? or change in value also?)
+				//this.fieldselect_reg.startup();
+				this.oldrow_id = row_id;
 				// set registers for field time parameters entry
 				this.fieldevent_reg = registry.byId("fieldevent_id");
 				this.eventdate_reg = registry.byId("eventdate_id");
 				this.starttime_reg = registry.byId("starttime_id");
 				this.endtime_reg = registry.byId("endtime_id");
-
 				var datetimeset_reg = registry.byId("datetimeset_btn");
 				// note use of third parameter (optional arg to event handler) to lang.hitch
 				if (this.datetimeset_handle) {
@@ -179,6 +202,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				this.datetimeset_handle = datetimeset_reg.on("click",
 					lang.hitch(this, this.datetimeset_submit, row_id));
 				var today = new Date();
+				this.eventdate_reg.set('value', today);
+				this.eventdate_reg.startup();
 				var data_obj = null;
 				/*
 				if (this.newschedulerbase_obj) {

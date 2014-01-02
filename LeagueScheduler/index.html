@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2013_1.0 0.09p</h1>
+        <h1 id="greeting">Event Scheduler ver2013_1.0 0.09r</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -218,7 +218,9 @@
                     <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
                         <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
                             <label for="fieldselect_id">Select Venue</label>
-                            <select id="fieldselect_id" data-dojo-type="dijit/form/Select">
+                            <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
+                            name parameter is required for declarative setup -->
+                            <select id="fieldselect_id" name="fieldselect_id" data-dojo-type="dijit/form/Select">
                             </select>
                             <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
                             <label for="fieldevent_id">Event Name</label><br>
