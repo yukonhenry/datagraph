@@ -152,7 +152,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
-			edit_calendar: function(row_id) {
+			edit_calendar: function(row_id, colname) {
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
 				// property, as usage of latter (inline, block, any other property)
@@ -179,7 +179,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						if (fieldtime_obj.total > 0) {
 							fieldtime_str = JSON.stringify(fieldtime_obj);
 							// note REST parameter has to be this.field_id and not row_id as row_id indicates current field_id where paramenters have yet to be entered.
-							this.server_interface.getServerData("update_fieldtimes/"+this.field_id,
+							this.server_interface.getServerData("update_fieldtimes/"+colname,
 								this.server_interface.server_ack,
 								{fieldtime_str:fieldtime_str});
 						}

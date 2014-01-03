@@ -127,7 +127,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var column_name = eventcell.column.id;
 				if (column_name == 'dates' && this.info_obj) {
 					var row_id = eventcell.row.id;
-					this.info_obj.edit_calendar(parseInt(row_id));
+					// pass collection name to edit_calendar handler as it will be
+					// making independent requests to the server
+					this.info_obj.edit_calendar(parseInt(row_id), this.colname);
 				}
 			},
 			sendDivInfoToServer: function(event) {
