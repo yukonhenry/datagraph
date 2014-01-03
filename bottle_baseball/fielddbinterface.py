@@ -44,5 +44,6 @@ class FieldDBInterface:
     def updateFieldTimes(self, fieldtime_str):
         fieldtime_dict = json.loads(fieldtime_str)
         for fieldtime in fieldtime_dict:
+            print 'fieldtime', fieldtime
             field_id = fieldtime['field_id']
 

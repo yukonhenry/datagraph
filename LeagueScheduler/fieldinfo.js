@@ -94,7 +94,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			datetimeset_handle:null, datetimedel_handle:null,
-			oldrow_id:0,
+			field_id:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -163,15 +163,27 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					// if select already exists,
 					// look at dijit/form/Select api for getOptions, updateOption
 					// parameters
-					var cur_option = this.fieldselect_reg.getOptions(this.oldrow_id-1);
+					var cur_option = this.fieldselect_reg.getOptions(this.field_id-1);
 					cur_option.selected = false;
-					this.fieldselect_reg.updateOption(cur_option);
+					// retrieved option is a pointer to the obtion object in the widget
+					// no need to call updateOption (it actually confuses the update)
+					// make sure to call widget startup()
+					//this.fieldselect_reg.updateOption(cur_option);
 					cur_option = this.fieldselect_reg.getOptions(row_id-1);
 					cur_option.selected = true;
-					this.fieldselect_reg.updateOption(cur_option);
-					this.server_interface.getServerData("update_fieldtimes/"+row_id,
-						this.server_interface.server_ack,
-						lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
+					//this.fieldselect_reg.updateOption(cur_option);
+					// send store info to server
+					// first make store query and get count
+					if (this.calendar_store) {
+						var fieldtime_obj = this.calendar_store.query({});
+						if (fieldtime_obj.total > 0) {
+							fieldtime_str = JSON.stringify(fieldtime_obj);
+							// note REST parameter has to be this.field_id and not row_id as row_id indicates current field_id where paramenters have yet to be entered.
+							this.server_interface.getServerData("update_fieldtimes/"+this.field_id,
+								this.server_interface.server_ack,
+								{fieldtime_str:fieldtime_str});
+						}
+					}
 				} else {
 					this.fieldselect_reg = registry.byId("fieldselect_id");
 					var fieldselect_list = new Array();
@@ -187,8 +199,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				// also see same reference - apparently select widget
 				// needs to be started up again if options change
 				// (just add or delete? or change in value also?)
-				//this.fieldselect_reg.startup();
-				this.oldrow_id = row_id;
+				this.fieldselect_reg.startup();
+				this.field_id = row_id;
 				// set registers for field time parameters entry
 				this.fieldevent_reg = registry.byId("fieldevent_id");
 				this.eventdate_reg = registry.byId("eventdate_id");
@@ -279,11 +291,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 							// tried to put in newline to break the string below,
 							// but it appears that text in calendar item doesn't
 							// accept newline char
+							// note we can also use this.field_id in lieu of passed
+							// paramemter row_id
 							fieldevent_str:fieldevent_str,
-							summary:"Evt"+row_id+':'+fieldevent_str+' '+
+							summary:"Field"+row_id+':'+fieldevent_str+' '+
 								"Block:"+this.calendar_id,
 							startTime:start_datetime_obj, endTime:end_datetime_obj,
-							calendar:"Calendar"+row_id};
+							field_id:row_id};
 						this.calendar_store.add(data_obj);
 						this.calendar_id++;
 					} else {

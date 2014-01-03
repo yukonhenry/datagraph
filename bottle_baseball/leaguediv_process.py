@@ -282,8 +282,8 @@ def delete_fieldcol(delcol_name):
 @route('/update_fieldtimes/<col_name>')
 def update_fieldtimes(col_name):
     callback_name = request.query.callback
-    fieldtime_data = request.query.fieldtime_data
+    fieldtime_str = request.query.fieldtime_str
     fdbInterface = FieldDBInterface(mongoClient, col_name)
-    fdbInterface.updateFieldTimes(fieldtime_data)
+    fdbInterface.updateFieldTimes(fieldtime_str)
     a = json.dumps({'test':'dfh'})
     return callback_name+'('+a+')'
