@@ -32,6 +32,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,newschedulerbase_obj:newSchedulerBase});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -63,6 +64,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			dbstatus = ldata.dbstatus;
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
 			newSchedulerBase.set_schedutil_obj(schedUtil);
+			fieldinfo_obj.set_schedutil_obj(schedUtil);
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
@@ -97,7 +99,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				{db_type:'db'});
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
-			var fieldinfo_obj = new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil, newschedulerbase_obj:newSchedulerBase});
 			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu", fieldinfo_obj, fieldinfo_obj.getServerDBFieldInfo,
 				{db_type:'fielddb'});
 			var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
@@ -394,25 +395,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				text_node_str: 'Schedule Name'});
 			newScheduler.showConfig();
 		}
-		var initNewFieldList = function(evt) {
-			var form_name = "fieldconfig_form_id";
-			var form_reg = registry.byId(form_name);
-			var form_dom = dom.byId(form_name);
-			var input_reg = registry.byId("fieldlistname_input_id");
-			var fieldnum_reg = registry.byId("fieldnum_input_id");
-			var newFieldGroup = new newscheduler({dbname_reg:input_reg,
-				form_dom:form_dom, form_reg:form_reg,
-				entrynum_reg:fieldnum_reg, server_interface:serverInterface,
-				schedutil_obj:schedUtil,
-				callback: lang.hitch(schedUtil,schedUtil.regenAddFieldDBCollection_smenu),
-				info_obj: new FieldInfo({server_interface:serverInterface, schedutil_obj:schedUtil}),
-				idproperty:'field_id',
-				server_path:"create_newfieldcol/",
-				server_key:'fieldinfo_data',
-				cellselect_flag:true,
-				text_node_str: 'Field List Name'});
-			newFieldGroup.showConfig();
-		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
 	        	jsonp:"callback"
@@ -456,7 +438,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				active_grid.schedInfoGrid.resize();
 			}
 			//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
-			// ensure edit pane scroll resets to t op
+			// ensure edit pane scroll resets to top
 			var pane_dom = dom.byId("editPane");
 			pane_dom.scrollTop = 0;
 			//to resize bracket info grid also
@@ -466,6 +448,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		}
 		// events for widgets should be in one file; trying to split it up into two or more modules
 		// does not work - registry.byId cannot find the widget
+		// make sure global variables/objects have full context by the time callback functions to events defined below are assigned
 		ready(function() {
  			parser.parse();
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
@@ -479,7 +462,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			on(registry.byId("newdivinfo_item"), "click", initNewDivInfo);
-			on(registry.byId("newfieldlist_item"), "click", initNewFieldList);
+			on(registry.byId("newfieldlist_item"), "click", lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));
 			on(registry.byId("newsched_item"), "click", lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);

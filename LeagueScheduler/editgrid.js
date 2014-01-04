@@ -9,8 +9,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		return declare(null, {
 			griddata_list:null, text_node:null, text_node_str:"",
 			server_interface:null, colname:null,
-			schedInfoStore:null, schedInfoGrid:null, updatebtn_node:null,
-			grid_name:null, error_node:null, submitbtn_reg:null,
+			schedInfoStore:null, schedInfoGrid:null, updatebtn_outernode:null,
+			grid_name:null, error_node:null, updatebtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
@@ -29,7 +29,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
-				this.makeVisible(this.updatebtn_node);
+				this.makeVisible(this.updatebtn_outernode);
 				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
 				if (this.cellselect_flag) {
 					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, CellSelection]))({
@@ -52,7 +52,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				});
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 					lang.hitch(this, this.editschedInfoGrid));
-				this.submitHandle = this.submitbtn_reg.on("click",
+				this.submitHandle = this.updatebtn_reg.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
@@ -152,7 +152,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_name).innerHTML = "";
 					delete this.schedInfoGrid;
-					this.makeInvisible(this.updatebtn_node);
+					this.makeInvisible(this.updatebtn_outernode);
 					delete this.schedInfoStore;
 					this.divisioncode = 0;
 					this.text_node.innerHTML = "";

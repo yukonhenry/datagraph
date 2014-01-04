@@ -11,7 +11,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			seasoncalendar_input_dom:null,seasondates_btn_reg:null,
-			callback:null, text_node_str:null,
+			callback:null, text_node_str:"",
 			seasonstart_date:null, seasonend_date:null,
 			constructor: function(args) {
 				lang.mixin(this, args);

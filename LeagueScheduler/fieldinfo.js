@@ -1,5 +1,5 @@
-define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, TimeTextBox, DateTextBox, Button, put, Calendar){
+define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, Button, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
@@ -98,6 +98,31 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
+			initialize: function(arg_obj) {
+				var form_name = "fieldconfig_form_id";
+				var form_reg = registry.byId(form_name);
+				var form_dom = dom.byId(form_name);
+				var input_name = "fieldlistname_input_id";
+				var input_reg = registry.byId(input_name);
+				var fieldnum_reg = registry.byId("fieldnum_input_id");
+				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
+					form_dom:form_dom, form_reg:form_reg,
+					entrynum_reg:fieldnum_reg,
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					callback: lang.hitch(this.schedutil_obj,this.schedutil_obj.regenAddFieldDBCollection_smenu),
+					info_obj:this,
+					idproperty:'field_id',
+					server_path:"create_newfieldcol/",
+					server_key:'fieldinfo_data',
+					cellselect_flag:true,
+					text_node_str: 'Field List Name',
+					updatebtn_str:'Update Field Info'});
+				newFieldGroup.showConfig();
+			},
+			set_schedutil_obj: function(obj) {
+				this.schedutil_obj = obj;
+			},
 			getServerDBFieldInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
@@ -106,13 +131,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
-				options_obj.serverdata_key = 'fieldinfo_list';
-				options_obj.idproperty = 'field_id';
-				options_obj.server_key = 'fieldinfo_data';
-				options_obj.server_path = "create_newfieldcol/";
-				options_obj.cellselect_flag = true;
 				options_obj.info_obj = this;
+				options_obj.idproperty = 'field_id';
+				options_obj.server_path = "create_newfieldcol/";
+				options_obj.server_key = 'fieldinfo_data';
+				options_obj.cellselect_flag = true;
 				options_obj.text_node_str = "Field List Name";
+				options_obj.updatebtn_str = 'Update Field Info';
+				// key for response object from server
+				options_obj.serverdata_key = 'fieldinfo_list';
 				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
