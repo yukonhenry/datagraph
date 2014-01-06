@@ -90,10 +90,11 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				} */
 				dates: {label:"Config Dates", field:"dates"}
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
-			fieldnum:0, calendar_id:0, storeobj_list:null, calendar_store:null,
+			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
-			starttime_reg:null, endtime_reg:null,
+			starttime_reg:null, endtime_reg:null, datetimeset_reg:null,
 			datetimeset_handle:null, datetimedel_handle:null,
+			calendar_store_list:null,
 			field_id:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -154,22 +155,21 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			},
 			getInitialList: function(fieldnum) {
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
+				this.calendar_store_list = new Array();
+				// set registers for field time parameters entry
+				this.fieldevent_reg = registry.byId("fieldevent_id");
+				this.eventdate_reg = registry.byId("eventdate_id");
+				this.starttime_reg = registry.byId("starttime_id");
+				this.endtime_reg = registry.byId("endtime_id");
+				this.datetimeset_reg = registry.byId("datetimeset_btn");
 				this.fieldnum = fieldnum;
 				var fieldinfo_list = new Array();
-				var current_date = new Date();
-				var today = new Date();
-				var today_9am = new Date(
-					today.getYear(), today.getMonth(), today.getDay(),
-					9, 0, 0);
-				var today_5pm = new Date(
-					today.getYear(), today.getMonth(), today.getDay(),
-					17, 0, 0);
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
-					                    primaryuse_str:"",
-					                    start_time:"", end_time:"", dates:"Config Field "+i});
-//					                    start_time: today_9am.toLocaleTimeString(),
-//					                    end_time:today_5pm.toLocaleTimeString()});
+						primaryuse_str:"", start_time:"", end_time:"",
+						dates:"Config Field "+i});
+					var calendar_store = new Observable(new Memory({data:new Array()}));
+					this.calendar_store_list.push(calendar_store);
 				}
 				return fieldinfo_list;
 			},
@@ -180,6 +180,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
 			edit_calendar: function(row_id, colname) {
+				var field_index = row_id-1;
+				var oldfield_index = this.field_id-1;
+				this.field_id = row_id;
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
 				// property, as usage of latter (inline, block, any other property)
@@ -190,14 +193,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					// if select already exists,
 					// look at dijit/form/Select api for getOptions, updateOption
 					// parameters
-					var cur_option = this.fieldselect_reg.getOptions(this.field_id-1);
+					var cur_option = this.fieldselect_reg.getOptions(oldfield_index);
 					cur_option.selected = false;
 					// retrieved option is a pointer to the obtion object in the widget
 					// no need to call updateOption (it actually confuses the update)
 					// make sure to call widget startup()
 					//this.fieldselect_reg.updateOption(cur_option);
-					cur_option = this.fieldselect_reg.getOptions(row_id-1);
+					cur_option = this.fieldselect_reg.getOptions(field_index);
 					cur_option.selected = true;
+					// update current field_id
 					//this.fieldselect_reg.updateOption(cur_option);
 					// send store info to server
 					// first make store query and get count
@@ -212,12 +216,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						}
 					}
 				} else {
+					// if field select widget does not exist, create one.
 					this.fieldselect_reg = registry.byId("fieldselect_id");
 					var fieldselect_list = new Array();
 					for (var i = 1; i < this.fieldnum+1; i++) {
 						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
 					}
-					fieldselect_list[row_id-1].selected = true;
+					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
 				}
 				// ref http://dojotoolkit.org/documentation/tutorials/1.9/selects_using_stores/
@@ -227,38 +232,16 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				// needs to be started up again if options change
 				// (just add or delete? or change in value also?)
 				this.fieldselect_reg.startup();
-				this.field_id = row_id;
-				// set registers for field time parameters entry
-				this.fieldevent_reg = registry.byId("fieldevent_id");
-				this.eventdate_reg = registry.byId("eventdate_id");
-				this.starttime_reg = registry.byId("starttime_id");
-				this.endtime_reg = registry.byId("endtime_id");
-				var datetimeset_reg = registry.byId("datetimeset_btn");
 				// note use of third parameter (optional arg to event handler) to lang.hitch
 				if (this.datetimeset_handle) {
 					this.datetimeset_handle.remove();
 				}
-				this.datetimeset_handle = datetimeset_reg.on("click",
+				this.datetimeset_handle = this.datetimeset_reg.on("click",
 					lang.hitch(this, this.datetimeset_submit, row_id));
 				var today = new Date();
 				this.eventdate_reg.set('value', today);
 				this.eventdate_reg.startup();
-				var data_obj = null;
-				/*
-				if (this.newschedulerbase_obj) {
-					data_obj = {id:0, summary:"Calendar 1",
-						startTime:this.newschedulerbase_obj.seasonstart_date,
-						endTime:this.newschedulerbase_obj.seasonend_date,
-						calendar: "Calendar2"}
-				} else {
-					data_obj = {id:0, summary:"Calendar 1",
-						startTime:date.add(today,"month",-1),
-						endTime:date.add(today,"year",1),
-						calendar: "Calendar2"}
-				}
-				*/
-				this.storeobj_list = new Array();
-				this.calendar_store = new Observable(new Memory({data:this.storeobj_list}));
+				this.calendar_store = this.calendar_store_list[field_index];
 				var calendar = new Calendar({
 					dateInterval: "day",
 					date: today,
