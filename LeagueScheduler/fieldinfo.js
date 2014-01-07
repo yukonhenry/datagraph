@@ -94,7 +94,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null, datetimeset_reg:null,
 			datetimeset_handle:null, datetimedel_handle:null,
-			calendar_store_list:null,
+			calendar:null,
 			field_id:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -155,7 +155,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			},
 			getInitialList: function(fieldnum) {
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
-				this.calendar_store_list = new Array();
 				// set registers for field time parameters entry
 				this.fieldevent_reg = registry.byId("fieldevent_id");
 				this.eventdate_reg = registry.byId("eventdate_id");
@@ -168,8 +167,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					fieldinfo_list.push({field_id:i, field_name:"",
 						primaryuse_str:"", start_time:"", end_time:"",
 						dates:"Config Field "+i});
-					var calendar_store = new Observable(new Memory({data:new Array()}));
-					this.calendar_store_list.push(calendar_store);
 				}
 				return fieldinfo_list;
 			},
@@ -193,6 +190,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					// if select already exists,
 					// look at dijit/form/Select api for getOptions, updateOption
 					// parameters
+					// ref http://dojotoolkit.org/documentation/tutorials/1.9/selects_using_stores/
+					// (section without stores) to properly configure select widget
+					// programmatically
+					// also see same reference - apparently select widget
+					// needs to be started up again if options change
+					// (just add or delete? or change in value also?)
 					var cur_option = this.fieldselect_reg.getOptions(oldfield_index);
 					cur_option.selected = false;
 					// retrieved option is a pointer to the obtion object in the widget
@@ -201,10 +204,11 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					//this.fieldselect_reg.updateOption(cur_option);
 					cur_option = this.fieldselect_reg.getOptions(field_index);
 					cur_option.selected = true;
-					// update current field_id
-					//this.fieldselect_reg.updateOption(cur_option);
+					this.fieldselect_reg.startup();
+					//this.calendar.currentView.invalidateLayout();
 					// send store info to server
 					// first make store query and get count
+					/*
 					if (this.calendar_store) {
 						var fieldtime_obj = this.calendar_store.query({});
 						if (fieldtime_obj.total > 0) {
@@ -215,6 +219,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 								{fieldtime_str:fieldtime_str});
 						}
 					}
+					*/
 				} else {
 					// if field select widget does not exist, create one.
 					this.fieldselect_reg = registry.byId("fieldselect_id");
@@ -224,42 +229,35 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					}
 					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
-				}
-				// ref http://dojotoolkit.org/documentation/tutorials/1.9/selects_using_stores/
-				// (section without stores) to properly configure select widget
-				// programmatically
-				// also see same reference - apparently select widget
-				// needs to be started up again if options change
-				// (just add or delete? or change in value also?)
-				this.fieldselect_reg.startup();
-				// note use of third parameter (optional arg to event handler) to lang.hitch
-				if (this.datetimeset_handle) {
-					this.datetimeset_handle.remove();
-				}
-				this.datetimeset_handle = this.datetimeset_reg.on("click",
-					lang.hitch(this, this.datetimeset_submit, row_id));
-				var today = new Date();
-				this.eventdate_reg.set('value', today);
-				this.eventdate_reg.startup();
-				this.calendar_store = this.calendar_store_list[field_index];
-				var calendar = new Calendar({
-					dateInterval: "day",
-					date: today,
-					store: this.calendar_store,
-					style: "position:inherit;width:600px;height:600px",
-					cssClassFunc: function(item) {
-						return item.calendar;
+					this.fieldselect_reg.startup();
+					if (this.datetimeset_handle) {
+						this.datetimeset_handle.remove();
 					}
-				}, "calendarGrid_id");
-				calendar.startup();
-				calendar.set("createOnGridClick", true);
-				calendar.set("createItemFunc", this.createItem);
-				calendar.on("itemClick", lang.hitch(this,this.itemProcess));
+					this.datetimeset_handle = this.datetimeset_reg.on("click",
+						lang.hitch(this, this.datetimeset_submit));
+					var today = new Date();
+					this.eventdate_reg.set('value', today);
+					this.eventdate_reg.startup();
+					this.calendar_store = new Observable(new Memory({data:new Array()}));
+					this.calendar = new Calendar({
+						dateInterval: "day",
+						date: today,
+						store: this.calendar_store,
+						style: "position:inherit;width:600px;height:600px",
+						cssClassFunc: function(item) {
+							return item.calendar;
+						}
+					}, "calendarGrid_id");
+					this.calendar.startup();
+					this.calendar.set("createOnGridClick", true);
+					this.calendar.set("createItemFunc", this.createItem);
+					this.calendar.on("itemClick", lang.hitch(this,this.itemProcess));
+				}
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
 			},
-			datetimeset_submit: function(row_id, event) {
+			datetimeset_submit: function(event) {
 				var fieldevent_str = this.fieldevent_reg.get("value");
 				/*
 				var startdate_reg = registry.byId("startdate_id");
@@ -290,10 +288,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						// (StartA <= EndB) and (EndA >= StartB)
 						// 'A'suffix comes from start_datetime_obj and end_datetime_obj function variables
 						// 'B'suffix is from object
-						return date.compare(start_datetime_obj,
+						// if object field_id is different than selected field id
+						// then no need to worry about time overlap
+						return (date.compare(start_datetime_obj,
 							object.endTime,"time") < 0 &&
 							date.compare(end_datetime_obj, object.startTime,
-								"time") > 0;
+								"time") > 0) && (this.field_id == object.field_id);
 					})
 					if (!overlapped_list.length) {
 						// no time overlap detected
@@ -303,11 +303,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 							// accept newline char
 							// note we can also use this.field_id in lieu of passed
 							// paramemter row_id
+							// calendar key needed to cssClassFunc to retrieve style
+							// for Calendar element
 							fieldevent_str:fieldevent_str,
-							summary:"Field"+row_id+':'+fieldevent_str+' '+
+							summary:"Field"+this.field_id+':'+fieldevent_str+' '+
 								"Block:"+this.calendar_id,
 							startTime:start_datetime_obj, endTime:end_datetime_obj,
-							field_id:row_id};
+							field_id:this.field_id,
+							calendar:'Calendar'+this.field_id};
 						this.calendar_store.add(data_obj);
 						this.calendar_id++;
 					} else {
@@ -338,6 +341,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			},
 			datetimedel_submit: function(id, event) {
 				this.calendar_store.remove(id);
+			},
+			cleanup: function() {
+				if (this.datetimeset_handle) {
+					this.datetimeset_handle.remove();
+				}
+				if (this.datetimedel_handle) {
+					this.datetimedel_handle.remove();
+				}
+				this.calendar.destroyRecursive();
+				//delete this.calendar;
+				delete this.calendar_store;
 			}
 		});
 });

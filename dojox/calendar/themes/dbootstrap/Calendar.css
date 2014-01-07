@@ -910,20 +910,38 @@
   bottom: 0;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar1 .bg {
-  background-color: #00AA00;
+  background-color: #0000FF; /*blue*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar1.Hovered .bg {
-  background-color: #00FF00;
+  background-color: #FFFFFF; /*white*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar1.Selected .bg {
   background-color: #004400;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2 .bg {
-  background-color: #0000AA;
+  background-color: #800000; /*maroon*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2.Hovered .bg {
   background-color: #0000FF;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2.Selected .bg {
+  background-color: #000044;
+}
+.dbootstrap .dojoxCalendarEvent.Calendar3 .bg {
+  background-color: #008000; /*green*/
+}
+.dbootstrap .dojoxCalendarEvent.Calendar3.Hovered .bg {
+  background-color: #0000FF;
+}
+.dbootstrap .dojoxCalendarEvent.Calendar3.Selected .bg {
+  background-color: #000044;
+}
+.dbootstrap .dojoxCalendarEvent.Calendar4 .bg {
+  background-color: #FFFF00; /*yellow*/
+}
+.dbootstrap .dojoxCalendarEvent.Calendar4.Hovered .bg {
+  background-color: #0000FF;
+}
+.dbootstrap .dojoxCalendarEvent.Calendar4.Selected .bg {
   background-color: #000044;
 }
