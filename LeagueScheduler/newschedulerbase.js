@@ -5,6 +5,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
+		var weekoffset_CONST = 12;
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			newsched_dom:"", schedutil_obj:null,
@@ -14,6 +15,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasoncalendar_input_dom:null,seasondates_btn_reg:null,
 			callback:null, text_node_str:"",
 			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
+			seasonstart_handle:null, seasonend_handle:null,
+			seasonlength_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -67,31 +70,74 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						var today = new Date();
 						this.seasonstart_reg.set('value', today);
 						this.seasonend_reg.set('value',
-							date.add(today, 'week', 12));
-						this.seasonlength_reg.set('value', 12);
-						this.seasonstart_reg.on("change",
-							lang.hitch(this, this.updateNumWeeks_spinner, this.seasonend_reg));
-						this.seasonend_reg.on("change",
-							lang.hitch(this, this.updateNumWeeks_spinner, this.seasonstart_reg));
-						this.seasonlength_reg.on("change",
+							date.add(today, 'week', weekoffset_CONST));
+						this.seasonlength_reg.set('value', weekoffset_CONST);
+						if (this.seasonstart_handle)
+							this.seasonstart_handle.remove();
+						this.seasonstart_handle = on.pausable(this.seasonstart_reg,
+							"change",
 							lang.hitch(this, function(event) {
+								console.log("season start handle");
+								var enddate = this.seasonend_reg.get('value');
+								var numweeks = date.difference(event, enddate,'week');
+								if (numweeks < 1) {
+									alert("end date needs to be at least one week after start date");
+									// reset the date to an arbitrary default
+									numweeks = this.seasonlength_reg.get('value');
+									this.seasonstart_handle.pause();
+									this.seasonstart_reg.set('value',
+										date.add(enddate, 'week', -numweeks));
+									this.seasonstart_handle.resume();
+								} else {
+									this.seasonlength_handle.pause();
+									this.seasonlength_reg.set('value', numweeks);
+									this.seasonlength_handle.resume();
+								}
+							})
+						);
+						if (this.seasonend_handle)
+							this.seasonend_handle.remove();
+						this.seasonend_handle = on.pausable(this.seasonend_reg,
+							"change",
+							lang.hitch(this, function(event) {
+								console.log("seasonendhandler");
+								var startdate = this.seasonstart_reg.get('value');
+								var numweeks = date.difference(startdate, event,'week');
+								if (numweeks < 1) {
+									alert("end date needs to be at least one week after start date");
+									numweeks = this.seasonlength_reg.get('value');
+									this.seasonend_handle.pause();
+									this.seasonend_reg.set('value',
+										date.add(startdate, 'week', numweeks));
+									this.seasonend_handle.resume();
+								} else {
+									this.seasonlength_handle.pause();
+									this.seasonlength_reg.set('value', numweeks);
+									this.seasonlength_handle.resume();
+								}
+							})
+						);
+						if (this.seasonlength_handle)
+							this.seasonlength_handle.remove();
+						this.seasonlength_handle = on.pausable(this.seasonlength_reg,
+							"change",
+							lang.hitch(this, function(event) {
+								console.log("season len handler");
 								var startdate = this.seasonstart_reg.get('value');
 								var enddate = date.add(startdate, 'week', event);
+								this.seasonend_handle.pause();
 								this.seasonend_reg.set('value', enddate);
-							}))
+								this.seasonend_handle.resume();
+							})
+						);
 						if (this.sdates_handle)
 							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
-					lang.hitch(this, this.getSeasonDatesFromInput));
+							lang.hitch(this, this.getSeasonDatesFromInput));
 					} else {
 						alert('Input name is Invalid, please correct');
 					}
 				}
-			},
-			updateNumWeeks_spinner: function(ref_reg, event) {
-				var ref_date = ref_reg.get('value');
-				var numweeks = date.difference(event, ref_date, "week");
-				this.seasonlength_reg.set('value', Math.abs(numweeks));
 			},
 			nodupname_validate: function(col_name) {
 				// if name exists in the current list (index > -1) then
