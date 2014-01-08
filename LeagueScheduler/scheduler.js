@@ -437,11 +437,14 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			if (active_grid) {
 				active_grid.schedInfoGrid.resize();
 			}
+			//to resize bracket info grid also
+		}
+		var scrollTopEditPane = function(evt) {
 			//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 			// ensure edit pane scroll resets to top
+			// seems like scrolling to top only works if it works off of onLoad and not onShow
 			var pane_dom = dom.byId("editPane");
 			pane_dom.scrollTop = 0;
-			//to resize bracket info grid also
 		}
 		var resizeTournamentPaneGrids = function(evt) {
 			// todo
@@ -460,6 +463,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
+			on(registry.byId("editPane"),"load",scrollTopEditPane);
 			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			on(registry.byId("newdivinfo_item"), "click", initNewDivInfo);
 			on(registry.byId("newfieldlist_item"), "click", lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));

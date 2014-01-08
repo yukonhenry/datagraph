@@ -92,7 +92,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
-			starttime_reg:null, endtime_reg:null, datetimeset_reg:null,
+			starttime_reg:null, endtime_reg:null,
+			starttime_handle:null,
 			datetimeset_handle:null, datetimedel_handle:null,
 			calendar:null,
 			field_id:0,
@@ -155,12 +156,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			},
 			getInitialList: function(fieldnum) {
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
-				// set registers for field time parameters entry
-				this.fieldevent_reg = registry.byId("fieldevent_id");
-				this.eventdate_reg = registry.byId("eventdate_id");
-				this.starttime_reg = registry.byId("starttime_id");
-				this.endtime_reg = registry.byId("endtime_id");
-				this.datetimeset_reg = registry.byId("datetimeset_btn");
 				this.fieldnum = fieldnum;
 				var fieldinfo_list = new Array();
 				for (var i = 1; i < fieldnum+1; i++) {
@@ -230,14 +225,28 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
 					this.fieldselect_reg.startup();
+					// set registers for field time parameters entry
+					this.fieldevent_reg = registry.byId("fieldevent_id");
+					this.eventdate_reg = registry.byId("eventdate_id");
+					this.starttime_reg = registry.byId("starttime_id");
+					if (this.starttime_handle) {
+						this.starttime_handle.remove();
+					}
+					this.starttime_handle = this.starttime_reg.on("change",
+						lang.hitch(this, function (event) {
+							this.endtime_reg.set('value',
+								date.add(event, 'hour', 1));
+						}));
+					this.endtime_reg = registry.byId("endtime_id");
+					var datetimeset_reg = registry.byId("datetimeset_btn");
 					if (this.datetimeset_handle) {
 						this.datetimeset_handle.remove();
 					}
-					this.datetimeset_handle = this.datetimeset_reg.on("click",
+					this.datetimeset_handle = datetimeset_reg.on("click",
 						lang.hitch(this, this.datetimeset_submit));
 					var today = new Date();
 					this.eventdate_reg.set('value', today);
-					this.eventdate_reg.startup();
+					//this.eventdate_reg.startup();
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
 					this.calendar = new Calendar({
 						dateInterval: "day",
@@ -251,7 +260,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					this.calendar.startup();
 					this.calendar.set("createOnGridClick", true);
 					this.calendar.set("createItemFunc", this.createItem);
-					this.calendar.on("itemClick", lang.hitch(this,this.itemProcess));
+					this.calendar.on("itemClick", lang.hitch(this,this.clickedItemProcess));
 				}
 			},
 			createItem: function(view, date, event) {
@@ -276,12 +285,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					endtime_str);
 				if (date.compare(end_datetime_obj, start_datetime_obj) > 0) {
 					// after checking end date is later than start time
-					var overlapped_list = this.calendar_store.query(function(object){
+					// using the store query+filter call below, attempt to find
+					// time-overlapped events on the same field.
+					var overlapped_list = this.calendar_store.query(lang.hitch(this, function(object){
 						return date.compare(start_datetime_obj,
 							object.startTime, "date") == 0 &&
 							date.compare(end_datetime_obj,
-							object.endTime, "date") == 0;
-					}).filter(function(object) {
+							object.endTime, "date") == 0 &&
+							(object.field_id == this.field_id);
+					})).filter(function(object) {
 						//ref http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
 						// http://stackoverflow.com/questions/13387490/determining-if-two-time-ranges-overlap-at-any-point
 						// overlap happens when
@@ -293,7 +305,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						return (date.compare(start_datetime_obj,
 							object.endTime,"time") < 0 &&
 							date.compare(end_datetime_obj, object.startTime,
-								"time") > 0) && (this.field_id == object.field_id);
+								"time") > 0);
 					})
 					if (!overlapped_list.length) {
 						// no time overlap detected
@@ -320,7 +332,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					alert("end time must be later than start timse");
 				}
 			},
-			itemProcess: function(event) {
+			clickedItemProcess: function(event) {
 				var select_id = event.item.id;
 				this.calendar_store.query({id:select_id}
 					).forEach(lang.hitch(this,function(obj) {
@@ -343,12 +355,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				this.calendar_store.remove(id);
 			},
 			cleanup: function() {
-				if (this.datetimeset_handle) {
+				if (this.starttime_handle)
+					this.starttime_handle.remove();
+				if (this.datetimeset_handle)
 					this.datetimeset_handle.remove();
-				}
-				if (this.datetimedel_handle) {
+				if (this.datetimedel_handle)
 					this.datetimedel_handle.remove();
-				}
 				this.calendar.destroyRecursive();
 				//delete this.calendar;
 				delete this.calendar_store;

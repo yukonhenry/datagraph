@@ -90,12 +90,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				return result_array[0].totalteams;
 			},
 			createSchedLinks: function(ldata_array, dom_name) {
-				target_dom = dom.byId(dom_name);
-				hrefstr = "";
+				var target_dom = dom.byId(dom_name);
+				var hrefstr = "";
 				arrayUtil.forEach(ldata_array, function(item, index) {
-					divstr = item.div_age + item.div_gen;
-					urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
-					labelstr = divstr + " Schedule";
+					var divstr = item.div_age + item.div_gen;
+					var urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
+					var labelstr = divstr + " Schedule";
 					hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
 				});
 				domConstruct.place(hrefstr, target_dom);
@@ -105,22 +105,22 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				// through each team_id, create string for <a href=
 				// then create dom entry w. domConstruct.create call
 				// http://dojotoolkit.org/documentation/tutorials/1.9/dom_functions/
-				target_dom = dom.byId(dom_name);
+				var target_dom = dom.byId(dom_name);
 				target_dom.innerHTML = "";
 				arrayUtil.forEach(ldata_array, function(item, index) {
-					divstr = item.div_age + item.div_gen;
-					numteams = item.totalteams;
-					divheaderstr = "<u>"+divstr+" Teams</u><br>";
-					hrefstr = "";
+					var divstr = item.div_age + item.div_gen;
+					var numteams = item.totalteams;
+					var divheaderstr = "<u>"+divstr+" Teams</u><br>";
+					var hrefstr = teamstr = "";
 					for (var i = 1; i < numteams+1; i++) {
 						if (i < 10) {
 							teamstr = '0' + i;
 						} else {
 							teamstr = i.toString();
 						}
-						dtstr = divstr+teamstr;
-						urlstr = "http://localhost/doc/xls/"+dtstr+"_schedule.xls";
-						labelstr = dtstr + " Schedule";
+						var dtstr = divstr+teamstr;
+						var urlstr = "http://localhost/doc/xls/"+dtstr+"_schedule.xls";
+						var labelstr = dtstr + " Schedule";
 						hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
 					}
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);

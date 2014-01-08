@@ -1,7 +1,8 @@
-define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
+define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
+	"dojo/_base/lang", "dojo/date",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys, Memory,
+	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
 		return declare(null, {
@@ -12,7 +13,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			cellselect_flag:false,
 			seasoncalendar_input_dom:null,seasondates_btn_reg:null,
 			callback:null, text_node_str:"",
-			seasonstart_date:null, seasonend_date:null,
+			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -59,6 +60,25 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						this.schedutil_obj.makeVisible(this.seasoncalendar_input_dom);
 						baseinfoSingleton.set_visible_form_dom(this.seasoncalendar_input_dom);
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
+						// set initial values for seasonstart and end dates
+						this.seasonstart_reg = registry.byId("seasonstart_date");
+						this.seasonend_reg = registry.byId("seasonend_date");
+						this.seasonlength_reg = registry.byId("seasonlength_spinner");
+						var today = new Date();
+						this.seasonstart_reg.set('value', today);
+						this.seasonend_reg.set('value',
+							date.add(today, 'week', 12));
+						this.seasonlength_reg.set('value', 12);
+						this.seasonstart_reg.on("change",
+							lang.hitch(this, this.updateNumWeeks_spinner, this.seasonend_reg));
+						this.seasonend_reg.on("change",
+							lang.hitch(this, this.updateNumWeeks_spinner, this.seasonstart_reg));
+						this.seasonlength_reg.on("change",
+							lang.hitch(this, function(event) {
+								var startdate = this.seasonstart_reg.get('value');
+								var enddate = date.add(startdate, 'week', event);
+								this.seasonend_reg.set('value', enddate);
+							}))
 						if (this.sdates_handle)
 							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
@@ -67,6 +87,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						alert('Input name is Invalid, please correct');
 					}
 				}
+			},
+			updateNumWeeks_spinner: function(ref_reg, event) {
+				var ref_date = ref_reg.get('value');
+				var numweeks = date.difference(event, ref_date, "week");
+				this.seasonlength_reg.set('value', Math.abs(numweeks));
 			},
 			nodupname_validate: function(col_name) {
 				// if name exists in the current list (index > -1) then
@@ -80,8 +105,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					return true;
 			},
 			getSeasonDatesFromInput: function(event) {
-				this.seasonstart_date = registry.byId("seasonstart_date").get("value");
-				this.seasonend_date = registry.byId("seasonend_date").get("value");
+				var seasonstart_date = this.seasonstart_reg.get("value");
+				var seasonend_date = this.seasonend_reg.get("value");
 				console.log("start end="+seasonstart_date+" "+seasonend_date);
 			},
 		});
