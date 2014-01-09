@@ -97,6 +97,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			datetimeset_handle:null, datetimedel_handle:null,
 			calendar:null,
 			field_id:0, fieldselect_handle:null,
+			dupfieldselect_reg:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -224,6 +225,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					}
 					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
+					// add field list for schedule duplication select drop-down
+					var dupfieldselect_list = lang.clone(fieldselect_list);
+					dupfieldselect_list.push({label:'All Fields', value:this.fieldnum+1, selected:false});
+					this.dupfieldselect_reg = registry.byId("dupfieldselect_id");
+					this.dupfieldselect_reg.addOption(dupfieldselect_list);
+					//this.dupfieldselect_reg.startup();
 					if (this.fieldselect_handle)
 						this.fieldselect_handle.remove();
 					this.fieldselect_handle = this.fieldselect_reg.on("change",
@@ -253,7 +260,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						lang.hitch(this, this.datetimeset_submit));
 					var today = new Date();
 					this.eventdate_reg.set('value', today);
-					//this.eventdate_reg.startup();
+					this.eventdate_reg.startup();
+					// setup titlepane widget to generate event when it opens
+					var duptitlepane_reg = registry.byId("duptitlepane_id");
+					duptitlepane_reg.on("show", function(event){
+						console.log("dupfield");
+					});
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
 					this.calendar = new Calendar({
 						dateInterval: "day",
@@ -275,13 +287,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			},
 			datetimeset_submit: function(event) {
 				var fieldevent_str = this.fieldevent_reg.get("value");
-				/*
-				var startdate_reg = registry.byId("startdate_id");
-				var enddate_reg = registry.byId("enddate_id");
-				// get respective Date objects
-				var startdate = startdate_reg.get("value");
-				var enddate = enddate_reg.get("value");
-				*/
 				// get respective Date/Time strings
 				var eventdate_str = this.eventdate_reg.get("value").toDateString();
 				var starttime_str = this.starttime_reg.get("value").toTimeString();

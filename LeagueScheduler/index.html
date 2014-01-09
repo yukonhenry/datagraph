@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10e</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10f</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -246,7 +246,7 @@
                             <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedel_btn" value="Submit">Delete</button>
                             </form>
                         </div>
-                        <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Duplicate', open:false">
+                        <div id="duptitlepane_id" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Duplicate', open:false">
                             <label for="dupfieldselect_id">Select Venue for Duplication</label>
                             <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
                             name parameter is required for declarative setup -->
