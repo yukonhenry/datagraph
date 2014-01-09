@@ -96,7 +96,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			starttime_handle:null,
 			datetimeset_handle:null, datetimedel_handle:null,
 			calendar:null,
-			field_id:0,
+			field_id:0, fieldselect_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -224,6 +224,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					}
 					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
+					if (this.fieldselect_handle)
+						this.fieldselect_handle.remove();
+					this.fieldselect_handle = this.fieldselect_reg.on("change",
+						lang.hitch(this, function(event) {
+							this.field_id = event;
+						})
+					);
 					this.fieldselect_reg.startup();
 					// set registers for field time parameters entry
 					this.fieldevent_reg = registry.byId("fieldevent_id");
@@ -361,6 +368,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 					this.datetimeset_handle.remove();
 				if (this.datetimedel_handle)
 					this.datetimedel_handle.remove();
+				if (this.fieldselect_handle)
+					this.fieldselect_handle.remove();
 				this.calendar.destroyRecursive();
 				//delete this.calendar;
 				delete this.calendar_store;

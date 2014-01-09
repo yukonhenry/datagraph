@@ -17,6 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null,
+			eventsrc_flag:false,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -74,60 +75,74 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.seasonlength_reg.set('value', weekoffset_CONST);
 						if (this.seasonstart_handle)
 							this.seasonstart_handle.remove();
-						this.seasonstart_handle = on.pausable(this.seasonstart_reg,
+						// note pausable/resume handler does not work trying to control changes made to textbox's programmatically
+						// just use manual eventsrc_flag to control double/cascading event firing
+						this.seasonstart_handle = on(this.seasonstart_reg,
 							"change",
 							lang.hitch(this, function(event) {
-								console.log("season start handle");
-								var enddate = this.seasonend_reg.get('value');
-								var numweeks = date.difference(event, enddate,'week');
-								if (numweeks < 1) {
-									alert("end date needs to be at least one week after start date");
-									// reset the date to an arbitrary default
-									numweeks = this.seasonlength_reg.get('value');
-									this.seasonstart_handle.pause();
-									this.seasonstart_reg.set('value',
-										date.add(enddate, 'week', -numweeks));
-									this.seasonstart_handle.resume();
+								if (!this.eventsrc_flag) {
+									var enddate = this.seasonend_reg.get('value');
+									var numweeks = date.difference(event, enddate,'week');
+									if (numweeks < 1) {
+										alert("end date needs to be at least one week after start date");
+										// reset the date to an arbitrary default
+										numweeks = this.seasonlength_reg.get('value');
+										//this.seasonstart_handle.pause();
+										this.seasonstart_reg.set('value',
+											date.add(enddate, 'week', -numweeks));
+										//this.seasonstart_handle.resume();
+									} else {
+										this.eventsrc_flag = true;
+										//this.seasonlength_handle.pause();
+										this.seasonlength_reg.set('value', numweeks);
+										//this.seasonlength_handle.resume();
+									}
 								} else {
-									this.seasonlength_handle.pause();
-									this.seasonlength_reg.set('value', numweeks);
-									this.seasonlength_handle.resume();
+									this.eventsrc_flag = false;
 								}
 							})
 						);
 						if (this.seasonend_handle)
 							this.seasonend_handle.remove();
-						this.seasonend_handle = on.pausable(this.seasonend_reg,
+						this.seasonend_handle = on(this.seasonend_reg,
 							"change",
 							lang.hitch(this, function(event) {
-								console.log("seasonendhandler");
-								var startdate = this.seasonstart_reg.get('value');
-								var numweeks = date.difference(startdate, event,'week');
-								if (numweeks < 1) {
-									alert("end date needs to be at least one week after start date");
-									numweeks = this.seasonlength_reg.get('value');
-									this.seasonend_handle.pause();
-									this.seasonend_reg.set('value',
-										date.add(startdate, 'week', numweeks));
-									this.seasonend_handle.resume();
+								if (!this.eventsrc_flag) {
+									var startdate = this.seasonstart_reg.get('value');
+									var numweeks = date.difference(startdate, event,'week');
+									if (numweeks < 1) {
+										alert("end date needs to be at least one week after start date");
+										numweeks = this.seasonlength_reg.get('value');
+										//this.seasonend_handle.pause();
+										this.seasonend_reg.set('value',
+											date.add(startdate, 'week', numweeks));
+										//this.seasonend_handle.resume();
+									} else {
+										this.eventsrc_flag = true;
+										//this.seasonlength_handle.pause();
+										this.seasonlength_reg.set('value', numweeks);
+										//this.seasonlength_handle.resume();
+									}
 								} else {
-									this.seasonlength_handle.pause();
-									this.seasonlength_reg.set('value', numweeks);
-									this.seasonlength_handle.resume();
+									this.eventsrc_flag = false;
 								}
 							})
 						);
 						if (this.seasonlength_handle)
 							this.seasonlength_handle.remove();
-						this.seasonlength_handle = on.pausable(this.seasonlength_reg,
+						this.seasonlength_handle = on(this.seasonlength_reg,
 							"change",
 							lang.hitch(this, function(event) {
-								console.log("season len handler");
-								var startdate = this.seasonstart_reg.get('value');
-								var enddate = date.add(startdate, 'week', event);
-								this.seasonend_handle.pause();
-								this.seasonend_reg.set('value', enddate);
-								this.seasonend_handle.resume();
+								if (!this.eventsrc_flag) {
+									var startdate = this.seasonstart_reg.get('value');
+									var enddate = date.add(startdate, 'week', event);
+									//this.seasonend_handle.pause();
+									this.eventsrc_flag = true;
+									this.seasonend_reg.set('value', enddate);
+									//this.seasonend_handle.resume();
+								} else {
+									this.eventsrc_flag = false;
+								}
 							})
 						);
 						if (this.sdates_handle)
@@ -155,5 +170,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var seasonend_date = this.seasonend_reg.get("value");
 				console.log("start end="+seasonstart_date+" "+seasonend_date);
 			},
+			cleanup: function() {
+				if (this.seasonstart_handle)
+					this.seasonstart_handle.remove();
+				if (this.seasonend_handle)
+					this.seasonend_handle.remove();
+				if (this.seasonlength_handle)
+					this.seasonlength_handle.remove();
+				if (this.sdates_handle)
+					this.sdates_handle.remove();
+			}
 		});
 	})
