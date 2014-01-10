@@ -1,10 +1,16 @@
-define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Button", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, Button, put, Calendar){
+define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
-				primaryuse_str: editor({label:"Used by", field:"primaryuse_str", autoSave:true}, "text", "dblclick"),
+				primaryuse_str: editor({label:"Used by", field:"primaryuse_str",
+					autoSave:true,
+					myDialog: {},
+					editorArgs:{
+						label:"Divisions", style:"width:100px", dropDown:this.myDialog
+					}
+				}, DropDownButton, "dblclick"),
 				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 					editorArgs:{
 						constraints: {
