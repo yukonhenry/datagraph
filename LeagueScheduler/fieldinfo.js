@@ -1,16 +1,21 @@
-define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory", "dijit/registry","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler", "dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, put, Calendar){
+define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
+	"dijit/registry","dgrid/editor",
+	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
+	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/popup", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, popup, TooltipDialog, put, Calendar){
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
+				primaryuse: {label:"Primary Use"},
+				/*
 				primaryuse_str: editor({label:"Used by", field:"primaryuse_str",
 					autoSave:true,
 					myDialog: {},
 					editorArgs:{
 						label:"Divisions", style:"width:100px", dropDown:this.myDialog
 					}
-				}, DropDownButton, "dblclick"),
+				}, DropDownButton, "dblclick"), */
 				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 					editorArgs:{
 						constraints: {
@@ -94,7 +99,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 						return button.domNode;
 					}
 				} */
-				dates: {label:"Config Dates", field:"dates"}
+				dates: {label:"Config Dates"}
 			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
@@ -167,7 +172,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				var fieldinfo_list = new Array();
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
-						primaryuse_str:"", start_time:"", end_time:"",
+						primaryuse:"Config primary "+i, start_time:"", end_time:"",
 						dates:"Config Field "+i});
 				}
 				return fieldinfo_list;
@@ -371,6 +376,25 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			},
 			datetimedel_submit: function(id, event) {
 				this.calendar_store.remove(id);
+			},
+			select_primaryuse: function(row_id) {
+				// https://dojotoolkit.org/reference-guide/1.9/dijit/popup.html
+				// https://dojotoolkit.org/reference-guide/1.9/dijit/TooltipDialog.html#dijit-tooltipdialog
+    var myTooltipDialog = new TooltipDialog({
+        id: 'myTooltipDialog',
+        style: "width: 300px;",
+        content: "<p>I have a mouse leave event handler that will close the dialog.",
+        onMouseLeave: function(){
+            popup.close(myTooltipDialog);
+        }
+    });
+popup.moveOffScreen(myTooltipDialog);
+myTooltipDialog.startup();
+console.log('tooltip');
+        popup.open({
+            popup: myTooltipDialog,
+            around: dom.byId("divisionInfoInputGrid")
+        });
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

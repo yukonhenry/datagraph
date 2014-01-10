@@ -123,13 +123,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.bracketinfo.createBracketInfoGrid(div_str);
 			},
 			cellSelectHandler: function(event) {
-				var eventcell = event.cells[0];
-				var column_name = eventcell.column.id;
-				if (column_name == 'dates' && this.info_obj) {
+				if (this.info_obj) {
+					var eventcell = event.cells[0];
 					var row_id = eventcell.row.id;
-					// pass collection name to edit_calendar handler as it will be
-					// making independent requests to the server
-					this.info_obj.edit_calendar(parseInt(row_id), this.colname);
+					var column_name = eventcell.column.id;
+					if (column_name == 'dates') {
+						// pass collection name to edit_calendar handler as it will be
+						// making independent requests to the server
+						this.info_obj.edit_calendar(parseInt(row_id), this.colname);
+					} else if (column_name == 'primaryuse') {
+						this.info_obj.select_primaryuse(parseInt(row_id));
+					}
 				}
 			},
 			sendDivInfoToServer: function(event) {
