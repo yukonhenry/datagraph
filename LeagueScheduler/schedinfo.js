@@ -3,17 +3,22 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
        "dojo/_base/array", "dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
 		return declare(null, {
-			columnsdef_obj : {
-				gameday: "Game day",
-				start_time: "Time",
-				match_id: "Match ID",
-				venue: "Venue",
-				home: editor({label:"Home Team", field:"home", autoSave:true},"text","dblclick"),
-				away: editor({label:"Away Team", field:"away", autoSave:true},"text","dblclick"),
-				comment: "Comment"
-			}, server_interface:null, schedutil_obj:null, divinfo_list:null, schedDBSelectDiv_dom:null, select_reg:null, select_reg_handle:null,
+			server_interface:null, schedutil_obj:null, divinfo_list:null,
+			schedDBSelectDiv_dom:null, select_reg:null, select_reg_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+			},
+			getcolumnsdef_obj: function() {
+				var columnsdef_obj = {
+					gameday: "Game day",
+					start_time: "Time",
+					match_id: "Match ID",
+					venue: "Venue",
+					home: editor({label:"Home Team", field:"home", autoSave:true},"text","dblclick"),
+					away: editor({label:"Away Team", field:"away", autoSave:true},"text","dblclick"),
+					comment: "Comment"
+				};
+				return columnsdef_obj;
 			},
 			getServerDBSchedInfo: function(options_obj) {
 				var item = options_obj.item;

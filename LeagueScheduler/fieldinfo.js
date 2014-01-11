@@ -3,127 +3,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/popup", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, popup, DropDownButton, TooltipDialog, put, Calendar){
-		var actionRenderCell = function(object, data, node) {
-		//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-			var myDialog = new TooltipDialog({
-			id:"tooltip"+object.field_id,
-			//name:"tooltip"+object.field_id,
-        	content:
-            '<label for="name">Name:</label> <input data-dojo-type="dijit/form/TextBox" id="name" name="name"><br>' +
-            '<label for="hobby">Hobby:</label> <input data-dojo-type="dijit/form/TextBox" id="hobby" name="hobby"><br>' +
-            '<button data-dojo-type="dijit/form/Button" type="submit">Save</button>'
-    		});
-			//myDialog.startup();
-			var dropdown_btn = new DropDownButton({
-				label:"Config",
-				dropDown:myDialog,
-				id:"dropdown_btn_id"+object.field_id,
-				name:"dropdown_btn_id"+object.field_id
-			});
-			node.appendChild(dropdown_btn.domNode);
-			//dropdown_btn.startup();
-			return dropdown_btn;
-		}
 		return declare(null, {
-			columnsdef_obj : {
-				field_id: "Field ID",
-				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
-				primaryuse: {label:"Primary Use",
-					renderCell: actionRenderCell
-				},
-				/*
-				primaryuse: editor({label:"Used by",
-					autoSave:true,
-					myDialog: {},
-					editorArgs:{
-						label:"Divisions", style:"width:100px", dropDown:this.myDialog
-					}
-				}, DropDownButton, "click"), */
-				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
-					editorArgs:{
-						constraints: {
-							timePattern: 'HH:mm:ss',
-							clickableIncrement: 'T00:15:00',
-							visibleIncrement: 'T00:15:00',
-							visibleRange: 'T01:00:00'
-							//min: 'T08:00:00',
-							//max:'T18:00:00'
-						},
-					},
-					/*
-					set: function(item) {
-						var column_obj = item[this.columntype];
-						if (typeof column_obj == "string")
-							return column_obj;
-						else {
-							var time_str = column_obj.toLocaleTimeString();
-							console.log("setitem="+time_str);
-							return time_str;
-						}
-					},*/
-					set: function(item) {
-						if (this.columntype) {
-							var column_obj = item.start_time;
-							var time_str = column_obj.toLocaleTimeString();
-							console.log("setitem="+time_str);
-							this.columntype = false;
-							return time_str;
-						}
-					},
-					renderCell: function(object, value) {
-						if (typeof value == "string")
-							return put("div", value);
-						else {
-							// if the type if a Date object (only type of obj) possible
-							// here, extract (local) timestring
-							return put("div", value?value.toLocaleTimeString():"");
-						}
-					}
-				}, TimeTextBox, "dblclick"),
-				end_time: editor({label:"End Time", field:"end_time",
-				                 autoSave:true, columntype:false,
-					editorArgs:{
-						constraints: {
-							timePattern: 'HH:mm:ss',
-							clickableIncrement: 'T00:15:00',
-							visibleIncrement: 'T00:15:00',
-							visibleRange: 'T01:00:00'
-						},
-					},
-					set: function(item) {
-						if (this.columntype) {
-							var column_obj = item.end_time;
-							var time_str = column_obj.toLocaleTimeString();
-							console.log("end setitem="+time_str);
-							this.columntype = false;
-							return time_str;
-						}
-					},
-					renderCell: function(object, value) {
-						if (typeof value == "string")
-							return put("div", value);
-						else {
-							// if the type if a Date object (only type of obj) possible
-							// here, extract (local) timestring
-							return put("div", value?value.toLocaleTimeString():"");
-						}
-					},
-				}, TimeTextBox, "dblclick"),
-				// http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-				/*
-				dates: {label:"Select Dates", field:"dates",
-					renderCell: function(object, value) {
-						var button = new Button({label:"dates",
-							onClick: function() {
-								var onclick_direct = lang.hitch(this, this.processcell_click);
-								onclick_direct(object);
-							}
-						})
-						return button.domNode;
-					}
-				} */
-				dates: {label:"Config Dates"}
-			}, server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
+ 			server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
@@ -134,6 +15,76 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			dupfieldselect_reg:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+			},
+			getcolumnsdef_obj: function() {
+				var columnsdef_obj = {
+					field_id: "Field ID",
+					field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
+					primaryuse: {label:"Primary Use",
+						renderCell: this.actionRenderCell
+					},
+					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
+						editorArgs:{
+							constraints: {
+								timePattern: 'HH:mm:ss',
+								clickableIncrement: 'T00:15:00',
+								visibleIncrement: 'T00:15:00',
+								visibleRange: 'T01:00:00'
+								//min: 'T08:00:00',
+								//max:'T18:00:00'
+							},
+						},
+						set: function(item) {
+							if (this.columntype) {
+								var column_obj = item.start_time;
+								var time_str = column_obj.toLocaleTimeString();
+								console.log("setitem="+time_str);
+								this.columntype = false;
+								return time_str;
+							}
+						},
+						renderCell: function(object, value) {
+							if (typeof value == "string")
+								return put("div", value);
+							else {
+								// if the type if a Date object (only type of obj) possible
+								// here, extract (local) timestring
+								return put("div", value?value.toLocaleTimeString():"");
+							}
+						}
+					}, TimeTextBox, "dblclick"),
+					end_time: editor({label:"End Time", field:"end_time",
+					                 autoSave:true, columntype:false,
+						editorArgs:{
+							constraints: {
+								timePattern: 'HH:mm:ss',
+								clickableIncrement: 'T00:15:00',
+								visibleIncrement: 'T00:15:00',
+								visibleRange: 'T01:00:00'
+							},
+						},
+						set: function(item) {
+							if (this.columntype) {
+								var column_obj = item.end_time;
+								var time_str = column_obj.toLocaleTimeString();
+								console.log("end setitem="+time_str);
+								this.columntype = false;
+								return time_str;
+							}
+						},
+						renderCell: function(object, value) {
+							if (typeof value == "string")
+								return put("div", value);
+							else {
+								// if the type if a Date object (only type of obj) possible
+								// here, extract (local) timestring
+								return put("div", value?value.toLocaleTimeString():"");
+							}
+						},
+					}, TimeTextBox, "dblclick"),
+					dates: {label:"Config Dates"}
+				};
+				return columnsdef_obj;
 			},
 			initialize: function(arg_obj) {
 				var form_name = "fieldconfig_form_id";
@@ -418,6 +369,27 @@ console.log('tooltip');
             popup: myTooltipDialog,
             around: dom.byId("divisionInfoInputGrid")
         });
+			},
+			actionRenderCell: function(object, data, node) {
+				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+				var myDialog = new TooltipDialog({
+					id:"tooltip"+object.field_id,
+					//name:"tooltip"+object.field_id,
+					content:
+	            '<label for="name">Name:</label> <input data-dojo-type="dijit/form/TextBox" id="name" name="name"><br>' +
+	            '<label for="hobby">Hobby:</label> <input data-dojo-type="dijit/form/TextBox" id="hobby" name="hobby"><br>' +
+	            '<button data-dojo-type="dijit/form/Button" type="submit">Save</button>'
+	    		});
+				//myDialog.startup();
+				var dropdown_btn = new DropDownButton({
+					label:"Config",
+					dropDown:myDialog,
+					id:"dropdown_btn_id"+object.field_id,
+					name:"dropdown_btn_id"+object.field_id
+				});
+				node.appendChild(dropdown_btn.domNode);
+				//dropdown_btn.startup();
+			return dropdown_btn;
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

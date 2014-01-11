@@ -59,7 +59,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							cellselect_flag:this.cellselect_flag,
 							info_obj:this.info_obj,
 							text_node_str:this.text_node_str});
-						var columnsdef_obj = this.info_obj.columnsdef_obj;
+						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
