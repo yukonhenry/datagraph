@@ -111,7 +111,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					var divstr = item.div_age + item.div_gen;
 					var numteams = item.totalteams;
 					var divheaderstr = "<u>"+divstr+" Teams</u><br>";
-					var hrefstr = teamstr = "";
+					var hrefstr = "";
+					var teamstr = "";
 					for (var i = 1; i < numteams+1; i++) {
 						if (i < 10) {
 							teamstr = '0' + i;

@@ -132,7 +132,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						// making independent requests to the server
 						this.info_obj.edit_calendar(parseInt(row_id), this.colname);
 					} else if (column_name == 'primaryuse') {
-						this.info_obj.select_primaryuse(parseInt(row_id));
+						//this.info_obj.select_primaryuse(parseInt(row_id));
 					}
 				}
 			},

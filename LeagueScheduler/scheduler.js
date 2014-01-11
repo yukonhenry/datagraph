@@ -24,8 +24,10 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var latest_count_CONST = 'LATEST_COUNT';
 		var totalgames_CONST = 'TOTALGAMES'
 		var playdivSelectId, numberTeamsId, numberVenuesId;
-		var numTeams = 0; numVenues =0; divnum = "U5";
-		var gamesGrid = divisionGrid = teamDataGrid = fieldScheduleGrid = metricsGrid = null;
+		var numTeams = 0; var numVenues =0; var divnum = "U5";
+		var gamesGrid = null; var divisionGrid = null;
+		var teamDataGrid = null; var fieldScheduleGrid = null;
+		var metricsGrid = null;
 		var seedGrid = null;
 		var divisionGridHandle = null;
 		var ldata_array = null;

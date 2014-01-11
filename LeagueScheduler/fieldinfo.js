@@ -1,21 +1,44 @@
 define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dijit/registry","dgrid/editor",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
-	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/popup", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-       function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, popup, TooltipDialog, put, Calendar){
+	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/popup", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+	function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, popup, DropDownButton, TooltipDialog, put, Calendar){
+		var actionRenderCell = function(object, data, node) {
+		//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+			var myDialog = new TooltipDialog({
+			id:"tooltip"+object.field_id,
+			//name:"tooltip"+object.field_id,
+        	content:
+            '<label for="name">Name:</label> <input data-dojo-type="dijit/form/TextBox" id="name" name="name"><br>' +
+            '<label for="hobby">Hobby:</label> <input data-dojo-type="dijit/form/TextBox" id="hobby" name="hobby"><br>' +
+            '<button data-dojo-type="dijit/form/Button" type="submit">Save</button>'
+    		});
+			//myDialog.startup();
+			var dropdown_btn = new DropDownButton({
+				label:"Config",
+				dropDown:myDialog,
+				id:"dropdown_btn_id"+object.field_id,
+				name:"dropdown_btn_id"+object.field_id
+			});
+			node.appendChild(dropdown_btn.domNode);
+			//dropdown_btn.startup();
+			return dropdown_btn;
+		}
 		return declare(null, {
 			columnsdef_obj : {
 				field_id: "Field ID",
 				field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
-				primaryuse: {label:"Primary Use"},
+				primaryuse: {label:"Primary Use",
+					renderCell: actionRenderCell
+				},
 				/*
-				primaryuse_str: editor({label:"Used by", field:"primaryuse_str",
+				primaryuse: editor({label:"Used by",
 					autoSave:true,
 					myDialog: {},
 					editorArgs:{
 						label:"Divisions", style:"width:100px", dropDown:this.myDialog
 					}
-				}, DropDownButton, "dblclick"), */
+				}, DropDownButton, "click"), */
 				start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 					editorArgs:{
 						constraints: {
@@ -173,7 +196,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 						primaryuse:"Config primary "+i, start_time:"", end_time:"",
-						dates:"Config Field "+i});
+						dates:"Config Venue "+i});
 				}
 				return fieldinfo_list;
 			},
