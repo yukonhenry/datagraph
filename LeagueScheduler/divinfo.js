@@ -7,6 +7,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		newscheduler){
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
+			currentdivinfo_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -54,6 +55,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
+				this.currentdivinfo_name = item;
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = 'div_id';
 				options_obj.server_key = 'divinfo_data';
@@ -77,6 +79,10 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					                  gameinterval:1, rr_gamedays:1});
 				}
 				return divInfo_list;
+			},
+			getBasicServerDBDivInfo: function(context_obj, context_func) {
+				this.server_interface.getServerData("get_dbcol/"+this.currentdivinfo_name,
+					lang.hitch(context_obj, context_func));
 			}
 		});
 });

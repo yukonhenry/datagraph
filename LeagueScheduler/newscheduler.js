@@ -39,12 +39,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						//var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = this.entrynum_reg.get("value");
-						var divInfo_list = this.info_obj.getInitialList(divnum);
+						var divinfo_list = this.info_obj.getInitialList(divnum);
 						this.schedutil_obj.makeInvisible(this.form_dom);
 						baseinfoSingleton.reset_visible_form_dom();
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
-						this.editgrid = new EditGrid({griddata_list:divInfo_list,
+						this.editgrid = new EditGrid({griddata_list:divinfo_list,
 							colname:this.newcol_name,
 							server_interface:this.server_interface,
 							grid_name:"divisionInfoInputGrid",

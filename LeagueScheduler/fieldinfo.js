@@ -1,10 +1,14 @@
 define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
+	"dojo/_base/array",
 	"dijit/registry","dgrid/editor",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
-	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/popup", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-	function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, registry, editor, baseinfoSingleton, newscheduler, TimeTextBox, DateTextBox, popup, DropDownButton, TooltipDialog, put, Calendar){
+	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+	function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, arrayUtil,
+		registry, editor, baseinfoSingleton, newscheduler,
+		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, put, Calendar){
 		return declare(null, {
  			server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
+ 			divinfo_obj:null,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
@@ -17,11 +21,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				lang.mixin(this, args);
 			},
 			getcolumnsdef_obj: function() {
+				if (this.divinfo_obj.currentdivinfo_name) {
+					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+					this.divinfo_obj.getBasicServerDBDivInfo(this, this.createDivSelectDialog);
+				}
 				var columnsdef_obj = {
 					field_id: "Field ID",
 					field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
 					primaryuse: {label:"Primary Use",
-						renderCell: this.actionRenderCell
+						renderCell: lang.hitch(this, this.actionRenderCell)
 					},
 					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 						editorArgs:{
@@ -352,25 +360,39 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				this.calendar_store.remove(id);
 			},
 			actionRenderCell: function(object, data, node) {
-				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-				var myDialog = new TooltipDialog({
-					id:"tooltip"+object.field_id,
-					//name:"tooltip"+object.field_id,
-					content:
-	            '<label for="name">Name:</label> <input data-dojo-type="dijit/form/TextBox" id="name" name="name"><br>' +
-	            '<label for="hobby">Hobby:</label> <input data-dojo-type="dijit/form/TextBox" id="hobby" name="hobby"><br>' +
-	            '<button data-dojo-type="dijit/form/Button" type="submit">Save</button>'
-	    		});
+				var TDialog = null;
+				if (this.divinfo_obj.currentdivinfo_name) {
+					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+					TDialog = new TooltipDialog({
+						id:"tooltip"+object.field_id,
+						//name:"tooltip"+object.field_id,
+						content:
+		            '<label for="name">Name:</label> <input data-dojo-type="dijit/form/TextBox" id="name" name="name"><br>' +
+		            '<label for="hobby">Hobby:</label> <input data-dojo-type="dijit/form/TextBox" id="hobby" name="hobby"><br>' +
+		            '<button data-dojo-type="dijit/form/Button" type="submit">Save</button>'
+		    		});
+		    	} else {
+		    		TDialog = new TooltipDialog({
+		    			content:"Select Database using Select Config->Division Info"
+		    		})
+		    	}
 				//myDialog.startup();
 				var dropdown_btn = new DropDownButton({
 					label:"Config",
-					dropDown:myDialog,
+					dropDown:TDialog,
 					id:"dropdown_btn_id"+object.field_id,
 					name:"dropdown_btn_id"+object.field_id
 				});
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
 			return dropdown_btn;
+			},
+			createDivSelectDialog: function(server_data) {
+				var divstr_list = new Array();
+				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {
+					divstr_list.push(item.div_age+item.div_gen);
+				})
+				console.log("divstr list="+divstr_list)
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

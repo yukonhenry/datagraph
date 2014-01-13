@@ -34,8 +34,9 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
-		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,newschedulerbase_obj:newSchedulerBase});
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
+		// note fieldinfo constructor needs to be called after divinfo constructor
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,newschedulerbase_obj:newSchedulerBase, divinfo_obj: divinfo_obj});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -379,23 +380,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			// for usage of hitch to mitigate against js scope rules around execution context
 			on(seedGrid, "dgrid-datachange", lang.hitch(schedConfig, schedConfig.editSeedGrid));
 			schedConfig.testValue(1);
-		}
-		var initNewDivInfo = function(evt) {
-			var form_name = "newdivinfo_form_id";
-			var form_reg = registry.byId(form_name);
-			var form_dom = dom.byId(form_name);
-			var input_reg = registry.byId("newdivinfo_input_id");
-			var divnum_reg = registry.byId("divnum_input_id");
-			var newScheduler = new newscheduler({dbname_reg:input_reg,
-				form_dom:form_dom, form_reg:form_reg,
-				entrynum_reg:divnum_reg, server_interface:serverInterface,
-				schedutil_obj:schedUtil,
-				callback: lang.hitch(schedUtil, schedUtil.regenAddDBCollection_smenu),
-				info_obj: new divinfo,
-				idproperty:'div_id',
-				server_path:"create_newdbcol/",
-				text_node_str: 'Schedule Name'});
-			newScheduler.showConfig();
 		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
