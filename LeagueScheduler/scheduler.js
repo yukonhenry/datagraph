@@ -35,6 +35,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,newschedulerbase_obj:newSchedulerBase});
+		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -67,6 +68,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
 			newSchedulerBase.set_schedutil_obj(schedUtil);
 			fieldinfo_obj.set_schedutil_obj(schedUtil);
+			divinfo_obj.set_schedutil_obj(schedUtil);
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
@@ -79,7 +81,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			var dbcollection_list = ldata.dbcollection_list;
 			// save dbname list to basesingleton class to use later
 			baseinfoSingleton.set_dbname_list(dbcollection_list);
-			var divinfo_obj = new divinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
 			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", divinfo_obj, divinfo_obj.getServerDBDivInfo,{db_type:'db'});
 			// generate dropdown menu for edit->delete schedule
 			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
@@ -166,7 +167,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		grid.on("dgrid-deselect", function(event){
     		//console.log("Row de-selected: ", event.rows[0].data);
 		});
-
 		fieldInfoGrid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var fidnum = event.rows[0].data.field_id;
@@ -466,8 +466,11 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("editPane"),"load",scrollTopEditPane);
-			on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
-			on(registry.byId("newdivinfo_item"), "click", initNewDivInfo);
+			//on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
+			//			on(registry.byId("newdivinfo_item"), "click",initNewDivInfo
+			//	);
+			on(registry.byId("newdivinfo_item"), "click",
+				lang.hitch(divinfo_obj, divinfo_obj.initialize));
 			on(registry.byId("newfieldlist_item"), "click", lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));
 			on(registry.byId("newsched_item"), "click", lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
 			on(registry.byId("elimination2013"), "click", elimination2013);

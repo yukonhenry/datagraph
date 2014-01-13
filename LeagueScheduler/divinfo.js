@@ -1,5 +1,10 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"], function(declare, lang, editor, baseinfoSingleton){
+define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
+	"dijit/registry", "dgrid/editor",
+	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
+	"dojo/domReady!"],
+	function(dbootstrap, declare, dom, lang, registry, editor, baseinfoSingleton,
+		newscheduler){
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
 			constructor: function(args) {
@@ -19,6 +24,27 @@ define(["dojo/_base/declare","dojo/_base/lang","dgrid/editor", "LeagueScheduler/
 					rr_gamedays: editor({label:"Number RR Gamedays", field:"rr_gamedays", autoSave:true}, "text", "dblclick")
 				};
 				return columnsdef_obj;
+			},
+			set_schedutil_obj: function(obj) {
+				this.schedutil_obj = obj;
+			},
+			initialize: function(evt) {
+				var form_name = "newdivinfo_form_id";
+				var form_reg = registry.byId(form_name);
+				var form_dom = dom.byId(form_name);
+				var input_reg = registry.byId("newdivinfo_input_id");
+				var divnum_reg = registry.byId("divnum_input_id");
+				var newScheduler = new newscheduler({dbname_reg:input_reg,
+					form_dom:form_dom, form_reg:form_reg,
+					entrynum_reg:divnum_reg,
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					callback: lang.hitch(this.schedutil_obj, this.schedutil_obj.regenAddDBCollection_smenu),
+					info_obj: this,
+					idproperty:'div_id',
+					server_path:"create_newdbcol/",
+					text_node_str: 'Schedule Name'});
+				newScheduler.showConfig();
 			},
 			getServerDBDivInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case

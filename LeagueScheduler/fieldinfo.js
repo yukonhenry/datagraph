@@ -351,25 +351,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			datetimedel_submit: function(id, event) {
 				this.calendar_store.remove(id);
 			},
-			select_primaryuse: function(row_id) {
-				// https://dojotoolkit.org/reference-guide/1.9/dijit/popup.html
-				// https://dojotoolkit.org/reference-guide/1.9/dijit/TooltipDialog.html#dijit-tooltipdialog
-    var myTooltipDialog = new TooltipDialog({
-        id: 'myTooltipDialog',
-        style: "width: 300px;",
-        content: "<p>I have a mouse leave event handler that will close the dialog.",
-        onMouseLeave: function(){
-            popup.close(myTooltipDialog);
-        }
-    });
-popup.moveOffScreen(myTooltipDialog);
-myTooltipDialog.startup();
-console.log('tooltip');
-        popup.open({
-            popup: myTooltipDialog,
-            around: dom.byId("divisionInfoInputGrid")
-        });
-			},
 			actionRenderCell: function(object, data, node) {
 				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 				var myDialog = new TooltipDialog({
