@@ -369,10 +369,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
 					var field_id = object.field_id;
+					var checkboxid_list = new Array();
 					arrayUtil.forEach(this.divstr_list, function(divstr, index) {
 						var idstr = "checkbox"+divstr+field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
 						'" value="'+divstr+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+						checkboxid_list.push(idstr);
 					});
 					var button_id = 'tdialogbtn'+field_id+'_id';
 					content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
@@ -380,7 +382,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						id:"tooltip"+object.field_id,
 						content: content_str
 		    		});
-		    		on(registry.byId(button_id), "click", this.dialogbtn_process);
+		    		var tdialogprop_obj = {field_id:field_id,
+		    			checkboxid_list:checkboxid_list};
+		    		//this.tdialogprop_list.push({field_id:field_id,
+		    		//	checkboxid_list:checkboxid_list});
+		    		var button_reg = registry.byId(button_id);
+		    		button_reg.on("click",
+		    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
 		    	} else {
 		    		TDialog = new TooltipDialog({
 		    			content:"Select Database using Select Config->Division Info"
@@ -395,8 +403,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				//dropdown_btn.startup();
 			return dropdown_btn;
 			},
-			dialogbtn_process: function(event) {
-				console.log("dialogbtn id="+this.id);
+			dialogbtn_process: function(tdialogprop_obj, event) {
+				var field_id = tdialogprop_obj.field_id;
+				var checkboxid_list = tdialogprop_obj.checkboxid_list;
+				console.log('field_id='+field_id);
+				console.log('idlist='+checkboxid_list);
+				arrayUtil.forEach(checkboxid_list, function(checkboxid, index) {
+
+				})
+
 			},
 			createDivSelectDialog: function(server_data) {
 				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {
