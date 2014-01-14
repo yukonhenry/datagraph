@@ -9,7 +9,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, button,
 		put, Calendar){
 		return declare(null, {
- 			server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
+ 			server_interface:null, schedutil_obj:null,
  			divinfo_obj:null,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
@@ -20,6 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			divstr_list:null,
+			editgrid_store:null, editgrid:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
@@ -153,6 +154,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(fieldnum) {
+				// return value defines structure for store for grid
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
 				this.fieldnum = fieldnum;
 				var fieldinfo_list = new Array();
@@ -363,18 +365,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			datetimedel_submit: function(id, event) {
 				this.calendar_store.remove(id);
 			},
-			actionRenderCell: function(object, data, node) {
+			actionRenderCell: function(object, data, node, options) {
+				console.log("action rendering");
 				var TDialog = null;
 				if (this.divinfo_obj.currentdivinfo_name) {
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
 					var field_id = object.field_id;
-					var checkboxid_list = new Array();
+					var checkbox_list = new Array();
 					arrayUtil.forEach(this.divstr_list, function(divstr, index) {
 						var idstr = "checkbox"+divstr+field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
 						'" value="'+divstr+'"><label for="'+idstr+'">'+divstr+'</label><br>';
-						checkboxid_list.push(idstr);
+						checkbox_list.push(idstr);
 					});
 					var button_id = 'tdialogbtn'+field_id+'_id';
 					content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
@@ -383,9 +386,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						content: content_str
 		    		});
 		    		var tdialogprop_obj = {field_id:field_id,
-		    			checkboxid_list:checkboxid_list};
+		    			checkbox_list:checkbox_list};
 		    		//this.tdialogprop_list.push({field_id:field_id,
-		    		//	checkboxid_list:checkboxid_list});
+		    		//	checkbox_list:checkbox_list});
 		    		var button_reg = registry.byId(button_id);
 		    		button_reg.on("click",
 		    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
@@ -401,17 +404,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				});
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
-			return dropdown_btn;
+				return dropdown_btn;
 			},
 			dialogbtn_process: function(tdialogprop_obj, event) {
 				var field_id = tdialogprop_obj.field_id;
-				var checkboxid_list = tdialogprop_obj.checkboxid_list;
-				console.log('field_id='+field_id);
-				console.log('idlist='+checkboxid_list);
-				arrayUtil.forEach(checkboxid_list, function(checkboxid, index) {
-
+				var checkbox_list = tdialogprop_obj.checkbox_list;
+				var checkboxvalue_str = "";
+				arrayUtil.forEach(checkbox_list, function(checkbox_id, index) {
+					var checkbox_reg = registry.byId(checkbox_id);
+					if (checkbox_reg.get("checked")) {
+						checkboxvalue_str += checkbox_reg.get('value');
+					}
 				})
-
+				if (this.editgrid_store) {
+					console.log("checkbox valuestr ="+checkboxvalue_str);
+					this.editgrid_store.put({field_id:field_id, primaryuse:checkboxvalue_str});
+					//this.editgrid.refresh();
+				}
 			},
 			createDivSelectDialog: function(server_data) {
 				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {

@@ -1,10 +1,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/store/Memory", "dijit/registry",
+	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array",
+	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dgrid/CellSelection", "dijit/form/ToggleButton",
 	"LeagueScheduler/bracketinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
-	         arrayUtil, Memory,
+	         arrayUtil, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection, ToggleButton, BracketInfo, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null, text_node:null, text_node_str:"",
@@ -30,7 +31,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				this.makeVisible(this.updatebtn_outernode);
-				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
+				// make store observable
+				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
+				this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
+				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
+				// 'in' operator is generic and works through inherited objects
+				// To use hasOwnProperty, initialize the.info_obj w new Object()
+				if (this.info_obj && 'editgrid_store' in this.info_obj) {
+					this.info_obj.editgrid_store = this.schedInfoStore;
+				}
 				if (this.cellselect_flag) {
 					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, CellSelection]))({
 						store: this.schedInfoStore,
@@ -45,6 +54,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}, this.grid_name);
 				}
 				this.schedInfoGrid.startup();
+				if (this.info_obj && 'editgrid' in this.info_obj) {
+					this.info_obj.editgrid = this.schedInfoGrid;
+				}
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
 					this.error_node.className = "message error";

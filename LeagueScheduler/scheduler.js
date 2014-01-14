@@ -36,7 +36,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		// note fieldinfo constructor needs to be called after divinfo constructor
-		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,newschedulerbase_obj:newSchedulerBase, divinfo_obj: divinfo_obj});
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
