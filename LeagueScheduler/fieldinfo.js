@@ -1,11 +1,13 @@
-define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
+define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
-	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-	function(dbootstrap, dom, domStyle, declare, lang, date, Observable, Memory, arrayUtil,
+	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox", "dijit/form/Button",
+	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory, arrayUtil,
 		registry, editor, baseinfoSingleton, newscheduler,
-		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, put, Calendar){
+		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, button,
+		put, Calendar){
 		return declare(null, {
  			server_interface:null, schedutil_obj:null, newschedulerbase_obj:null,
  			divinfo_obj:null,
@@ -17,17 +19,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 			calendar:null,
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
+			divstr_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.divstr_list = new Array();
 			},
 			getcolumnsdef_obj: function() {
-				if (this.divinfo_obj.currentdivinfo_name) {
-					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-					this.divinfo_obj.getBasicServerDBDivInfo(this, this.createDivSelectDialog);
-				}
 				var columnsdef_obj = {
 					field_id: "Field ID",
-					field_name: editor({label:"Name", field:"field_name", autoSave:true},"text","dblclick"),
+					field_name: editor({label:"Name", autoSave:true},"text","dblclick"),
 					primaryuse: {label:"Primary Use",
 						renderCell: lang.hitch(this, this.actionRenderCell)
 					},
@@ -95,6 +95,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				return columnsdef_obj;
 			},
 			initialize: function(arg_obj) {
+				// get divinfo information here
+				if (this.divinfo_obj.currentdivinfo_name) {
+					this.divinfo_obj.getBasicServerDBDivInfo(this, this.createDivSelectDialog);
+				}
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);
 				var form_dom = dom.byId(form_name);
@@ -363,14 +367,20 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				var TDialog = null;
 				if (this.divinfo_obj.currentdivinfo_name) {
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+					var content_str = "";
+					var field_id = object.field_id;
+					arrayUtil.forEach(this.divstr_list, function(divstr, index) {
+						var idstr = "checkbox"+divstr+field_id+"_id";
+						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
+						'" value="'+divstr+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+					});
+					var button_id = 'tdialogbtn'+field_id+'_id';
+					content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
 					TDialog = new TooltipDialog({
 						id:"tooltip"+object.field_id,
-						//name:"tooltip"+object.field_id,
-						content:
-		            '<label for="name">Name:</label> <input data-dojo-type="dijit/form/TextBox" id="name" name="name"><br>' +
-		            '<label for="hobby">Hobby:</label> <input data-dojo-type="dijit/form/TextBox" id="hobby" name="hobby"><br>' +
-		            '<button data-dojo-type="dijit/form/Button" type="submit">Save</button>'
+						content: content_str
 		    		});
+		    		on(registry.byId(button_id), "click", this.dialogbtn_process);
 		    	} else {
 		    		TDialog = new TooltipDialog({
 		    			content:"Select Database using Select Config->Division Info"
@@ -380,19 +390,18 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-style", "dojo/_base/declare","dojo/_
 				var dropdown_btn = new DropDownButton({
 					label:"Config",
 					dropDown:TDialog,
-					id:"dropdown_btn_id"+object.field_id,
-					name:"dropdown_btn_id"+object.field_id
 				});
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
 			return dropdown_btn;
 			},
+			dialogbtn_process: function(event) {
+				console.log("dialogbtn id="+this.id);
+			},
 			createDivSelectDialog: function(server_data) {
-				var divstr_list = new Array();
 				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {
-					divstr_list.push(item.div_age+item.div_gen);
-				})
-				console.log("divstr list="+divstr_list)
+					this.divstr_list.push(item.div_age + item.div_gen);
+				}, this);
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
