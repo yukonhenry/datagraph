@@ -21,6 +21,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			divstr_list:null,
 			editgrid_store:null, editgrid:null,
+			editgrid_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
@@ -416,12 +417,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						checkboxvalue_str += checkbox_reg.get('value');
 					}
 				})
-				if (this.editgrid_store) {
+				if (this.editgrid_obj) {
 					console.log("checkbox valuestr ="+checkboxvalue_str);
-					var store_elem = this.editgrid_store.get(field_id);
+					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
 					store_elem.primaryuse = checkboxvalue_str;
-					this.editgrid_store.put(store_elem);
-					this.editgrid.refresh();
+					this.editgrid_obj.schedInfoStore.put(store_elem);
+					//this.editgrid_obj.schedInfoStore.refresh();
+					/*
+					this.editgrid.refresh({}).then(function(object){
+						console.log('deferred fin');
+					}); */
 				}
 			},
 			createDivSelectDialog: function(server_data) {

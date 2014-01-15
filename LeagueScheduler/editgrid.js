@@ -38,8 +38,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
 				// 'in' operator is generic and works through inherited objects
 				// To use hasOwnProperty, initialize the.info_obj w new Object()
+/*
 				if (this.info_obj && 'editgrid_store' in this.info_obj) {
 					this.info_obj.editgrid_store = this.schedInfoStore;
+				}
+				*/
+				if (this.info_obj && 'editgrid_obj' in this.info_obj) {
+					this.info_obj.editgrid_obj = this;
 				}
 				if (this.cellselect_flag) {
 					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, CellSelection]))({
