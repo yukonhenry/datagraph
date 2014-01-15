@@ -418,8 +418,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				})
 				if (this.editgrid_store) {
 					console.log("checkbox valuestr ="+checkboxvalue_str);
-					this.editgrid_store.put({field_id:field_id, primaryuse:checkboxvalue_str});
-					//this.editgrid.refresh();
+					var store_elem = this.editgrid_store.get(field_id);
+					store_elem.primaryuse = checkboxvalue_str;
+					this.editgrid_store.put(store_elem);
+					this.editgrid.refresh();
 				}
 			},
 			createDivSelectDialog: function(server_data) {
