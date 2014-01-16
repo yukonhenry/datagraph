@@ -435,8 +435,6 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		var resizeTournamentPaneGrids = function(evt) {
 			// todo
 		}
-		// events for widgets should be in one file; trying to split it up into two or more modules
-		// does not work - registry.byId cannot find the widget
 		// make sure global variables/objects have full context by the time callback functions to events defined below are assigned
 		ready(function() {
  			parser.parse();

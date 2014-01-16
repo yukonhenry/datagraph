@@ -31,7 +31,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					field_id: "Field ID",
 					field_name: editor({label:"Name", autoSave:true},"text","dblclick"),
 					primaryuse: {label:"Primary Use",
-						renderCell: lang.hitch(this, this.actionRenderCell)
+						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
 					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 						editorArgs:{
@@ -92,7 +92,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 							}
 						},
 					}, TimeTextBox, "dblclick"),
-					dates: {label:"Config Dates"}
+					dayweek:{label:"Days of Week",
+						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
+					dates: {label:"Config Dates",
+						renderCell: lang.hitch(this, this.dates_actionRenderCell)}
 				};
 				return columnsdef_obj;
 			},
@@ -162,7 +165,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 						primaryuse:"Config primary "+i, start_time:"", end_time:"",
-						dates:"Config Venue "+i});
+						dayweek:"", dates:"Config Venue "+i});
 				}
 				return fieldinfo_list;
 			},
@@ -172,7 +175,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
-			edit_calendar: function(row_id, colname) {
+			edit_calendar: function(row_id) {
 				var field_index = row_id-1;
 				var oldfield_index = this.field_id-1;
 				this.field_id = row_id;
@@ -366,13 +369,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			datetimedel_submit: function(id, event) {
 				this.calendar_store.remove(id);
 			},
-			actionRenderCell: function(object, data, node, options) {
-				console.log("action rendering");
+			primaryuse_actionRenderCell: function(object, data, node) {
 				var TDialog = null;
+				var field_id = object.field_id;
 				if (this.divinfo_obj.currentdivinfo_name) {
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
-					var field_id = object.field_id;
 					var checkbox_list = new Array();
 					arrayUtil.forEach(this.divstr_list, function(divstr, index) {
 						var idstr = "checkbox"+divstr+field_id+"_id";
@@ -383,7 +385,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					var button_id = 'tdialogbtn'+field_id+'_id';
 					content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
 					TDialog = new TooltipDialog({
-						id:"tooltip"+object.field_id,
+						id:"tooltip"+field_id,
 						content: content_str
 		    		});
 		    		var tdialogprop_obj = {field_id:field_id,
@@ -402,6 +404,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var dropdown_btn = new DropDownButton({
 					label:"Config",
 					dropDown:TDialog,
+					id:'fielddropdownbtn'+field_id+'_id'
 				});
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
@@ -414,25 +417,102 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				arrayUtil.forEach(checkbox_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
-						checkboxvalue_str += checkbox_reg.get('value');
+						checkboxvalue_str += checkbox_reg.get('value')+',';
 					}
 				})
+				// trim off last comma
+				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
+				checkboxvalue_str = checkboxvalue_str.substring(0, checkboxvalue_str.length-1);
 				if (this.editgrid_obj) {
-					console.log("checkbox valuestr ="+checkboxvalue_str);
 					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
 					store_elem.primaryuse = checkboxvalue_str;
 					this.editgrid_obj.schedInfoStore.put(store_elem);
+					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
+					var dropdownbtn_reg = registry.byId("fielddropdownbtn"+field_id+"_id");
+					dropdownbtn_reg.set('label', checkboxvalue_str);
 					//this.editgrid_obj.schedInfoStore.refresh();
-					/*
-					this.editgrid.refresh({}).then(function(object){
-						console.log('deferred fin');
-					}); */
 				}
 			},
 			createDivSelectDialog: function(server_data) {
 				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {
 					this.divstr_list.push(item.div_age + item.div_gen);
 				}, this);
+			},
+			dates_actionRenderCell: function(object, data, node) {
+				var field_id = object.field_id;
+				var config_btn = new button({
+					label:"Config Venue"+field_id,
+					id:"fielddatesbtn"+field_id+"_id",
+					onClick: lang.hitch(this, function() {
+						this.edit_calendar(field_id);
+					})
+				})
+				node.appendChild(config_btn.domNode);
+				return config_btn;
+			},
+			dayweek_actionRenderCell: function(object, data, node) {
+				var field_id = object.field_id;
+				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+				var content_str = "";
+				var day_list = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+				var checkboxid_list = new Array();
+				arrayUtil.forEach(day_list, function(day, index) {
+					var idstr = day+field_id+"_id";
+					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
+					'" value='+index+'><label for="'+idstr+'">'+day+'</label> ';
+					if (index%2)
+						content_str += '<br>'
+					checkboxid_list.push(idstr);
+				});
+				var button_id = 'dwdialogbtn'+field_id+'_id';
+				content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+				var dwdialog = new TooltipDialog({
+					id:"dwtooltip"+field_id,
+					content: content_str
+	    		});
+	    		var dwdialogprop_obj = {field_id:field_id,
+	    			checkboxid_list:checkboxid_list, day_list:day_list};
+	    		var button_reg = registry.byId(button_id);
+	    		button_reg.on("click",
+	    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
+				//myDialog.startup();
+				var dropdown_btn = new DropDownButton({
+					label:"Config",
+					dropDown:dwdialog,
+					id:'dwfielddropdownbtn'+field_id+'_id'
+				});
+				node.appendChild(dropdown_btn.domNode);
+				//dropdown_btn.startup();
+				return dropdown_btn;
+			},
+			dwdialogbtn_process: function(dwdialogprop_obj, event) {
+				var field_id = dwdialogprop_obj.field_id;
+				var checkboxid_list = dwdialogprop_obj.checkboxid_list;
+				var day_list = dwdialogprop_obj.day_list;
+				var display_str = "";
+				var value_str = "";
+				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
+					var checkbox_reg = registry.byId(checkbox_id);
+					if (checkbox_reg.get("checked")) {
+						// create str to display in buttone
+						display_str += day_list[index]+',';
+						// create str to store (str of integer id elements)
+						value_str += checkbox_reg.get("value")+',';
+					}
+				})
+				// trim off last comma
+				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
+				display_str = display_str.substring(0, display_str.length-1);
+				value_str = value_str.substring(0, value_str.length-1);
+				if (this.editgrid_obj) {
+					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
+					store_elem.dayweek = value_str;
+					this.editgrid_obj.schedInfoStore.put(store_elem);
+					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
+					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
+					dwdropdownbtn_reg.set('label', value_str);
+					//this.editgrid_obj.schedInfoStore.refresh();
+				}
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
