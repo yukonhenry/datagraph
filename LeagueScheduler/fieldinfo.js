@@ -20,7 +20,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			divstr_list:null,
-			editgrid_store:null, editgrid:null,
 			editgrid_obj:null,
 			idproperty_str:"field_id", grid_str:"fieldinfogrid_id",
 			cpane_str:"fieldinfocpane_id",
