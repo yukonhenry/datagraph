@@ -11,7 +11,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			griddata_list:null, text_node:null, text_node_str:"",
 			server_interface:null, colname:null,
 			schedInfoStore:null, schedInfoGrid:null, updatebtn_outernode:null,
-			grid_name:null, error_node:null, updatebtn_reg:null,
+			grid_id:"", cpane_id:"", error_node:null, updatebtn_reg:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
@@ -26,7 +26,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			makeInvisible: function(dom_name) {
 				domClass.replace(dom_name, "style_none", "style_inline");
 			},
-			recreateSchedInfoGrid: function(columnsdef_obj) {
+			switchContentPane: function(scontainer_reg) {
+				scontainer_reg.selectChild(this.cpane_id);
+				this.schedInfoGrid.resize();
+			},
+			recreateSchedInfoGrid: function(columnsdef_obj, scontainer_reg) {
 				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
@@ -51,15 +55,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						store: this.schedInfoStore,
 						columns : columnsdef_obj,
 						selectionMode:"single"
-					}, this.grid_name);
+					}, this.grid_id);
 				} else {
 					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
 						store: this.schedInfoStore,
 						columns : columnsdef_obj,
 						selectionMode:"single"
-					}, this.grid_name);
+					}, this.grid_id);
 				}
 				this.schedInfoGrid.startup();
+				//registry.byId(this.cpane_id).resize();
+				// switch to content pane that has grid
+				scontainer_reg.selectChild(this.cpane_id);
+				this.schedInfoGrid.resize();
+				//scontainer_reg.resize();
 				if (this.info_obj && 'editgrid' in this.info_obj) {
 					this.info_obj.editgrid = this.schedInfoGrid;
 				}
@@ -170,7 +179,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					delete this.bracketinfo;
 				}
 				if (this.schedInfoGrid) {
-					dom.byId(this.grid_name).innerHTML = "";
+					dom.byId(this.grid_id).innerHTML = "";
 					delete this.schedInfoGrid;
 					this.makeInvisible(this.updatebtn_outernode);
 					delete this.schedInfoStore;

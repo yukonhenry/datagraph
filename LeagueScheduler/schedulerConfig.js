@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					this.team_seed_list.push({team_id:i, seed_id:i});
 				}
 			},
-			createSeedGrid: function(grid_name) {
+			createSeedGrid: function(grid_id) {
 				this.seedStore = new Memory({data:this.team_seed_list, idProperty:"team_id"});
 
 				this.seedGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
@@ -30,7 +30,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
                 			editor: "text",
                 			editOn: "dblclick" }); */
             		}
-        		}, grid_name);
+        		}, grid_id);
         		this.seedGrid.startup();
                 return this.seedGrid;
             },

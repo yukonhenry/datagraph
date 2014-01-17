@@ -7,7 +7,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		newscheduler){
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
-			currentdivinfo_name:"",
+			currentdivinfo_name:"", idproperty_str:"div_id",
+			grid_str:"divinfogrid_id", cpane_str:"divinfocpane_id",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -41,10 +42,10 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					callback: lang.hitch(this.schedutil_obj, this.schedutil_obj.regenAddDBCollection_smenu),
-					info_obj: this,
-					idproperty:'div_id',
+					info_obj: this, idproperty:this.idproperty_str,
 					server_path:"create_newdbcol/",
-					text_node_str: 'Schedule Name'});
+					text_node_str: 'Schedule Name',
+					grid_id:this.grid_str, cpane_id:this.cpane_str});
 				newScheduler.showConfig();
 			},
 			getServerDBDivInfo: function(options_obj) {
@@ -57,11 +58,13 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var item = options_obj.item;
 				this.currentdivinfo_name = item;
 				options_obj.serverdata_key = 'divinfo_list';
-				options_obj.idproperty = 'div_id';
+				options_obj.idproperty = this.idproperty_str;
 				options_obj.server_key = 'divinfo_data';
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
+				options_obj.grid_id = this.grid_str;
+				options_obj.cpane_id = this.cpane_str;
 				if (baseinfoSingleton.get_select_reg()) {
 					//baseinfoSingleton.get_select_reg().destroy();
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());

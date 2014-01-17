@@ -14,16 +14,15 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10m</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10n</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
-			require(["dbootstrap", "dojo/dom", "dojo/parser", "LeagueScheduler/scheduler",
-			"dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox",
-            "dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip",
-            "dijit/form/Button", "dijit/form/ToggleButton", "dijit/form/NumberSpinner",
-            "dojo/domReady!"],
+			require(["dbootstrap", "dojo/dom", "LeagueScheduler/scheduler",
+                "dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/layout/StackContainer",
+                "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox","dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip", "dijit/form/Button", "dijit/form/ToggleButton", "dijit/form/NumberSpinner",
+                "dojo/domReady!"],
 			function(dbootstrap, dom){
     			var greeting = dom.byId("greeting");
     			greeting.innerHTML +="";
@@ -213,7 +212,19 @@
                 </form>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
                 <div id="divisionInfoInputGridErrorNode" class="style_none"></div>
-                <div id="divisionInfoInputGrid"></div><br>
+                <!-- manage switching between grids by using content panes embedded in stack container -->
+                <!-- note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance -->
+                <div id="gridContainer_id" data-dojo-type="dijit/layout/StackContainer" data-dojo-props="doLayout:false">
+                    <div id="divinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <div id="divinfogrid_id"></div>
+                    </div>
+                    <div id="schedinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <div id="schedinfogrid_id"></div>
+                    </div>
+                    <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <div id="fieldinfogrid_id" ></div>
+                    </div>
+                </div>
                 <span id="bracketInfoNodeText"></span>
                 <div id="bracketInfoInputGrid"></div>
                 <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->

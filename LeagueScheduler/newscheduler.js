@@ -12,6 +12,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			cellselect_flag:false,
 			callback:null, text_node_str:"",
 			updatebtn_str:"", updatebtn_reg:null,
+			grid_id:"", cpane_id:"",scontainer_reg:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -47,7 +48,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						this.editgrid = new EditGrid({griddata_list:divinfo_list,
 							colname:this.newcol_name,
 							server_interface:this.server_interface,
-							grid_name:"divisionInfoInputGrid",
+							grid_id:this.grid_id,
+							cpane_id:this.cpane_id,
 							error_node:dom.byId("divisionInfoInputGridErrorNode"),
 							text_node:dom.byId("divisionInfoNodeText"),
 							updatebtn_reg:this.updatebtn_reg,
@@ -60,7 +62,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							info_obj:this.info_obj,
 							text_node_str:this.text_node_str});
 						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
-						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+						this.editgrid.recreateSchedInfoGrid(columnsdef_obj,
+							registry.byId("gridContainer_id"));
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
 					} else {

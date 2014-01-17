@@ -22,6 +22,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			divstr_list:null,
 			editgrid_store:null, editgrid:null,
 			editgrid_obj:null,
+			idproperty_str:"field_id", grid_str:"fieldinfogrid_id",
+			cpane_str:"fieldinfocpane_id",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
@@ -116,13 +118,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					callback: lang.hitch(this.schedutil_obj,this.schedutil_obj.regenAddFieldDBCollection_smenu),
-					info_obj:this,
-					idproperty:'field_id',
+					info_obj:this, idproperty:this.idproperty_str,
 					server_path:"create_newfieldcol/",
 					server_key:'fieldinfo_data',
 					cellselect_flag:true,
 					text_node_str: 'Field List Name',
-					updatebtn_str:'Update Field Info'});
+					updatebtn_str:'Update Field Info',
+					grid_id:this.grid_str, cpane_id:this.cpane_str});
 				newFieldGroup.showConfig();
 			},
 			set_schedutil_obj: function(obj) {
@@ -137,7 +139,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// at the server)
 				var item = options_obj.item;
 				options_obj.info_obj = this;
-				options_obj.idproperty = 'field_id';
+				options_obj.idproperty = this.idproperty_str;
 				options_obj.server_path = "create_newfieldcol/";
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.cellselect_flag = true;
@@ -145,6 +147,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.updatebtn_str = 'Update Field Info';
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
+				options_obj.grid_id = this.grid_str;
+				options_obj.cpane_id = this.cpane_str;
 				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
