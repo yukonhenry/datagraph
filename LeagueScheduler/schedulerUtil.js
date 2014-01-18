@@ -258,11 +258,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						console.log("no server interface");
 						alert("no server interface, check if service running");
 					}
-					var updatebtn_reg = registry.byId("updatesubmit_btn");
+					/*
+					var updatebtn_reg = registry.byId(options_obj.updatebtn_id);
 					var updatebtn_str = (typeof options_obj.updatebtn_str === "undefined") ? "": options_obj.updatebtn_str;
 					if (updatebtn_str) {
 						updatebtn_reg.set('label', updatebtn_str);
-					}
+					} */
 					this.editGrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
 						colname:colname,
 						divisioncode:divisioncode,
@@ -270,9 +271,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						grid_id:options_obj.grid_id,
 						cpane_id:options_obj.cpane_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
-						text_node:dom.byId("divisionInfoNodeText"),
-						updatebtn_reg:updatebtn_reg,
-						updatebtn_outernode:dom.byId("updatesubmit_outerdiv"),
+						text_node:options_obj.text_node,
+						updatebtn_widget:options_obj.updatebtn_widget,
 						idproperty:options_obj.idproperty,
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,

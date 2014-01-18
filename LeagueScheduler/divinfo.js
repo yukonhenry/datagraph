@@ -2,15 +2,19 @@
 define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 	"dijit/registry", "dgrid/editor",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
+	"dijit/form/Button",
 	"dojo/domReady!"],
 	function(dbootstrap, declare, dom, lang, registry, editor, baseinfoSingleton,
-		newscheduler){
+		newscheduler, Button){
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
 			currentdivinfo_name:"", idproperty_str:"div_id",
 			grid_str:"divinfogrid_id", cpane_str:"divinfocpane_id",
+			text_id:"divinfoTextNode_id", text_node:null,
+			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.text_node = dom.byId(this.text_id);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -36,6 +40,11 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var form_dom = dom.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
 				var divnum_reg = registry.byId("divnum_input_id");
+				this.updatebtn_widget = new Button({
+					label:"Update Div Info",
+					type:"button",
+					class:"primary"
+				}, "divinfobtndiv_id");
 				var newScheduler = new newscheduler({dbname_reg:input_reg,
 					form_dom:form_dom, form_reg:form_reg,
 					entrynum_reg:divnum_reg,
@@ -45,7 +54,10 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					info_obj: this, idproperty:this.idproperty_str,
 					server_path:"create_newdbcol/",
 					text_node_str: 'Schedule Name',
-					grid_id:this.grid_str, cpane_id:this.cpane_str});
+					grid_id:this.grid_str, cpane_id:this.cpane_str,
+					text_node:this.text_node,
+					updatebtn_widget:this.updatebtn_widget
+				});
 				newScheduler.showConfig();
 			},
 			getServerDBDivInfo: function(options_obj) {
@@ -65,6 +77,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = this.grid_str;
 				options_obj.cpane_id = this.cpane_str;
+				options_obj.text_node = this.text_node;
+				options_obj.updatebtn_widget = this.updatebtn_widget;
 				if (baseinfoSingleton.get_select_reg()) {
 					//baseinfoSingleton.get_select_reg().destroy();
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());

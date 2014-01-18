@@ -69,10 +69,9 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 				return this.visible_form_dom;
 			},
 			init_gridcpanestate: function() {
-				if (this.gridcpanestate_obj)
-					delete this.gridcpanestate_obj;
-				this.gridcpanestate_obj = new Object();
-			}
+				if (!this.gridcpanestate_obj)
+					this.gridcpanestate_obj = new Object();
+			},
 			enable_gridcpanestate: function(cpane_id) {
 				this.gridcpanestate_obj.cpane_id = true;
 			},

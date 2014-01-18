@@ -6,7 +6,7 @@
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
 // dbootstrap reference: https://github.com/thesociable/dbootstrap
-require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
+require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dojo/_base/declare", "dojo/_base/lang", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request",
@@ -15,7 +15,7 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
 		"LeagueScheduler/newschedulerbase", "dojox/calendar/Calendar",
 		"dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, on, parser, registry, ready, declare, lang, Grid, Selection,
+	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
 		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, Calendar) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
@@ -419,13 +419,18 @@ require(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/on", "dojo/parser
 				metricsGrid.resize();
 		}
 		var resizeEditPaneGrids = function(evt) {
+			baseinfoSingleton.init_gridcpanestate();
 			var active_grid = baseinfoSingleton.get_active_grid();
 			if (active_grid) {
 				active_grid.schedInfoGrid.resize();
 			}
+			var pane_dom = dom.byId("editPane");
+			pane_dom.scrollTop = 0;
 			//to resize bracket info grid also
 		}
 		var scrollTopEditPane = function(evt) {
+			console.log("scrolltop");
+			baseinfoSingleton.init_gridcpanestate();
 			//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 			// ensure edit pane scroll resets to top
 			// seems like scrolling to top only works if it works off of onLoad and not onShow

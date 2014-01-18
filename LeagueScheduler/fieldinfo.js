@@ -6,7 +6,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory, arrayUtil,
 		registry, editor, baseinfoSingleton, newscheduler,
-		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, button,
+		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
 		put, Calendar){
 		return declare(null, {
  			server_interface:null, schedutil_obj:null,
@@ -22,10 +22,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			divstr_list:null,
 			editgrid_obj:null,
 			idproperty_str:"field_id", grid_str:"fieldinfogrid_id",
-			cpane_str:"fieldinfocpane_id",
+			cpane_id:"fieldinfocpane_id",
+			text_id:"fieldinfoTextNode_id", text_node:null,
+			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
+				this.text_node = dom.byId(this.text_id);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -111,6 +114,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
+				this.updatebtn_widget = new Button({
+					label:"Update Field Info",
+					type:"button",
+					class:"primary"
+				}, "fieldinfobtndiv_id");
 				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
 					form_dom:form_dom, form_reg:form_reg,
 					entrynum_reg:fieldnum_reg,
@@ -122,8 +130,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					server_key:'fieldinfo_data',
 					cellselect_flag:true,
 					text_node_str: 'Field List Name',
-					updatebtn_str:'Update Field Info',
-					grid_id:this.grid_str, cpane_id:this.cpane_str});
+					grid_id:this.grid_str, cpane_id:this.cpane_id,
+					text_node:this.text_node,
+					updatebtn_widget:this.updatebtn_widget
+				});
 				newFieldGroup.showConfig();
 			},
 			set_schedutil_obj: function(obj) {
@@ -143,11 +153,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.cellselect_flag = true;
 				options_obj.text_node_str = "Field List Name";
-				options_obj.updatebtn_str = 'Update Field Info';
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
 				options_obj.grid_id = this.grid_str;
-				options_obj.cpane_id = this.cpane_str;
+				options_obj.cpane_id = this.cpane_id;
+				options_obj.text_node = this.text_node;
+				options_obj.updatebtn_widget = this.updatebtn_widget;
 				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
@@ -443,7 +454,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			},
 			dates_actionRenderCell: function(object, data, node) {
 				var field_id = object.field_id;
-				var config_btn = new button({
+				var config_btn = new Button({
 					label:"Config Venue"+field_id,
 					id:"fielddatesbtn"+field_id+"_id",
 					onClick: lang.hitch(this, function() {

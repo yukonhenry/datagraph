@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10n</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10o</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -181,12 +181,6 @@
                     <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'divnum_input_id', position:['below','after']">Specify Number of Divisions and press ENTER</span>
                     </div>
                 </form>
-                <!-- note button below is of type button rather than submit because of problems with the 'submit' event action -->
-                <div class="style_none" id="updatesubmit_outerdiv">
-                    <span id="divisionInfoNodeText"></span>
-                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="updatesubmitButton" id="updatesubmit_btn" value="Submit">Update Division Info</button>
-                    <button class="dijitToggleButton info" id="bracketenable_btn">Test</button>
-                </div><br>
                 <div class="style_none" id="schedDBSelectDiv">
                     <label for="schedDBDivisionSelect">Select Division</label>
                     <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
@@ -209,62 +203,68 @@
                 <!-- note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance -->
                 <div id="gridContainer_id" data-dojo-type="dijit/layout/StackContainer" data-dojo-props="doLayout:false">
                     <div id="divinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <span id="divinfoTextNode_id"></span>
+                        <div id="divinfobtndiv_id"></div>
                         <div id="divinfogrid_id"></div>
+                        <span id="bracketInfoNodeText"></span>
+                        <div id="bracketInfoInputGrid"></div>
                     </div>
                     <div id="schedinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <div id="schedinfogrid_id"></div>
                     </div>
-                    <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <div id="fieldinfogrid_id" ></div>
-                    </div>
-                </div>
-                <span id="bracketInfoNodeText"></span>
-                <div id="bracketInfoInputGrid"></div>
-                <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->
-                <!-- if id is changed, make sure to check css style reference id -->
-                <!-- ref http://stackoverflow.com/questions/17658263/2-dojo-dijit-content-panes-side-by-side-when-showing-hiding-one-the-other-wil -->
-                <!-- Use visibility style property below to make borderContainter contents
-                visible at will.  There seems to be a problem using the style display property -->
-                <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
-                    <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
-                        <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
-                            <label for="fieldselect_id">Select Venue</label>
-                            <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
-                            name parameter is required for declarative setup -->
-                            <select id="fieldselect_id" name="fieldselect_id" data-dojo-type="dijit/form/Select">
-                            </select>
-                            <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
-                            <label for="fieldevent_id">Event Name</label><br>
-                            <input type="text" id="fieldevent_id" value="Sports" required="true" data-dojo-type="dijit/form/ValidationTextBox"
-                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                            <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldevent_id', position:['below','after']">Enter Event Type and Name</span></div><br>
-                            <label for="eventdate_id">Event Date:</label><br>
-                            <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
-                            <br>
-                            <label for="starttime_id">Start:</label>
-                            <input id="starttime_id" value="T08:00:00" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
-                            <label for="endtime_id">End:</label>
-                            <input id="endtime_id" value="T09:00:00"data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
-                            <br>
-                            <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimeset_btn" value="Submit">Update</button>
-                            <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedel_btn" value="Submit">Delete</button>
-                            </form>
+                    <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:true, liveSplitters:true" style="height:800px;width: 100%">
+                        <div id="fieldinfocpane_inner_id" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'" style="height:300px; width: 100%">
+                            <span id="fieldinfoTextNode_id"></span>
+                            <div id="fieldinfobtndiv_id"></div>
+                            <div id="fieldinfogrid_id" ></div>
                         </div>
-                        <div id="duptitlepane_id" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Duplicate', open:false">
-                            <label for="dupfieldselect_id">Select Venue for Duplication</label>
-                            <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
-                            name parameter is required for declarative setup -->
-                            <select id="dupfieldselect_id" name="dupfieldselect_id" data-dojo-type="dijit/form/Select">
-                            </select><br>
-                            <label for="dupeventdate_id">Event Date to Dup:</label><br>
-                            <input id="dupeventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'"><br>
-                            <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedup_btn" value="Submit">Duplicate</button>
-                        </div>
-                    </div>
-                    <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
-                        <div id="calendarGrid_id"></div>
-                    </div>
-                </div>
+                        <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html -->
+                        <!-- if id is changed, make sure to check css style reference id -->
+                        <!-- ref http://stackoverflow.com/questions/17658263/2-dojo-dijit-content-panes-side-by-side-when-showing-hiding-one-the-other-wil -->
+                        <!-- Use visibility style property below to make borderContainter contents
+                        visible at will.  There seems to be a problem using the style display property -->
+                        <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="region: 'center', design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
+                            <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
+                                <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
+                                    <label for="fieldselect_id">Select Venue</label>
+                                    <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
+                                    name parameter is required for declarative setup -->
+                                    <select id="fieldselect_id" name="fieldselect_id" data-dojo-type="dijit/form/Select">
+                                    </select>
+                                    <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
+                                    <label for="fieldevent_id">Event Name</label><br>
+                                    <input type="text" id="fieldevent_id" value="Sports" required="true" data-dojo-type="dijit/form/ValidationTextBox"
+                                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
+                                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldevent_id', position:['below','after']">Enter Event Type and Name</span></div><br>
+                                    <label for="eventdate_id">Event Date:</label><br>
+                                    <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
+                                    <br>
+                                    <label for="starttime_id">Start:</label>
+                                    <input id="starttime_id" value="T08:00:00" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
+                                    <label for="endtime_id">End:</label>
+                                    <input id="endtime_id" value="T09:00:00"data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
+                                    <br>
+                                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimeset_btn" value="Submit">Update</button>
+                                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedel_btn" value="Submit">Delete</button>
+                                    </form>
+                                </div>
+                                <div id="duptitlepane_id" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Duplicate', open:false">
+                                    <label for="dupfieldselect_id">Select Venue for Duplication</label>
+                                    <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
+                                    name parameter is required for declarative setup -->
+                                    <select id="dupfieldselect_id" name="dupfieldselect_id" data-dojo-type="dijit/form/Select">
+                                    </select><br>
+                                    <label for="dupeventdate_id">Event Date to Dup:</label><br>
+                                    <input id="dupeventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'"><br>
+                                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedup_btn" value="Submit">Duplicate</button>
+                                </div>
+                            </div>
+                            <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
+                                <div id="calendarGrid_id"></div>
+                            </div>
+                        </div> <!-- inner border container -->
+                    </div> <!---outer bordercontainer as one of content panes-->
+                </div> <!--stackcontainer-->
                 <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">

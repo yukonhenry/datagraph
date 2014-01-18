@@ -6,13 +6,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		baseinfoSingleton) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
-			entrynum_reg: null, error_node:null,
+			entrynum_reg: null, error_node:null, text_node:null,
 			newcol_name:"", schedutil_obj:null, form_dom:null, editgrid:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			callback:null, text_node_str:"",
-			updatebtn_str:"", updatebtn_reg:null,
-			grid_id:"", cpane_id:"",scontainer_reg:null,
+			updatebtn_widget:null,
+			grid_id:"", cpane_id:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -20,9 +20,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.cleanup();
 				this.schedutil_obj.makeVisible(this.form_dom);
 				baseinfoSingleton.set_visible_form_dom(this.form_dom);
-				this.updatebtn_reg = registry.byId("updatesubmit_btn");
+				/* this.updatebtn_reg = registry.byId(this.updatebtn_id);
 				if (this.updatebtn_str)
 					this.updatebtn_reg.set('label', this.updatebtn_str);
+				*/
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
@@ -51,9 +52,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							grid_id:this.grid_id,
 							cpane_id:this.cpane_id,
 							error_node:dom.byId("divisionInfoInputGridErrorNode"),
-							text_node:dom.byId("divisionInfoNodeText"),
-							updatebtn_reg:this.updatebtn_reg,
-							updatebtn_outernode:dom.byId("updatesubmit_outerdiv"),
+							text_node:this.text_node,
+							updatebtn_widget:this.updatebtn_widget,
 							idproperty:this.idproperty,
 							server_callback:this.callback,
 							server_path:this.server_path,

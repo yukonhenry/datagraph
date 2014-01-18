@@ -10,8 +10,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		return declare(null, {
 			griddata_list:null, text_node:null, text_node_str:"",
 			server_interface:null, colname:null,
-			schedInfoStore:null, schedInfoGrid:null, updatebtn_outernode:null,
-			grid_id:"", cpane_id:"", error_node:null, updatebtn_reg:null,
+			schedInfoStore:null, schedInfoGrid:null,
+			grid_id:"", cpane_id:"", error_node:null, updatebtn_widget:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
@@ -32,11 +32,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			recreateSchedInfoGrid: function(columnsdef_obj, scontainer_reg) {
 				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
+				this.updatebtn_widget.startup();
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
-				this.makeVisible(this.updatebtn_outernode);
 				// make store observable
 				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
+				// Observable Memory + dgrid has issues - switching to Memory only
 				//this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
 				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
@@ -77,7 +78,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				});
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 					lang.hitch(this, this.editschedInfoGrid));
-				this.submitHandle = this.updatebtn_reg.on("click",
+				this.submitHandle = this.updatebtn_widget.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
@@ -179,7 +180,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_id).innerHTML = "";
 					delete this.schedInfoGrid;
-					this.makeInvisible(this.updatebtn_outernode);
 					delete this.schedInfoStore;
 					this.divisioncode = 0;
 					this.text_node.innerHTML = "";
