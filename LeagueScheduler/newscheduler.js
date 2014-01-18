@@ -51,6 +51,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							server_interface:this.server_interface,
 							grid_id:this.grid_id,
 							cpane_id:this.cpane_id,
+							textcpane_id:this.textcpane_id,
 							error_node:dom.byId("divisionInfoInputGridErrorNode"),
 							text_node:this.text_node,
 							updatebtn_widget:this.updatebtn_widget,
@@ -63,7 +64,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							text_node_str:this.text_node_str});
 						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj,
-							registry.byId("gridContainer_id"));
+							registry.byId("gridContainer_id"),
+							registry.byId("gridparamContainer_id"));
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
 					} else {

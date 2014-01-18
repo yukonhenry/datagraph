@@ -22,7 +22,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		return declare(null, {
 			leaguedata: null, server_interface:null, editGrid:null,
 			dbmenureg_list:null, fielddbmenureg_list:null,
-			gridcontainer_reg:null,
+			gridcontainer_reg:null, gridparamcontainer_reg:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
@@ -31,6 +31,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				this.dbmenureg_list = new Array();
 				this.fielddbmenureg_list = new Array();
 				this.gridcontainer_reg = registry.byId("gridContainer_id");
+				this.gridparamcontainer_reg = registry.byId("gridparamContainer_id")
 			},
 			getCalendarMap: function(gameday_id) {
 				return calendarMapObj[gameday_id];
@@ -270,6 +271,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						server_interface:this.server_interface,
 						grid_id:options_obj.grid_id,
 						cpane_id:options_obj.cpane_id,
+						textcpane_id:options_obj.textcpane_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						text_node:options_obj.text_node,
 						updatebtn_widget:options_obj.updatebtn_widget,
@@ -280,7 +282,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						info_obj:options_obj.info_obj,
 						text_node_str:options_obj.text_node_str});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj,
-						this.gridcontainer_reg);
+						this.gridcontainer_reg, this.gridparamcontainer_reg);
 					baseinfoSingleton.set_active_grid(this.editGrid);
 					baseinfoSingleton.set_active_grid_name(colname);
 				} else {

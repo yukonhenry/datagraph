@@ -11,7 +11,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			griddata_list:null, text_node:null, text_node_str:"",
 			server_interface:null, colname:null,
 			schedInfoStore:null, schedInfoGrid:null,
-			grid_id:"", cpane_id:"", error_node:null, updatebtn_widget:null,
+			grid_id:"", cpane_id:"", textcpane_id:"",
+			error_node:null, updatebtn_widget:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
@@ -30,9 +31,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				scontainer_reg.selectChild(this.cpane_id);
 				this.schedInfoGrid.resize();
 			},
-			recreateSchedInfoGrid: function(columnsdef_obj, scontainer_reg) {
+			recreateSchedInfoGrid: function(columnsdef_obj, scontainer_reg,
+				gpcontainer_reg) {
 				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
 				this.updatebtn_widget.startup();
+				gpcontainer_reg.selectChild(this.textcpane_id);
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				// make store observable

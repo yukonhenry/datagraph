@@ -122,3 +122,7 @@ div.bar {
   width: auto;
   height: auto;
 }
+.editsched {
+  float:left;
+  margin:2px;
+}

@@ -9,8 +9,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
 			currentdivinfo_name:"", idproperty_str:"div_id",
-			grid_str:"divinfogrid_id", cpane_str:"divinfocpane_id",
-			text_id:"divinfoTextNode_id", text_node:null,
+			grid_id:"divinfogrid_id", cpane_id:"divinfocpane_id",
+			text_id:"infoTextNode_id", text_node:null,
+			textcpane_id:"textbtncpane_id",
 			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -54,7 +55,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					info_obj: this, idproperty:this.idproperty_str,
 					server_path:"create_newdbcol/",
 					text_node_str: 'Schedule Name',
-					grid_id:this.grid_str, cpane_id:this.cpane_str,
+					grid_id:this.grid_id, cpane_id:this.cpane_id,
+					textcpane_id:this.textcpane_id,
 					text_node:this.text_node,
 					updatebtn_widget:this.updatebtn_widget
 				});
@@ -75,8 +77,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
-				options_obj.grid_id = this.grid_str;
-				options_obj.cpane_id = this.cpane_str;
+				options_obj.grid_id = this.grid_id;
+				options_obj.cpane_id = this.cpane_id;
+				options_obj.textcpane_id = this.textcpane_id;
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_widget = this.updatebtn_widget;
 				if (baseinfoSingleton.get_select_reg()) {

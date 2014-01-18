@@ -23,7 +23,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			editgrid_obj:null,
 			idproperty_str:"field_id", grid_str:"fieldinfogrid_id",
 			cpane_id:"fieldinfocpane_id",
-			text_id:"fieldinfoTextNode_id", text_node:null,
+			text_id:"infoTextNode_id", text_node:null,
+			textcpane_id:"textbtncpane_id",
 			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -131,6 +132,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					cellselect_flag:true,
 					text_node_str: 'Field List Name',
 					grid_id:this.grid_str, cpane_id:this.cpane_id,
+					textcpane_id:this.textcpane_id,
 					text_node:this.text_node,
 					updatebtn_widget:this.updatebtn_widget
 				});
@@ -157,6 +159,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.serverdata_key = 'fieldinfo_list';
 				options_obj.grid_id = this.grid_str;
 				options_obj.cpane_id = this.cpane_id;
+				options_obj.textcpane_id = this.textcpane_id;
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_widget = this.updatebtn_widget;
 				// do some clean-up
