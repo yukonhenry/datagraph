@@ -6,16 +6,23 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 	"dojo/domReady!"],
 	function(dbootstrap, declare, dom, lang, registry, editor, baseinfoSingleton,
 		newscheduler, Button){
+		var constant = {
+			infobtn_id:"infoBtnNode_id",
+			text_id:"infoTextNode_id",
+			textcpane_id:"textbtncpane_id",
+			cpane_id:"divinfocpane_id",
+			idproperty_str:"div_id",
+			updatefieldinfo_str:"Update Div Info",
+			grid_id:"divinfogrid_id",
+		};
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
-			currentdivinfo_name:"", idproperty_str:"div_id",
-			grid_id:"divinfogrid_id", cpane_id:"divinfocpane_id",
-			text_id:"infoTextNode_id", text_node:null,
-			textcpane_id:"textbtncpane_id",
+			currentdivinfo_name:"",
+			text_node:null,
 			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.text_node = dom.byId(this.text_id);
+				this.text_node = dom.byId(constant.text_id);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -41,24 +48,22 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var form_dom = dom.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
 				var divnum_reg = registry.byId("divnum_input_id");
-				this.updatebtn_widget = new Button({
-					label:"Update Div Info",
-					type:"button",
-					class:"primary"
-				}, "divinfobtndiv_id");
+				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
+					constant.updatedivinfo_str,
+					constant.idproperty_str, constant.infobtn_id);
 				var newScheduler = new newscheduler({dbname_reg:input_reg,
 					form_dom:form_dom, form_reg:form_reg,
 					entrynum_reg:divnum_reg,
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					callback: lang.hitch(this.schedutil_obj, this.schedutil_obj.regenAddDBCollection_smenu),
-					info_obj: this, idproperty:this.idproperty_str,
+					info_obj: this, idproperty:constant.idproperty_str,
 					server_path:"create_newdbcol/",
 					text_node_str: 'Schedule Name',
-					grid_id:this.grid_id, cpane_id:this.cpane_id,
-					textcpane_id:this.textcpane_id,
+					grid_id:constant.grid_id, cpane_id:constant.cpane_id,
+					textcpane_id:constant.textcpane_id,
 					text_node:this.text_node,
-					updatebtn_widget:this.updatebtn_widget
+					updatebtn_widget:infobtn_widget
 				});
 				newScheduler.showConfig();
 			},
@@ -72,16 +77,19 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var item = options_obj.item;
 				this.currentdivinfo_name = item;
 				options_obj.serverdata_key = 'divinfo_list';
-				options_obj.idproperty = this.idproperty_str;
+				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'divinfo_data';
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
-				options_obj.grid_id = this.grid_id;
-				options_obj.cpane_id = this.cpane_id;
-				options_obj.textcpane_id = this.textcpane_id;
+				options_obj.grid_id = constant.grid_id;
+				options_obj.cpane_id = constant.cpane_id;
+				options_obj.textcpane_id = constant.textcpane_id;
 				options_obj.text_node = this.text_node;
-				options_obj.updatebtn_widget = this.updatebtn_widget;
+				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
+					constant.updatedivinfo_str,
+					constant.idproperty_str, constant.infobtn_id);
+				options_obj.updatebtn_widget = infobtn_widget;
 				if (baseinfoSingleton.get_select_reg()) {
 					//baseinfoSingleton.get_select_reg().destroy();
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());

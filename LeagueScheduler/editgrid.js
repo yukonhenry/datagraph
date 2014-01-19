@@ -81,8 +81,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				});
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 					lang.hitch(this, this.editschedInfoGrid));
+				// do straight overrride on button onclick event handler
+				// so that we don't have to worry about handler clean-up
+				this.updatebtn_widget.set("onClick",
+					lang.hitch(this, this.sendDivInfoToServer));
+				/*
 				this.submitHandle = this.updatebtn_widget.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
+				*/
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
 				}

@@ -288,6 +288,23 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				} else {
 					alert("same schedule selected");
 				}
+			},
+			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
+				var infobtn_widget = registry.byId(infobtn_id);
+				if (infobtn_widget) {
+					var info_type = infobtn_widget.get('info_type');
+					if (info_type != idproperty_str) {
+						infobtn_widget.set('label', label_str);
+						infobtn_widget.set('info_type', idproperty_str);
+					}
+				} else {
+					infobtn_widget = new Button({
+						label:label_str,
+						type:"button",
+						class:"primary",
+						info_type:idproperty_str
+					}, infobtn_id);
+				}
 			}
 
 		});

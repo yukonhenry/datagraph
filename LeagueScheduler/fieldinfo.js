@@ -8,6 +8,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		registry, editor, baseinfoSingleton, newscheduler,
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
 		put, Calendar){
+		var constant = {
+			infobtn_id:"infoBtnNode_id",
+			text_id:"infoTextNode_id",
+			textcpane_id:"textbtncpane_id",
+			cpane_id:"fieldinfocpane_id",
+			idproperty_str:"field_id",
+			updatefieldinfo_str:"Update Field Info",
+			grid_id:"fieldinfogrid_id",
+		};
 		return declare(null, {
  			server_interface:null, schedutil_obj:null,
  			divinfo_obj:null,
@@ -21,15 +30,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			divstr_list:null,
 			editgrid_obj:null,
-			idproperty_str:"field_id", grid_str:"fieldinfogrid_id",
-			cpane_id:"fieldinfocpane_id",
-			text_id:"infoTextNode_id", text_node:null,
-			textcpane_id:"textbtncpane_id",
-			updatebtn_widget:null,
+			text_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
-				this.text_node = dom.byId(this.text_id);
+				this.text_node = dom.byId(constant.text_id);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -115,26 +120,24 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
-				this.updatebtn_widget = new Button({
-					label:"Update Field Info",
-					type:"button",
-					class:"primary"
-				}, "fieldinfobtndiv_id");
+				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
+					constant.updatefieldinfo_str,
+					constant.idproperty_str, constant.infobtn_id);
 				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
 					form_dom:form_dom, form_reg:form_reg,
 					entrynum_reg:fieldnum_reg,
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					callback: lang.hitch(this.schedutil_obj,this.schedutil_obj.regenAddFieldDBCollection_smenu),
-					info_obj:this, idproperty:this.idproperty_str,
+					info_obj:this, idproperty:constant.idproperty_str,
 					server_path:"create_newfieldcol/",
 					server_key:'fieldinfo_data',
 					cellselect_flag:true,
 					text_node_str: 'Field List Name',
-					grid_id:this.grid_str, cpane_id:this.cpane_id,
-					textcpane_id:this.textcpane_id,
+					grid_id:constant.grid_id, cpane_id:constant.cpane_id,
+					textcpane_id:constant.textcpane_id,
 					text_node:this.text_node,
-					updatebtn_widget:this.updatebtn_widget
+					updatebtn_widget:infobtn_widget
 				});
 				newFieldGroup.showConfig();
 			},
@@ -150,18 +153,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// at the server)
 				var item = options_obj.item;
 				options_obj.info_obj = this;
-				options_obj.idproperty = this.idproperty_str;
+				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newfieldcol/";
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.cellselect_flag = true;
 				options_obj.text_node_str = "Field List Name";
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
-				options_obj.grid_id = this.grid_str;
-				options_obj.cpane_id = this.cpane_id;
-				options_obj.textcpane_id = this.textcpane_id;
+				options_obj.grid_id = constant.grid_id;
+				options_obj.cpane_id = constant.cpane_id;
+				options_obj.textcpane_id = constant.textcpane_id;
 				options_obj.text_node = this.text_node;
-				options_obj.updatebtn_widget = this.updatebtn_widget;
+				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
+					constant.updatefieldinfo_str,
+					constant.idproperty_str, constant.infobtn_id);
+				options_obj.updatebtn_widget = infobtn_widget;
 				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
