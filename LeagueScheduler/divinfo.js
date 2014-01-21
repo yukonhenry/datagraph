@@ -12,13 +12,13 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			textcpane_id:"textbtncpane_id",
 			cpane_id:"divinfocpane_id",
 			idproperty_str:"div_id",
-			updatefieldinfo_str:"Update Div Info",
+			updatedivinfo_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
 		};
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
 			currentdivinfo_name:"",
-			text_node:null,
+			text_node:null, uistackmgr:null,
 			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -45,14 +45,13 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			initialize: function(evt) {
 				var form_name = "newdivinfo_form_id";
 				var form_reg = registry.byId(form_name);
-				var form_dom = dom.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
 				var divnum_reg = registry.byId("divnum_input_id");
 				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
 					constant.updatedivinfo_str,
 					constant.idproperty_str, constant.infobtn_id);
 				var newScheduler = new newscheduler({dbname_reg:input_reg,
-					form_dom:form_dom, form_reg:form_reg,
+					form_reg:form_reg,
 					entrynum_reg:divnum_reg,
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
@@ -65,6 +64,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					text_node:this.text_node,
 					updatebtn_widget:infobtn_widget
 				});
+				this.uistackmgr.switch_pstackcpane("dpreconfig_stage");
 				newScheduler.showConfig();
 			},
 			getServerDBDivInfo: function(options_obj) {

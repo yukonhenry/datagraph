@@ -30,7 +30,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			divstr_list:null,
 			editgrid_obj:null,
-			text_node:null,
+			text_node:null, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
@@ -116,7 +116,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);
-				var form_dom = dom.byId(form_name);
+				//var form_dom = dom.byId(form_name);
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
@@ -124,7 +124,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					constant.updatefieldinfo_str,
 					constant.idproperty_str, constant.infobtn_id);
 				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
-					form_dom:form_dom, form_reg:form_reg,
+					form_reg:form_reg,
 					entrynum_reg:fieldnum_reg,
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
@@ -137,8 +137,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					grid_id:constant.grid_id, cpane_id:constant.cpane_id,
 					textcpane_id:constant.textcpane_id,
 					text_node:this.text_node,
-					updatebtn_widget:infobtn_widget
+					updatebtn_widget:infobtn_widget,
+					uistackmgr:this.uistackmgr
 				});
+				this.uistackmgr.switch_pstackcpane("fpreconfig_stage");
 				newFieldGroup.showConfig();
 			},
 			set_schedutil_obj: function(obj) {
@@ -172,11 +174,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
+				/*
 				var form_dom = baseinfoSingleton.get_visible_form_dom();
 				if (form_dom) {
 					baseinfoSingleton.reset_visible_form_dom();
 					this.schedutil_obj.makeInvisible(form_dom);
-				}
+				} */
 				this.server_interface.getServerData("get_fieldcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
 			},

@@ -13,10 +13,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
-		"LeagueScheduler/newschedulerbase", "dojox/calendar/Calendar",
+		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "dojox/calendar/Calendar",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, Calendar) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, Calendar) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -33,10 +33,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var ldata_array = null;
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
+		var uiStackManager = new UIStackManager();
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
-		var divinfo_obj = new divinfo({server_interface:serverInterface});
+		var divinfo_obj = new divinfo({server_interface:serverInterface,
+			uistackmgr:uiStackManager});
 		// note fieldinfo constructor needs to be called after divinfo constructor
-		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj});
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj, uistackmgr:uiStackManager});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {

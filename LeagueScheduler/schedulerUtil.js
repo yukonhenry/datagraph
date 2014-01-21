@@ -4,9 +4,11 @@ http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
 define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang", "dojo/dom-class",
-	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
+	"dojo/_base/array","dijit/registry", "dijit/MenuItem", "dijit/form/Button",
 	"LeagueScheduler/editgrid","LeagueScheduler/divinfo", "LeagueScheduler/baseinfoSingleton", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil, registry, MenuItem, EditGrid, DivInfo, baseinfoSingleton, FieldInfo){
+	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil,
+		registry, MenuItem, Button, EditGrid, DivInfo, baseinfoSingleton,
+		FieldInfo){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};
@@ -22,7 +24,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		return declare(null, {
 			leaguedata: null, server_interface:null, editGrid:null,
 			dbmenureg_list:null, fielddbmenureg_list:null,
-			gridcontainer_reg:null, gridparamcontainer_reg:null,
+			gridcontainer_reg:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
@@ -31,7 +33,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				this.dbmenureg_list = new Array();
 				this.fielddbmenureg_list = new Array();
 				this.gridcontainer_reg = registry.byId("gridContainer_id");
-				this.gridparamcontainer_reg = registry.byId("gridparamContainer_id")
 			},
 			getCalendarMap: function(gameday_id) {
 				return calendarMapObj[gameday_id];
@@ -282,7 +283,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						info_obj:options_obj.info_obj,
 						text_node_str:options_obj.text_node_str});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj,
-						this.gridcontainer_reg, this.gridparamcontainer_reg);
+						this.gridcontainer_reg);
 					baseinfoSingleton.set_active_grid(this.editGrid);
 					baseinfoSingleton.set_active_grid_name(colname);
 				} else {
@@ -305,6 +306,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						info_type:idproperty_str
 					}, infobtn_id);
 				}
+				return infobtn_widget;
 			}
 
 		});

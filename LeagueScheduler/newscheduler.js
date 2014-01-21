@@ -1,29 +1,23 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dijit/registry",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
+	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
+	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys,
 		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			entrynum_reg: null, error_node:null, text_node:null,
-			newcol_name:"", schedutil_obj:null, form_dom:null, editgrid:null,
+			newcol_name:"", schedutil_obj:null, editgrid:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			callback:null, text_node_str:"",
 			updatebtn_widget:null,
-			grid_id:"", cpane_id:"",
+			grid_id:"", cpane_id:"", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
 			showConfig: function() {
-				this.cleanup();
-				this.schedutil_obj.makeVisible(this.form_dom);
-				baseinfoSingleton.set_visible_form_dom(this.form_dom);
-				/* this.updatebtn_reg = registry.byId(this.updatebtn_id);
-				if (this.updatebtn_str)
-					this.updatebtn_reg.set('label', this.updatebtn_str);
-				*/
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
@@ -42,8 +36,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = this.entrynum_reg.get("value");
 						var divinfo_list = this.info_obj.getInitialList(divnum);
-						this.schedutil_obj.makeInvisible(this.form_dom);
-						baseinfoSingleton.reset_visible_form_dom();
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						this.editgrid = new EditGrid({griddata_list:divinfo_list,
@@ -61,11 +53,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							server_key:this.server_key,
 							cellselect_flag:this.cellselect_flag,
 							info_obj:this.info_obj,
-							text_node_str:this.text_node_str});
+							text_node_str:this.text_node_str,
+							uistackmgr:this.uistackmgr});
 						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj,
-							registry.byId("gridContainer_id"),
-							registry.byId("gridparamContainer_id"));
+							registry.byId("gridContainer_id"));
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
 					} else {
@@ -91,11 +83,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (active_grid) {
 					active_grid.cleanup();
 					baseinfoSingleton.reset_active_grid();
-				}
-				var form_dom = baseinfoSingleton.get_visible_form_dom();
-				if (form_dom) {
-					baseinfoSingleton.reset_visible_form_dom();
-					this.schedutil_obj.makeInvisible(form_dom);
 				}
 			}
 
