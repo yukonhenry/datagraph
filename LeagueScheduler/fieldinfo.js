@@ -11,8 +11,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
-			textcpane_id:"textbtncpane_id",
-			cpane_id:"fieldinfocpane_id",
 			idproperty_str:"field_id",
 			updatefieldinfo_str:"Update Field Info",
 			grid_id:"fieldinfogrid_id",
@@ -134,8 +132,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					server_key:'fieldinfo_data',
 					cellselect_flag:true,
 					text_node_str: 'Field List Name',
-					grid_id:constant.grid_id, cpane_id:constant.cpane_id,
-					textcpane_id:constant.textcpane_id,
+					grid_id:constant.grid_id,
 					text_node:this.text_node,
 					updatebtn_widget:infobtn_widget,
 					uistackmgr:this.uistackmgr
@@ -163,8 +160,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
 				options_obj.grid_id = constant.grid_id;
-				options_obj.cpane_id = constant.cpane_id;
-				options_obj.textcpane_id = constant.textcpane_id;
 				options_obj.text_node = this.text_node;
 				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
 					constant.updatefieldinfo_str,

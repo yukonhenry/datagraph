@@ -9,8 +9,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
-			textcpane_id:"textbtncpane_id",
-			cpane_id:"divinfocpane_id",
 			idproperty_str:"div_id",
 			updatedivinfo_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
@@ -59,8 +57,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					info_obj: this, idproperty:constant.idproperty_str,
 					server_path:"create_newdbcol/",
 					text_node_str: 'Schedule Name',
-					grid_id:constant.grid_id, cpane_id:constant.cpane_id,
-					textcpane_id:constant.textcpane_id,
+					grid_id:constant.grid_id,
 					text_node:this.text_node,
 					updatebtn_widget:infobtn_widget
 				});
@@ -83,8 +80,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;
-				options_obj.cpane_id = constant.cpane_id;
-				options_obj.textcpane_id = constant.textcpane_id;
 				options_obj.text_node = this.text_node;
 				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
 					constant.updatedivinfo_str,

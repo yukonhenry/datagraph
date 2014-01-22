@@ -11,7 +11,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			griddata_list:null, text_node:null, text_node_str:"",
 			server_interface:null, colname:null,
 			schedInfoStore:null, schedInfoGrid:null,
-			grid_id:"", cpane_id:"", textcpane_id:"",
+			grid_id:"",
 			error_node:null, updatebtn_widget:null,
 			errorHandle:null, datachangeHandle:null, submitHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
@@ -27,15 +27,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			makeInvisible: function(dom_name) {
 				domClass.replace(dom_name, "style_none", "style_inline");
 			},
-			switchContentPane: function(scontainer_reg) {
-				scontainer_reg.selectChild(this.cpane_id);
-				this.schedInfoGrid.resize();
-			},
-			recreateSchedInfoGrid: function(columnsdef_obj, scontainer_reg) {
+			recreateSchedInfoGrid: function(columnsdef_obj) {
 				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
 				this.updatebtn_widget.startup();
 				this.uistackmgr.switch_pstackcpane("config_stage");
-				//gpcontainer_reg.selectChild(this.textcpane_id);
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				// make store observable
@@ -63,14 +58,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}, this.grid_id);
 				}
 				this.schedInfoGrid.startup();
-				//registry.byId(this.cpane_id).resize();
 				// switch to content pane that has grid
-				scontainer_reg.selectChild(this.cpane_id);
+				this.uistackmgr.switch_gstackcpane(this.idproperty);
+				//scontainer_reg.selectChild(this.cpane_id);
 				// the resize on grid is required; another option is to
 				// have a callback on scontainer_reg.on('show')
 				this.schedInfoGrid.resize();
 				// track which grid content panes have grids in them
-				baseinfoSingleton.enable_gridcpanestate(this.cpane_id);
 				if (this.info_obj && 'editgrid' in this.info_obj) {
 					this.info_obj.editgrid = this.schedInfoGrid;
 				}

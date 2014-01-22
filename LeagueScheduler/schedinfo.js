@@ -49,7 +49,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						options_obj.cellselect_flag = false;
 						options_obj.text_node_str = 'Schedule Name';
 						options_obj.grid_id = 'schedinfogrid_id';
-						options_obj.cpane_id = 'schedinfocpane_id';
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
 							{divisioncode:divisioncode}, options_obj);

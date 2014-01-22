@@ -33,12 +33,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var ldata_array = null;
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
-		var uiStackManager = new UIStackManager();
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
-		var divinfo_obj = new divinfo({server_interface:serverInterface,
-			uistackmgr:uiStackManager});
+		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		// note fieldinfo constructor needs to be called after divinfo constructor
-		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj, uistackmgr:uiStackManager});
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj});
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -465,6 +463,11 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
+			// UI Stack Manager obj can only be created after html has been parsed
+			// as UIStackManager constructor needs to identify widgets
+			var uiStackManager = new UIStackManager();
+			divinfo_obj.uistackmgr = uiStackManager;
+			fieldinfo_obj.uistackmgr = uiStackManager;
  		});
 	}
 );
