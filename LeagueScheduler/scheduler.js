@@ -419,6 +419,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				metricsGrid.resize();
 		}
 		var resizeEditPaneGrids = function(evt) {
+			console.log("show edit pane");
 			baseinfoSingleton.init_gridcpanestate();
 			var active_grid = baseinfoSingleton.get_active_grid();
 			if (active_grid) {
@@ -429,7 +430,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			//to resize bracket info grid also
 		}
 		var scrollTopEditPane = function(evt) {
-			console.log("scrolltop");
+			console.log("load edit pane");
 			baseinfoSingleton.init_gridcpanestate();
 			//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 			// ensure edit pane scroll resets to top

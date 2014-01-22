@@ -249,11 +249,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 							baseinfoSingleton.reset_active_grid();
 						}
 					}
+					/*
 					var visible_form_dom = baseinfoSingleton.get_visible_form_dom();
 					if (visible_form_dom) {
 						this.makeInvisible(visible_form_dom);
 						baseinfoSingleton.reset_visible_form_dom();
-					}
+					} */
 					if (!this.server_interface) {
 						console.log("no server interface");
 						alert("no server interface, check if service running");
@@ -277,7 +278,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:options_obj.info_obj,
-						text_node_str:options_obj.text_node_str});
+						text_node_str:options_obj.text_node_str,
+						uistackmgr:options_obj.uistackmgr});
 					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
 					baseinfoSingleton.set_active_grid(this.editGrid);
 					baseinfoSingleton.set_active_grid_name(colname);

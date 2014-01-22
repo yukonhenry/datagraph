@@ -137,7 +137,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					updatebtn_widget:infobtn_widget,
 					uistackmgr:this.uistackmgr
 				});
-				this.uistackmgr.switch_pstackcpane("fpreconfig_stage");
 				newFieldGroup.showConfig();
 			},
 			set_schedutil_obj: function(obj) {
@@ -165,6 +164,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					constant.updatefieldinfo_str,
 					constant.idproperty_str, constant.infobtn_id);
 				options_obj.updatebtn_widget = infobtn_widget;
+				options_obj.uistackmgr = this.uistackmgr;
 				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());

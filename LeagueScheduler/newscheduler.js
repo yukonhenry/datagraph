@@ -18,6 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				lang.mixin(this, args);
 			},
 			showConfig: function() {
+				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));

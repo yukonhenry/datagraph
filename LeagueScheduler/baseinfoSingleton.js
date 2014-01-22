@@ -59,6 +59,7 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			get_tbutton_reg: function() {
 				return this.tbutton_reg;
 			},
+			/*
 			set_visible_form_dom: function(form_dom) {
 				this.visible_form_dom = form_dom;
 			},
@@ -67,7 +68,7 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			},
 			get_visible_form_dom: function() {
 				return this.visible_form_dom;
-			},
+			}, */
 			init_gridcpanestate: function() {
 				if (!this.gridcpanestate_obj)
 					this.gridcpanestate_obj = new Object();

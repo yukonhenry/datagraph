@@ -59,9 +59,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					text_node_str: 'Schedule Name',
 					grid_id:constant.grid_id,
 					text_node:this.text_node,
-					updatebtn_widget:infobtn_widget
+					updatebtn_widget:infobtn_widget,
+					uistackmgr:this.uistackmgr
 				});
-				this.uistackmgr.switch_pstackcpane("dpreconfig_stage");
 				newScheduler.showConfig();
 			},
 			getServerDBDivInfo: function(options_obj) {
@@ -85,6 +85,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					constant.updatedivinfo_str,
 					constant.idproperty_str, constant.infobtn_id);
 				options_obj.updatebtn_widget = infobtn_widget;
+				options_obj.uistackmgr = this.uistackmgr;
 				if (baseinfoSingleton.get_select_reg()) {
 					//baseinfoSingleton.get_select_reg().destroy();
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());

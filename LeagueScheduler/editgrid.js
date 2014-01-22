@@ -30,7 +30,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			recreateSchedInfoGrid: function(columnsdef_obj) {
 				this.text_node.innerHTML = this.text_node_str + ": <b>"+this.colname+"</b>";
 				this.updatebtn_widget.startup();
-				this.uistackmgr.switch_pstackcpane("config_stage");
+				this.uistackmgr.switch_pstackcpane(this.idproperty, "config");
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				// make store observable

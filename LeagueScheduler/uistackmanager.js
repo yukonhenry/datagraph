@@ -16,17 +16,22 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
 			gstackcontainer_reg:null, gstackmap_list:null,
+			cpanestate_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
+				// define param stack mapping that maps tuple (id_property, config stage)->
+				// param content pane
 				this.pstackmap_list = new Array();
-				this.pstackmap_list.push({stage:'fpreconfig_stage',
+				this.pstackmap_list.push({id:'field_id', stage:'preconfig',
 					pane_id:constant.nfcpane_id});
-				this.pstackmap_list.push({stage:'config_stage',
+				this.pstackmap_list.push({id:'field_id', stage:'config',
 					pane_id:constant.tcpane_id});
-				this.pstackmap_list.push({stage:'dpreconfig_stage',
+				this.pstackmap_list.push({id:'div_id', stage:'preconfig',
 					pane_id:constant.ndcpane_id});
-				this.gstackcontainer_reg = registry.byId("gstackcontainer_id");
+				this.pstackmap_list.push({id:'div_id', stage:'config',
+					pane_id:constant.tcpane_id});
+				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				this.gstackmap_list = new Array();
 				this.gstackmap_list.push({id:'div_id',
 					pane_id:constant.divcpane_id});
@@ -34,13 +39,31 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					pane_id:constant.schedcpane_id});
 				this.gstackmap_list.push({id:'field_id',
 					pane_id:constant.fieldcpane_id});
+				this.cpanestate_list = new Array();
+				var id_list = ['div_id', 'match_id', 'field_id'];
+				arrayUtil.forEach(id_list, function(item) {
+					this.cpanestate_list.push({id:item, p_state:null, g_state:null})
+				}, this);
 			},
-			switch_pstackcpane: function(stage_id) {
+			switch_pstackcpane: function(id, stage) {
 				var idmatch_list = arrayUtil.filter(this.pstackmap_list,
 					function(item, index) {
-						return item.stage == stage_id;
+						return item.id == id && item.stage == stage;
 					});
 				this.pstackcontainer_reg.selectChild(idmatch_list[0].pane_id);
+				// update cpanestate_list element
+				// first find element obj with id match
+				idmatch_list = arrayUtil.filter(this.cpanestate_list,
+					function(item, index) {
+						return item.id == id;
+					})
+				// retrieve actual obj and find index
+				var match_obj = idmatch_list[0];
+				var index = this.cpanestate_list.indexOf(match_obj);
+				// modify matched obj
+				match_obj.p_state = stage;
+				this.cpanestate_list[index] = match_obj;
+				console.log("cpanestate="+this.cpanestate_list);
 			},
 			switch_gstackcpane: function(id) {
 				var idmatch_list = arrayUtil.filter(this.gstackmap_list,
@@ -49,7 +72,7 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					});
 				var matchpane_id = idmatch_list[0].pane_id;
 				this.gstackcontainer_reg.selectChild(matchpane_id);
-				baseinfoSingleton.enable_gridcpanestate(this.cpane_id);
+				this.gcpanestate_obj.matchpane_id = true;
 			}
 		});
 	}
