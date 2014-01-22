@@ -107,6 +107,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				};
 				return columnsdef_obj;
 			},
+			check_initialize: function(arg_obj) {
+				var cpane_state = this.uistackmgr.get_cpanestate(this.idproperty);
+
+			},
 			initialize: function(arg_obj) {
 				// get divinfo information here
 				if (this.divinfo_obj.currentdivinfo_name) {

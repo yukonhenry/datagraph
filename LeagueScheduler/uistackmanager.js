@@ -42,7 +42,8 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				this.cpanestate_list = new Array();
 				var id_list = ['div_id', 'match_id', 'field_id'];
 				arrayUtil.forEach(id_list, function(item) {
-					this.cpanestate_list.push({id:item, p_state:null, g_state:null})
+					this.cpanestate_list.push({id:item, p_state:null,
+						g_state:null})
 				}, this);
 			},
 			switch_pstackcpane: function(id, stage) {
@@ -53,6 +54,35 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				this.pstackcontainer_reg.selectChild(idmatch_list[0].pane_id);
 				// update cpanestate_list element
 				// first find element obj with id match
+				/*
+				idmatch_list = arrayUtil.filter(this.cpanestate_list,
+					function(item, index) {
+						return item.id == id;
+					})
+				// retrieve actual obj and find index
+				var match_obj = idmatch_list[0]; */
+				var match_obj = this.get_cpanestate(id);
+				var index = this.cpanestate_list.indexOf(match_obj);
+				// modify matched obj
+				match_obj.p_state = stage;
+				this.cpanestate_list[index] = match_obj;
+			},
+			get_cpanestate: function(id) {
+				var idmatch_list = arrayUtil.filter(this.cpanestate_list,
+					function(item, index) {
+						return item.id == id;
+					})
+				// retrieve actual obj and find index
+				return idmatch_list[0];
+			}
+			switch_gstackcpane: function(id) {
+				var idmatch_list = arrayUtil.filter(this.gstackmap_list,
+					function(item, index) {
+						return item.id == id;
+					});
+				var matchpane_id = idmatch_list[0].pane_id;
+				this.gstackcontainer_reg.selectChild(matchpane_id);
+				// update cpane list state
 				idmatch_list = arrayUtil.filter(this.cpanestate_list,
 					function(item, index) {
 						return item.id == id;
@@ -61,18 +91,8 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var match_obj = idmatch_list[0];
 				var index = this.cpanestate_list.indexOf(match_obj);
 				// modify matched obj
-				match_obj.p_state = stage;
+				match_obj.g_state = true;
 				this.cpanestate_list[index] = match_obj;
-				console.log("cpanestate="+this.cpanestate_list);
-			},
-			switch_gstackcpane: function(id) {
-				var idmatch_list = arrayUtil.filter(this.gstackmap_list,
-					function(item, index) {
-						return item.id == id;
-					});
-				var matchpane_id = idmatch_list[0].pane_id;
-				this.gstackcontainer_reg.selectChild(matchpane_id);
-				this.gcpanestate_obj.matchpane_id = true;
 			}
 		});
 	}

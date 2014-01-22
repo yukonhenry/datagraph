@@ -49,7 +49,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			},
 			selectionMode: "single"
 		}, "divisionInfoGrid");
-
 		var fieldInfoGrid = new CustomGrid({
 			columns: {
 				field_id:"Field ID",
