@@ -16,7 +16,7 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
 			gstackcontainer_reg:null, gstackmap_list:null,
-			cpanestate_list:null,
+			cpanestate_list:null, updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
@@ -95,10 +95,11 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				if (p_state) {
 					this.pstackcontainer_reg.selectChild(p_state);
 					info_obj.text_node.innerHTML = match_obj.text_str;
-					var updatebtn_widget = registry.byId("infoBtnNode_id");
-					updatebtn_widget.set('label', info_obj.updatebtn_str);
-					updatebtn_widget.set('info_type', info_obj.idproperty);
-					updatebtn_widget.set("onClick", match_obj.btn_callback);
+					if (!this.updatebtn_widget)
+						this.updatebtn_widget = registry.byId("infoBtnNode_id");
+					this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+					this.updatebtn_widget.set('info_type', info_obj.idproperty);
+					this.updatebtn_widget.set("onClick", match_obj.btn_callback);
 					var g_state = match_obj.g_state;
 					if (g_state) {
 						this.gstackcontainer_reg.selectChild(g_state);
@@ -107,8 +108,26 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					info_obj.initialize();
 				}
 			},
-			check_getServerInfo: function(options_obj) {
+			check_getServerDBInfo: function(options_obj) {
 				var info_obj = options_obj.info_obj;
+				var state_obj = this.get_cpanestate(info_obj.idproperty);
+				var match_obj = state_obj.match_obj;
+				var p_state = match_obj.p_state;
+				if (p_state) {
+					this.pstackcontainer_reg.selectChild(p_state);
+					info_obj.text_node.innerHTML = match_obj.text_str;
+					if (!this.updatebtn_widget)
+						this.updatebtn_widget = registry.byId("infoBtnNode_id");
+					this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+					this.updatebtn_widget.set('info_type', info_obj.idproperty);
+					this.updatebtn_widget.set("onClick", match_obj.btn_callback);
+					var g_state = match_obj.g_state;
+					if (g_state) {
+						this.gstackcontainer_reg.selectChild(g_state);
+					}
+				} else {
+					info_obj.getServerDBInfo(options_obj);
+				}
 			}
 		});
 	}

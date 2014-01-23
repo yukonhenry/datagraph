@@ -37,6 +37,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		// note fieldinfo constructor needs to be called after divinfo constructor
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj});
+		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
 			columns: {
@@ -81,7 +82,9 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var dbcollection_list = ldata.dbcollection_list;
 			// save dbname list to basesingleton class to use later
 			baseinfoSingleton.set_dbname_list(dbcollection_list);
-			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu", divinfo_obj, divinfo_obj.getServerDBDivInfo,{db_type:'db'});
+			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu",
+				uiStackManager, uiStackManager.check_getServerDBInfo,
+				{db_type:'db', info_obj:divinfo_obj});
 			// generate dropdown menu for edit->delete schedule
 			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
@@ -98,12 +101,13 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013,
 				{db_type:'export'});
 			var schedinfo_obj = new schedinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
-			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", schedinfo_obj, schedinfo_obj.getServerDBSchedInfo,
-				{db_type:'db'});
+			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", uiStackManager, uiStackManager.check_getServerDBInfo,
+				{db_type:'db', info_obj:schedinfo_obj});
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
-			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu", fieldinfo_obj, fieldinfo_obj.getServerDBFieldInfo,
-				{db_type:'fielddb'});
+			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu",
+				uiStackManager, uiStackManager.check_getServerDBInfo,
+				{db_type:'fielddb', info_obj:fieldinfo_obj});
 			var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
 			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
 				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
@@ -438,7 +442,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
  			parser.parse();
  			// UI Stack Manager obj can only be created after html has been parsed
 			// as UIStackManager constructor needs to identify widgets
-			var uiStackManager = new UIStackManager();
+			uiStackManager = new UIStackManager();
 			divinfo_obj.uistackmgr = uiStackManager;
 			fieldinfo_obj.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);

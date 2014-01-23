@@ -132,7 +132,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function, options_obj) {
 				var options_obj = options_obj || {};
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
-				var columnsdef_obj = sched_context.getcolumnsdef_obj();
+				var columnsdef_obj = options_obj.info_obj.getcolumnsdef_obj();
 				options_obj.columnsdef_obj = columnsdef_obj;
 				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, sched_context, serv_function, options_obj);
 			},

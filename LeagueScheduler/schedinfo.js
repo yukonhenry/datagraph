@@ -20,7 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				};
 				return columnsdef_obj;
 			},
-			getServerDBSchedInfo: function(options_obj) {
+			getServerDBInfo: function(options_obj) {
 				var item = options_obj.item;
 				if (this.schedutil_obj.editGrid) {
 					this.schedutil_obj.editGrid.cleanup();

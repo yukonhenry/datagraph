@@ -141,7 +141,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			set_schedutil_obj: function(obj) {
 				this.schedutil_obj = obj;
 			},
-			getServerDBFieldInfo: function(options_obj) {
+			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the
