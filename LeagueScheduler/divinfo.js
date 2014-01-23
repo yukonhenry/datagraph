@@ -10,14 +10,14 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
 			idproperty_str:"div_id",
-			updatedivinfo_str:"Update Div Info",
+			updatebtn_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
+			text_node_str: 'Schedule Name',
 		};
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
-			currentdivinfo_name:"",
+			currentdivinfo_name:"", idproperty:constant.idproperty_str,
 			text_node:null, uistackmgr:null,
-			updatebtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
@@ -45,9 +45,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var form_reg = registry.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
 				var divnum_reg = registry.byId("divnum_input_id");
-				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
-					constant.updatedivinfo_str,
-					constant.idproperty_str, constant.infobtn_id);
+
 				var newScheduler = new newscheduler({dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:divnum_reg,
@@ -56,11 +54,12 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					callback: lang.hitch(this.schedutil_obj, this.schedutil_obj.regenAddDBCollection_smenu),
 					info_obj: this, idproperty:constant.idproperty_str,
 					server_path:"create_newdbcol/",
-					text_node_str: 'Schedule Name',
+					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
 					text_node:this.text_node,
-					updatebtn_widget:infobtn_widget,
-					uistackmgr:this.uistackmgr
+					updatebtn_str:constant.updatebtn_str,
+					uistackmgr:this.uistackmgr,
+					updatebtn_str: constant.updatebtn_str,
 				});
 				newScheduler.showConfig();
 			},
@@ -81,10 +80,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;
 				options_obj.text_node = this.text_node;
-				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
-					constant.updatedivinfo_str,
-					constant.idproperty_str, constant.infobtn_id);
-				options_obj.updatebtn_widget = infobtn_widget;
+				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.uistackmgr = this.uistackmgr;
 				if (baseinfoSingleton.get_select_reg()) {
 					//baseinfoSingleton.get_select_reg().destroy();

@@ -43,28 +43,24 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var id_list = ['div_id', 'match_id', 'field_id'];
 				arrayUtil.forEach(id_list, function(item) {
 					this.cpanestate_list.push({id:item, p_state:null,
-						g_state:null})
+						g_state:null, text_str:"", btn_callback:null})
 				}, this);
 			},
-			switch_pstackcpane: function(id, stage) {
+			switch_pstackcpane: function(id, stage, text_str, btn_callback) {
 				var idmatch_list = arrayUtil.filter(this.pstackmap_list,
 					function(item, index) {
 						return item.id == id && item.stage == stage;
 					});
-				this.pstackcontainer_reg.selectChild(idmatch_list[0].pane_id);
-				// update cpanestate_list element
-				// first find element obj with id match
-				/*
-				idmatch_list = arrayUtil.filter(this.cpanestate_list,
-					function(item, index) {
-						return item.id == id;
-					})
+				var select_pane = idmatch_list[0].pane_id;
+				this.pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index
-				var match_obj = idmatch_list[0]; */
-				var match_obj = this.get_cpanestate(id);
-				var index = this.cpanestate_list.indexOf(match_obj);
+				var state_obj = this.get_cpanestate(id);
+				var match_obj = state_obj.match_obj;
+				var index = state_obj.index;
 				// modify matched obj
-				match_obj.p_state = stage;
+				match_obj.p_state = select_pane;
+				match_obj.text_str = text_str;
+				match_obj.btn_callback = btn_callback;
 				this.cpanestate_list[index] = match_obj;
 			},
 			get_cpanestate: function(id) {
@@ -73,26 +69,46 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 						return item.id == id;
 					})
 				// retrieve actual obj and find index
-				return idmatch_list[0];
-			}
+				var match_obj = idmatch_list[0];  // there should only be one elem
+				var index = this.cpanestate_list.indexOf(match_obj);
+				return {match_obj:match_obj, index:index};
+			},
 			switch_gstackcpane: function(id) {
 				var idmatch_list = arrayUtil.filter(this.gstackmap_list,
 					function(item, index) {
 						return item.id == id;
 					});
-				var matchpane_id = idmatch_list[0].pane_id;
-				this.gstackcontainer_reg.selectChild(matchpane_id);
+				var select_pane = idmatch_list[0].pane_id;
+				this.gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state
-				idmatch_list = arrayUtil.filter(this.cpanestate_list,
-					function(item, index) {
-						return item.id == id;
-					})
-				// retrieve actual obj and find index
-				var match_obj = idmatch_list[0];
-				var index = this.cpanestate_list.indexOf(match_obj);
+				var state_obj = this.get_cpanestate(id);
+				var match_obj = state_obj.match_obj;
+				var index = state_obj.index;
 				// modify matched obj
-				match_obj.g_state = true;
+				match_obj.g_state = select_pane;
 				this.cpanestate_list[index] = match_obj;
+			},
+			check_initialize: function(info_obj, event) {
+				var state_obj = this.get_cpanestate(info_obj.idproperty);
+				var match_obj = state_obj.match_obj;
+				var p_state = match_obj.p_state;
+				if (p_state) {
+					this.pstackcontainer_reg.selectChild(p_state);
+					info_obj.text_node.innerHTML = match_obj.text_str;
+					var updatebtn_widget = registry.byId("infoBtnNode_id");
+					updatebtn_widget.set('label', info_obj.updatebtn_str);
+					updatebtn_widget.set('info_type', info_obj.idproperty);
+					updatebtn_widget.set("onClick", match_obj.btn_callback);
+					var g_state = match_obj.g_state;
+					if (g_state) {
+						this.gstackcontainer_reg.selectChild(g_state);
+					}
+				} else {
+					info_obj.initialize();
+				}
+			},
+			check_getServerInfo: function(options_obj) {
+				var info_obj = options_obj.info_obj;
 			}
 		});
 	}

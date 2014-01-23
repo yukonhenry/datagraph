@@ -4,7 +4,6 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 		var baseinfoSingleton = declare(null, {
 			select_reg:null, select_dom:null, active_grid:null,
 			dbname_list:null, active_grid_name:"", tbutton_reg:null,
-			visible_form_dom:null, gridcpanestate_obj:null,
 			set_select_reg: function(select_reg) {
 				this.select_reg = select_reg;
 			},
@@ -69,22 +68,6 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			get_visible_form_dom: function() {
 				return this.visible_form_dom;
 			}, */
-			init_gridcpanestate: function() {
-				if (!this.gridcpanestate_obj)
-					this.gridcpanestate_obj = new Object();
-			},
-			enable_gridcpanestate: function(cpane_id) {
-				this.gridcpanestate_obj.cpane_id = true;
-			},
-			reset_gridcpanestate: function(cpane_id) {
-				this.gridcpanestate_obj.cpane_id = false;
-			},
-			get_gridcpanestate: function(cpane_id) {
-				if (cpane_id in this.gridcpanestate_obj)
-					return this.gridcpanestate_obj.cpane_id;
-				else
-					return false;
-			}
 		});
 		if (!_instance) {
 			var _instance = new baseinfoSingleton();

@@ -108,13 +108,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
 				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
 				{db_type:'fielddb', server_path:"delete_fieldcol/"});
-			// reset content pane scroll to top
-			var pane_dom = dom.byId("editPane");
-			pane_dom.scrollTop = 0;
 		}
 		//});
-		serverInterface.getServerData("leaguedivinfo", leaguediv_func);
-
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data.div_id;
@@ -419,7 +414,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		}
 		var resizeEditPaneGrids = function(evt) {
 			console.log("show edit pane");
-			baseinfoSingleton.init_gridcpanestate();
 			var active_grid = baseinfoSingleton.get_active_grid();
 			if (active_grid) {
 				active_grid.schedInfoGrid.resize();
@@ -430,7 +424,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		}
 		var scrollTopEditPane = function(evt) {
 			console.log("load edit pane");
-			baseinfoSingleton.init_gridcpanestate();
 			//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 			// ensure edit pane scroll resets to top
 			// seems like scrolling to top only works if it works off of onLoad and not onShow
@@ -443,6 +436,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		// make sure global variables/objects have full context by the time callback functions to events defined below are assigned
 		ready(function() {
  			parser.parse();
+ 			// UI Stack Manager obj can only be created after html has been parsed
+			// as UIStackManager constructor needs to identify widgets
+			var uiStackManager = new UIStackManager();
+			divinfo_obj.uistackmgr = uiStackManager;
+			fieldinfo_obj.uistackmgr = uiStackManager;
+			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
@@ -457,17 +456,15 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			//			on(registry.byId("newdivinfo_item"), "click",initNewDivInfo
 			//	);
 			on(registry.byId("newdivinfo_item"), "click",
-				lang.hitch(divinfo_obj, divinfo_obj.initialize));
-			on(registry.byId("newfieldlist_item"), "click", lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));
+				lang.hitch(uiStackManager, uiStackManager.check_initialize, divinfo_obj));
+//				lang.hitch(divinfo_obj, divinfo_obj.initialize));
+			on(registry.byId("newfieldlist_item"), "click",
+//				lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));
+				lang.hitch(uiStackManager, uiStackManager.check_initialize, fieldinfo_obj));
 			on(registry.byId("newsched_item"), "click", lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
-			// UI Stack Manager obj can only be created after html has been parsed
-			// as UIStackManager constructor needs to identify widgets
-			var uiStackManager = new UIStackManager();
-			divinfo_obj.uistackmgr = uiStackManager;
-			fieldinfo_obj.uistackmgr = uiStackManager;
  		});
 	}
 );

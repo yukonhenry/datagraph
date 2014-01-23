@@ -12,7 +12,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			callback:null, text_node_str:"",
-			updatebtn_widget:null,
+			updatebtn_str:"",
 			grid_id:"", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -45,7 +45,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							grid_id:this.grid_id,
 							error_node:dom.byId("divisionInfoInputGridErrorNode"),
 							text_node:this.text_node,
-							updatebtn_widget:this.updatebtn_widget,
+							updatebtn_str:this.updatebtn_str,
 							idproperty:this.idproperty,
 							server_callback:this.callback,
 							server_path:this.server_path,

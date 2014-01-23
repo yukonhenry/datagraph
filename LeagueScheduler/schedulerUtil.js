@@ -245,7 +245,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					} else {
 						var active_grid = baseinfoSingleton.get_active_grid();
 						if (active_grid) {
-							active_grid.cleanup();
+							//active_grid.cleanup();
 							baseinfoSingleton.reset_active_grid();
 						}
 					}
@@ -272,7 +272,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						grid_id:options_obj.grid_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						text_node:options_obj.text_node,
-						updatebtn_widget:options_obj.updatebtn_widget,
+						updatebtn_str:options_obj.updatebtn_str,
 						idproperty:options_obj.idproperty,
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,
@@ -287,24 +287,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					alert("same schedule selected");
 				}
 			},
-			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
-				var infobtn_widget = registry.byId(infobtn_id);
-				if (infobtn_widget) {
-					var info_type = infobtn_widget.get('info_type');
-					if (info_type != idproperty_str) {
-						infobtn_widget.set('label', label_str);
-						infobtn_widget.set('info_type', idproperty_str);
-					}
-				} else {
-					infobtn_widget = new Button({
-						label:label_str,
-						type:"button",
-						class:"primary",
-						info_type:idproperty_str
-					}, infobtn_id);
-				}
-				return infobtn_widget;
-			}
 
 		});
 	}

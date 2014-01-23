@@ -12,12 +12,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
 			idproperty_str:"field_id",
-			updatefieldinfo_str:"Update Field Info",
+			updatebtn_str:"Update Field Info",
 			grid_id:"fieldinfogrid_id",
+			text_node_str:'Field List Name',
 		};
 		return declare(null, {
  			server_interface:null, schedutil_obj:null,
- 			divinfo_obj:null,
+ 			divinfo_obj:null, idproperty:constant.idproperty_str,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
@@ -28,7 +29,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			divstr_list:null,
 			editgrid_obj:null,
-			text_node:null, uistackmgr:null,
+			text_node:null, text_node_str: constant.text_node_str,
+			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
@@ -107,10 +109,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				};
 				return columnsdef_obj;
 			},
-			check_initialize: function(arg_obj) {
-				var cpane_state = this.uistackmgr.get_cpanestate(this.idproperty);
-
-			},
 			initialize: function(arg_obj) {
 				// get divinfo information here
 				if (this.divinfo_obj.currentdivinfo_name) {
@@ -122,9 +120,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
-				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
-					constant.updatefieldinfo_str,
-					constant.idproperty_str, constant.infobtn_id);
 				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:fieldnum_reg,
@@ -135,10 +130,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					server_path:"create_newfieldcol/",
 					server_key:'fieldinfo_data',
 					cellselect_flag:true,
-					text_node_str: 'Field List Name',
+					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
 					text_node:this.text_node,
-					updatebtn_widget:infobtn_widget,
+					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr
 				});
 				newFieldGroup.showConfig();
@@ -159,15 +154,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.server_path = "create_newfieldcol/";
 				options_obj.server_key = 'fieldinfo_data';
 				options_obj.cellselect_flag = true;
-				options_obj.text_node_str = "Field List Name";
+				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
 				options_obj.grid_id = constant.grid_id;
 				options_obj.text_node = this.text_node;
-				var infobtn_widget = this.schedutil_obj.getInfoBtn_widget(
-					constant.updatefieldinfo_str,
-					constant.idproperty_str, constant.infobtn_id);
-				options_obj.updatebtn_widget = infobtn_widget;
+				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.uistackmgr = this.uistackmgr;
 				// do some clean-up
 				if (baseinfoSingleton.get_select_reg()) {
