@@ -5,6 +5,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys,
 		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
+		var constant = {
+			infobtn_id:"infoBtnNode_id"
+		};
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			entrynum_reg: null, error_node:null, text_node:null,
@@ -44,16 +47,25 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							server_interface:this.server_interface,
 							grid_id:this.grid_id,
 							error_node:dom.byId("divisionInfoInputGridErrorNode"),
-							text_node:this.text_node,
-							updatebtn_str:this.updatebtn_str,
 							idproperty:this.idproperty,
 							server_callback:this.callback,
 							server_path:this.server_path,
 							server_key:this.server_key,
 							cellselect_flag:this.cellselect_flag,
 							info_obj:this.info_obj,
-							text_node_str:this.text_node_str,
 							uistackmgr:this.uistackmgr});
+						var text_str = this.text_node_str + ": <b>"+this.newcol_name+"</b>";
+						this.text_node.innerHTML = text_str;
+						var updatebtn_widget = this.schedutil_obj.getInfoBtn_widget(
+							this.updatebtn_str, this.idproperty);
+						// do straight overrride on button onclick event handler
+						// so that we don't have to worry about handler clean-up
+						updatebtn_widget.set("onClick",
+							lang.hitch(this.editgrid,
+								this.editgrid.sendDivInfoToServer));
+						var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+						this.uistackmgr.switch_pstackcpane(this.idproperty, "config", text_str, btn_callback);
+
 						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);

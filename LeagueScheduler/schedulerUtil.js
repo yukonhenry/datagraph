@@ -19,6 +19,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
 			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park',
 			17:'Sequoia Middle U14', 18:'Hidden Lakes', 19:'Waterfront', 20:'CP Turf'};
+		var constant = {
+			infobtn_id:"infoBtnNode_id"
+		};
 		var status_dom = dom.byId("dbstatus_txt");
 		var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
@@ -236,12 +239,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var divisioncode = options_obj.divisioncode || 0;
 				var idproperty = options_obj.idproperty;
-				if (!this.EditGrid || !baseinfoSingleton.get_active_grid() || colname != this.editGrid.colname ||
-				    idproperty != this.editGrid.idproperty ||
-				    divisioncode != this.editGrid.divisioncode) {
-					if (this.editGrid) {
-						this.editGrid.cleanup();
-						delete this.editGrid;
+				if (!this.editgrid || !baseinfoSingleton.get_active_grid() || colname != this.editgrid.colname ||
+				    idproperty != this.editgrid.idproperty ||
+				    divisioncode != this.editgrid.divisioncode) {
+					if (this.editgrid) {
+						this.editgrid.cleanup();
+						delete this.editgrid;
 					} else {
 						var active_grid = baseinfoSingleton.get_active_grid();
 						if (active_grid) {
@@ -265,29 +268,54 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					if (updatebtn_str) {
 						updatebtn_reg.set('label', updatebtn_str);
 					} */
-					this.editGrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
+					this.editgrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
 						colname:colname,
 						divisioncode:divisioncode,
 						server_interface:this.server_interface,
 						grid_id:options_obj.grid_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
-						text_node:options_obj.text_node,
-						updatebtn_str:options_obj.updatebtn_str,
 						idproperty:options_obj.idproperty,
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:options_obj.info_obj,
-						text_node_str:options_obj.text_node_str,
 						uistackmgr:options_obj.uistackmgr});
-					this.editGrid.recreateSchedInfoGrid(columnsdef_obj);
-					baseinfoSingleton.set_active_grid(this.editGrid);
+					var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
+					options_obj.text_node.innerHTML = text_str;
+					var idproperty = options_obj.idproperty;
+					var updatebtn_widget = this.getInfoBtn_widget(
+						options_obj.updatebtn_str, idproperty);
+					updatebtn_widget.set("onClick", lang.hitch(this.editgrid,
+						this.editgrid.sendDivInfoToServer));
+					var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config", text_str, btn_callback);
+
+					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+					baseinfoSingleton.set_active_grid(this.editgrid);
 					baseinfoSingleton.set_active_grid_name(colname);
 				} else {
 					alert("same schedule selected");
 				}
 			},
-
-		});
+			getInfoBtn_widget: function(label_str, idproperty_str) {
+				var infobtn_widget = registry.byId(constant.infobtn_id);
+				if (infobtn_widget) {
+					var info_type = infobtn_widget.get('info_type');
+					if (info_type != idproperty_str) {
+						infobtn_widget.set('label', label_str);
+						infobtn_widget.set('info_type', idproperty_str);
+					}
+				} else {
+					infobtn_widget = new Button({
+						label:label_str,
+						type:"button",
+						class:"primary",
+						info_type:idproperty_str
+					}, constant.infobtn_id);
+					infobtn_widget.startup();
+				}
+				return infobtn_widget;
+			},
+		})
 	}
 );

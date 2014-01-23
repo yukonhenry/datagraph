@@ -8,15 +8,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	         arrayUtil, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
 		Button, ToggleButton, BracketInfo, baseinfoSingleton) {
-		var constant = {
-			infobtn_id:"infoBtnNode_id"
-		};
 		return declare(null, {
-			griddata_list:null, text_node:null, text_node_str:"",
+			griddata_list:null,
 			server_interface:null, colname:null,
 			schedInfoStore:null, schedInfoGrid:null,
 			grid_id:"",
-			error_node:null, updatebtn_str:"",
+			error_node:null,
 			errorHandle:null, datachangeHandle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
@@ -32,12 +29,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				domClass.replace(dom_name, "style_none", "style_inline");
 			},
 			recreateSchedInfoGrid: function(columnsdef_obj) {
-				var text_str = this.text_node_str + ": <b>"+this.colname+"</b>";
-				this.text_node.innerHTML = text_str;
-				var updatebtn_widget = this.getInfoBtn_widget(
-					this.updatebtn_str, this.idproperty);
-				var btn_callback = lang.hitch(this, this.sendDivInfoToServer);
-				this.uistackmgr.switch_pstackcpane(this.idproperty, "config", text_str, btn_callback);
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				// make store observable
@@ -82,10 +73,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				});
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 					lang.hitch(this, this.editschedInfoGrid));
-				// do straight overrride on button onclick event handler
-				// so that we don't have to worry about handler clean-up
-				updatebtn_widget.set("onClick",
-					lang.hitch(this, this.sendDivInfoToServer));
 				/*
 				this.submitHandle = this.updatebtn_widget.on("click",
 					lang.hitch(this, this.sendDivInfoToServer));
@@ -182,25 +169,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					server_callback, server_key_obj, options_obj);
 				baseinfoSingleton.addto_dbname_list(this.colname);
 			},
-			getInfoBtn_widget: function(label_str, idproperty_str) {
-				var infobtn_widget = registry.byId(constant.infobtn_id);
-				if (infobtn_widget) {
-					var info_type = infobtn_widget.get('info_type');
-					if (info_type != idproperty_str) {
-						infobtn_widget.set('label', label_str);
-						infobtn_widget.set('info_type', idproperty_str);
-					}
-				} else {
-					infobtn_widget = new Button({
-						label:label_str,
-						type:"button",
-						class:"primary",
-						info_type:idproperty_str
-					}, constant.infobtn_id);
-					infobtn_widget.startup();
-				}
-				return infobtn_widget;
-			},
 			cleanup: function() {
 				if (this.bracketinfo) {
 					this.bracketinfo.cleanup();
@@ -211,7 +179,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					delete this.schedInfoGrid;
 					delete this.schedInfoStore;
 					this.divisioncode = 0;
-					this.text_node.innerHTML = "";
 				}
 				if (this.errorHandle) {
 					this.error_node.innerHTML = "";
