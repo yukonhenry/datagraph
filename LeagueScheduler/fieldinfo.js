@@ -162,10 +162,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.uistackmgr = this.uistackmgr;
 				// do some clean-up
+				/*
 				if (baseinfoSingleton.get_select_reg()) {
 					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
 				}
-				/*
 				var form_dom = baseinfoSingleton.get_visible_form_dom();
 				if (form_dom) {
 					baseinfoSingleton.reset_visible_form_dom();

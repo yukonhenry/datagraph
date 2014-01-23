@@ -37,6 +37,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		// note fieldinfo constructor needs to be called after divinfo constructor
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj});
+		var schedinfo_obj = new schedinfo({server_interface:serverInterface});
 		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
 		var grid = new CustomGrid({
@@ -70,11 +71,11 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			newSchedulerBase.set_schedutil_obj(schedUtil);
 			fieldinfo_obj.set_schedutil_obj(schedUtil);
 			divinfo_obj.set_schedutil_obj(schedUtil);
+			schedinfo_obj.schedutil_obj = schedUtil;
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
-			//schedUtil.generateDivSelectDropDown(registry.byId("divSelectForEdit"));
 			schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
@@ -100,7 +101,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013,
 				{db_type:'export'});
-			var schedinfo_obj = new schedinfo({server_interface:serverInterface, schedutil_obj:schedUtil});
 			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", uiStackManager, uiStackManager.check_getServerDBInfo,
 				{db_type:'db', info_obj:schedinfo_obj});
 			// create menu for the field collections lists
@@ -445,6 +445,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			uiStackManager = new UIStackManager();
 			divinfo_obj.uistackmgr = uiStackManager;
 			fieldinfo_obj.uistackmgr = uiStackManager;
+			schedinfo_obj.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);

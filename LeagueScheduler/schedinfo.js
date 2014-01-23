@@ -4,7 +4,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
 		return declare(null, {
 			server_interface:null, schedutil_obj:null, divinfo_list:null,
-			schedDBSelectDiv_dom:null, select_reg:null, select_reg_handle:null,
+			select_reg:null, select_reg_handle:null,
+			idproperty:"sched_id", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -22,17 +23,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 			},
 			getServerDBInfo: function(options_obj) {
 				var item = options_obj.item;
-				if (this.schedutil_obj.editGrid) {
-					this.schedutil_obj.editGrid.cleanup();
-					delete this.schedutil_obj.editGrid;
-				}
 				if (this.select_reg_handle)
 					this.select_reg_handle.remove();
-				if (!this.schedDBSelectDiv_dom) {
-					this.schedDBSelectDiv_dom = dom.byId("schedDBSelectDiv");
-					baseinfoSingleton.set_select_dom(this.schedDBSelectDiv_dom);
-				}
-				this.schedutil_obj.makeVisible(this.schedDBSelectDiv_dom);
 				// we don't necessariy need to call get_dbcol again if select_reg already exists (we don't need to recreate the drop down)
 				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
 					this.divinfo_list = data.divinfo_list;
@@ -41,14 +33,16 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						baseinfoSingleton.set_select_reg(this.select_reg);
 						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.divinfo_list);
 					}
+					this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
 					options_obj.serverdata_key = 'game_list';
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {
 						var divisioncode = this.select_reg.get("value");
 						options_obj.divisioncode = divisioncode;
-						options_obj.idproperty = 'match_id';
+						options_obj.idproperty = 'sched_id';
 						options_obj.cellselect_flag = false;
 						options_obj.text_node_str = 'Schedule Name';
 						options_obj.grid_id = 'schedinfogrid_id';
+						options_obj.uistackmgr = this.uistackmgr;
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
 							{divisioncode:divisioncode}, options_obj);

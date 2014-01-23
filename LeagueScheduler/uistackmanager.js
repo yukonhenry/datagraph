@@ -7,6 +7,7 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 			nfcpane_id:"numfieldcpane_id",
 			tcpane_id:"textbtncpane_id",
 			ndcpane_id:"numdivcpane_id",
+			sdcpane_id:"scheddivcpane_id",
 			// grid stack id's
 			gstackcontainer_id:"gridContainer_id",
 			divcpane_id:"divinfocpane_id",
@@ -31,17 +32,21 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					pane_id:constant.ndcpane_id});
 				this.pstackmap_list.push({id:'div_id', stage:'config',
 					pane_id:constant.tcpane_id});
+				this.pstackmap_list.push({id:'sched_id', stage:'preconfig',
+					pane_id:constant.sdcpane_id})
+				this.pstackmap_list.push({id:'sched_id', stage:'config',
+					pane_id:constant.tcpane_id});
+				// define mapping object for the grid content pane
 				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
+				var id_list = ['div_id', 'sched_id', 'field_id'];
+				var cpane_list = [constant.divcpane_id,
+					constant.schedcpane_id,
+					constant.fieldcpane_id];
 				this.gstackmap_list = new Array();
-				this.gstackmap_list.push({id:'div_id',
-					pane_id:constant.divcpane_id});
-				this.gstackmap_list.push({id:'match_id',
-					pane_id:constant.schedcpane_id});
-				this.gstackmap_list.push({id:'field_id',
-					pane_id:constant.fieldcpane_id});
 				this.cpanestate_list = new Array();
-				var id_list = ['div_id', 'match_id', 'field_id'];
-				arrayUtil.forEach(id_list, function(item) {
+				arrayUtil.forEach(id_list, function(item, index) {
+					this.gstackmap_list.push({id:item,
+					pane_id:cpane_list[index]});
 					this.cpanestate_list.push({id:item, p_state:null,
 						g_state:null, text_str:"", btn_callback:null})
 				}, this);

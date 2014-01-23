@@ -14,7 +14,7 @@
         <title>League and Tournament Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10s</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.10u</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -169,11 +169,6 @@
                         name="seasonlength_spinner"/>
                     <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="seasondatesButton" id="seasondates_btn" value="Submit">Submit Season Dates</button>
                 </div>
-                <div class="style_none" id="schedDBSelectDiv">
-                    <label for="schedDBDivisionSelect">Select Division</label>
-                    <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
-                    </select>
-                </div>
                 <div id="paramStackContainer_id" data-dojo-type="dijit/layout/StackContainer" data-dojo-props="doLayout:false" style="float:left">
                     <div id="textbtncpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <span id="infoTextNode_id"></span>
@@ -205,6 +200,11 @@
                             <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'divnum_input_id', position:['below','after']">Specify Number of Divisions and press ENTER</span>
                             </div>
                         </form>
+                    </div>
+                    <div id="scheddivcpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <label for="schedDBDivisionSelect">Select Division</label>
+                        <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
+                        </select>
                     </div>
                 </div>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
