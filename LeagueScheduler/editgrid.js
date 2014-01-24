@@ -14,7 +14,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			schedInfoStore:null, schedInfoGrid:null,
 			grid_id:"",
 			error_node:null,
-			errorHandle:null, datachangeHandle:null,
+			errorHandle:null, datachangeHandle:null, header_handle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_callback:null, server_path:"", server_key:"",
@@ -71,6 +71,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.error_node.className = "message error";
 					this.error_node.innerHTML = event.error.message;
 				});
+				if (this.datachangeHandle)
+					this.datachangeHandle.remove();
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 					lang.hitch(this, this.editschedInfoGrid));
 				/*
@@ -80,6 +82,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
 				}
+				if (this.header_handle)
+					this.header_handle.remove();
+				this.header_handle = this.schedInfoGrid.on("dgrid-sort",
+					lang.hitch(this, function(event) {
+						if (event.grid.id == "fieldinfogrid_id") {
+							// deal with bug where renderCell gets fired
+							// after grid is rendered and when header row
+							// gets clicked on any column.
+							this.info_obj.rendercell_flag = false;
+						}
+					}));
 				if (this.idproperty == 'div_id') {
 					this.tbutton_reg = baseinfoSingleton.get_tbutton_reg();
 					if (!this.tbutton_reg) {

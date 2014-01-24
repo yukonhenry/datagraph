@@ -17,15 +17,10 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		return declare(null, {
 			server_interface:null, schedutil_obj:null,
 			currentdivinfo_name:"", idproperty:constant.idproperty_str,
-			text_node:null, uistackmgr:null,
+			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				// note initial values need to be assigned explicitly
-				// assignments during member variable declaration
-				// above does not work
 				this.text_node = dom.byId(constant.text_id);
-				this.idproperty = constant.idproperty_str;
-				this.updatebtn_str = constant.updatebtn_str;
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {

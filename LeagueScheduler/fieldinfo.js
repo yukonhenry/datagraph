@@ -29,14 +29,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			divstr_list:null,
 			editgrid_obj:null,
-			text_node:null, text_node_str: constant.text_node_str,
+			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
+			rendercell_flag:true,
 			constructor: function(args) {
+				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
+				// on the importance of initializing object in the constructor'
+				// (non-objects can be initialized in member var declaration)
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
-				this.idproperty = constant.idproperty_str;
-				this.updatebtn_str = constant.updatebtn_str;
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -392,42 +394,48 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.calendar_store.remove(id);
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
-				var TDialog = null;
-				var field_id = object.field_id;
-				if (this.divinfo_obj.currentdivinfo_name) {
-					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-					var content_str = "";
-					var checkbox_list = new Array();
-					arrayUtil.forEach(this.divstr_list, function(divstr, index) {
-						var idstr = "checkbox"+divstr+field_id+"_id";
-						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-						'" value="'+divstr+'"><label for="'+idstr+'">'+divstr+'</label><br>';
-						checkbox_list.push(idstr);
+				if (this.rendercell_flag) {
+					var TDialog = null;
+					var field_id = object.field_id;
+					if (this.divinfo_obj.currentdivinfo_name) {
+						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+						var content_str = "";
+						var checkbox_list = new Array();
+						arrayUtil.forEach(this.divstr_list, function(divstr, index) {
+							var idstr = "checkbox"+divstr+field_id+"_id";
+							content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
+							'" value="'+divstr+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+							checkbox_list.push(idstr);
+						});
+						var button_id = 'tdialogbtn'+field_id+'_id';
+						content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+						TDialog = new TooltipDialog({
+							id:"tooltip"+field_id,
+							content: content_str
+			    		});
+			    		var tdialogprop_obj = {field_id:field_id,
+			    			checkbox_list:checkbox_list};
+			    		//this.tdialogprop_list.push({field_id:field_id,
+			    		//	checkbox_list:checkbox_list});
+			    		var button_reg = registry.byId(button_id);
+			    		button_reg.on("click",
+			    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
+			    	} else {
+			    		TDialog = new TooltipDialog({
+			    			content:"Select Database using Select Config->Division Info"
+			    		})
+			    	}
+					//myDialog.startup();
+					var dropdown_btn = new DropDownButton({
+						label:"Config",
+						dropDown:TDialog,
+						id:'fielddropdownbtn'+field_id+'_id'
 					});
-					var button_id = 'tdialogbtn'+field_id+'_id';
-					content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
-					TDialog = new TooltipDialog({
-						id:"tooltip"+field_id,
-						content: content_str
-		    		});
-		    		var tdialogprop_obj = {field_id:field_id,
-		    			checkbox_list:checkbox_list};
-		    		//this.tdialogprop_list.push({field_id:field_id,
-		    		//	checkbox_list:checkbox_list});
-		    		var button_reg = registry.byId(button_id);
-		    		button_reg.on("click",
-		    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
-		    	} else {
-		    		TDialog = new TooltipDialog({
-		    			content:"Select Database using Select Config->Division Info"
-		    		})
-		    	}
-				//myDialog.startup();
-				var dropdown_btn = new DropDownButton({
-					label:"Config",
-					dropDown:TDialog,
-					id:'fielddropdownbtn'+field_id+'_id'
-				});
+				} else {
+					// retrieve widget that had already been instantiated
+					var field_id = object.field_id;
+					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
+				}
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
 				return dropdown_btn;
@@ -461,48 +469,59 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}, this);
 			},
 			dates_actionRenderCell: function(object, data, node) {
-				var field_id = object.field_id;
-				var config_btn = new Button({
-					label:"Config Venue"+field_id,
-					id:"fielddatesbtn"+field_id+"_id",
-					onClick: lang.hitch(this, function() {
-						this.edit_calendar(field_id);
+				if (this.rendercell_flag) {
+					var field_id = object.field_id;
+					var config_btn = new Button({
+						label:"Config Venue"+field_id,
+						id:"fielddatesbtn"+field_id+"_id",
+						onClick: lang.hitch(this, function() {
+							this.edit_calendar(field_id);
+						})
 					})
-				})
+				} else {
+					// retrieve widget that had already been instantiated
+					var field_id = object.field_id;
+					var config_btn = registry.byId("fielddatesbtn"+field_id+"_id");
+				}
 				node.appendChild(config_btn.domNode);
 				return config_btn;
 			},
 			dayweek_actionRenderCell: function(object, data, node) {
-				var field_id = object.field_id;
-				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-				var content_str = "";
-				var day_list = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-				var checkboxid_list = new Array();
-				arrayUtil.forEach(day_list, function(day, index) {
-					var idstr = day+field_id+"_id";
-					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-					'" value='+index+'><label for="'+idstr+'">'+day+'</label> ';
-					if (index%2)
-						content_str += '<br>'
-					checkboxid_list.push(idstr);
-				});
-				var button_id = 'dwdialogbtn'+field_id+'_id';
-				content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
-				var dwdialog = new TooltipDialog({
-					id:"dwtooltip"+field_id,
-					content: content_str
-	    		});
-	    		var dwdialogprop_obj = {field_id:field_id,
-	    			checkboxid_list:checkboxid_list, day_list:day_list};
-	    		var button_reg = registry.byId(button_id);
-	    		button_reg.on("click",
-	    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
-				//myDialog.startup();
-				var dropdown_btn = new DropDownButton({
-					label:"Config",
-					dropDown:dwdialog,
-					id:'dwfielddropdownbtn'+field_id+'_id'
-				});
+				if (this.rendercell_flag) {
+					var field_id = object.field_id;
+					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+					var content_str = "";
+					var day_list = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+					var checkboxid_list = new Array();
+					arrayUtil.forEach(day_list, function(day, index) {
+						var idstr = day+field_id+"_id";
+						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
+						'" value='+index+'><label for="'+idstr+'">'+day+'</label> ';
+						if (index%2)
+							content_str += '<br>'
+						checkboxid_list.push(idstr);
+					});
+					var button_id = 'dwdialogbtn'+field_id+'_id';
+					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+					var dwdialog = new TooltipDialog({
+						id:"dwtooltip"+field_id,
+						content: content_str
+		    		});
+		    		var dwdialogprop_obj = {field_id:field_id,
+		    			checkboxid_list:checkboxid_list, day_list:day_list};
+		    		var button_reg = registry.byId(button_id);
+		    		button_reg.on("click",
+		    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
+					//myDialog.startup();
+					var dropdown_btn = new DropDownButton({
+						label:"Config",
+						dropDown:dwdialog,
+						id:'dwfielddropdownbtn'+field_id+'_id'
+					});
+				} else {
+					var field_id = object.field_id;
+					var dropdown_btn = registry.byId('dwfielddropdownbtn'+field_id+'_id');
+				}
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
 				return dropdown_btn;

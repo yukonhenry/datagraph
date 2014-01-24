@@ -8,7 +8,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 			idproperty:"sched_id", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.idproperty = "sched_id";
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
