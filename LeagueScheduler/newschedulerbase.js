@@ -9,24 +9,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			newsched_dom:"", schedutil_obj:null,
-			form_name:"", form_dom:null,
+			form_name:"",
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
-			cellselect_flag:false,
-			seasoncalendar_input_dom:null,seasondates_btn_reg:null,
+			seasondates_btn_reg:null,
 			callback:null, text_node_str:"",
 			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null,
-			eventsrc_flag:false,
+			eventsrc_flag:false, idproperty:null, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.form_name = "newsched_form_id";
+				this.idproperty = "newsched_id";
 			},
 			initialize: function(arg_obj) {
-				this.form_name = "newsched_form_id";
 				this.form_reg = registry.byId(this.form_name);
-				this.form_dom = dom.byId(this.form_name);
 				this.dbname_reg = registry.byId("newsched_input_id");
-				this.seasoncalendar_input_dom = dom.byId("seasoncalendar_input");
 				this.seasondates_btn_reg = registry.byId("seasondates_btn");
 				this.newsched_dom = dom.byId("newsched_text");
 				this.showConfig();
@@ -35,13 +33,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.schedutil_obj = obj;
 			},
 			showConfig: function() {
-				var active_grid = baseinfoSingleton.get_active_grid();
-				if (active_grid) {
-					active_grid.cleanup();
-					baseinfoSingleton.reset_active_grid();
-				}
-				this.schedutil_obj.makeVisible(this.form_dom);
-				baseinfoSingleton.set_visible_form_dom(this.form_dom);
+				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
+				this.uistackmgr.switch_gstackcpane(this.idproperty);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.dbname_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
@@ -57,13 +50,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							return;
 						}
 						// disable schedule name form
-						this.schedutil_obj.makeInvisible(this.form_dom);
+						//this.schedutil_obj.makeInvisible(this.form_dom);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
-						//enable season start/end date input datetime textbox and button
-						this.schedutil_obj.makeVisible(this.seasoncalendar_input_dom);
-						/*
-						baseinfoSingleton.set_visible_form_dom(this.seasoncalendar_input_dom); */
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
 						// set initial values for seasonstart and end dates
 						this.seasonstart_reg = registry.byId("seasonstart_date");
@@ -150,6 +139,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
 							lang.hitch(this, this.getSeasonDatesFromInput));
+						this.uistackmgr.switch_pstackcpane(this.idproperty,
+							"config");
 					} else {
 						alert('Input name is Invalid, please correct');
 					}

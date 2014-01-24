@@ -8,11 +8,14 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 			tcpane_id:"textbtncpane_id",
 			ndcpane_id:"numdivcpane_id",
 			sdcpane_id:"scheddivcpane_id",
+			nscpane_id:"newschedcpane_id",
+			sccpane_id:"seasoncalendar_input",
 			// grid stack id's
 			gstackcontainer_id:"gridContainer_id",
 			divcpane_id:"divinfocpane_id",
 			schedcpane_id:"schedinfocpane_id",
-			fieldcpane_id:"fieldinfocpane_id"
+			fieldcpane_id:"fieldinfocpane_id",
+			blankcpane_id:"blankcpane_id"
 		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
@@ -36,10 +39,16 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					pane_id:constant.sdcpane_id})
 				this.pstackmap_list.push({id:'sched_id', stage:'config',
 					pane_id:constant.tcpane_id});
+				this.pstackmap_list.push({id:'newsched_id', stage:'preconfig',
+					pane_id:constant.nscpane_id});
+				this.pstackmap_list.push({id:'newsched_id', stage:'config',
+					pane_id:constant.sccpane_id});
 				// define mapping object for the grid content pane
 				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
-				var id_list = ['div_id', 'sched_id', 'field_id'];
-				var cpane_list = [constant.divcpane_id,
+				var id_list = ['newsched_id', 'div_id', 'sched_id',
+					'field_id'];
+				var cpane_list = [constant.blankcpane_id,
+					constant.divcpane_id,
 					constant.schedcpane_id,
 					constant.fieldcpane_id];
 				this.gstackmap_list = new Array();
@@ -47,8 +56,9 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				arrayUtil.forEach(id_list, function(item, index) {
 					this.gstackmap_list.push({id:item,
 					pane_id:cpane_list[index]});
-					this.cpanestate_list.push({id:item, p_state:null,
-						g_state:null, text_str:"", btn_callback:null})
+					this.cpanestate_list.push({id:item,
+						p_pane:null, p_stage:null,
+						g_pane:null, text_str:"", btn_callback:null})
 				}, this);
 			},
 			switch_pstackcpane: function(id, stage, text_str, btn_callback) {
@@ -63,7 +73,8 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var match_obj = state_obj.match_obj;
 				var index = state_obj.index;
 				// modify matched obj
-				match_obj.p_state = select_pane;
+				match_obj.p_pane = select_pane;
+				match_obj.p_stage = stage;
 				match_obj.text_str = text_str;
 				match_obj.btn_callback = btn_callback;
 				this.cpanestate_list[index] = match_obj;
@@ -90,24 +101,30 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var match_obj = state_obj.match_obj;
 				var index = state_obj.index;
 				// modify matched obj
-				match_obj.g_state = select_pane;
+				match_obj.g_pane = select_pane;
 				this.cpanestate_list[index] = match_obj;
 			},
 			check_initialize: function(info_obj, event) {
 				var state_obj = this.get_cpanestate(info_obj.idproperty);
 				var match_obj = state_obj.match_obj;
-				var p_state = match_obj.p_state;
-				if (p_state) {
-					this.pstackcontainer_reg.selectChild(p_state);
+				var p_pane = match_obj.p_pane;
+				if (p_pane) {
+					this.pstackcontainer_reg.selectChild(p_pane);
 					info_obj.text_node.innerHTML = match_obj.text_str;
-					if (!this.updatebtn_widget)
-						this.updatebtn_widget = registry.byId("infoBtnNode_id");
-					this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-					this.updatebtn_widget.set('info_type', info_obj.idproperty);
-					this.updatebtn_widget.set("onClick", match_obj.btn_callback);
-					var g_state = match_obj.g_state;
-					if (g_state) {
-						this.gstackcontainer_reg.selectChild(g_state);
+					var idproperty = info_obj.idproperty;
+					if ((idproperty == 'div_id' || idproperty == 'field_id') &&
+						match_obj.p_stage =='config') {
+						// only if conditions where update_btn widget is relevant
+						if (!this.updatebtn_widget)
+							this.updatebtn_widget = registry.byId("infoBtnNode_id");
+						this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+						this.updatebtn_widget.set('info_type', info_obj.idproperty);
+						this.updatebtn_widget.set("onClick",
+							match_obj.btn_callback);
+					}
+					var g_pane = match_obj.g_pane;
+					if (g_pane) {
+						this.gstackcontainer_reg.selectChild(g_pane);
 					}
 				} else {
 					info_obj.initialize();
@@ -117,18 +134,20 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var info_obj = options_obj.info_obj;
 				var state_obj = this.get_cpanestate(info_obj.idproperty);
 				var match_obj = state_obj.match_obj;
-				var p_state = match_obj.p_state;
-				if (p_state) {
-					this.pstackcontainer_reg.selectChild(p_state);
-					info_obj.text_node.innerHTML = match_obj.text_str;
-					if (!this.updatebtn_widget)
-						this.updatebtn_widget = registry.byId("infoBtnNode_id");
-					this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-					this.updatebtn_widget.set('info_type', info_obj.idproperty);
-					this.updatebtn_widget.set("onClick", match_obj.btn_callback);
-					var g_state = match_obj.g_state;
-					if (g_state) {
-						this.gstackcontainer_reg.selectChild(g_state);
+				var p_pane = match_obj.p_pane;
+				if (p_pane) {
+					this.pstackcontainer_reg.selectChild(p_pane);
+					if (info_obj.idproperty != 'sched_id') {
+						info_obj.text_node.innerHTML = match_obj.text_str;
+						if (!this.updatebtn_widget)
+							this.updatebtn_widget = registry.byId("infoBtnNode_id");
+						this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+						this.updatebtn_widget.set('info_type', info_obj.idproperty);
+						this.updatebtn_widget.set("onClick", match_obj.btn_callback);
+					}
+					var g_pane = match_obj.g_pane;
+					if (g_pane) {
+						this.gstackcontainer_reg.selectChild(g_pane);
 					}
 				} else {
 					info_obj.getServerDBInfo(options_obj);

@@ -35,6 +35,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
+				this.idproperty = constant.idproperty_str;
+				this.updatebtn_str = constant.updatebtn_str;
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -136,7 +138,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr
 				});
-				newFieldGroup.showConfig();
+				var tooltipconfig_obj = {connectId:['fieldnum_input_id'],
+					label:"Specify Number of Fields and press ENTER",
+					position:['below','after']};
+				newFieldGroup.showConfig(tooltipconfig_obj);
 			},
 			set_schedutil_obj: function(obj) {
 				this.schedutil_obj = obj;

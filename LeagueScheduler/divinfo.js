@@ -20,7 +20,12 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			text_node:null, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				// note initial values need to be assigned explicitly
+				// assignments during member variable declaration
+				// above does not work
 				this.text_node = dom.byId(constant.text_id);
+				this.idproperty = constant.idproperty_str;
+				this.updatebtn_str = constant.updatebtn_str;
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -59,9 +64,11 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					text_node:this.text_node,
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr,
-					updatebtn_str: constant.updatebtn_str,
 				});
-				newScheduler.showConfig();
+				var tooltipconfig_obj = {connectId:['divnum_input_id'],
+					label:"Specify Number of Divisions and press ENTER",
+					position:['below','after']};
+				newScheduler.showConfig(tooltipconfig_obj);
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -82,10 +89,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.uistackmgr = this.uistackmgr;
-				if (baseinfoSingleton.get_select_reg()) {
-					//baseinfoSingleton.get_select_reg().destroy();
-					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
-				}
 				this.server_interface.getServerData("get_dbcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
 			},

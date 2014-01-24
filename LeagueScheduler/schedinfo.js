@@ -8,6 +8,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 			idproperty:"sched_id", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.idproperty = "sched_id";
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -33,7 +34,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						baseinfoSingleton.set_select_reg(this.select_reg);
 						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.divinfo_list);
 					}
-					this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
+					this.uistackmgr.switch_pstackcpane(this.idproperty,
+						"preconfig", "", null);
+					this.uistackmgr.switch_gstackcpane(this.idproperty);
 					options_obj.serverdata_key = 'game_list';
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {
 						var divisioncode = this.select_reg.get("value");

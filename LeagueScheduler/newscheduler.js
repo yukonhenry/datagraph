@@ -1,9 +1,10 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dijit/registry",
+	"dojo/dom-class", "dojo/_base/array", "dojo/keys",
+	"dijit/registry", "dijit/Tooltip",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys,
-		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
+		registry, Tooltip, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id"
@@ -16,12 +17,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			cellselect_flag:false,
 			callback:null, text_node_str:"",
 			updatebtn_str:"",
-			grid_id:"", uistackmgr:null,
+			grid_id:"", uistackmgr:null, tooltip_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
-			showConfig: function() {
+			showConfig: function(tooltipconfig_obj) {
+				if (!this.tooltip_obj && typeof tooltipconfig_obj !== 'undefined') {
+					this.tooltip_obj = new Tooltip(tooltipconfig_obj);
+				}
 				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
+				this.uistackmgr.switch_gstackcpane(this.idproperty);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));

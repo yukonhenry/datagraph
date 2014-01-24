@@ -446,6 +446,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			divinfo_obj.uistackmgr = uiStackManager;
 			fieldinfo_obj.uistackmgr = uiStackManager;
 			schedinfo_obj.uistackmgr = uiStackManager;
+			newSchedulerBase.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
@@ -466,7 +467,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("newfieldlist_item"), "click",
 //				lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, fieldinfo_obj));
-			on(registry.byId("newsched_item"), "click", lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
+			on(registry.byId("newsched_item"), "click",
+				lang.hitch(uiStackManager, uiStackManager.check_initialize,
+					newSchedulerBase));
+//				lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);

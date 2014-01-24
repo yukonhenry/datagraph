@@ -242,21 +242,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				if (!this.editgrid || !baseinfoSingleton.get_active_grid() || colname != this.editgrid.colname ||
 				    idproperty != this.editgrid.idproperty ||
 				    divisioncode != this.editgrid.divisioncode) {
-					if (this.editgrid) {
+					if (this.editgrid &&
+						this.editgrid.idproperty == idproperty) {
 						this.editgrid.cleanup();
 						delete this.editgrid;
-					} else {
+					}
+					/* else {
 						var active_grid = baseinfoSingleton.get_active_grid();
 						if (active_grid) {
 							//active_grid.cleanup();
 							baseinfoSingleton.reset_active_grid();
 						}
-					}
-					/*
-					var visible_form_dom = baseinfoSingleton.get_visible_form_dom();
-					if (visible_form_dom) {
-						this.makeInvisible(visible_form_dom);
-						baseinfoSingleton.reset_visible_form_dom();
 					} */
 					if (!this.server_interface) {
 						console.log("no server interface");
@@ -274,22 +270,22 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						server_interface:this.server_interface,
 						grid_id:options_obj.grid_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
-						idproperty:options_obj.idproperty,
+						idproperty:idproperty,
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:options_obj.info_obj,
 						uistackmgr:options_obj.uistackmgr});
-					var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
-					options_obj.text_node.innerHTML = text_str;
-					var idproperty = options_obj.idproperty;
-					var updatebtn_widget = this.getInfoBtn_widget(
-						options_obj.updatebtn_str, idproperty);
-					updatebtn_widget.set("onClick", lang.hitch(this.editgrid,
-						this.editgrid.sendDivInfoToServer));
-					var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
-					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config", text_str, btn_callback);
-
+					if (idproperty != 'sched_id') {
+						var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
+						options_obj.text_node.innerHTML = text_str;
+						var updatebtn_widget = this.getInfoBtn_widget(
+							options_obj.updatebtn_str, idproperty);
+						updatebtn_widget.set("onClick", lang.hitch(this.editgrid,
+							this.editgrid.sendDivInfoToServer));
+						var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+						options_obj.uistackmgr.switch_pstackcpane(idproperty, "config", text_str, btn_callback);
+					}
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 					baseinfoSingleton.set_active_grid(this.editgrid);
 					baseinfoSingleton.set_active_grid_name(colname);
