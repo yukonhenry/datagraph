@@ -31,7 +31,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			editgrid_obj:null,
 			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
-			rendercell_flag:true, today:null, counter:1,
+			rendercell_flag:true, today:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -40,10 +40,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
 				this.today = new Date();
-			},
-			getcounter: function() {
-				this.counter++;
-				return this.counter;
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -220,18 +216,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// return value defines structure for store for grid
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
 				this.fieldnum = fieldnum;
+				var later_date = date.add(this.today, 'month', 3);
 				var fieldinfo_list = new Array();
+				// assign default values for grid
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
 						primaryuse:"Config primary "+i,
-						start_date:this.today, end_date:this.today, start_time:new Date(this.today.setHours(8,0)), end_time:"",
+						start_date:this.today, end_date:later_date,
+						start_time:new Date(2014,0,1,8,0,0),
+						end_time:new Date(2014,0,1,17,0,0),
 						dayweek:"", dates:"Config Venue "+i});
 				}
 				return fieldinfo_list;
 			},
-			processcell_click: function(object) {
-				console.log('processcell');
-			},
+			// main entry point for creating dojox calendar inst
 			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
@@ -321,8 +319,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					}
 					this.datetimeset_handle = datetimeset_reg.on("click",
 						lang.hitch(this, this.datetimeset_submit));
-					var today = new Date();
-					this.eventdate_reg.set('value', today);
+					this.eventdate_reg.set('value', this.today);
 					this.eventdate_reg.startup();
 					// setup titlepane widget to generate event when it opens
 					var duptitlepane_reg = registry.byId("duptitlepane_id");
@@ -332,7 +329,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
 					this.calendar = new Calendar({
 						dateInterval: "day",
-						date: today,
+						date: this.today,
 						store: this.calendar_store,
 						style: "position:inherit;width:600px;height:600px",
 						cssClassFunc: function(item) {
@@ -348,6 +345,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			createItem: function(view, date, event) {
 				console.log('ok item');
 			},
+			// handler for datetime update btn in left title pane
 			datetimeset_submit: function(event) {
 				var fieldevent_str = this.fieldevent_reg.get("value");
 				// get respective Date/Time strings
@@ -407,6 +405,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					alert("end time must be later than start timse");
 				}
 			},
+			// handler for clicking on calendar item/slot
 			clickedItemProcess: function(event) {
 				var select_id = event.item.id;
 				this.calendar_store.query({id:select_id}
@@ -476,6 +475,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				//dropdown_btn.startup();
 				return dropdown_btn;
 			},
+			// handler for primary use dialog btn
 			dialogbtn_process: function(tdialogprop_obj, event) {
 				var field_id = tdialogprop_obj.field_id;
 				var checkbox_list = tdialogprop_obj.checkbox_list;
@@ -562,6 +562,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				//dropdown_btn.startup();
 				return dropdown_btn;
 			},
+			// handler for days week dialog btn
 			dwdialogbtn_process: function(dwdialogprop_obj, event) {
 				var field_id = dwdialogprop_obj.field_id;
 				var checkboxid_list = dwdialogprop_obj.checkboxid_list;
