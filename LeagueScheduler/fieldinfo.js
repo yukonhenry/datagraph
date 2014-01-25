@@ -31,7 +31,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			editgrid_obj:null,
 			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
-			rendercell_flag:true,
+			rendercell_flag:true, today:null, counter:1,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -39,6 +39,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				lang.mixin(this, args);
 				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
+				this.today = new Date();
+			},
+			getcounter: function() {
+				this.counter++;
+				return this.counter;
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -47,6 +52,36 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					primaryuse: {label:"Primary Use",
 						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
+					start_date: editor({label:"Start Date", autoSave:true,
+						columntype:false,
+						editorArgs:{
+							style:'width:100px',
+						},
+						renderCell: function(object, value) {
+							if (typeof value == "string")
+								return put("div", value);
+							else {
+								// if the type if a Date object (only type of obj) possible
+								// here, extract (local) timestring
+								return put("div", value?value.toLocaleDateString():"");
+							}
+						}
+					}, DateTextBox, "click"),
+					end_date: editor({label:"End Date", autoSave:true,
+						columntype:false,
+						editorArgs:{
+							style:'width:100px',
+						},
+						renderCell: function(object, value) {
+							if (typeof value == "string")
+								return put("div", value);
+							else {
+								// if the type if a Date object (only type of obj) possible
+								// here, extract (local) timestring
+								return put("div", value?value.toLocaleDateString():"");
+							}
+						}
+					}, DateTextBox, "click"),
 					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 						editorArgs:{
 							constraints: {
@@ -188,7 +223,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var fieldinfo_list = new Array();
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
-						primaryuse:"Config primary "+i, start_time:"", end_time:"",
+						primaryuse:"Config primary "+i,
+						start_date:this.today, end_date:this.today, start_time:new Date(this.today.setHours(8,0)), end_time:"",
 						dayweek:"", dates:"Config Venue "+i});
 				}
 				return fieldinfo_list;
