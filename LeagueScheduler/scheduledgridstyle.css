@@ -9,3 +9,6 @@
     max-height: 250px;
     overflow: auto;
 }
+#fieldinfogrid_id .field-start_date, #fieldinfogrid_id .field-end_date {
+    /*width: 10em; */
+}

@@ -256,7 +256,8 @@ def create_newfieldcol(newcol_name):
     callback_name = request.query.callback
     fieldinfo_data = request.query.fieldinfo_data
     fdbInterface = FieldDBInterface(mongoClient, newcol_name)
-    fdbInterface.writeDB(fieldinfo_data)
+    print "fileinfodata=",fieldinfo_data
+    #fdbInterface.writeDB(fieldinfo_data)
     #schedcol_list = fdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'

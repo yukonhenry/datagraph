@@ -45,14 +45,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var columnsdef_obj = {
 					field_id: "Field ID",
 					field_name: editor({label:"Name", autoSave:true},"text","dblclick"),
-					primaryuse: {label:"Primary Use",
+					primaryuse_str: {label:"Primary Use",
 						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
 					start_date: editor({label:"Start Date", autoSave:true,
 						columntype:false,
 						editorArgs:{
-							style:'width:100px',
+							style:'width:120px',
 						},
+						/*
 						renderCell: function(object, value) {
 							if (typeof value == "string")
 								return put("div", value);
@@ -61,13 +62,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 								// here, extract (local) timestring
 								return put("div", value?value.toLocaleDateString():"");
 							}
-						}
-					}, DateTextBox, "click"),
+						} */
+					}, DateTextBox),
 					end_date: editor({label:"End Date", autoSave:true,
 						columntype:false,
 						editorArgs:{
-							style:'width:100px',
+							style:'width:120px',
 						},
+						/*
 						renderCell: function(object, value) {
 							if (typeof value == "string")
 								return put("div", value);
@@ -76,19 +78,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 								// here, extract (local) timestring
 								return put("div", value?value.toLocaleDateString():"");
 							}
-						}
-					}, DateTextBox, "click"),
+						} */
+					}, DateTextBox),
 					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
+						// note adding editorArgs w constraints timePattern
+						// HH:MM:ss turns time display into 24-hr format
+						// do not use if 12 hour am/pm format is desired
+						// set function def not needed as we are going to just
+						// store date object.  Using str representation of time
+						// is not effective for initial display if initial store
+						// does not have date object and only has str representation
+						/*
 						editorArgs:{
 							constraints: {
 								timePattern: 'HH:mm:ss',
 								clickableIncrement: 'T00:15:00',
 								visibleIncrement: 'T00:15:00',
 								visibleRange: 'T01:00:00'
-								//min: 'T08:00:00',
-								//max:'T18:00:00'
 							},
-						},
+						}, */
+						/*
 						set: function(item) {
 							if (this.columntype) {
 								var column_obj = item.start_time;
@@ -106,10 +115,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 								// here, extract (local) timestring
 								return put("div", value?value.toLocaleTimeString():"");
 							}
-						}
-					}, TimeTextBox, "dblclick"),
+						} */
+					}, TimeTextBox),
 					end_time: editor({label:"End Time", field:"end_time",
 					                 autoSave:true, columntype:false,
+					                 /*
 						editorArgs:{
 							constraints: {
 								timePattern: 'HH:mm:ss',
@@ -117,7 +127,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 								visibleIncrement: 'T00:15:00',
 								visibleRange: 'T01:00:00'
 							},
-						},
+						}, */
+						/*
 						set: function(item) {
 							if (this.columntype) {
 								var column_obj = item.end_time;
@@ -135,8 +146,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 								// here, extract (local) timestring
 								return put("div", value?value.toLocaleTimeString():"");
 							}
-						},
-					}, TimeTextBox, "dblclick"),
+						}, */
+					}, TimeTextBox),
 					dayweek:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
 					dates: {label:"Config Dates",
@@ -221,11 +232,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// assign default values for grid
 				for (var i = 1; i < fieldnum+1; i++) {
 					fieldinfo_list.push({field_id:i, field_name:"",
-						primaryuse:"Config primary "+i,
+						primaryuse_str:"",
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
-						dayweek:"", dates:"Config Venue "+i});
+						dayweek:"", dates:""});
 				}
 				return fieldinfo_list;
 			},
@@ -491,7 +502,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				checkboxvalue_str = checkboxvalue_str.substring(0, checkboxvalue_str.length-1);
 				if (this.editgrid_obj) {
 					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
-					store_elem.primaryuse = checkboxvalue_str;
+					store_elem.primaryuse_str = checkboxvalue_str;
 					this.editgrid_obj.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dropdownbtn_reg = registry.byId("fielddropdownbtn"+field_id+"_id");
