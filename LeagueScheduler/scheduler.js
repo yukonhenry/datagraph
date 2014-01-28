@@ -106,6 +106,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
 			fieldinfo_obj.initfielddb_store(fielddb_list);
+			/*
 			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu",
 				uiStackManager, uiStackManager.check_getServerDBInfo,
 				{db_type:'fielddb', info_obj:fieldinfo_obj});
@@ -113,6 +114,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
 				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
 				{db_type:'fielddb', server_path:"delete_fieldcol/"});
+			*/
 		}
 		//});
 		grid.on("dgrid-select", function(event){

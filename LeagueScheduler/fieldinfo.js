@@ -196,9 +196,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.schedutil_obj = obj;
 			},
 			initfielddb_store: function(fielddb_list) {
+				// follow observable store model followed by
+				// https://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
+				// http://dojotoolkit.org/reference-guide/1.9/dojo/store/Observable.html#dojo-store-observable
+				// note we can't tie the store directly to select since we are
+				// using dropdown->menuitem instead of select
 				arrayUtil.forEach(fielddb_list, function(item, index) {
 					this.fielddbselect_store.add({id:item, label:item})
 				});
+				this.schedutil_obj.generateDB_smenu(fielddb_list,
+					"editfieldlist_submenu", this.uistackmgr,
+					this.uistackmgr.check_getServerDBInfo,
+					{db_type:'fielddb', info_obj:this});
+				var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
+				this.schedutil_obj.generateDBCollection_smenu(delfielddb_smenu_reg,
+					fielddb_list, this.schedutil_obj,
+					this.schedutil_obj.delete_dbcollection,
+					{db_type:'fielddb', server_path:"delete_fieldcol/"});
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
