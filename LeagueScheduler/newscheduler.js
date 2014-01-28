@@ -17,13 +17,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			cellselect_flag:false,
 			callback:null, text_node_str:"",
 			updatebtn_str:"",
-			grid_id:"", uistackmgr:null, tooltip_obj:null,
+			grid_id:"", uistackmgr:null, tooltip_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.tooltip_list = new Array();
 			},
-			showConfig: function(tooltipconfig_obj) {
-				if (!this.tooltip_obj && typeof tooltipconfig_obj !== 'undefined') {
-					this.tooltip_obj = new Tooltip(tooltipconfig_obj);
+			showConfig: function(tooltipconfig_list) {
+				// ref http://stackoverflow.com/questions/11743392/check-if-array-is-empty-or-exists
+				// to check if array exists and is non-empty
+				if (typeof tooltipconfig_list !== 'undefined' && this.tooltip_list.length == 0) {
+					arrayUtil.forEach(tooltipconfig_list, function(item) {
+						this.tooltip_list.push(new Tooltip(item));
+					}, this);
 				}
 				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
 				this.uistackmgr.switch_gstackcpane(this.idproperty);
@@ -35,7 +40,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			processdivinfo_input: function(event) {
 				if (event.keyCode == keys.ENTER) {
 					if (this.form_reg.validate()) {
-						confirm('Input format is Valid, creating new Schedule DB');
+						confirm('Input format is Valid, creating new DB');
 						this.newcol_name = this.dbname_reg.get("value");
 						if (!this.nodupname_validate(this.newcol_name)) {
 							alert("Selected sched name already exists, choose another");
@@ -99,6 +104,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					active_grid.cleanup();
 					baseinfoSingleton.reset_active_grid();
 				}
+				arrayUtil.forEach(this.tooltip_list, function(item) {
+					item.destroyRecursive();
+				});
 			}
 
 		});

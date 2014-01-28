@@ -32,6 +32,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
 			rendercell_flag:true, today:null,
+			fielddbselect_store:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -40,6 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
 				this.today = new Date();
+				this.fielddbselect_store = new Observable(new Memory({data:new Array()}));
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -182,13 +184,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr
 				});
-				var tooltipconfig_obj = {connectId:['fieldnum_input_id'],
+				var tooltipconfig_list = [{connectId:['fieldnum_input_id'],
 					label:"Specify Number of Fields and press ENTER",
-					position:['below','after']};
-				newFieldGroup.showConfig(tooltipconfig_obj);
+					position:['below','after']},
+					{connectId:['fieldlistname_input_id'],
+					label:"Specify Field List Name",
+					position:['below','after']}];
+				newFieldGroup.showConfig(tooltipconfig_list);
 			},
 			set_schedutil_obj: function(obj) {
 				this.schedutil_obj = obj;
+			},
+			initfielddb_store: function(fielddb_list) {
+				arrayUtil.forEach(fielddb_list, function(item, index) {
+					this.fielddbselect_store.add({id:item, label:item})
+				});
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case

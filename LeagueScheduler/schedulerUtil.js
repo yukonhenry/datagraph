@@ -217,11 +217,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
     				dbmenureg.addChild(smenuitem);
 				}, this);
 			},
-			delete_divdbcollection: function(options_obj) {
-				var item = options_obj.item;
-				this.server_interface.getServerData("delete_divdbcol/"+item,
-					this.server_interface.server_ack);
-			},
 			getCupSchedule: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("getcupschedule/"+item,

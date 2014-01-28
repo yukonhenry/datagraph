@@ -171,7 +171,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 			},
 			sendDivInfoToServer: function(event) {
-				storedata_json = JSON.stringify(this.schedInfoStore.query());
+				var newlist = new Array();
+				var storedata_json = "";
+				if (this.idproperty == "field_id") {
+					// for the field grid data convert Data objects to str
+					// note we want to keep it as data objects inside of store to
+					// maintain direct compatibility with Date and TimeTextBox's
+					// and associated picker widgets.
+					this.schedInfoStore.query().map(function(item) {
+						var newobj = lang.clone(item);
+						newobj.start_date = newobj.start_date.toLocaleDateString();
+						newobj.end_date = newobj.end_date.toLocaleDateString();
+						newobj.start_time = newobj.start_time.toLocaleTimeString();
+						newobj.end_time = newobj.end_time.toLocaleTimeString();
+						return newobj;
+					}).forEach(function(obj) {
+						newlist.push(obj);
+					});
+					storedata_json = JSON.stringify(newlist);
+				} else {
+					var storedata_json = JSON.stringify(this.schedInfoStore.query());
+				}
 				var server_callback = this.server_callback || this.server_interface.server_ack;
 				var server_path = this.server_path || "create_newdbcol/";
 				var server_key = this.server_key || 'divinfo_data';

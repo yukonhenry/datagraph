@@ -60,10 +60,13 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr,
 				});
-				var tooltipconfig_obj = {connectId:['divnum_input_id'],
+				var tooltipconfig_list = [{connectId:['divnum_input_id'],
 					label:"Specify Number of Divisions and press ENTER",
-					position:['below','after']};
-				newScheduler.showConfig(tooltipconfig_obj);
+					position:['below','after']},
+					{connectId:['newdivinfo_input_id'],
+					label:"Specify Schedule Name",
+					position:['below','after']}];
+				newScheduler.showConfig(tooltipconfig_list);
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
