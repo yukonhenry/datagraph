@@ -32,7 +32,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
 			rendercell_flag:true, today:null,
-			fielddbselect_store:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -41,7 +40,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
 				this.today = new Date();
-				this.fielddbselect_store = new Observable(new Memory({data:new Array()}));
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {

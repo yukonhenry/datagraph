@@ -13,10 +13,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
-		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "dojox/calendar/Calendar",
+		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "dojox/calendar/Calendar", "LeagueScheduler/storeutil",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, Calendar) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, Calendar, storeUtil) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -80,7 +80,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
+			var storeUtil = new storeUtil(schedutil_obj:schedUtil, uistackmgr:uiStackManager);
 			var dbcollection_list = ldata.dbcollection_list;
+			// fill initial store and create dropdown menu
+			storeUtil.initdb_store(dbcollection_list, 'db');
 			// save dbname list to basesingleton class to use later
 			baseinfoSingleton.set_dbname_list(dbcollection_list);
 			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu",
