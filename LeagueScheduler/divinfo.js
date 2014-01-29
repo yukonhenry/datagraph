@@ -15,7 +15,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			text_node_str: 'Schedule Name',
 		};
 		return declare(null, {
-			server_interface:null, schedutil_obj:null,
+			server_interface:null, schedutil_obj:null, storeutil_obj:null,
 			currentdivinfo_name:"", idproperty:constant.idproperty_str,
 			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
 			constructor: function(args) {
@@ -37,8 +37,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				};
 				return columnsdef_obj;
 			},
-			set_schedutil_obj: function(obj) {
-				this.schedutil_obj = obj;
+			set_obj: function(schedutil_obj, storeutil_obj) {
+				this.schedutil_obj = schedutil_obj;
+				this.storeutil_obj = storeutil_obj;
 			},
 			initialize: function(evt) {
 				var form_name = "newdivinfo_form_id";
@@ -51,7 +52,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					entrynum_reg:divnum_reg,
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
-					callback: lang.hitch(this.schedutil_obj, this.schedutil_obj.regenAddDBCollection_smenu),
 					info_obj: this, idproperty:constant.idproperty_str,
 					server_path:"create_newdbcol/",
 					text_node_str: constant.text_node_str,
@@ -59,6 +59,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					text_node:this.text_node,
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr,
+					storeutil_obj:this.storeutil_obj
 				});
 				var tooltipconfig_list = [{connectId:['divnum_input_id'],
 					label:"Specify Number of Divisions and press ENTER",
@@ -87,6 +88,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.uistackmgr = this.uistackmgr;
+				options_obj.storeutil_obj = this.storeutil_obj;
 				this.server_interface.getServerData("get_dbcol/"+item,
 					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
 			},

@@ -15,7 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			newcol_name:"", schedutil_obj:null, editgrid:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
-			callback:null, text_node_str:"",
+			text_node_str:"",
 			updatebtn_str:"",
 			grid_id:"", uistackmgr:null, tooltip_list:null,
 			constructor: function(args) {
@@ -58,12 +58,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							grid_id:this.grid_id,
 							error_node:dom.byId("divisionInfoInputGridErrorNode"),
 							idproperty:this.idproperty,
-							server_callback:this.callback,
 							server_path:this.server_path,
 							server_key:this.server_key,
 							cellselect_flag:this.cellselect_flag,
 							info_obj:this.info_obj,
-							uistackmgr:this.uistackmgr});
+							uistackmgr:this.uistackmgr,
+							storeutil_obj:this.storeutil_obj});
 						var text_str = this.text_node_str + ": <b>"+this.newcol_name+"</b>";
 						this.text_node.innerHTML = text_str;
 						var updatebtn_widget = this.schedutil_obj.getInfoBtn_widget(

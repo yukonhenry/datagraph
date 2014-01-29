@@ -152,15 +152,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 							var onclick_direct = lang.hitch(onclick_context, onclick_func);
 							onclick_direct(options_obj);}});
     				submenu_reg.addChild(smenuitem);
-				}, this.generateDBCollection_smenu);  // context should be function
+				});  // context should be function
 				if (typeof options_obj.db_type !== 'undefined') {
 					var db_type = options_obj.db_type;
 					if (db_type == 'db') {
 						this.dbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func});
+							context:onclick_context, func:onclick_func,
+							options_obj:options_obj});
 					} else if (db_type == 'fielddb') {
 						this.fielddbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func});
+							context:onclick_context, func:onclick_func,
+							options_obj:options_obj});
 					}
 				}
 			},
@@ -168,44 +170,42 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var item = options_obj.item;
 				alert(item);
 			},
-			delete_dbcollection: function(options_obj) {
-				var item = options_obj.item;
-				var server_path = options_obj.server_path;
-				this.server_interface.getServerData(server_path+item,
-					lang.hitch(this, this.regenDelDBCollection_smenu),"", options_obj);
-			},
-			regenDelDBCollection_smenu: function(adata, options_obj) {
-				var item_name = options_obj.item;
-				var dbmenureg_list = (options_obj.db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
+			regenDelDBCollection_smenu: function(delindex, db_type) {
+				var dbmenureg_list = (db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
 				// update dbname list - only do after delete at db succeeded
-				baseinfoSingleton.removefrom_dbname_list(item_name);
-				arrayUtil.forEach(dbmenureg_list, function(dbmenudata, index) {
+				//baseinfoSingleton.removefrom_dbname_list(item_name);
+				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
+					dbmenureg.removeChild(delindex);
+					/*
 					arrayUtil.forEach(dbmenureg.getChildren(), function(smenuitem, index2) {
 						if (smenuitem.get('label') == item_name) {
 							dbmenureg.removeChild(smenuitem);
 						}
-					}, this);
-				}, this);
+					}); */
+				});
 				// also delete current active grid if it corresponds to the deleted db
+				/*
 				if (baseinfoSingleton.get_active_grid_name() == item_name) {
 					var active_grid = baseinfoSingleton.get_active_grid();
 					if (active_grid) {
 						active_grid.cleanup();
 					}
-				}
+				} */
 			},
-			regenAddDBCollection_smenu: function(adata, options_obj) {
-				var item_name = options_obj.item;
+			regenAddDBCollection_smenu: function(object, insertIndex) {
+				var dbmenureg_list = (object.db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
+				var item_name = object.label;
 				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
-				options_obj.db_type = 'db';
-				arrayUtil.forEach(this.dbmenureg_list, function(dbmenudata, index) {
+				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
+					var options_obj = dbmenudata.options_obj;
 					var smenuitem = new MenuItem({label:item_name,
 						onClick:lang.hitch(dbmenudata.context, dbmenudata.func, options_obj)});
-    				dbmenureg.addChild(smenuitem);
-				}, this);
+    				dbmenureg.addChild(smenuitem, insertIndex);
+				});
 			},
+			/*
 			regenAddFieldDBCollection_smenu: function(adata, options_obj) {
 				var item_name = options_obj.item;
 				//var fieldinfo_obj = new FieldInfo({server_interface:this.server_interface, schedutil_obj:this});
@@ -216,7 +216,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						onClick:lang.hitch(dbmenudata.context, dbmenudata.func, options_obj)});
     				dbmenureg.addChild(smenuitem);
 				}, this);
-			},
+			}, */
 			getCupSchedule: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("getcupschedule/"+item,
@@ -270,7 +270,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:options_obj.info_obj,
-						uistackmgr:options_obj.uistackmgr});
+						uistackmgr:options_obj.uistackmgr,
+						storeutil_obj:options_obj.storeutil_obj});
 					if (idproperty != 'sched_id') {
 						var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
 						options_obj.text_node.innerHTML = text_str;

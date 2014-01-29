@@ -17,7 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			errorHandle:null, datachangeHandle:null, header_handle:null,
 			divisioncode:null, idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
-			server_callback:null, server_path:"", server_key:"",
+			server_path:"", server_key:"",
 			info_obj:null, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -192,15 +192,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				} else {
 					var storedata_json = JSON.stringify(this.schedInfoStore.query());
 				}
-				var server_callback = this.server_callback || this.server_interface.server_ack;
 				var server_path = this.server_path || "create_newdbcol/";
 				var server_key = this.server_key || 'divinfo_data';
 				var server_key_obj = {};
 				server_key_obj[server_key] = storedata_json;
 				var options_obj = {item:this.colname};
 				this.server_interface.getServerData(server_path+this.colname,
-					server_callback, server_key_obj, options_obj);
+					this.server_interface.server_ack, server_key_obj, options_obj);
+				this.storeutil_obj.addtodb_store(this.colname, this.idproperty);
 				baseinfoSingleton.addto_dbname_list(this.colname);
+
 			},
 			cleanup: function() {
 				if (this.bracketinfo) {

@@ -4,7 +4,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
 		return declare(null, {
 			server_interface:null, schedutil_obj:null, divinfo_list:null,
-			select_reg:null, select_reg_handle:null,
+			select_reg:null, select_reg_handle:null, storeutil_obj:null,
 			idproperty:"sched_id", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -20,6 +20,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					comment: "Comment"
 				};
 				return columnsdef_obj;
+			},
+			set_obj: function(schedutil_obj, storeutil_obj) {
+				this.schedutil_obj = schedutil_obj;
+				this.storeutil_obj = storeutil_obj;
 			},
 			getServerDBInfo: function(options_obj) {
 				var item = options_obj.item;
@@ -45,6 +49,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						options_obj.text_node_str = 'Schedule Name';
 						options_obj.grid_id = 'schedinfogrid_id';
 						options_obj.uistackmgr = this.uistackmgr;
+						options_obj.storeutil_obj = this.storeutil_obj;
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
 							{divisioncode:divisioncode}, options_obj);

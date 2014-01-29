@@ -43,7 +43,7 @@ class FieldDBInterface:
                                  'field_name':fieldinfo[field_name_CONST],
                                  'primaryuse_str':','.join(str(f) for f in fieldinfo[primaryuse_list_CONST]),
                                  'start_date':fieldinfo[start_date_CONST],
-                                 'end_date':fieldinfo[end_date_CONST]
+                                 'end_date':fieldinfo[end_date_CONST],
                                  'start_time':fieldinfo[start_time_CONST],
                                  'end_time':fieldinfo[end_time_CONST],
                                  'dayweek_str':','.join(str(f) for f in fieldinfo[dayweek_CONST])})

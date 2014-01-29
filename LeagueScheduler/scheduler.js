@@ -24,7 +24,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var latest_count_CONST = 'LATEST_COUNT';
 		var totalgames_CONST = 'TOTALGAMES'
 		var playdivSelectId, numberTeamsId, numberVenuesId;
-		var numTeams = 0; var numVenues =0; var divnum = "U5";
 		var gamesGrid = null; var divisionGrid = null;
 		var teamDataGrid = null; var fieldScheduleGrid = null;
 		var metricsGrid = null;
@@ -68,10 +67,11 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			fieldInfoGrid.renderArray(fdata_array);
 			dbstatus = ldata.dbstatus;
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
-			newSchedulerBase.set_schedutil_obj(schedUtil);
-			fieldinfo_obj.set_schedutil_obj(schedUtil);
-			divinfo_obj.set_schedutil_obj(schedUtil);
-			schedinfo_obj.schedutil_obj = schedUtil;
+			var storeutil_obj = new storeUtil({schedutil_obj:schedUtil, uistackmgr:uiStackManager, server_interface:serverInterface});
+			newSchedulerBase.set_obj(schedUtil, storeutil_obj);
+			fieldinfo_obj.set_obj(schedUtil, storeutil_obj);
+			divinfo_obj.set_obj(schedUtil, storeutil_obj);
+			schedinfo_obj.set_obj(schedUtil, storeutil_obj);
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
@@ -80,20 +80,13 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
-			var storeUtil = new storeUtil(schedutil_obj:schedUtil, uistackmgr:uiStackManager);
+
 			var dbcollection_list = ldata.dbcollection_list;
 			// fill initial store and create dropdown menu
-			storeUtil.initdb_store(dbcollection_list, 'db');
+			storeutil_obj.createdb_store(dbcollection_list, 'db');
+			storeutil_obj.create_menu(dbcollection_list, 'div_id', divinfo_obj, true);
 			// save dbname list to basesingleton class to use later
 			baseinfoSingleton.set_dbname_list(dbcollection_list);
-			schedUtil.generateDB_smenu(dbcollection_list, "dbcollection_submenu",
-				uiStackManager, uiStackManager.check_getServerDBInfo,
-				{db_type:'db', info_obj:divinfo_obj});
-			// generate dropdown menu for edit->delete schedule
-			var deldbcollection_smenu_reg = registry.byId("deldbcollection_submenu");
-			schedUtil.generateDBCollection_smenu(deldbcollection_smenu_reg,
-				dbcollection_list, schedUtil, schedUtil.delete_dbcollection,
-				{db_type:'db', server_path:"delete_dbcol/"});
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.cupdbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
@@ -104,20 +97,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013,
 				{db_type:'export'});
-			schedUtil.generateDB_smenu(dbcollection_list, "scheddbcollection_submenu", uiStackManager, uiStackManager.check_getServerDBInfo,
-				{db_type:'db', info_obj:schedinfo_obj});
+			// note we need to add delete to the schedule here by passing 'true'
+			storeutil_obj.create_menu(dbcollection_list, 'sched_id', schedinfo_obj, false);
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
-			fieldinfo_obj.initfielddb_store(fielddb_list);
-			/*
-			schedUtil.generateDB_smenu(fielddb_list, "editfieldlist_submenu",
-				uiStackManager, uiStackManager.check_getServerDBInfo,
-				{db_type:'fielddb', info_obj:fieldinfo_obj});
-			var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
-			schedUtil.generateDBCollection_smenu(delfielddb_smenu_reg,
-				fielddb_list, schedUtil, schedUtil.delete_dbcollection,
-				{db_type:'fielddb', server_path:"delete_fieldcol/"});
-			*/
+			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
+			storeutil_obj.create_menu(fielddb_list, 'field_id', fieldinfo_obj, true);
 		}
 		//});
 		grid.on("dgrid-select", function(event){
@@ -469,14 +454,11 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			//	);
 			on(registry.byId("newdivinfo_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, divinfo_obj));
-//				lang.hitch(divinfo_obj, divinfo_obj.initialize));
 			on(registry.byId("newfieldlist_item"), "click",
-//				lang.hitch(fieldinfo_obj, fieldinfo_obj.initialize));
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, fieldinfo_obj));
 			on(registry.byId("newsched_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize,
 					newSchedulerBase));
-//				lang.hitch(newSchedulerBase, newSchedulerBase.initialize));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);

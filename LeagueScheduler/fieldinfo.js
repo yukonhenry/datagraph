@@ -17,7 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			text_node_str:'Field List Name',
 		};
 		return declare(null, {
- 			server_interface:null, schedutil_obj:null,
+ 			server_interface:null, schedutil_obj:null, storeutil_obj:null,
  			divinfo_obj:null, idproperty:constant.idproperty_str,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
@@ -171,7 +171,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					entrynum_reg:fieldnum_reg,
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
-					callback: lang.hitch(this.schedutil_obj,this.schedutil_obj.regenAddFieldDBCollection_smenu),
 					info_obj:this, idproperty:constant.idproperty_str,
 					server_path:"create_newfieldcol/",
 					server_key:'fieldinfo_data',
@@ -180,7 +179,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					grid_id:constant.grid_id,
 					text_node:this.text_node,
 					updatebtn_str:constant.updatebtn_str,
-					uistackmgr:this.uistackmgr
+					uistackmgr:this.uistackmgr,
+					storeutil_obj:this.storeutil_obj
 				});
 				var tooltipconfig_list = [{connectId:['fieldnum_input_id'],
 					label:"Specify Number of Fields and press ENTER",
@@ -190,27 +190,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					position:['below','after']}];
 				newFieldGroup.showConfig(tooltipconfig_list);
 			},
-			set_schedutil_obj: function(obj) {
-				this.schedutil_obj = obj;
-			},
-			initfielddb_store: function(fielddb_list) {
-				// follow observable store model followed by
-				// https://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
-				// http://dojotoolkit.org/reference-guide/1.9/dojo/store/Observable.html#dojo-store-observable
-				// note we can't tie the store directly to select since we are
-				// using dropdown->menuitem instead of select
-				arrayUtil.forEach(fielddb_list, function(item, index) {
-					this.fielddbselect_store.add({id:item, label:item})
-				});
-				this.schedutil_obj.generateDB_smenu(fielddb_list,
-					"editfieldlist_submenu", this.uistackmgr,
-					this.uistackmgr.check_getServerDBInfo,
-					{db_type:'fielddb', info_obj:this});
-				var delfielddb_smenu_reg = registry.byId("delfielddb_submenu");
-				this.schedutil_obj.generateDBCollection_smenu(delfielddb_smenu_reg,
-					fielddb_list, this.schedutil_obj,
-					this.schedutil_obj.delete_dbcollection,
-					{db_type:'fielddb', server_path:"delete_fieldcol/"});
+			set_obj: function(schedutil_obj, storeutil_obj) {
+				this.schedutil_obj = schedutil_obj;
+				this.storeutil_obj = storeutil_obj;
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -232,6 +214,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.uistackmgr = this.uistackmgr;
+				options_obj.storeutil_obj = this.storeutil_obj;
 				// do some clean-up
 				/*
 				if (baseinfoSingleton.get_select_reg()) {

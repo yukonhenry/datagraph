@@ -8,7 +8,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		var weekoffset_CONST = 12;
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
-			newsched_dom:"", schedutil_obj:null,
+			newsched_dom:"", schedutil_obj:null, storeutil_obj:null,
 			form_name:"",
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			seasondates_btn_reg:null,
@@ -29,8 +29,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.newsched_dom = dom.byId("newsched_text");
 				this.showConfig();
 			},
-			set_schedutil_obj: function(obj) {
-				this.schedutil_obj = obj;
+			set_obj: function(schedutil_obj, storeutil_obj) {
+				this.schedutil_obj = schedutil_obj;
+				this.storeutil_obj = storeutil_obj;
 			},
 			showConfig: function() {
 				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
