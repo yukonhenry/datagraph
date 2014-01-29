@@ -6,7 +6,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		var constant = {
 			submenu_list:[{id:'div_id', db_type:'db', name:"dbcollection_submenu"},
 				{id:'field_id', db_type:'fielddb', name:"fielddb_submenu"},
-				{id:'sched_id', db_type:'db', name:"scheddbcollection_submenu"}],
+				{id:'sched_id', db_type:'db', name:"scheddbcollection_submenu"},
+				{id:'newsched_id', db_type:'db', name:""}],
 			delsubmenu_list:[{id:'div_id',
 				db_type:'db', name:"deldbcollection_submenu",
 				server_path:"delete_dbcol/"},
@@ -43,6 +44,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						this.schedutil_obj.regenAddDBCollection_smenu(object, insertIndex)
 					}
 				}));
+			},
+			nodupdb_validate: function(colname, id) {
+				var match_obj = this.getmatch_obj(constant.submenu_list, id);
+				var db_type = match_obj.db_type;
+				return this.dbselect_store.query({label:colname,
+					db_type:db_type}).total == 0;
 			},
 			addtodb_store: function(colname, id) {
 				var match_obj = this.getmatch_obj(constant.submenu_list, id);

@@ -33,25 +33,6 @@ define(["dojo/_base/declare","dojo/domReady!"], function(declare, lang){
 			get_active_grid_name: function() {
 				return this.active_grid_name;
 			},
-			set_dbname_list: function(dlist) {
-				this.dbname_list = dlist;
-			},
-			get_dbname_list: function() {
-				return this.dbname_list;
-			},
-			addto_dbname_list: function(elem) {
-				this.dbname_list.push(elem);
-			},
-			// remove by value: http://stackoverflow.com/questions/3954438/remove-item-from-array-by-value
-			removefrom_dbname_list: function(elem) {
-				var index = this.dbname_list.indexOf(elem);
-				if (index == -1)
-					return false;
-				else {
-					this.dbname_list.splice(index, 1);
-					return true;
-				}
-			},
 			set_tbutton_reg: function(tbutton_reg) {
 				this.tbutton_reg = tbutton_reg;
 			},

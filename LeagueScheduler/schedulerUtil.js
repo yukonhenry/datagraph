@@ -172,8 +172,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			},
 			regenDelDBCollection_smenu: function(delindex, db_type) {
 				var dbmenureg_list = (db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
-				// update dbname list - only do after delete at db succeeded
-				//baseinfoSingleton.removefrom_dbname_list(item_name);
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					dbmenureg.removeChild(delindex);

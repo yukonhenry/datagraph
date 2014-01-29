@@ -13,10 +13,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
-		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "dojox/calendar/Calendar", "LeagueScheduler/storeutil",
+		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil","dojox/calendar/Calendar",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, Calendar, storeUtil) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, Calendar) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -85,8 +85,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// fill initial store and create dropdown menu
 			storeutil_obj.createdb_store(dbcollection_list, 'db');
 			storeutil_obj.create_menu(dbcollection_list, 'div_id', divinfo_obj, true);
-			// save dbname list to basesingleton class to use later
-			baseinfoSingleton.set_dbname_list(dbcollection_list);
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.cupdbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");

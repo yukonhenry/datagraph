@@ -46,7 +46,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					if (this.form_reg.validate()) {
 						confirm('Input format is Valid, creating new Schedule DB');
 						this.newsched_name = this.dbname_reg.get("value");
-						if (!this.nodupname_validate(this.newsched_name)) {
+						if (!this.storeutil_obj.nodupdb_validate(this.newsched_name,
+							this.idproperty)) {
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
@@ -146,17 +147,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						alert('Input name is Invalid, please correct');
 					}
 				}
-			},
-			nodupname_validate: function(col_name) {
-				// if name exists in the current list (index > -1) then
-				// return false (test failed)
-				// currently dbname_list includes list of all db names
-				// and doesn't distinguish between various field/div db's
-				var dbname_list = baseinfoSingleton.get_dbname_list();
-				if (dbname_list.indexOf(col_name) > -1)
-					return false;
-				else
-					return true;
 			},
 			getSeasonDatesFromInput: function(event) {
 				var seasonstart_date = this.seasonstart_reg.get("value");

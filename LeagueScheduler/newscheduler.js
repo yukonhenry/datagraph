@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			text_node_str:"",
-			updatebtn_str:"",
+			updatebtn_str:"", storeutil_obj:null,
 			grid_id:"", uistackmgr:null, tooltip_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -42,7 +42,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					if (this.form_reg.validate()) {
 						confirm('Input format is Valid, creating new DB');
 						this.newcol_name = this.dbname_reg.get("value");
-						if (!this.nodupname_validate(this.newcol_name)) {
+						if (!this.storeutil_obj.nodupdb_validate(this.newcol_name,
+							this.idproperty)) {
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
@@ -84,17 +85,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						alert('Input name is Invalid, please correct');
 					}
 				}
-			},
-			nodupname_validate: function(col_name) {
-				// if name exists in the current list (index > -1) then
-				// return false (test failed)
-				// currently dbname_list includes list of all db names
-				// and doesn't distinguish between various field/div db's
-				var dbname_list = baseinfoSingleton.get_dbname_list();
-				if (dbname_list.indexOf(col_name) > -1)
-					return false;
-				else
-					return true;
 			},
 			cleanup: function() {
 				// cleanup here is cleaning up what is left over from other

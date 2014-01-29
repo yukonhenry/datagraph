@@ -200,8 +200,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.server_interface.getServerData(server_path+this.colname,
 					this.server_interface.server_ack, server_key_obj, options_obj);
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty);
-				baseinfoSingleton.addto_dbname_list(this.colname);
-
 			},
 			cleanup: function() {
 				if (this.bracketinfo) {
