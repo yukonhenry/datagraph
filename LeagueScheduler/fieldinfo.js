@@ -15,6 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			updatebtn_str:"Update Field Info",
 			grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
+			db_type:'fielddb'
 		};
 		return declare(null, {
  			server_interface:null, schedutil_obj:null, storeutil_obj:null,
@@ -173,7 +174,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					schedutil_obj:this.schedutil_obj,
 					info_obj:this, idproperty:constant.idproperty_str,
 					server_path:"create_newfieldcol/",
-					server_key:'fieldinfo_data',
+					server_key:constant.db_type,
 					cellselect_flag:true,
 					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
@@ -205,7 +206,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.info_obj = this;
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newfieldcol/";
-				options_obj.server_key = 'fieldinfo_data';
+				options_obj.server_key = constant.db_type;
 				options_obj.cellselect_flag = true;
 				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server

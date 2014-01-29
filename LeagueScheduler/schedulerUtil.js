@@ -20,7 +20,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park',
 			17:'Sequoia Middle U14', 18:'Hidden Lakes', 19:'Waterfront', 20:'CP Turf'};
 		var constant = {
-			infobtn_id:"infoBtnNode_id"
+			infobtn_id:"infoBtnNode_id",
+			fielddb_type:"fielddb"
 		};
 		var status_dom = dom.byId("dbstatus_txt");
 		var status1_dom = dom.byId("dbstatus1_txt");
@@ -257,6 +258,18 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					if (updatebtn_str) {
 						updatebtn_reg.set('label', updatebtn_str);
 					} */
+					var server_key = options_obj.server_key;
+					// if server data is fielddb information, then we need to do
+					// some data conversion (convert to date obj) before passing onto grid
+					// Note server_key is key for outgoing request
+					// serverdata_key is for incoming data
+					if (server_key == constant.fielddb_type) {
+						if (idproperty == 'field_id') {
+
+						} else {
+							alert('check db_type and idproperty consistency');
+						}
+					}
 					this.editgrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
 						colname:colname,
 						divisioncode:divisioncode,

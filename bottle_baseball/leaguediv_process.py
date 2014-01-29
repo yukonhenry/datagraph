@@ -254,7 +254,7 @@ def get_scheddbcol(getcol_name):
 @route('/create_newfieldcol/<newcol_name>')
 def create_newfieldcol(newcol_name):
     callback_name = request.query.callback
-    fieldinfo_data = request.query.fieldinfo_data
+    fieldinfo_data = request.query.fielddb
     fdbInterface = FieldDBInterface(mongoClient, newcol_name)
     print "fileinfodata=",fieldinfo_data
     fdbInterface.writeDB(fieldinfo_data)
