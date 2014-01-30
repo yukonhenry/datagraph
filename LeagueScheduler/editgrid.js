@@ -191,6 +191,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					storedata_json = JSON.stringify(newlist);
 				} else {
 					var storedata_json = JSON.stringify(this.schedInfoStore.query());
+					if (this.idproperty = 'div_id') {
+						// set property that divinfo collection has been selected
+						this.info_obj.currentdivinfo_name = this.colname;
+					}
 				}
 				var server_path = this.server_path || "create_newdbcol/";
 				var server_key = this.server_key || 'divinfo_data';

@@ -204,18 +204,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
     				dbmenureg.addChild(smenuitem, insertIndex);
 				});
 			},
-			/*
-			regenAddFieldDBCollection_smenu: function(adata, options_obj) {
-				var item_name = options_obj.item;
-				//var fieldinfo_obj = new FieldInfo({server_interface:this.server_interface, schedutil_obj:this});
-				options_obj.db_type = 'fielddb';
-				arrayUtil.forEach(this.fielddbmenureg_list, function(dbmenudata, index) {
-					var dbmenureg = dbmenudata.reg;
-					var smenuitem = new MenuItem({label:item_name,
-						onClick:lang.hitch(dbmenudata.context, dbmenudata.func, options_obj)});
-    				dbmenureg.addChild(smenuitem);
-				}, this);
-			}, */
 			getCupSchedule: function(options_obj) {
 				var item = options_obj.item;
 				this.server_interface.getServerData("getcupschedule/"+item,
@@ -263,14 +251,24 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					// some data conversion (convert to date obj) before passing onto grid
 					// Note server_key is key for outgoing request
 					// serverdata_key is for incoming data
+					var data_list = server_data[options_obj.serverdata_key];
 					if (server_key == constant.fielddb_type) {
 						if (idproperty == 'field_id') {
-
+							arrayUtil.forEach(data_list, function(item, index) {
+								// save date str to pass into start and end time calc
+								// (though it can be a dummy date)
+								var start_str = item.start_date;
+								var end_str = item.end_date;
+								item.start_date = new Date(start_str);
+								item.end_date = new Date(end_str);
+								item.start_time = new Date(start_str+' '+item.start_time);
+								item.end_time = new Date(end_str+' '+item.end_time);
+							})
 						} else {
 							alert('check db_type and idproperty consistency');
 						}
 					}
-					this.editgrid = new EditGrid({griddata_list:server_data[options_obj.serverdata_key],
+					this.editgrid = new EditGrid({griddata_list:data_list,
 						colname:colname,
 						divisioncode:divisioncode,
 						server_interface:this.server_interface,

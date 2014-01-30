@@ -238,6 +238,7 @@ def get_dbcol(getcol_name):
     callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
     divinfo_list = tdbInterface.readDB().dict_list
+    print 'divinfo_list', divinfo_list
     a = json.dumps({'divinfo_list':divinfo_list})
     return callback_name+'('+a+')'
 

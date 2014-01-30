@@ -149,7 +149,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 							}
 						}, */
 					}, TimeTextBox),
-					dayweek:{label:"Days of Week",
+					dayweek_str:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
 					dates: {label:"Config Dates",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)}
@@ -159,7 +159,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			initialize: function(arg_obj) {
 				// get divinfo information here
 				if (this.divinfo_obj.currentdivinfo_name) {
-					this.divinfo_obj.getBasicServerDBDivInfo(this, this.createDivSelectDialog);
+					this.divinfo_obj.getBasicServerDBDivInfo(lang.hitch(this,this.createDivStr_list));
 				}
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);
@@ -196,6 +196,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.storeutil_obj = storeutil_obj;
 			},
 			getServerDBInfo: function(options_obj) {
+				// first get divinfo data for the primaryuse_str checkboxes
+				if (this.divinfo_obj.currentdivinfo_name) {
+					this.divinfo_obj.getBasicServerDBDivInfo(lang.hitch(this,this.createDivStr_list));
+				}
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the
@@ -242,7 +246,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
-						dayweek:"", dates:""});
+						dayweek_str:"", dates:""});
 				}
 				return fieldinfo_list;
 			},
@@ -516,7 +520,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					//this.editgrid_obj.schedInfoStore.refresh();
 				}
 			},
-			createDivSelectDialog: function(server_data) {
+			createDivStr_list: function(server_data) {
 				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {
 					this.divstr_list.push(item.div_age + item.div_gen);
 				}, this);
@@ -571,6 +575,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						dropDown:dwdialog,
 						id:'dwfielddropdownbtn'+field_id+'_id'
 					});
+		    		if (object.dayweek_str) {
+		    			this.init_checkbox(dwdialogprop_obj, object.dayweek_str);
+		    		}
 				} else {
 					var field_id = object.field_id;
 					var dropdown_btn = registry.byId('dwfielddropdownbtn'+field_id+'_id');
@@ -601,13 +608,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				value_str = value_str.substring(0, value_str.length-1);
 				if (this.editgrid_obj) {
 					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
-					store_elem.dayweek = value_str;
+					store_elem.dayweek_str = value_str;
 					this.editgrid_obj.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
-					dwdropdownbtn_reg.set('label', value_str);
+					dwdropdownbtn_reg.set('label', display_str);
 					//this.editgrid_obj.schedInfoStore.refresh();
 				}
+			},
+			// mark checkboxes depending on state of store
+			init_checkbox: function(dwdialogprop_obj, check_str) {
+				var field_id = dwdialogprop_obj.field_id;
+				var checkboxid_list = dwdialogprop_obj.checkboxid_list;
+				var day_list = dwdialogprop_obj.day_list;
+				var display_str = "";
+				arrayUtil.forEach(check_str.split(','), function(item) {
+					var checkbox_reg = registry.byId(checkboxid_list[item]);
+					checkbox_reg.set("checked", true);
+					display_str += day_list[item]+',';
+				});
+				display_str = display_str.substring(0, display_str.length-1);
+				var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
+				dwdropdownbtn_reg.set('label', display_str);
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

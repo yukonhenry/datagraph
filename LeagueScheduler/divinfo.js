@@ -103,9 +103,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				}
 				return divInfo_list;
 			},
-			getBasicServerDBDivInfo: function(context_obj, context_func) {
-				this.server_interface.getServerData("get_dbcol/"+this.currentdivinfo_name,
-					lang.hitch(context_obj, context_func));
+			getBasicServerDBDivInfo: function(acallback) {
+				this.server_interface.getServerData("get_dbcol/"+this.currentdivinfo_name, acallback);
 			}
 		});
 });

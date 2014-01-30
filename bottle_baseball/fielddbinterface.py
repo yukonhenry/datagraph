@@ -15,7 +15,7 @@ start_date_CONST = 'START_DATE'
 end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
 end_time_CONST = 'END_TIME'
-dayweek_CONST = 'DAYWEEK'
+dayweek_list_CONST = 'DAYWEEK_LIST'
 
 class FieldDBInterface:
     def __init__(self, mongoClient, newcol_name):
@@ -33,7 +33,7 @@ class FieldDBInterface:
                         end_date_CONST:fieldinfo['end_date'],
                         start_time_CONST:fieldinfo['start_time'],
                         end_time_CONST:fieldinfo['end_time'],
-                        dayweek_CONST:fieldinfo['dayweek'].split(',')}
+                        dayweek_list_CONST:fieldinfo['dayweek_str'].split(',')}
             self.dbInterface.updateFieldInfo(document, field_id)
 
     def readDB(self):
@@ -47,7 +47,7 @@ class FieldDBInterface:
                                  'end_date':fieldinfo[end_date_CONST],
                                  'start_time':fieldinfo[start_time_CONST],
                                  'end_time':fieldinfo[end_time_CONST],
-                                 'dayweek_str':','.join(str(f) for f in fieldinfo[dayweek_CONST])})
+                                 'dayweek_str':','.join(str(f) for f in fieldinfo[dayweek_list_CONST])})
         f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
