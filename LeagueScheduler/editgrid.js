@@ -1,11 +1,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array",
+	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/date",
 	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dgrid/CellSelection", "dijit/form/Button", "dijit/form/ToggleButton",
 	"LeagueScheduler/bracketinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
-	         arrayUtil, Observable, Memory,
+	         arrayUtil, date, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
 		Button, ToggleButton, BracketInfo, baseinfoSingleton) {
 		return declare(null, {
@@ -65,6 +65,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// track which grid content panes have grids in them
 				if (this.info_obj && 'editgrid' in this.info_obj) {
 					this.info_obj.editgrid = this.schedInfoGrid;
+				}
+				if (this.idproperty == 'div_id') {
+					// set property that divinfo collection has been selected
+					this.info_obj.colname = this.colname;
+					this.info_obj.infogrid_store = this.schedInfoStore;
 				}
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
@@ -171,14 +176,32 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 			},
 			sendDivInfoToServer: function(event) {
-				var newlist = new Array();
-				var storedata_json = "";
+				var raw_result = this.schedInfoStore.query();
+				// do check to make sure all fields have been filled.
+				arrayUtil.forEach(raw_result, function(item, index) {
+					console.log('raw item='+item);
+				})
+				var storedata_json = null;
 				if (this.idproperty == "field_id") {
+					raw_result.forEach(function(item, index) {
+						// make num date calculations based on start/end dates
+						// and dayweek days selected through the dayweek checkboxes
+						// first calc num of full weeks
+						var numdays = date.difference(item.start_date,
+							item.end_date, 'day');
+						var numweeks = date.difference(item.start_date,
+							item.end_date, 'week');
+						var numfullweekdays = numweeks * item.dayweek_num;
+						var start_day = item.start_date.getDay();
+						var end_day = item.end_date.getDay();
+						console.log("week diff for ind "+index+"="+numweeks+ "total days="+numfullweekdays+" startday="+start_day+" enddat="+end_day);
+					})
+					var newlist = new Array();
 					// for the field grid data convert Data objects to str
 					// note we want to keep it as data objects inside of store to
 					// maintain direct compatibility with Date and TimeTextBox's
 					// and associated picker widgets.
-					this.schedInfoStore.query().map(function(item) {
+					raw_result.map(function(item) {
 						var newobj = lang.clone(item);
 						newobj.start_date = newobj.start_date.toLocaleDateString();
 						newobj.end_date = newobj.end_date.toLocaleDateString();
@@ -190,11 +213,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					});
 					storedata_json = JSON.stringify(newlist);
 				} else {
-					var storedata_json = JSON.stringify(this.schedInfoStore.query());
-					if (this.idproperty = 'div_id') {
-						// set property that divinfo collection has been selected
-						this.info_obj.currentdivinfo_name = this.colname;
-					}
+					storedata_json = JSON.stringify(raw_result);
 				}
 				var server_path = this.server_path || "create_newdbcol/";
 				var server_key = this.server_key || 'divinfo_data';

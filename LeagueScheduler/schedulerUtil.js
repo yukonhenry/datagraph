@@ -240,12 +240,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						console.log("no server interface");
 						alert("no server interface, check if service running");
 					}
-					/*
-					var updatebtn_reg = registry.byId(options_obj.updatebtn_id);
-					var updatebtn_str = (typeof options_obj.updatebtn_str === "undefined") ? "": options_obj.updatebtn_str;
-					if (updatebtn_str) {
-						updatebtn_reg.set('label', updatebtn_str);
-					} */
 					var server_key = options_obj.server_key;
 					// if server data is fielddb information, then we need to do
 					// some data conversion (convert to date obj) before passing onto grid

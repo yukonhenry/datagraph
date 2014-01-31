@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		};
 		return declare(null, {
 			server_interface:null, schedutil_obj:null, storeutil_obj:null,
-			currentdivinfo_name:"", idproperty:constant.idproperty_str,
+			colname:"", infogrid_store:null, idproperty:constant.idproperty_str,
 			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -77,7 +77,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
-				this.currentdivinfo_name = item;
+				this.colname = item;
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'divinfo_data';
@@ -103,8 +103,11 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				}
 				return divInfo_list;
 			},
-			getBasicServerDBDivInfo: function(acallback) {
-				this.server_interface.getServerData("get_dbcol/"+this.currentdivinfo_name, acallback);
+			getDivstr_list: function() {
+				var divstr_list = this.infogrid_store.query().map(function(item) {
+					return item.div_age+item.div_gen;
+				});
+				return divstr_list;
 			}
 		});
 });

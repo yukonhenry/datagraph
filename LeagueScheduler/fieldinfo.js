@@ -15,7 +15,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			updatebtn_str:"Update Field Info",
 			grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
-			db_type:'fielddb'
+			db_type:'fielddb',
+			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 		};
 		return declare(null, {
  			server_interface:null, schedutil_obj:null, storeutil_obj:null,
@@ -38,7 +39,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// on the importance of initializing object in the constructor'
 				// (non-objects can be initialized in member var declaration)
 				lang.mixin(this, args);
-				this.divstr_list = new Array();
 				this.text_node = dom.byId(constant.text_id);
 				this.today = new Date();
 			},
@@ -151,15 +151,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					}, TimeTextBox),
 					dayweek_str:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
-					dates: {label:"Config Dates",
+					dates: {label:"Detail Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)}
 				};
 				return columnsdef_obj;
 			},
 			initialize: function(arg_obj) {
 				// get divinfo information here
-				if (this.divinfo_obj.currentdivinfo_name) {
-					this.divinfo_obj.getBasicServerDBDivInfo(lang.hitch(this,this.createDivStr_list));
+				if (this.divinfo_obj.colname) {
+					this.divstr_list = this.divinfo_obj.getDivstr_list();
 				}
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);
@@ -197,8 +197,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			},
 			getServerDBInfo: function(options_obj) {
 				// first get divinfo data for the primaryuse_str checkboxes
-				if (this.divinfo_obj.currentdivinfo_name) {
-					this.divinfo_obj.getBasicServerDBDivInfo(lang.hitch(this,this.createDivStr_list));
+				if (this.divinfo_obj.colname) {
+					this.divstr_list = this.divinfo_obj.getDivstr_list();
+
 				}
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
@@ -453,15 +454,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (this.rendercell_flag) {
 					var TDialog = null;
 					var field_id = object.field_id;
-					if (this.divinfo_obj.currentdivinfo_name) {
+					if (this.divinfo_obj.colname) {
 						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 						var content_str = "";
-						var checkbox_list = new Array();
+						var checkboxid_list = new Array();
 						arrayUtil.forEach(this.divstr_list, function(divstr, index) {
 							var idstr = "checkbox"+divstr+field_id+"_id";
 							content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-							'" value="'+divstr+'"><label for="'+idstr+'">'+divstr+'</label><br>';
-							checkbox_list.push(idstr);
+							'" value="'+index+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+							checkboxid_list.push(idstr);
 						});
 						var button_id = 'tdialogbtn'+field_id+'_id';
 						content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
@@ -470,9 +471,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 							content: content_str
 			    		});
 			    		var tdialogprop_obj = {field_id:field_id,
-			    			checkbox_list:checkbox_list};
+			    			checkboxid_list:checkboxid_list};
 			    		//this.tdialogprop_list.push({field_id:field_id,
-			    		//	checkbox_list:checkbox_list});
+			    		//	checkboxid_list:checkboxid_list});
 			    		var button_reg = registry.byId(button_id);
 			    		button_reg.on("click",
 			    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
@@ -487,6 +488,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						dropDown:TDialog,
 						id:'fielddropdownbtn'+field_id+'_id'
 					});
+					// fill in checkboxes if store already has checkbox info
+		    		if (this.divinfo_obj.colname && object.primaryuse_str) {
+		    			this.init_checkbox(tdialogprop_obj,
+		    				object.primaryuse_str, this.divstr_list,
+		    				"fielddropdownbtn");
+		    		}
 				} else {
 					// retrieve widget that had already been instantiated
 					var field_id = object.field_id;
@@ -499,31 +506,31 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			// handler for primary use dialog btn
 			dialogbtn_process: function(tdialogprop_obj, event) {
 				var field_id = tdialogprop_obj.field_id;
-				var checkbox_list = tdialogprop_obj.checkbox_list;
-				var checkboxvalue_str = "";
-				arrayUtil.forEach(checkbox_list, function(checkbox_id, index) {
+				var checkboxid_list = tdialogprop_obj.checkboxid_list;
+				var display_str = "";
+				var value_str = "";
+				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
-						checkboxvalue_str += checkbox_reg.get('value')+',';
+						// create str to display in buttone
+						display_str += this.divstr_list[index]+',';
+						// create str to store (str of integer id elements)
+						value_str += checkbox_reg.get("value")+',';
 					}
-				})
+				}, this);
 				// trim off last comma
 				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
-				checkboxvalue_str = checkboxvalue_str.substring(0, checkboxvalue_str.length-1);
+				display_str = display_str.substring(0, display_str.length-1);
+				value_str = value_str.substring(0, value_str.length-1);
 				if (this.editgrid_obj) {
 					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
-					store_elem.primaryuse_str = checkboxvalue_str;
+					store_elem.primaryuse_str = value_str;
 					this.editgrid_obj.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dropdownbtn_reg = registry.byId("fielddropdownbtn"+field_id+"_id");
-					dropdownbtn_reg.set('label', checkboxvalue_str);
+					dropdownbtn_reg.set('label', display_str);
 					//this.editgrid_obj.schedInfoStore.refresh();
 				}
-			},
-			createDivStr_list: function(server_data) {
-				arrayUtil.forEach(server_data.divinfo_list, function(item, index) {
-					this.divstr_list.push(item.div_age + item.div_gen);
-				}, this);
 			},
 			dates_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
@@ -548,9 +555,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					var field_id = object.field_id;
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
-					var day_list = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+					//var day_list = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 					var checkboxid_list = new Array();
-					arrayUtil.forEach(day_list, function(day, index) {
+					arrayUtil.forEach(constant.day_list, function(day, index) {
 						var idstr = day+field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
 						'" value='+index+'><label for="'+idstr+'">'+day+'</label> ';
@@ -565,7 +572,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						content: content_str
 		    		});
 		    		var dwdialogprop_obj = {field_id:field_id,
-		    			checkboxid_list:checkboxid_list, day_list:day_list};
+		    			checkboxid_list:checkboxid_list,
+		    			day_list:constant.day_list};
 		    		var button_reg = registry.byId(button_id);
 		    		button_reg.on("click",
 		    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
@@ -576,7 +584,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						id:'dwfielddropdownbtn'+field_id+'_id'
 					});
 		    		if (object.dayweek_str) {
-		    			this.init_checkbox(dwdialogprop_obj, object.dayweek_str);
+		    			this.init_checkbox(dwdialogprop_obj, object.dayweek_str,
+		    				dwdialogprop_obj.day_list, "dwfielddropdownbtn");
 		    		}
 				} else {
 					var field_id = object.field_id;
@@ -593,6 +602,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var day_list = dwdialogprop_obj.day_list;
 				var display_str = "";
 				var value_str = "";
+				var numdays = 0;
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
@@ -600,6 +610,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						display_str += day_list[index]+',';
 						// create str to store (str of integer id elements)
 						value_str += checkbox_reg.get("value")+',';
+						numdays++;  // numdays counts num days per week
 					}
 				})
 				// trim off last comma
@@ -609,6 +620,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (this.editgrid_obj) {
 					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
 					store_elem.dayweek_str = value_str;
+					store_elem.dayweek_num = numdays;
 					this.editgrid_obj.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
@@ -617,19 +629,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 			},
 			// mark checkboxes depending on state of store
-			init_checkbox: function(dwdialogprop_obj, check_str) {
-				var field_id = dwdialogprop_obj.field_id;
-				var checkboxid_list = dwdialogprop_obj.checkboxid_list;
-				var day_list = dwdialogprop_obj.day_list;
+			init_checkbox: function(dialogprop_obj, check_str, display_list, dropdownbtn_prefix) {
+				var field_id = dialogprop_obj.field_id;
+				var checkboxid_list = dialogprop_obj.checkboxid_list;
 				var display_str = "";
 				arrayUtil.forEach(check_str.split(','), function(item) {
 					var checkbox_reg = registry.byId(checkboxid_list[item]);
 					checkbox_reg.set("checked", true);
-					display_str += day_list[item]+',';
+					display_str += display_list[item]+',';
 				});
 				display_str = display_str.substring(0, display_str.length-1);
-				var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
-				dwdropdownbtn_reg.set('label', display_str);
+				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
+				dropdownbtn_reg.set('label', display_str);
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
