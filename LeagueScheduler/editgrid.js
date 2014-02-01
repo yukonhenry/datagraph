@@ -186,15 +186,29 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					raw_result.forEach(function(item, index) {
 						// make num date calculations based on start/end dates
 						// and dayweek days selected through the dayweek checkboxes
-						// first calc num of full weeks
-						var numdays = date.difference(item.start_date,
-							item.end_date, 'day');
-						var numweeks = date.difference(item.start_date,
-							item.end_date, 'week');
-						var numfullweekdays = numweeks * item.dayweek_num;
 						var start_day = item.start_date.getDay();
 						var end_day = item.end_date.getDay();
-						console.log("week diff for ind "+index+"="+numweeks+ "total days="+numfullweekdays+" startday="+start_day+" enddat="+end_day);
+						var caldays_num = date.difference(item.start_date,
+							item.end_date, 'day');
+						// calc number of full weeks
+						var calweeks_num = date.difference(item.start_date,
+							item.end_date, 'week');
+						// calc num of raw days left in last (partial) week
+						var caldays_lastweek_num = caldays_num - calweeks_num*7;
+						// calc number of event days corresponding to full calendar weeks
+						// days in leftover week (numdays % numweeks)
+						var lastweek_list = new Array();
+						if (caldays_lastweek_num > 0) {
+							var available_list = new Array();
+							var test_day = start_day;
+							while (test_day != end_day) {
+								available_list.push(test_day);
+								test_day++;
+								if (test_day ==7)
+									test_day = 0;
+							}
+
+						}
 					})
 					var newlist = new Array();
 					// for the field grid data convert Data objects to str
