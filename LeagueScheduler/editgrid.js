@@ -178,11 +178,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendDivInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
 				// do check to make sure all fields have been filled.
+				/*
 				arrayUtil.forEach(raw_result, function(item, index) {
 					console.log('raw item='+item);
-				})
+				}) */
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
+					/*
 					raw_result.forEach(function(item, index) {
 						// make num date calculations based on start/end dates
 						// and dayweek days selected through the dayweek checkboxes
@@ -209,7 +211,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							}
 
 						}
-					})
+					}) */
 					var newlist = new Array();
 					// for the field grid data convert Data objects to str
 					// note we want to keep it as data objects inside of store to

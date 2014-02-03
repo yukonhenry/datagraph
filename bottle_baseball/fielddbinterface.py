@@ -3,6 +3,8 @@
 from dbinterface import MongoDBInterface, DB_Col_Type
 import simplejson as json
 from collections import namedtuple
+from dateutil import parser
+from datetime import date
 import logging
 
 # global for namedtuple
@@ -26,6 +28,23 @@ class FieldDBInterface:
         fieldinfo_dict = json.loads(fieldinfo_str)
         for fieldinfo in fieldinfo_dict:
             field_id = fieldinfo['field_id']
+            start_date_str = fieldinfo['start_date']
+            end_date_str = fieldinfo['end_date']
+            start_date = parser.parse(start_date_str)
+            start_day = start_date.weekday()
+            end_date = parser.parse(end_date_str)
+            end_day = end_date.weekday()
+            # create list of available dates during last week
+            diff_days = (end_date - start_date).days
+            diff_fullweeks = diff_days / 7
+            # available days in the last week
+            avail_days = diff_days % diff_fullweeks
+            if end_day >= start_day-1:
+                lw_list = range(start_day, end_day+1)
+            else:
+                lw_list = range(start_day, 7) + range(end_day+1)
+            # create list of available dates during last week
+
             document = {field_id_CONST:int(field_id),
                         field_name_CONST:fieldinfo['field_name'],
                         primaryuse_list_CONST:fieldinfo['primaryuse_str'].split(','),

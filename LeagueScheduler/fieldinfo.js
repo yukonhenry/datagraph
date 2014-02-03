@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
 			db_type:'fielddb',
-			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+			day_list:['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 		};
 		return declare(null, {
  			server_interface:null, schedutil_obj:null, storeutil_obj:null,
@@ -602,7 +602,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var day_list = dwdialogprop_obj.day_list;
 				var display_str = "";
 				var value_str = "";
-				var numdays = 0;
+				//var numdays = 0;
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
@@ -610,7 +610,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						display_str += day_list[index]+',';
 						// create str to store (str of integer id elements)
 						value_str += checkbox_reg.get("value")+',';
-						numdays++;  // numdays counts num days per week
+						//numdays++;  // numdays counts num days per week
 					}
 				})
 				// trim off last comma
@@ -620,7 +620,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (this.editgrid_obj) {
 					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
 					store_elem.dayweek_str = value_str;
-					store_elem.dayweek_num = numdays;
+					//store_elem.dayweek_num = numdays;
 					this.editgrid_obj.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
