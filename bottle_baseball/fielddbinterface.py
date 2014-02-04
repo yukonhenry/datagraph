@@ -18,6 +18,7 @@ end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
 end_time_CONST = 'END_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
+numgamedays_CONST = 'NUMGAMEDAYS'
 
 class FieldDBInterface:
     def __init__(self, mongoClient, newcol_name):
@@ -30,29 +31,21 @@ class FieldDBInterface:
             field_id = fieldinfo['field_id']
             start_date_str = fieldinfo['start_date']
             end_date_str = fieldinfo['end_date']
-            start_date = parser.parse(start_date_str)
-            start_day = start_date.weekday()
-            end_date = parser.parse(end_date_str)
-            end_day = end_date.weekday()
-            # create list of available dates during last week
-            diff_days = (end_date - start_date).days
-            diff_fullweeks = diff_days / 7
-            # available days in the last week
-            avail_days = diff_days % diff_fullweeks
-            if end_day >= start_day-1:
-                lw_list = range(start_day, end_day+1)
+            dayweek_list = fieldinfo['dayweek_str'].split(',')
+            if len(dayweek_list) == 1 and not dayweek_list[0]:
+                numgamedays = 0
             else:
-                lw_list = range(start_day, 7) + range(end_day+1)
-            # create list of available dates during last week
-
+                numgamedays = self.calcNumGameDays(start_date_str, end_date_str,
+                                                   dayweek_list)
             document = {field_id_CONST:int(field_id),
                         field_name_CONST:fieldinfo['field_name'],
                         primaryuse_list_CONST:fieldinfo['primaryuse_str'].split(','),
-                        start_date_CONST:fieldinfo['start_date'],
-                        end_date_CONST:fieldinfo['end_date'],
+                        start_date_CONST:start_date_str,
+                        end_date_CONST:end_date_str,
                         start_time_CONST:fieldinfo['start_time'],
                         end_time_CONST:fieldinfo['end_time'],
-                        dayweek_list_CONST:fieldinfo['dayweek_str'].split(',')}
+                        dayweek_list_CONST:dayweek_list,
+                        numgamedays_CONST:numgamedays}
             self.dbInterface.updateFieldInfo(document, field_id)
 
     def readDB(self):
@@ -66,7 +59,8 @@ class FieldDBInterface:
                                  'end_date':fieldinfo[end_date_CONST],
                                  'start_time':fieldinfo[start_time_CONST],
                                  'end_time':fieldinfo[end_time_CONST],
-                                 'dayweek_str':','.join(str(f) for f in fieldinfo[dayweek_list_CONST])})
+                                 'dayweek_str':','.join(str(f) for f in fieldinfo[dayweek_list_CONST]),
+                                 'numgamedays':fieldinfo[numgamedays_CONST]})
         f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
@@ -76,3 +70,30 @@ class FieldDBInterface:
             print 'fieldtime', fieldtime
             field_id = fieldtime['field_id']
 
+    def calcNumGameDays(self, start_date_str, end_date_str, dayweek_list):
+        start_date = parser.parse(start_date_str)
+        # get integer day of week number
+        start_day = start_date.weekday()
+        end_date = parser.parse(end_date_str)
+        end_day = end_date.weekday()
+        # create list of available dates during last week
+        # calc # days between start and end dates
+        diff_days = (end_date - start_date).days
+        diff_fullweeks = diff_days / 7
+        # calc baseline number of game days based on full weeks
+        numgamedays = len(dayweek_list)*diff_fullweeks
+        # available days in the last week
+        avail_days = diff_days % diff_fullweeks
+        if avail_days > 0:
+            if end_day >= start_day:
+                lw_list = range(start_day, end_day+1)
+            else:
+                # days of week are numbered as a circular list so take care
+                # of case where start day is later than end day wrt day num
+                # i.e. start = Fri and end = Mon
+                lw_list = range(start_day, 7) + range(end_day+1)
+            # calculate number of game days during last (partial) week
+            # by taking intersection of available days during last week
+            # and weekly game days
+            numgamedays += len(set(lw_list).intersection(dayweek_list))
+        return numgamedays
