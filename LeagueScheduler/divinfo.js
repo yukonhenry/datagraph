@@ -108,6 +108,13 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					return item.div_age+item.div_gen;
 				});
 				return divstr_list;
+			},
+			is_serverdata_required: function(options_obj) {
+				if (options_obj.item != this.colname) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 		});
 });

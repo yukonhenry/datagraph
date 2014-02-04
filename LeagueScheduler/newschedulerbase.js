@@ -153,6 +153,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var seasonend_date = this.seasonend_reg.get("value");
 				console.log("start end="+seasonstart_date+" "+seasonend_date);
 			},
+			is_serverdata_required: function(options_obj) {
+				// follow up on cases where data needs to be queried from server.
+				return false;
+			}
 			cleanup: function() {
 				if (this.seasonstart_handle)
 					this.seasonstart_handle.remove();

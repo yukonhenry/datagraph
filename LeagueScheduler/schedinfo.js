@@ -5,7 +5,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 		return declare(null, {
 			server_interface:null, schedutil_obj:null, divinfo_list:null,
 			select_reg:null, select_reg_handle:null, storeutil_obj:null,
-			idproperty:"sched_id", uistackmgr:null,
+			idproperty:"sched_id", uistackmgr:null, colname:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -27,6 +27,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 			},
 			getServerDBInfo: function(options_obj) {
 				var item = options_obj.item;
+				this.colname = item;
 				if (this.select_reg_handle)
 					this.select_reg_handle.remove();
 				// we don't necessariy need to call get_dbcol again if select_reg already exists (we don't need to recreate the drop down)
@@ -80,6 +81,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				}));
 				this.schedutil_obj.createEditGrid({game_list:game_grid_list}, options_obj);
 				return game_grid_list;
+			},
+			is_serverdata_required: function(options_obj) {
+				if (options_obj.item != this.colname) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 		});
 });

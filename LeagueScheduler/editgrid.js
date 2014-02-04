@@ -56,7 +56,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}, this.grid_id);
 				}
 				this.schedInfoGrid.startup();
-				// switch to content pane that has grid
+				// switch to content pane that has above generated grid
 				this.uistackmgr.switch_gstackcpane(this.idproperty);
 				//scontainer_reg.selectChild(this.cpane_id);
 				// the resize on grid is required; another option is to

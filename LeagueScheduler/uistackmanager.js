@@ -76,9 +76,9 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				// modify matched obj
 				match_obj.p_pane = select_pane;
 				match_obj.p_stage = stage;
-				match_obj.text_str = text_str;
+				match_obj.text_str = text_str || "";
 				match_obj.btn_callback = btn_callback;
-				match_obj.active_flag = true;
+				this.setreset_cpanestate_active(match_obj);
 				this.cpanestate_list[index] = match_obj;
 			},
 			get_cpanestate: function(id) {
@@ -102,6 +102,11 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var index = this.cpanestate_list.indexOf(match_obj);
 				return {match_obj:match_obj, index:index};
 			},
+			setreset_cpanestate_active: function(match_obj) {
+				var oldmatch_obj = this.get_cpanestate_active().match_obj;
+				oldmatch_obj.active_flag = false;
+				match_obj.active_flag = true;
+			},
 			switch_gstackcpane: function(id) {
 				var idmatch_list = arrayUtil.filter(this.gstackmap_list,
 					function(item, index) {
@@ -115,7 +120,7 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var index = state_obj.index;
 				// modify matched obj
 				match_obj.g_pane = select_pane;
-				match_obj.active_flag = true;
+				this.setreset_cpanestate_active(match_obj);
 				this.cpanestate_list[index] = match_obj;
 			},
 			check_initialize: function(info_obj, event) {
@@ -150,26 +155,45 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var new_idproperty = info_obj.idproperty;
 				var state_obj = this.get_cpanestate(new_idproperty);
 				var match_obj = state_obj.match_obj;
-				var p_pane = match_obj.p_pane;
-				if (p_pane && !match_obj.active_flag) {
-					// if panes for incoming idproperty is not active
-					// but a pane already exists,
-					// then switch to that pane
-					this.pstackcontainer_reg.selectChild(p_pane);
-					if (new_idproperty != 'sched_id') {
-						info_obj.text_node.innerHTML = match_obj.text_str;
-						if (!this.updatebtn_widget)
-							this.updatebtn_widget = registry.byId("infoBtnNode_id");
-						this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-						this.updatebtn_widget.set('info_type', new_idproperty);
-						this.updatebtn_widget.set("onClick", match_obj.btn_callback);
-					}
-					var g_pane = match_obj.g_pane;
-					if (g_pane) {
-						this.gstackcontainer_reg.selectChild(g_pane);
+				if (match_obj.active_flag) {
+					// if incoming cpanestate (based on idproperty)
+					// is already active, then check if call to server
+					// is necessary
+					// if not necessary don't do anything
+					var req_flag = info_obj.is_serverdata_required(options_obj);
+					if (req_flag) {
+						// server data is required, call it
+						info_obj.getServerDBInfo(options_obj);
 					}
 				} else {
-					info_obj.getServerDBInfo(options_obj);
+					this.setreset_cpanestate_active(match_obj);
+					// if incoming idproperty is not active
+					// then get corresponding cpane and switch to it
+					// if cpane does not exist, get data from server
+					var p_pane = match_obj.p_pane;
+					if (p_pane) {
+						this.setreset_cpanestate_active(match_obj);clone
+						// if panes for incoming idproperty is not active
+						// but a pane already exists,
+						// then switch to that pane
+						this.pstackcontainer_reg.selectChild(p_pane);
+						if (new_idproperty != 'sched_id') {
+							info_obj.text_node.innerHTML = match_obj.text_str;
+							if (!this.updatebtn_widget)
+								this.updatebtn_widget = registry.byId("infoBtnNode_id");
+							this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+							this.updatebtn_widget.set('info_type', new_idproperty);
+							this.updatebtn_widget.set("onClick", match_obj.btn_callback);
+						}
+						var g_pane = match_obj.g_pane;
+						if (g_pane) {
+							this.gstackcontainer_reg.selectChild(g_pane);
+						}
+					} else {
+						// this case should not happen when cpane is
+						// already active, but leave in
+						info_obj.getServerDBInfo(options_obj);
+					}
 				}
 			}
 		});

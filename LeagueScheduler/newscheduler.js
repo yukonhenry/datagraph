@@ -76,7 +76,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 								this.editgrid.sendDivInfoToServer));
 						var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
 						this.uistackmgr.switch_pstackcpane(this.idproperty, "config", text_str, btn_callback);
-
 						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
 						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);

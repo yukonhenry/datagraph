@@ -33,7 +33,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			editgrid_obj:null,
 			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
-			rendercell_flag:true, today:null,
+			rendercell_flag:true, today:null, colname:"",
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -209,6 +209,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
+				this.colname = item;
 				options_obj.info_obj = this;
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newfieldcol/";
@@ -642,6 +643,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				display_str = display_str.substring(0, display_str.length-1);
 				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
 				dropdownbtn_reg.set('label', display_str);
+			},
+			is_serverdata_required: function(options_obj) {
+				if (options_obj.item != this.colname) {
+					return true;
+				} else {
+					return false;
+				}
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
