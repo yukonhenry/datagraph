@@ -156,7 +156,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			is_serverdata_required: function(options_obj) {
 				// follow up on cases where data needs to be queried from server.
 				return false;
-			}
+			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
 					this.seasonstart_handle.remove();

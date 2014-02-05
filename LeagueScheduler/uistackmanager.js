@@ -86,10 +86,13 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					function(item, index) {
 						return item.id == id;
 					})
-				// retrieve actual obj and find index
-				var match_obj = idmatch_list[0];  // there should only be one elem
-				var index = this.cpanestate_list.indexOf(match_obj);
-				return {match_obj:match_obj, index:index};
+				if (idmatch_list.length > 0) {
+					// retrieve actual obj and find index
+					var match_obj = idmatch_list[0];  // there should only be one elem
+					var index = this.cpanestate_list.indexOf(match_obj);
+					return {match_obj:match_obj, index:index};
+				} else
+					return null;
 			},
 			// find the cpanestate that was last active
 			get_cpanestate_active: function() {
@@ -97,14 +100,20 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 					function(item, index) {
 						return item.active_flag == true;
 					})
-				// retrieve actual obj and find index
-				var match_obj = idmatch_list[0];  // there should only be one elem
-				var index = this.cpanestate_list.indexOf(match_obj);
-				return {match_obj:match_obj, index:index};
+				if (idmatch_list.length > 0) {
+					// retrieve actual obj and find index
+					var match_obj = idmatch_list[0];  // there should only be one elem
+					var index = this.cpanestate_list.indexOf(match_obj);
+					return {match_obj:match_obj, index:index};
+				} else
+					return null;
 			},
 			setreset_cpanestate_active: function(match_obj) {
-				var oldmatch_obj = this.get_cpanestate_active().match_obj;
-				oldmatch_obj.active_flag = false;
+				var active_state = this.get_cpanestate_active();
+				if (active_state) {
+					var oldmatch_obj = active_state.match_obj;
+					oldmatch_obj.active_flag = false;
+				}
 				match_obj.active_flag = true;
 			},
 			switch_gstackcpane: function(id) {
@@ -155,44 +164,49 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				var new_idproperty = info_obj.idproperty;
 				var state_obj = this.get_cpanestate(new_idproperty);
 				var match_obj = state_obj.match_obj;
-				if (match_obj.active_flag) {
-					// if incoming cpanestate (based on idproperty)
-					// is already active, then check if call to server
-					// is necessary
-					// if not necessary don't do anything
-					var req_flag = info_obj.is_serverdata_required(options_obj);
-					if (req_flag) {
-						// server data is required, call it
-						info_obj.getServerDBInfo(options_obj);
-					}
+				// first check if the idproperty-specific logic requires that
+				// server data is needed.
+				// idproperty-specific logic is applicable whether selected
+				// match_obj has already been active
+				var req_flag = info_obj.is_serverdata_required(options_obj);
+				if (req_flag) {
+					// server data is required, call it
+					info_obj.getServerDBInfo(options_obj);
 				} else {
-					this.setreset_cpanestate_active(match_obj);
-					// if incoming idproperty is not active
-					// then get corresponding cpane and switch to it
-					// if cpane does not exist, get data from server
-					var p_pane = match_obj.p_pane;
-					if (p_pane) {
-						this.setreset_cpanestate_active(match_obj);clone
-						// if panes for incoming idproperty is not active
-						// but a pane already exists,
-						// then switch to that pane
-						this.pstackcontainer_reg.selectChild(p_pane);
-						if (new_idproperty != 'sched_id') {
-							info_obj.text_node.innerHTML = match_obj.text_str;
-							if (!this.updatebtn_widget)
-								this.updatebtn_widget = registry.byId("infoBtnNode_id");
-							this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-							this.updatebtn_widget.set('info_type', new_idproperty);
-							this.updatebtn_widget.set("onClick", match_obj.btn_callback);
+					// if idproperty-specific logic determined that server data
+					// is not required, there is still some follow-up actions that
+					// are required. Note if the incoming match is already active
+					// there is nothing to do
+					if (!match_obj.active_flag) {
+						// switch panes
+						this.setreset_cpanestate_active(match_obj);
+						// if incoming idproperty is not active
+						// then get corresponding cpane and switch to it
+						// if cpane does not exist, get data from server
+						var p_pane = match_obj.p_pane;
+						if (p_pane) {
+							this.setreset_cpanestate_active(match_obj);
+							// if panes for incoming idproperty is not active
+							// but a pane already exists,
+							// then switch to that pane
+							this.pstackcontainer_reg.selectChild(p_pane);
+							if (new_idproperty != 'sched_id') {
+								info_obj.text_node.innerHTML = match_obj.text_str;
+								if (!this.updatebtn_widget)
+									this.updatebtn_widget = registry.byId("infoBtnNode_id");
+								this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+								this.updatebtn_widget.set('info_type', new_idproperty);
+								this.updatebtn_widget.set("onClick", match_obj.btn_callback);
+							}
+							var g_pane = match_obj.g_pane;
+							if (g_pane) {
+								this.gstackcontainer_reg.selectChild(g_pane);
+							}
+						} else {
+							// this case should not happen when cpane is
+							// already active, but leave in
+							info_obj.getServerDBInfo(options_obj);
 						}
-						var g_pane = match_obj.g_pane;
-						if (g_pane) {
-							this.gstackcontainer_reg.selectChild(g_pane);
-						}
-					} else {
-						// this case should not happen when cpane is
-						// already active, but leave in
-						info_obj.getServerDBInfo(options_obj);
 					}
 				}
 			}
