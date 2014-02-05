@@ -170,6 +170,13 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				// match_obj has already been active
 				var req_flag = info_obj.is_serverdata_required(options_obj);
 				if (req_flag) {
+					// if cpane is already active for the current idproperty
+					// then new grid only has to have store swapped out
+					if (match_obj.active_flag)
+						options_obj.gridstoreswap_flag = true;
+					else:
+						// if flag is false create new grid
+						options_obj.gridstoreswap_flag = false;
 					// server data is required, call it
 					info_obj.getServerDBInfo(options_obj);
 				} else {
@@ -205,9 +212,11 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 						} else {
 							// this case should not happen when cpane is
 							// already active, but leave in
+							options_obj.gridstoreswap_flag = false;
 							info_obj.getServerDBInfo(options_obj);
 						}
-					}
+					} else
+						alert("Displayed grid selected, no action");
 				}
 			}
 		});
