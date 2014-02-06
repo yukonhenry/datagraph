@@ -531,7 +531,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dropdownbtn_reg = registry.byId("fielddropdownbtn"+field_id+"_id");
 					dropdownbtn_reg.set('label', display_str);
-					//this.editgrid_obj.schedInfoStore.refresh();
 				}
 			},
 			dates_actionRenderCell: function(object, data, node) {
@@ -627,7 +626,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
 					dwdropdownbtn_reg.set('label', display_str);
-					//this.editgrid_obj.schedInfoStore.refresh();
 				}
 			},
 			// mark checkboxes depending on state of store
@@ -645,11 +643,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				dropdownbtn_reg.set('label', display_str);
 			},
 			is_serverdata_required: function(options_obj) {
-				if (options_obj.item != this.colname) {
+				return (options_obj.item != this.colname)?true:false;
+			},
+			is_newgrid_required: function() {
+				if (!this.editgrid_obj)
 					return true;
-				} else {
-					return false;
-				}
+				else
+					return (this.editgrid_obj.schedInfoGrid)?false:true;
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

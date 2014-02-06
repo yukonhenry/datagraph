@@ -15,7 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			grid_id:"",
 			error_node:null,
 			errorHandle:null, datachangeHandle:null, header_handle:null,
-			divisioncode:null, idproperty:null, bracketinfo:null,
+			idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_path:"", server_key:"",
 			info_obj:null, uistackmgr:null,
@@ -63,9 +63,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// have a callback on scontainer_reg.on('show')
 				this.schedInfoGrid.resize();
 				// track which grid content panes have grids in them
+				// looks like editgrid_obj is servering same purpose
+				/*
 				if (this.info_obj && 'editgrid' in this.info_obj) {
 					this.info_obj.editgrid = this.schedInfoGrid;
-				}
+				} */
 				if (this.idproperty == 'div_id') {
 					// set property that divinfo collection has been selected
 					this.info_obj.colname = this.colname;
@@ -240,6 +242,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.server_interface.server_ack, server_key_obj, options_obj);
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty);
 			},
+			replace_store: function(griddata_list) {
+				this.schedInfoStore.setData(griddata_list);
+				this.schedInfoGrid.refresh();
+			},
 			cleanup: function() {
 				if (this.bracketinfo) {
 					this.bracketinfo.cleanup();
@@ -249,7 +255,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					dom.byId(this.grid_id).innerHTML = "";
 					delete this.schedInfoGrid;
 					delete this.schedInfoStore;
-					this.divisioncode = 0;
 				}
 				if (this.errorHandle) {
 					this.error_node.innerHTML = "";

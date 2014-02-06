@@ -18,6 +18,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			server_interface:null, schedutil_obj:null, storeutil_obj:null,
 			colname:"", infogrid_store:null, idproperty:constant.idproperty_str,
 			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
+			editgrid_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
@@ -110,11 +111,13 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				return divstr_list;
 			},
 			is_serverdata_required: function(options_obj) {
-				if (options_obj.item != this.colname) {
+				return (options_obj.item != this.colname)?true:false;
+			},
+			is_newgrid_required: function() {
+				if (!this.editgrid_obj)
 					return true;
-				} else {
-					return false;
-				}
+				else
+					return (this.editgrid_obj.schedInfoGrid)?false:true;
 			}
 		});
 });

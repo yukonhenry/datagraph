@@ -83,11 +83,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				return game_grid_list;
 			},
 			is_serverdata_required: function(options_obj) {
-				if (options_obj.item != this.colname) {
+				return (options_obj.item != this.colname)?true:false;
+			},
+			is_newgrid_required: function() {
+				if (!this.editgrid_obj)
 					return true;
-				} else {
-					return false;
-				}
+				else
+					return (this.editgrid_obj.schedInfoGrid)?false:true;
 			}
 		});
 });

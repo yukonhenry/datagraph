@@ -221,6 +221,33 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var divisioncode = options_obj.divisioncode || 0;
 				var idproperty = options_obj.idproperty;
+				var server_key = options_obj.server_key;
+				// if server data is fielddb information, then we need to do
+				// some data conversion (convert to date obj) before passing onto grid
+				// Note server_key is key for outgoing request
+				// serverdata_key is for incoming data
+				var data_list = server_data[options_obj.serverdata_key];
+				if (server_key == constant.fielddb_type) {
+					if (idproperty == 'field_id') {
+						arrayUtil.forEach(data_list, function(item, index) {
+							// save date str to pass into start and end time calc
+							// (though it can be a dummy date)
+							var start_str = item.start_date;
+							var end_str = item.end_date;
+							item.start_date = new Date(start_str);
+							item.end_date = new Date(end_str);
+							item.start_time = new Date(start_str+' '+item.start_time);
+							item.end_time = new Date(end_str+' '+item.end_time);
+						})
+					} else {
+						alert('check db_type and idproperty consistency');
+					}
+				}
+				if (!this.server_interface) {
+					console.log("no server interface");
+					alert("no server interface, check if service running");
+				}
+/*
 				if (!this.editgrid || !baseinfoSingleton.get_active_grid() || colname != this.editgrid.colname ||
 				    idproperty != this.editgrid.idproperty ||
 				    divisioncode != this.editgrid.divisioncode) {
@@ -229,42 +256,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						this.editgrid.cleanup();
 						delete this.editgrid;
 					}
-					/* else {
-						var active_grid = baseinfoSingleton.get_active_grid();
-						if (active_grid) {
-							//active_grid.cleanup();
-							baseinfoSingleton.reset_active_grid();
-						}
-					} */
-					if (!this.server_interface) {
-						console.log("no server interface");
-						alert("no server interface, check if service running");
-					}
-					var server_key = options_obj.server_key;
-					// if server data is fielddb information, then we need to do
-					// some data conversion (convert to date obj) before passing onto grid
-					// Note server_key is key for outgoing request
-					// serverdata_key is for incoming data
-					var data_list = server_data[options_obj.serverdata_key];
-					if (server_key == constant.fielddb_type) {
-						if (idproperty == 'field_id') {
-							arrayUtil.forEach(data_list, function(item, index) {
-								// save date str to pass into start and end time calc
-								// (though it can be a dummy date)
-								var start_str = item.start_date;
-								var end_str = item.end_date;
-								item.start_date = new Date(start_str);
-								item.end_date = new Date(end_str);
-								item.start_time = new Date(start_str+' '+item.start_time);
-								item.end_time = new Date(end_str+' '+item.end_time);
-							})
-						} else {
-							alert('check db_type and idproperty consistency');
-						}
-					}
+*/
+				if (options_obj.newgrid_flag) {
 					this.editgrid = new EditGrid({griddata_list:data_list,
 						colname:colname,
-						divisioncode:divisioncode,
 						server_interface:this.server_interface,
 						grid_id:options_obj.grid_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
@@ -275,21 +270,26 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						info_obj:options_obj.info_obj,
 						uistackmgr:options_obj.uistackmgr,
 						storeutil_obj:options_obj.storeutil_obj});
-					if (idproperty != 'sched_id') {
-						var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
-						options_obj.text_node.innerHTML = text_str;
-						var updatebtn_widget = this.getInfoBtn_widget(
-							options_obj.updatebtn_str, idproperty);
-						updatebtn_widget.set("onClick", lang.hitch(this.editgrid,
-							this.editgrid.sendDivInfoToServer));
-						var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
-						options_obj.uistackmgr.switch_pstackcpane(idproperty, "config", text_str, btn_callback);
-					}
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 					baseinfoSingleton.set_active_grid(this.editgrid);
 					baseinfoSingleton.set_active_grid_name(colname);
 				} else {
-					alert("same schedule selected");
+					this.editgrid.replace_store(data_list);
+				}
+				// need to rethink structure of setting up and maintaining
+				// updatebtn_widget
+				if (idproperty != 'sched_id') {
+					var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
+					options_obj.text_node.innerHTML = text_str;
+					var updatebtn_widget = this.getInfoBtn_widget(
+						options_obj.updatebtn_str, idproperty);
+					updatebtn_widget.set("onClick", lang.hitch(this.editgrid,
+						this.editgrid.sendDivInfoToServer));
+					var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+				}
+				if (options_obj.swapcpane_flag) {
+					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config",
+						text_str, btn_callback);
 				}
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str) {

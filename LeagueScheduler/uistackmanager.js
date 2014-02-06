@@ -159,6 +159,14 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				}
 			},
 			check_getServerDBInfo: function(options_obj) {
+				// we have to decide on two orthogonal factors:
+				// 1. Whether to get data from server
+				// 2. whether to switch cpane
+				// so there are four combinations:
+				// scenario 1: get data and switch pane
+				// scenario 2: get data and not switch pane
+				// scenario 3: don't get data but switch pane
+				// scenario 4: don't get data and don't switch pane
 				var info_obj = options_obj.info_obj;
 				// get incoming idproperty
 				var new_idproperty = info_obj.idproperty;
@@ -169,14 +177,11 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 				// idproperty-specific logic is applicable whether selected
 				// match_obj has already been active
 				var req_flag = info_obj.is_serverdata_required(options_obj);
+				// determine if cpane has to be swapped; this is determined
+				// by checking active_flag of the idproperty-matched match_obj
+				options_obj.swapcpane_flag = !match_obj.active_flag;
+				options_obj.newgrid_flag = info_obj.is_newgrid_required();
 				if (req_flag) {
-					// if cpane is already active for the current idproperty
-					// then new grid only has to have store swapped out
-					if (match_obj.active_flag)
-						options_obj.gridstoreswap_flag = true;
-					else:
-						// if flag is false create new grid
-						options_obj.gridstoreswap_flag = false;
 					// server data is required, call it
 					info_obj.getServerDBInfo(options_obj);
 				} else {
@@ -192,7 +197,6 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 						// if cpane does not exist, get data from server
 						var p_pane = match_obj.p_pane;
 						if (p_pane) {
-							this.setreset_cpanestate_active(match_obj);
 							// if panes for incoming idproperty is not active
 							// but a pane already exists,
 							// then switch to that pane
@@ -210,9 +214,9 @@ define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/arra
 								this.gstackcontainer_reg.selectChild(g_pane);
 							}
 						} else {
-							// this case should not happen when cpane is
-							// already active, but leave in
-							options_obj.gridstoreswap_flag = false;
+							// this case should not be reached as is_serverdata_req
+							// call should have flagged that data is necessary
+							console.log("uistackmanager:double check logic for is_serverdata_req");
 							info_obj.getServerDBInfo(options_obj);
 						}
 					} else

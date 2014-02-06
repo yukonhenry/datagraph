@@ -157,6 +157,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// follow up on cases where data needs to be queried from server.
 				return false;
 			},
+			is_newgrid_required: function() {
+				return false;
+			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
 					this.seasonstart_handle.remove();
