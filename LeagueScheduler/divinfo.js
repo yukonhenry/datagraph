@@ -108,6 +108,10 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var divstr_list = this.infogrid_store.query().map(function(item) {
 					return item.div_age+item.div_gen;
 				});
+				var dup_list = this.schedutil_obj.detect_arrayduplicate(divstr_list);
+				if (dup_list.length > 0) {
+					alert("duplicate div info entries (or blank)");
+				}
 				return divstr_list;
 			},
 			is_serverdata_required: function(options_obj) {

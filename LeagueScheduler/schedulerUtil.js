@@ -219,7 +219,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
 				var colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
-				var divisioncode = options_obj.divisioncode || 0;
 				var idproperty = options_obj.idproperty;
 				var server_key = options_obj.server_key;
 				// if server data is fielddb information, then we need to do
@@ -311,6 +310,18 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				}
 				return infobtn_widget;
 			},
+			detect_arrayduplicate: function(arry) {
+				// detect duplicate elements in array
+				// ref http://stackoverflow.com/questions/840781/easiest-way-to-find-duplicate-values-in-a-javascript-array
+				var sorted_arry = arry.sort();
+				var results = [];
+				for (var i = 0; i < arry.length - 1; i++) {
+					if (sorted_arry[i + 1] == sorted_arry[i]) {
+						results.push(sorted_arry[i]);
+					}
+				}
+				return results;
+			}
 		})
 	}
 );
