@@ -1,6 +1,6 @@
-define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
+define(["dbootstrap", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 	"dijit/registry", "dijit/form/Button", "LeagueScheduler/editgrid", "dojo/domReady!"],
-	function(declare, lang, arrayUtil, dom, registry, Button, EditGrid) {
+	function(dbootstrap, declare, lang, arrayUtil, dom, registry, Button, EditGrid) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
@@ -13,6 +13,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
+				var tempgrid = new EditGrid();
 				var colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var idproperty = options_obj.idproperty;
@@ -43,7 +44,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					alert("no server interface, check if service running");
 				}
 				if (options_obj.newgrid_flag) {
-					var tempgrid = new EditGrid();
 					this.editgrid = new EditGrid({griddata_list:data_list,
 						colname:colname,
 						server_interface:this.server_interface,
