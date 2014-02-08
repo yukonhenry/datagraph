@@ -3,11 +3,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dgrid/CellSelection", "dijit/form/Button", "dijit/form/ToggleButton",
-	"LeagueScheduler/bracketinfo", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
+	"LeagueScheduler/baseinfoSingleton", "dojo/domReady!"
+	], function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
 	         arrayUtil, date, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
-		Button, ToggleButton, BracketInfo, baseinfoSingleton) {
+		Button, ToggleButton, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null,
 			server_interface:null, colname:null,
@@ -15,7 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			grid_id:"",
 			error_node:null,
 			errorHandle:null, datachangeHandle:null, header_handle:null,
-			idproperty:null, bracketinfo:null,
+			idproperty:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_path:"", server_key:"",
 			info_obj:null, uistackmgr:null, storeutil_obj:null,
@@ -64,10 +64,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.schedInfoGrid.resize();
 				// track which grid content panes have grids in them
 				// looks like editgrid_obj is servering same purpose
-				/*
-				if (this.info_obj && 'editgrid' in this.info_obj) {
-					this.info_obj.editgrid = this.schedInfoGrid;
-				} */
+				//if (this.info_obj && 'editgrid' in this.info_obj) {
+				//	this.info_obj.editgrid = this.schedInfoGrid;
+				//}
 				if (this.idproperty == 'div_id') {
 					// set property that divinfo collection has been selected
 					this.info_obj.colname = this.colname;
@@ -82,10 +81,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.datachangeHandle.remove();
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 					lang.hitch(this, this.editschedInfoGrid));
-				/*
-				this.submitHandle = this.updatebtn_widget.on("click",
-					lang.hitch(this, this.sendDivInfoToServer));
-				*/
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
 				}
@@ -100,6 +95,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							this.info_obj.rendercell_flag = false;
 						}
 					}));
+				/*
 				if (this.idproperty == 'div_id') {
 					this.tbutton_reg = baseinfoSingleton.get_tbutton_reg();
 					if (!this.tbutton_reg) {
@@ -123,12 +119,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						domStyle.set(this.tbutton_reg.domNode, 'display', 'inline');
 					}
 				}
+				*/
 			},
 			manageCellSelect: function() {
 				if (this.cellselect_handle)
 					this.cellselect_handle.remove();
 				this.cellselect_handle = this.schedInfoGrid.on("dgrid-select", lang.hitch(this, this.cellSelectHandler));
 			},
+			/*
 			manageBracketEdit: function(val) {
 				// depending on toggle value enable/disable bracket editing
 				if (this.rowSelectHandle){
@@ -144,7 +142,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						delete this.bracketinfo;
 					}
 				}
-			},
+			}, */
 			editschedInfoGrid: function(event) {
 				var val = event.value;
         		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
@@ -156,6 +154,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var eventdata = event.rows[0].data
 				var div_str = eventdata.div_age + eventdata.div_gen;
 				var totalbrackets = eventdata.totalbrackets;
+				/*
 				if (this.bracketinfo) {
 					this.bracketinfo.cleanup();
 					delete this.bracketinfo;
@@ -164,6 +163,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					bracketinfo_name:"bracketInfoInputGrid",
 					bracketinfotext_node:dom.byId("bracketInfoNodeText")});
 				this.bracketinfo.createBracketInfoGrid(div_str);
+				*/
 			},
 			cellSelectHandler: function(event) {
 				if (this.info_obj) {
@@ -180,40 +180,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendDivInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
 				// do check to make sure all fields have been filled.
-				/*
-				arrayUtil.forEach(raw_result, function(item, index) {
-					console.log('raw item='+item);
-				}) */
+				//arrayUtil.forEach(raw_result, function(item, index) {
+				//	console.log('raw item='+item);
+				//})
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
-					/*
-					raw_result.forEach(function(item, index) {
-						// make num date calculations based on start/end dates
-						// and dayweek days selected through the dayweek checkboxes
-						var start_day = item.start_date.getDay();
-						var end_day = item.end_date.getDay();
-						var caldays_num = date.difference(item.start_date,
-							item.end_date, 'day');
-						// calc number of full weeks
-						var calweeks_num = date.difference(item.start_date,
-							item.end_date, 'week');
-						// calc num of raw days left in last (partial) week
-						var caldays_lastweek_num = caldays_num - calweeks_num*7;
-						// calc number of event days corresponding to full calendar weeks
-						// days in leftover week (numdays % numweeks)
-						var lastweek_list = new Array();
-						if (caldays_lastweek_num > 0) {
-							var available_list = new Array();
-							var test_day = start_day;
-							while (test_day != end_day) {
-								available_list.push(test_day);
-								test_day++;
-								if (test_day ==7)
-									test_day = 0;
-							}
-
-						}
-					}) */
 					var newlist = new Array();
 					// for the field grid data convert Data objects to str
 					// note we want to keep it as data objects inside of store to
@@ -247,10 +218,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.schedInfoGrid.refresh();
 			},
 			cleanup: function() {
+				/*
 				if (this.bracketinfo) {
 					this.bracketinfo.cleanup();
 					delete this.bracketinfo;
-				}
+				} */
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_id).innerHTML = "";
 					delete this.schedInfoGrid;

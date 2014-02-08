@@ -1,6 +1,8 @@
-define(["dbootstrap", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
-	"dijit/registry", "dijit/form/Button", "LeagueScheduler/editgrid", "dojo/domReady!"],
-	function(dbootstrap, declare, lang, arrayUtil, dom, registry, Button, EditGrid) {
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+	"dijit/registry", "dijit/form/Button", "LeagueScheduler/editgrid",
+	"LeagueScheduler/testclass", "dojo/domReady!"],
+	function(dbootstrap, dom, declare, lang, arrayUtil, registry, Button,
+		EditGrid, testclass) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
@@ -95,7 +97,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array
 					infobtn_widget.startup();
 				}
 				return infobtn_widget;
-			},
+			}
 		})
 	}
 );
