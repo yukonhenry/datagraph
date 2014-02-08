@@ -114,6 +114,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				}
 				return divstr_list;
 			},
+			createEditGrid: function(server_data, options_obj) {
+				this.inherited(arguments);
+			},
 			is_serverdata_required: function(options_obj) {
 				return (options_obj.item != this.colname)?true:false;
 			},

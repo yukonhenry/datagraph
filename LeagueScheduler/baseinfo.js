@@ -13,7 +13,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
-				var tempgrid = new EditGrid();
 				var colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var idproperty = options_obj.idproperty;
