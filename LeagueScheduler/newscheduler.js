@@ -67,7 +67,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							storeutil_obj:this.storeutil_obj});
 						var text_str = this.text_node_str + ": <b>"+this.newcol_name+"</b>";
 						this.text_node.innerHTML = text_str;
-						var updatebtn_widget = this.schedutil_obj.getInfoBtn_widget(
+						var updatebtn_widget = this.info_obj.getInfoBtn_widget(
 							this.updatebtn_str, this.idproperty);
 						// do straight overrride on button onclick event handler
 						// so that we don't have to worry about handler clean-up

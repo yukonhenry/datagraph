@@ -1,11 +1,11 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_base/array", "dojo/store/Memory","dijit/registry", "dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection","LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, Memory, registry, OnDemandGrid, editor, Keyboard, Selection, baseinfoSingleton){
-		return declare(null, {
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_base/array", "dojo/store/Memory","dijit/registry", "dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection","LeagueScheduler/baseinfoSingleton", "LeagueScheduler/baseinfo", "dojo/domReady!"],
+	function(dbootstrap, dom, declare, lang, arrayUtil, Memory, registry, OnDemandGrid, editor, Keyboard, Selection, baseinfoSingleton, baseinfo){
+		return declare(baseinfo, {
 			columnsdef_obj : {
 				bracket_id: "Bracket ID",
 				team_list:editor({label:"Team List", field:"team_list", autoSave:true},"text","dblclick"),
-			}, totalbrackets:0, server_interface:null, schedutil_obj:null,
+			}, totalbrackets:0, schedutil_obj:null,
 			bracketinfo_name:"", bracketinfo_store:null, bracketinfo_grid:null,
 			bracketinfotext_node:null,
 			constructor: function(args) {
@@ -86,7 +86,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_
 					});
 					game_grid_list = game_grid_list.concat(game_grid_row_list);
 				}));
-				this.schedutil_obj.createEditGrid({game_list:game_grid_list}, options_obj);
+				this.createEditGrid({game_list:game_grid_list}, options_obj);
 				return game_grid_list;
 			}
 		});

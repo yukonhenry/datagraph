@@ -18,7 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			idproperty:null, bracketinfo:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_path:"", server_key:"",
-			info_obj:null, uistackmgr:null,
+			info_obj:null, uistackmgr:null, storeutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},

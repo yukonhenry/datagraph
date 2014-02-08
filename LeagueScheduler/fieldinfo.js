@@ -1,11 +1,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dojo/_base/array",
-	"dijit/registry","dgrid/editor",
+	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox", "dijit/form/Button",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory, arrayUtil,
-		registry, editor, baseinfoSingleton, newscheduler,
+	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
+		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, newscheduler,
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
 		put, Calendar){
 		var constant = {
@@ -18,8 +18,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			db_type:'fielddb',
 			day_list:['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 		};
-		return declare(null, {
- 			server_interface:null, schedutil_obj:null, storeutil_obj:null,
+		return declare(baseinfo, {
+ 			schedutil_obj:null, storeutil_obj:null,
  			divinfo_obj:null, idproperty:constant.idproperty_str,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
@@ -234,7 +234,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					this.schedutil_obj.makeInvisible(form_dom);
 				} */
 				this.server_interface.getServerData("get_fieldcol/"+item,
-					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
+					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(fieldnum) {
 				// return value defines structure for store for grid

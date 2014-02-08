@@ -1,9 +1,12 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
-       "dojo/_base/array", "dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor, baseinfoSingleton){
-		return declare(null, {
-			server_interface:null, schedutil_obj:null, divinfo_list:null,
+	"dojo/_base/array", "dijit/registry", "dgrid/editor",
+	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
+	"dojo/domReady!"],
+	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor,
+		baseinfo, baseinfoSingleton){
+		return declare(baseinfo, {
+			schedutil_obj:null, divinfo_list:null,
 			select_reg:null, select_reg_handle:null, storeutil_obj:null,
 			idproperty:"sched_id", uistackmgr:null, colname:"",
 			constructor: function(args) {
@@ -79,7 +82,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					});
 					game_grid_list = game_grid_list.concat(game_grid_row_list);
 				}));
-				this.schedutil_obj.createEditGrid({game_list:game_grid_list}, options_obj);
+				this.createEditGrid({game_list:game_grid_list}, options_obj);
 				return game_grid_list;
 			},
 			is_serverdata_required: function(options_obj) {

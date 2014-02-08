@@ -1,11 +1,11 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
-	"dijit/registry", "dgrid/editor",
+	"dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
 	"dijit/form/Button",
 	"dojo/domReady!"],
-	function(dbootstrap, declare, dom, lang, registry, editor, baseinfoSingleton,
-		newscheduler, Button){
+	function(dbootstrap, declare, dom, lang, registry, editor, baseinfo,
+		baseinfoSingleton, newscheduler, Button){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
@@ -14,8 +14,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			grid_id:"divinfogrid_id",
 			text_node_str: 'Schedule Name',
 		};
-		return declare(null, {
-			server_interface:null, schedutil_obj:null, storeutil_obj:null,
+		return declare(baseinfo, {
+			schedutil_obj:null, storeutil_obj:null,
 			colname:"", infogrid_store:null, idproperty:constant.idproperty_str,
 			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
 			editgrid_obj:null,
@@ -91,7 +91,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.uistackmgr = this.uistackmgr;
 				options_obj.storeutil_obj = this.storeutil_obj;
 				this.server_interface.getServerData("get_dbcol/"+item,
-					lang.hitch(this.schedutil_obj, this.schedutil_obj.createEditGrid), null, options_obj);
+					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(divnum) {
 				var divInfo_list = new Array();
