@@ -2,12 +2,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/date",
 	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
-	"dgrid/CellSelection", "dijit/form/Button", "dijit/form/ToggleButton",
+	"dgrid/CellSelection", "dijit/form/ToggleButton",
 	"LeagueScheduler/baseinfoSingleton", "dojo/domReady!"
 	], function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
 	         arrayUtil, date, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
-		Button, ToggleButton, baseinfoSingleton) {
+		ToggleButton, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null,
 			server_interface:null, colname:null,
@@ -216,6 +216,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			replace_store: function(griddata_list) {
 				this.schedInfoStore.setData(griddata_list);
 				this.schedInfoGrid.refresh();
+				// we might not always need to switch the gstack, but do it
+				// by default right now
+				this.uistackmgr.switch_gstackcpane(this.idproperty);
 			},
 			cleanup: function() {
 				/*

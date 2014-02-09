@@ -1,11 +1,10 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
+define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 	"dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
-	"dijit/form/Button",
 	"dojo/domReady!"],
-	function(dbootstrap, declare, dom, lang, registry, editor, baseinfo,
-		baseinfoSingleton, newscheduler, Button){
+	function(declare, dom, lang, registry, editor, baseinfo,
+		baseinfoSingleton, newscheduler){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
@@ -118,14 +117,5 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			createEditGrid: function(server_data, options_obj) {
 				this.inherited(arguments);
 			}, */
-			is_serverdata_required: function(options_obj) {
-				return (options_obj.item != this.colname)?true:false;
-			},
-			is_newgrid_required: function() {
-				if (!this.editgrid_obj)
-					return true;
-				else
-					return (this.editgrid_obj.schedInfoGrid)?false:true;
-			}
 		});
 });

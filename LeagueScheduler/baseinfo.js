@@ -1,8 +1,8 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dijit/form/Button", "LeagueScheduler/editgrid",
-	"LeagueScheduler/testclass", "dojo/domReady!"],
+	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, registry, Button,
-		EditGrid, testclass) {
+		EditGrid) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
@@ -97,6 +97,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					infobtn_widget.startup();
 				}
 				return infobtn_widget;
+			},
+			is_serverdata_required: function(options_obj) {
+				return (options_obj.item != this.colname)?true:false;
+			},
+			is_newgrid_required: function() {
+				if (!this.editgrid_obj)
+					return true;
+				else
+					return (this.editgrid_obj.schedInfoGrid)?false:true;
 			}
 		})
 	}

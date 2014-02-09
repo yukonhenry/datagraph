@@ -1,6 +1,6 @@
 /* manage UI content pane structure, especially switching stack container panes */
-define(["dbootstrap",  "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/registry", "dojo/domReady!"],
-	function(dbootstrap, declare, lang, arrayUtil, registry) {
+define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/registry", "dojo/domReady!"],
+	function(declare, lang, arrayUtil, registry) {
 		var constant = {
 			// param stack id's
 			pstackcontainer_id:"paramStackContainer_id",

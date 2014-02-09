@@ -1,9 +1,9 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
+define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 	"dojo/_base/array", "dijit/registry", "dgrid/editor",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, registry, editor,
+	function(dom, declare, lang, arrayUtil, registry, editor,
 		baseinfo, baseinfoSingleton){
 		return declare(baseinfo, {
 			schedutil_obj:null, divinfo_list:null,
@@ -84,15 +84,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				}));
 				this.createEditGrid({game_list:game_grid_list}, options_obj);
 				return game_grid_list;
-			},
-			is_serverdata_required: function(options_obj) {
-				return (options_obj.item != this.colname)?true:false;
-			},
-			is_newgrid_required: function() {
-				if (!this.editgrid_obj)
-					return true;
-				else
-					return (this.editgrid_obj.schedInfoGrid)?false:true;
 			}
 		});
 });

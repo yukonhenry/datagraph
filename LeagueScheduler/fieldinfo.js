@@ -642,15 +642,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
 				dropdownbtn_reg.set('label', display_str);
 			},
-			is_serverdata_required: function(options_obj) {
-				return (options_obj.item != this.colname)?true:false;
-			},
-			is_newgrid_required: function() {
-				if (!this.editgrid_obj)
-					return true;
-				else
-					return (this.editgrid_obj.schedInfoGrid)?false:true;
-			},
 			cleanup: function() {
 				if (this.starttime_handle)
 					this.starttime_handle.remove();
