@@ -17,7 +17,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			schedutil_obj:null, storeutil_obj:null,
 			colname:"", infogrid_store:null, idproperty:constant.idproperty_str,
 			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
-			editgrid_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);

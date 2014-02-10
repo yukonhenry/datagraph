@@ -22,12 +22,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
-			makeVisible: function(dom_name) {
-				domClass.replace(dom_name, "style_inline", "style_none");
-			},
-			makeInvisible: function(dom_name) {
-				domClass.replace(dom_name, "style_none", "style_inline");
-			},
 			recreateSchedInfoGrid: function(columnsdef_obj) {
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
@@ -39,9 +33,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
 				// 'in' operator is generic and works through inherited objects
 				// To use hasOwnProperty, initialize the.info_obj w new Object()
+				/*
 				if (this.info_obj && 'editgrid_obj' in this.info_obj) {
 					this.info_obj.editgrid_obj = this;
-				}
+				} */
 				if (this.cellselect_flag) {
 					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, CellSelection]))({
 						store: this.schedInfoStore,
@@ -180,9 +175,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendDivInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
 				// do check to make sure all fields have been filled.
-				//arrayUtil.forEach(raw_result, function(item, index) {
-				//	console.log('raw item='+item);
-				//})
+				if (arrayUtil.some(raw_result, function(item, index) {
+					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
+					// iterate through object's own properties too see if there
+					// any unfilled fields.  If so alert and exit without sending
+					// data to server
+					var break_flag = false;
+					for (var prop in item) {
+						if (item[prop] === "") {
+							alert("Not all fields in grid filled out");
+							break_flag = true;
+							break;
+						}
+					}
+					return break_flag;
+				})) return;
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();
@@ -218,7 +225,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.schedInfoGrid.refresh();
 				// we might not always need to switch the gstack, but do it
 				// by default right now
-				this.uistackmgr.switch_gstackcpane(this.idproperty);
+				//this.uistackmgr.switch_gstackcpane(this.idproperty);
 			},
 			cleanup: function() {
 				/*

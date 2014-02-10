@@ -51,6 +51,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 					constant.divcpane_id,
 					constant.schedcpane_id,
 					constant.fieldcpane_id];
+				// gstackmap_list maps from id to corresponding grid name
 				this.gstackmap_list = new Array();
 				this.cpanestate_list = new Array();
 				arrayUtil.forEach(id_list, function(item, index) {
@@ -58,16 +59,20 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 					pane_id:cpane_list[index]});
 					this.cpanestate_list.push({id:item,
 						p_pane:null, p_stage:null,
-						g_pane:null, text_str:"", btn_callback:null,
+						g_pane:constant.blankcpane_id, text_str:"",
+						btn_callback:null,
 						active_flag:false})
 				}, this);
 			},
 			switch_pstackcpane: function(id, stage, text_str, btn_callback) {
+				/*
 				var idmatch_list = arrayUtil.filter(this.pstackmap_list,
 					function(item, index) {
 						return item.id == id && item.stage == stage;
 					});
 				var select_pane = idmatch_list[0].pane_id;
+				*/
+				var select_pane = this.getp_pane(id, stage);
 				this.pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index
 				var state_obj = this.get_cpanestate(id);
@@ -108,6 +113,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				} else
 					return null;
 			},
+			getp_pane: function(id, stage) {
+				// get parameter pane corresponding to id and stage
+				// ('config' or 'preconfig')
+				var idmatch_list = arrayUtil.filter(this.pstackmap_list,
+					function(item, index) {
+						return item.id == id && item.stage == stage;
+					});
+				return idmatch_list[0].pane_id;
+			},
 			setreset_cpanestate_active: function(match_obj) {
 				var active_state = this.get_cpanestate_active();
 				if (active_state) {
@@ -133,27 +147,53 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				this.cpanestate_list[index] = match_obj;
 			},
 			check_initialize: function(info_obj, event) {
-				var state_obj = this.get_cpanestate(info_obj.idproperty);
+				var new_idproperty = info_obj.idproperty;
+				var state_obj = this.get_cpanestate(new_idproperty);
+				var index = state_obj.index;
 				var match_obj = state_obj.match_obj;
-				var p_pane = match_obj.p_pane;
-				if (p_pane) {
-					this.pstackcontainer_reg.selectChild(p_pane);
-					info_obj.text_node.innerHTML = match_obj.text_str;
-					var idproperty = info_obj.idproperty;
-					if ((idproperty == 'div_id' || idproperty == 'field_id') &&
-						match_obj.p_stage =='config') {
-						// only if conditions where update_btn widget is relevant
-						if (!this.updatebtn_widget)
-							this.updatebtn_widget = registry.byId("infoBtnNode_id");
-						this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-						this.updatebtn_widget.set('info_type', info_obj.idproperty);
-						this.updatebtn_widget.set("onClick",
-							match_obj.btn_callback);
+				// get the ppane that was last recorded
+				var lastp_stage = match_obj.stage;
+				// get the preconfig pane (applicable pane for initialization)
+				// corresponding to id
+				if (lastp_stage) {
+					// if lastp_stage for this idproperty exists then a panel
+					// existed either in the preconfig or conig stage
+					if (lastp_stage == 'preconfig') {
+						var lastp_pane = match_obj.p_pane;
+						this.pstackcontainer_reg.selectChild(lastp_pane);
+						// modify matched obj
+						match_obj.p_pane = lastp_pane;
+						/*
+						info_obj.text_node.innerHTML = match_obj.text_str;
+						var idproperty = info_obj.idproperty;
+						if ((idproperty == 'div_id' || idproperty == 'field_id') &&
+							match_obj.p_stage =='config') {
+							// only if conditions where update_btn widget is relevant
+							if (!this.updatebtn_widget)
+								this.updatebtn_widget = registry.byId("infoBtnNode_id");
+							this.updatebtn_widget.set('label', info_obj.updatebtn_str);
+							this.updatebtn_widget.set('info_type', info_obj.idproperty);
+							this.updatebtn_widget.set("onClick",
+								match_obj.btn_callback);
+						}
+						var g_pane = match_obj.g_pane;
+						if (g_pane) {
+							this.gstackcontainer_reg.selectChild(g_pane);
+						}  */
+					} else {
+						// last stage was 'config', so we need bring up the
+						// preconfig pane
+						var p_pane = this.getp_pane(new_idproperty, 'preconfig');
+						this.pstackcontainer_reg.selectChild(p_pane);
+						match_obj.p_pane = p_pane;
 					}
-					var g_pane = match_obj.g_pane;
-					if (g_pane) {
-						this.gstackcontainer_reg.selectChild(g_pane);
-					}
+					this.gstackcontainer_reg.selectChild(constant.blankcpane_id);
+					match_obj.p_stage = 'preconfig';
+					match_obj.text_str = "";
+					match_obj.btn_callback = null;
+					match_obj.g_pane = constant.blankcpane_id;
+					this.setreset_cpanestate_active(match_obj);
+					this.cpanestate_list[index] = match_obj;
 				} else {
 					info_obj.initialize();
 				}

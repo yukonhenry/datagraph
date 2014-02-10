@@ -77,6 +77,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				if (options_obj.swapcpane_flag) {
 					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config",
 						text_str, btn_callback);
+					if (!options_obj.newgrid_flag) {
+						// also swap grid if we are not generating a new one
+						options_obj.uistackmgr.switch_gstackcpane(idproperty);
+					}
 				}
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str) {
@@ -102,10 +106,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				return (options_obj.item != this.colname)?true:false;
 			},
 			is_newgrid_required: function() {
-				if (!this.editgrid_obj)
+				if (!this.editgrid)
 					return true;
 				else
-					return (this.editgrid_obj.schedInfoGrid)?false:true;
+					return (this.editgrid.schedInfoGrid)?false:true;
 			}
 		})
 	}

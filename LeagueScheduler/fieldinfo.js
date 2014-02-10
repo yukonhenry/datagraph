@@ -30,7 +30,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			divstr_list:null,
-			editgrid_obj:null,
 			text_node:null, text_node_str: "",
 			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
 			rendercell_flag:true, today:null, colname:"",
@@ -524,10 +523,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
 				display_str = display_str.substring(0, display_str.length-1);
 				value_str = value_str.substring(0, value_str.length-1);
-				if (this.editgrid_obj) {
-					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
+				if (this.editgrid) {
+					var store_elem = this.editgrid.schedInfoStore.get(field_id);
 					store_elem.primaryuse_str = value_str;
-					this.editgrid_obj.schedInfoStore.put(store_elem);
+					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dropdownbtn_reg = registry.byId("fielddropdownbtn"+field_id+"_id");
 					dropdownbtn_reg.set('label', display_str);
@@ -618,11 +617,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
 				display_str = display_str.substring(0, display_str.length-1);
 				value_str = value_str.substring(0, value_str.length-1);
-				if (this.editgrid_obj) {
-					var store_elem = this.editgrid_obj.schedInfoStore.get(field_id);
+				if (this.editgrid) {
+					var store_elem = this.editgrid.schedInfoStore.get(field_id);
 					store_elem.dayweek_str = value_str;
 					//store_elem.dayweek_num = numdays;
-					this.editgrid_obj.schedInfoStore.put(store_elem);
+					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
 					dwdropdownbtn_reg.set('label', display_str);
