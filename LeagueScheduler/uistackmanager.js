@@ -59,19 +59,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 					pane_id:cpane_list[index]});
 					this.cpanestate_list.push({id:item,
 						p_pane:null, p_stage:null,
-						g_pane:constant.blankcpane_id, text_str:"",
-						btn_callback:null,
+						g_pane:constant.blankcpane_id, g_pane_colname:"",
+						text_str:"", btn_callback:null,
 						active_flag:false})
 				}, this);
 			},
 			switch_pstackcpane: function(id, stage, text_str, btn_callback) {
-				/*
-				var idmatch_list = arrayUtil.filter(this.pstackmap_list,
-					function(item, index) {
-						return item.id == id && item.stage == stage;
-					});
-				var select_pane = idmatch_list[0].pane_id;
-				*/
 				var select_pane = this.getp_pane(id, stage);
 				this.pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index
@@ -130,12 +123,19 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				}
 				match_obj.active_flag = true;
 			},
-			switch_gstackcpane: function(id) {
-				var idmatch_list = arrayUtil.filter(this.gstackmap_list,
-					function(item, index) {
-						return item.id == id;
-					});
-				var select_pane = idmatch_list[0].pane_id;
+			switch_gstackcpane: function(id, preconfig_flag, colname) {
+				var preconfig_flag = (typeof preconfig_flag === "undefined") ? false:preconfig_flag;
+				var colname = (typeof colname === "undefined") ? "":colname;
+				var select_pane = "";
+				if (preconfig_flag) {
+					select_plane = constant.blankcpane_id;
+				} else {
+					var idmatch_list = arrayUtil.filter(this.gstackmap_list,
+						function(item, index) {
+							return item.id == id;
+						});
+					select_pane = idmatch_list[0].pane_id;
+				}
 				this.gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state
 				var state_obj = this.get_cpanestate(id);
@@ -143,124 +143,135 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				var index = state_obj.index;
 				// modify matched obj
 				match_obj.g_pane = select_pane;
+				// assign db collection name to match_obj property
+				match_obj.g_pane_colname = colname;
 				this.setreset_cpanestate_active(match_obj);
 				this.cpanestate_list[index] = match_obj;
 			},
 			check_initialize: function(info_obj, event) {
+				/* initialization UI is selected; manage pane change to initialization UI
+				Scenarios to consider:
+				a) switch within same idproperty - grid to initialization/preconfig
+				b) switch between different idproperty - grid to preconfig
+				c) switch between different idproperty - preconfig to preconfig
+				d) swith with same id - preconfig to preconfig - (do nothing)
+				e) no switch - previous pane does not exist - init preconfig
+				Note we don't need to get data from server for any scenario
+				*/
 				var new_idproperty = info_obj.idproperty;
 				var state_obj = this.get_cpanestate(new_idproperty);
-				var index = state_obj.index;
 				var match_obj = state_obj.match_obj;
-				// get the ppane that was last recorded
-				var lastp_stage = match_obj.stage;
-				// get the preconfig pane (applicable pane for initialization)
-				// corresponding to id
-				if (lastp_stage) {
-					// if lastp_stage for this idproperty exists then a panel
-					// existed either in the preconfig or conig stage
-					if (lastp_stage == 'preconfig') {
-						var lastp_pane = match_obj.p_pane;
-						this.pstackcontainer_reg.selectChild(lastp_pane);
-						// modify matched obj
-						match_obj.p_pane = lastp_pane;
-						/*
-						info_obj.text_node.innerHTML = match_obj.text_str;
-						var idproperty = info_obj.idproperty;
-						if ((idproperty == 'div_id' || idproperty == 'field_id') &&
-							match_obj.p_stage =='config') {
-							// only if conditions where update_btn widget is relevant
-							if (!this.updatebtn_widget)
-								this.updatebtn_widget = registry.byId("infoBtnNode_id");
-							this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-							this.updatebtn_widget.set('info_type', info_obj.idproperty);
-							this.updatebtn_widget.set("onClick",
-								match_obj.btn_callback);
+				var lastp_stage = match_obj.p_stage;
+				if (match_obj.active_flag) {
+					// this is going to be scenario a or d
+					// get the last stage for idproperty
+					if (lastp_stage) {
+						if (lastp_stage == 'preconfig') {
+							// scenario d), do nothing
+							return;
+						} else {
+							// remaining pstage is 'config', switch to preconfig
+							// get the preconfig pane
+							info_obj.initialize();
 						}
-						var g_pane = match_obj.g_pane;
-						if (g_pane) {
-							this.gstackcontainer_reg.selectChild(g_pane);
-						}  */
 					} else {
-						// last stage was 'config', so we need bring up the
-						// preconfig pane
-						var p_pane = this.getp_pane(new_idproperty, 'preconfig');
-						this.pstackcontainer_reg.selectChild(p_pane);
-						match_obj.p_pane = p_pane;
+						// this should not happen since active_flag was on
+						console.log("check_initialize - logic error");
+						alert("initialization logic error");
+						return;
 					}
-					this.gstackcontainer_reg.selectChild(constant.blankcpane_id);
-					match_obj.p_stage = 'preconfig';
-					match_obj.text_str = "";
-					match_obj.btn_callback = null;
-					match_obj.g_pane = constant.blankcpane_id;
-					this.setreset_cpanestate_active(match_obj);
-					this.cpanestate_list[index] = match_obj;
 				} else {
+					// scenarios b, c, or e
 					info_obj.initialize();
 				}
 			},
 			check_getServerDBInfo: function(options_obj) {
-				// we have to decide on two orthogonal factors:
-				// 1. Whether to get data from server
-				// 2. whether to switch cpane
-				// so there are four combinations:
-				// scenario 1: get data and switch pane
-				// scenario 2: get data and not switch pane
-				// scenario 3: don't get data but switch pane
-				// scenario 4: don't get data and don't switch pane
+				/* scenarios:
+				a)switch within same idprop: one grid to another grid - grid doesn't exist
+				b)switch within same idprop: incomplete preconfig to different grid that already exists
+				c)switch within same idprop: incomplete preconfig to different grid
+				that doesn't exist yet
+				d)switch between different idprop: one grid to another grid
+				e)switch between different idprop: one incomplete preconfig to
+				different id grid
+				f)switch within same idprop: one grid to same grid (do nothing)
+				g)no switch - directly call new grid
+				h)switch within same idprop: incomplete preconfig to different grid - grid exists for different data, needs to be swapped out
+				i)switch within same idprop: one grid to another grid -
+				grid exists but needs to be swapped out
+				For each of the scenarios above, we need to decide if we need to get
+				data from the server and/or switch content panes; we also need to
+				determine if grid needs to be swapped or created*/
 				var info_obj = options_obj.info_obj;
 				// get incoming idproperty
 				var new_idproperty = info_obj.idproperty;
 				var state_obj = this.get_cpanestate(new_idproperty);
 				var match_obj = state_obj.match_obj;
-				// first check if the idproperty-specific logic requires that
-				// server data is needed.
-				// idproperty-specific logic is applicable whether selected
-				// match_obj has already been active
-				var req_flag = info_obj.is_serverdata_required(options_obj);
-				// determine if cpane has to be swapped; this is determined
-				// by checking active_flag of the idproperty-matched match_obj
-				options_obj.swapcpane_flag = !match_obj.active_flag;
-				options_obj.newgrid_flag = info_obj.is_newgrid_required();
-				if (req_flag) {
-					// server data is required, call it
-					info_obj.getServerDBInfo(options_obj);
-				} else {
-					// if idproperty-specific logic determined that server data
-					// is not required, there is still some follow-up actions that
-					// are required. Note if the incoming match is already active
-					// there is nothing to do
-					if (!match_obj.active_flag) {
-						// switch panes
-						this.setreset_cpanestate_active(match_obj);
-						// if incoming idproperty is not active
-						// then get corresponding cpane and switch to it
-						// if cpane does not exist, get data from server
-						var p_pane = match_obj.p_pane;
-						if (p_pane) {
-							// if panes for incoming idproperty is not active
-							// but a pane already exists,
-							// then switch to that pane
-							this.pstackcontainer_reg.selectChild(p_pane);
-							if (new_idproperty != 'sched_id') {
-								info_obj.text_node.innerHTML = match_obj.text_str;
-								if (!this.updatebtn_widget)
-									this.updatebtn_widget = registry.byId("infoBtnNode_id");
-								this.updatebtn_widget.set('label', info_obj.updatebtn_str);
-								this.updatebtn_widget.set('info_type', new_idproperty);
-								this.updatebtn_widget.set("onClick", match_obj.btn_callback);
-							}
-							var g_pane = match_obj.g_pane;
-							if (g_pane) {
-								this.gstackcontainer_reg.selectChild(g_pane);
+				var lastp_stage = match_obj.p_stage;
+				var newgrid_flag = info_obj.is_newgrid_required();
+				if (match_obj.active_flag) {
+					// same idprop: scenarios a,b,c,h
+					if (lastp_stage) {
+						if (lastp_stage == 'preconfig') {
+							// we need to swap cpane from preconfig to config
+							// even though we are in the same idprop
+							// scenarios b,c,h
+							options_obj.swapcpane_flag = true;
+							// find if idprop-specific logic requires a new grid to be generated.
+							options_obj.newgrid_flag = newgrid_flag;
+							if (newgrid_flag) {
+								// if new grid is required, set flag  and get server data. this is scenario c)
+								info_obj.getServerDBInfo(options_obj);
+							} else {
+								/* grid already exists; determine if grid name
+								matches name of incoming g_pane_colname, or if we need to get server data to swap out grid contents */
+								if (info_obj.is_serverdata_required(options_obj)) {
+									// scenario h
+									info_obj.getServerDBInfo(options_obj);
+								} else {
+									// scenario b
+									options_obj.info_obj.reconfig_infobtn(options_obj, idproperty, colname);
+								}
 							}
 						} else {
-							// this case should not be reached as is_serverdata_req
-							// call should have flagged that data is necessary
-							console.log("uistackmanager:double check logic for is_serverdata_req");
-							info_obj.getServerDBInfo(options_obj);
+							/* p_stage is config
+							scenarios a, f, i */
+							options_obj.swapcpane_flag = false;
+							options_obj.newgrid_flag = newgrid_flag;
+							if (newgrid_flag) {
+								// scenario a
+								info_obj.getServerDBInfo(options_obj);
+							} else {
+								// scenario f and i.
+								// don't need to do anything for scenario f
+								if (info_obj.is_serverdata_required(options_obj)) {
+									// scenario i
+									info_obj.getServerDBInfo(options_obj);
+								}
+							}
 						}
-					} else
-						alert("Displayed grid selected, no action");
+					} else {
+						// this should not happen since active_flag was on
+						console.log("Error code 2: check_getServerDBInfo - logic error");
+						alert("Error Code 2");
+						return;
+					}
+				} else {
+					// idprop is switching
+					options_obj.swapcpane_flag = true;
+					options_obj.newgrid_flag = newgrid_flag;
+					if (newgrid_flag) {
+						// if new grid is required, set flag  and get server data.
+						info_obj.getServerDBInfo(options_obj);
+					} else {
+						/* grid already exists; determine if grid name
+						matches name of incoming g_pane_colname, or if we need to get server data to swap out grid contents */
+						if (info_obj.is_serverdata_required(options_obj)) {
+							info_obj.getServerDBInfo(options_obj);
+						} else {
+							options_obj.info_obj.reconfig_infobtn(options_obj, idproperty, colname);
+						}
+					}
 				}
 			}
 		});

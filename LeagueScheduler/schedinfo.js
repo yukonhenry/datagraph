@@ -43,7 +43,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					}
 					this.uistackmgr.switch_pstackcpane(this.idproperty,
 						"preconfig", "", null);
-					this.uistackmgr.switch_gstackcpane(this.idproperty);
+					this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 					options_obj.serverdata_key = 'game_list';
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {
 						var divisioncode = this.select_reg.get("value");
@@ -84,6 +84,17 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				}));
 				this.createEditGrid({game_list:game_grid_list}, options_obj);
 				return game_grid_list;
-			}
+			},
+			// overrides base class as sched_id does not have update btn
+			// (but maybe it should)
+			reconfig_infobtn: function(options_obj, idproperty, colname) {
+				if (options_obj.swapcpane_flag) {
+					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config");
+					if (!options_obj.newgrid_flag) {
+						// also swap grid if we are not generating a new one
+						options_obj.uistackmgr.switch_gstackcpane(idproperty, false, colname);
+					}
+				}
+			},
 		});
 });

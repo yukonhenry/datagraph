@@ -35,7 +35,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			showConfig: function() {
 				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
-				this.uistackmgr.switch_gstackcpane(this.idproperty);
+				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.dbname_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));

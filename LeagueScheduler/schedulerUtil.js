@@ -246,16 +246,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					console.log("no server interface");
 					alert("no server interface, check if service running");
 				}
-/*
-				if (!this.editgrid || !baseinfoSingleton.get_active_grid() || colname != this.editgrid.colname ||
-				    idproperty != this.editgrid.idproperty ||
-				    divisioncode != this.editgrid.divisioncode) {
-					if (this.editgrid &&
-						this.editgrid.idproperty == idproperty) {
-						this.editgrid.cleanup();
-						delete this.editgrid;
-					}
-*/
 				if (options_obj.newgrid_flag) {
 					this.editgrid = new EditGrid({griddata_list:data_list,
 						colname:colname,

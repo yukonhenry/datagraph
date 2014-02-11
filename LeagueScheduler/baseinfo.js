@@ -63,8 +63,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				} else {
 					this.editgrid.replace_store(data_list);
 				}
+				options_obj.info_obj.reconfig_infobtn(options_obj, idproperty, colname);
 				// need to rethink structure of setting up and maintaining
 				// updatebtn_widget
+				/*
 				if (idproperty != 'sched_id') {
 					var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
 					options_obj.text_node.innerHTML = text_str;
@@ -79,7 +81,26 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 						text_str, btn_callback);
 					if (!options_obj.newgrid_flag) {
 						// also swap grid if we are not generating a new one
-						options_obj.uistackmgr.switch_gstackcpane(idproperty);
+						options_obj.uistackmgr.switch_gstackcpane(idproperty, false, colname);
+					}
+				} */
+
+			},
+			// function to reassign infobtn_update with title string and callback
+			// function.  Also update pstack/gstack_cpane.
+			reconfig_infobtn: function(options_obj, idproperty, colname) {
+				var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
+				options_obj.text_node.innerHTML = text_str;
+				var updatebtn_widget = this.getInfoBtn_widget(
+					options_obj.updatebtn_str, idproperty);
+				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+				updatebtn_widget.set("onClick", btn_callback);
+				if (options_obj.swapcpane_flag) {
+					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config",
+						text_str, btn_callback);
+					if (!options_obj.newgrid_flag) {
+						// also swap grid if we are not generating a new one
+						options_obj.uistackmgr.switch_gstackcpane(idproperty, false, colname);
 					}
 				}
 			},
