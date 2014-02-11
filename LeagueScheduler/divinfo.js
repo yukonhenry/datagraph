@@ -40,7 +40,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				this.schedutil_obj = schedutil_obj;
 				this.storeutil_obj = storeutil_obj;
 			},
-			initialize: function(evt) {
+			initialize: function(newgrid_flag) {
 				var form_name = "newdivinfo_form_id";
 				var form_reg = registry.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
@@ -58,7 +58,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					text_node:this.text_node,
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr,
-					storeutil_obj:this.storeutil_obj
+					storeutil_obj:this.storeutil_obj,
 				});
 				var tooltipconfig_list = [{connectId:['divnum_input_id'],
 					label:"Specify Number of Divisions and press ENTER",
@@ -66,7 +66,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					{connectId:['newdivinfo_input_id'],
 					label:"Specify Schedule Name",
 					position:['below','after']}];
-				newScheduler.showConfig(tooltipconfig_list);
+				newScheduler.showConfig(tooltipconfig_list, newgrid_flag);
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case

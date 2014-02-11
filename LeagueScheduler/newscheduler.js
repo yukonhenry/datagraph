@@ -22,7 +22,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
 			},
-			showConfig: function(tooltipconfig_list) {
+			showConfig: function(tooltipconfig_list, newgrid_flag) {
 				// ref http://stackoverflow.com/questions/11743392/check-if-array-is-empty-or-exists
 				// to check if array exists and is non-empty
 				if (typeof tooltipconfig_list !== 'undefined' && this.tooltip_list.length == 0) {
@@ -34,10 +34,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
-				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
+				this.keyup_handle = this.entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input, newgrid_flag));
 			},
 			// ref http://dojotoolkit.org/documentation/tutorials/1.9/key_events/
-			processdivinfo_input: function(event) {
+			processdivinfo_input: function(newgrid_flag, event) {
 				if (event.keyCode == keys.ENTER) {
 					if (this.form_reg.validate()) {
 						confirm('Input format is Valid, creating new DB');
@@ -53,18 +53,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						var divinfo_list = this.info_obj.getInitialList(divnum);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
-						this.editgrid = new EditGrid({griddata_list:divinfo_list,
-							colname:this.newcol_name,
-							server_interface:this.server_interface,
-							grid_id:this.grid_id,
-							error_node:dom.byId("divisionInfoInputGridErrorNode"),
-							idproperty:this.idproperty,
-							server_path:this.server_path,
-							server_key:this.server_key,
-							cellselect_flag:this.cellselect_flag,
-							info_obj:this.info_obj,
-							uistackmgr:this.uistackmgr,
-							storeutil_obj:this.storeutil_obj});
+						if (newgrid_flag) {
+							this.editgrid = new EditGrid({griddata_list:divinfo_list,
+								colname:this.newcol_name,
+								server_interface:this.server_interface,
+								grid_id:this.grid_id,
+								error_node:dom.byId("divisionInfoInputGridErrorNode"),
+								idproperty:this.idproperty,
+								server_path:this.server_path,
+								server_key:this.server_key,
+								cellselect_flag:this.cellselect_flag,
+								info_obj:this.info_obj,
+								uistackmgr:this.uistackmgr,
+								storeutil_obj:this.storeutil_obj});
+							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+						} else {
+							this.editgrid.replace_store(divinfo_list);
+						}
 						var text_str = this.text_node_str + ": <b>"+this.newcol_name+"</b>";
 						this.text_node.innerHTML = text_str;
 						var updatebtn_widget = this.info_obj.getInfoBtn_widget(
@@ -77,7 +82,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
 						this.uistackmgr.switch_pstackcpane(this.idproperty, "config", text_str, btn_callback);
 						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
-						this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
 					} else {

@@ -156,7 +156,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				};
 				return columnsdef_obj;
 			},
-			initialize: function(arg_obj) {
+			initialize: function(newgrid_flag) {
 				// get divinfo information here
 				if (this.divinfo_obj.colname) {
 					this.divstr_list = this.divinfo_obj.getDivstr_list();
@@ -189,7 +189,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					{connectId:['fieldlistname_input_id'],
 					label:"Specify Field List Name",
 					position:['below','after']}];
-				newFieldGroup.showConfig(tooltipconfig_list);
+				newFieldGroup.showConfig(tooltipconfig_list, newgrid_flag);
 			},
 			set_obj: function(schedutil_obj, storeutil_obj) {
 				this.schedutil_obj = schedutil_obj;

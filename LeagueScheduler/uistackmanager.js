@@ -128,7 +128,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				var colname = (typeof colname === "undefined") ? "":colname;
 				var select_pane = "";
 				if (preconfig_flag) {
-					select_plane = constant.blankcpane_id;
+					select_pane = constant.blankcpane_id;
 				} else {
 					var idmatch_list = arrayUtil.filter(this.gstackmap_list,
 						function(item, index) {
@@ -159,6 +159,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				Note we don't need to get data from server for any scenario
 				*/
 				var new_idproperty = info_obj.idproperty;
+				var newgrid_flag = info_obj.is_newgrid_required();
 				var state_obj = this.get_cpanestate(new_idproperty);
 				var match_obj = state_obj.match_obj;
 				var lastp_stage = match_obj.p_stage;
@@ -172,7 +173,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 						} else {
 							// remaining pstage is 'config', switch to preconfig
 							// get the preconfig pane
-							info_obj.initialize();
+							info_obj.initialize(newgrid_flag);
 						}
 					} else {
 						// this should not happen since active_flag was on
@@ -182,7 +183,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 					}
 				} else {
 					// scenarios b, c, or e
-					info_obj.initialize();
+					info_obj.initialize(newgrid_flag);
 				}
 			},
 			check_getServerDBInfo: function(options_obj) {
@@ -230,7 +231,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 									info_obj.getServerDBInfo(options_obj);
 								} else {
 									// scenario b
-									options_obj.info_obj.reconfig_infobtn(options_obj, idproperty, colname);
+									options_obj.info_obj.reconfig_infobtn(options_obj, new_idproperty, options_obj.item);
 								}
 							}
 						} else {
@@ -269,7 +270,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 						if (info_obj.is_serverdata_required(options_obj)) {
 							info_obj.getServerDBInfo(options_obj);
 						} else {
-							options_obj.info_obj.reconfig_infobtn(options_obj, idproperty, colname);
+							options_obj.info_obj.reconfig_infobtn(options_obj, new_idproperty, options_obj.item);
 						}
 					}
 				}

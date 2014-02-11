@@ -183,14 +183,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 						}
 					}); */
 				});
-				// also delete current active grid if it corresponds to the deleted db
-				/*
-				if (baseinfoSingleton.get_active_grid_name() == item_name) {
-					var active_grid = baseinfoSingleton.get_active_grid();
-					if (active_grid) {
-						active_grid.cleanup();
-					}
-				} */
 			},
 			regenAddDBCollection_smenu: function(object, insertIndex) {
 				var dbmenureg_list = (object.db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
