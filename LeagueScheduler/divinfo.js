@@ -15,8 +15,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		};
 		return declare(baseinfo, {
 			schedutil_obj:null, storeutil_obj:null,
-			colname:"", infogrid_store:null, idproperty:constant.idproperty_str,
-			text_node:null, uistackmgr:null, updatebtn_str:constant.updatebtn_str,
+			infogrid_store:null, idproperty:constant.idproperty_str,
+			text_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
@@ -45,12 +45,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var form_reg = registry.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
 				var divnum_reg = registry.byId("divnum_input_id");
-
+				/*
 				var newScheduler = new newscheduler({dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:divnum_reg,
 					server_interface:this.server_interface,
-					schedutil_obj:this.schedutil_obj,
 					info_obj: this, idproperty:constant.idproperty_str,
 					server_path:"create_newdbcol/",
 					text_node_str: constant.text_node_str,
@@ -59,14 +58,27 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr,
 					storeutil_obj:this.storeutil_obj,
-				});
+				}); */
 				var tooltipconfig_list = [{connectId:['divnum_input_id'],
 					label:"Specify Number of Divisions and press ENTER",
 					position:['below','after']},
 					{connectId:['newdivinfo_input_id'],
 					label:"Specify Schedule Name",
 					position:['below','after']}];
-				newScheduler.showConfig(tooltipconfig_list, newgrid_flag);
+				var args_obj = {
+					dbname_reg:input_reg,
+					form_reg:form_reg,
+					entrynum_reg:divnum_reg,
+					server_path:"create_newdbcol/",
+					server_key:"divinfo_data",
+					text_node_str: constant.text_node_str,
+					grid_id:constant.grid_id,
+					updatebtn_str:constant.updatebtn_str,
+					tooltipconfig_list:tooltipconfig_list,
+					newgrid_flag:newgrid_flag,
+					cellselect_flag:false
+				}
+				this.showConfig(args_obj);
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -86,7 +98,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.grid_id = constant.grid_id;
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.uistackmgr = this.uistackmgr;
 				options_obj.storeutil_obj = this.storeutil_obj;
 				this.server_interface.getServerData("get_dbcol/"+item,
 					lang.hitch(this, this.createEditGrid), null, options_obj);

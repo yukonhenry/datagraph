@@ -1,10 +1,9 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys",
+	"dojo/_base/array", "dojo/keys",
 	"dijit/registry", "dijit/Tooltip",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, domClass, arrayUtil, keys,
-		registry, Tooltip, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
+	function(dbootstrap, dom, on, declare, lang, arrayUtil, keys,
+		registry, Tooltip, EditGrid,
 		baseinfoSingleton) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id"
@@ -12,14 +11,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			entrynum_reg: null, error_node:null, text_node:null,
-			newcol_name:"", schedutil_obj:null, editgrid:null,
+			newcol_name:"", editgrid:null,
 			info_obj:null, idproperty:"", server_path:"", server_key:"",
 			cellselect_flag:false,
 			text_node_str:"",
 			updatebtn_str:"", storeutil_obj:null,
 			grid_id:"", uistackmgr:null, tooltip_list:null,
 			constructor: function(args) {
-				lang.mixin(this, args);
+				lang.mixin(this, args)
 				this.tooltip_list = new Array();
 			},
 			showConfig: function(tooltipconfig_list, newgrid_flag) {
@@ -54,6 +53,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						if (newgrid_flag) {
+							var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:divinfo_list,
 								colname:this.newcol_name,
 								server_interface:this.server_interface,
@@ -67,21 +67,24 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 								uistackmgr:this.uistackmgr,
 								storeutil_obj:this.storeutil_obj});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+							// assign editgrid created by newscheduler back to the
+							// info_obj (or its prototype defined by superclass)
+							// editgrid so that isgrid_required function returns
+							// correct value
+							this.info_obj.editgrid = this.editgrid;
 						} else {
 							this.editgrid.replace_store(divinfo_list);
 						}
-						var text_str = this.text_node_str + ": <b>"+this.newcol_name+"</b>";
-						this.text_node.innerHTML = text_str;
-						var updatebtn_widget = this.info_obj.getInfoBtn_widget(
-							this.updatebtn_str, this.idproperty);
-						// do straight overrride on button onclick event handler
-						// so that we don't have to worry about handler clean-up
-						updatebtn_widget.set("onClick",
-							lang.hitch(this.editgrid,
-								this.editgrid.sendDivInfoToServer));
-						var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
-						this.uistackmgr.switch_pstackcpane(this.idproperty, "config", text_str, btn_callback);
-						var columnsdef_obj = this.info_obj.getcolumnsdef_obj();
+						var args_obj = {
+							colname:this.newcol_name,
+							text_node_str:this.text_node_str,
+							text_node:this.text_node,
+							updatebtn_str:this.updatebtn_str,
+							idproperty:this.idproperty,
+							swapcpane_flag:true,
+							newgrid_flag:true
+						}
+						this.info_obj.reconfig_infobtn(args_obj);
 						baseinfoSingleton.set_active_grid(this.editgrid);
 						baseinfoSingleton.set_active_grid_name(this.newcol_name);
 					} else {

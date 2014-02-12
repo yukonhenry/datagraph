@@ -59,7 +59,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 					pane_id:cpane_list[index]});
 					this.cpanestate_list.push({id:item,
 						p_pane:null, p_stage:null,
-						g_pane:constant.blankcpane_id, g_pane_colname:"",
+						g_pane:constant.blankcpane_id,
 						text_str:"", btn_callback:null,
 						active_flag:false})
 				}, this);
@@ -144,18 +144,19 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				// modify matched obj
 				match_obj.g_pane = select_pane;
 				// assign db collection name to match_obj property
-				match_obj.g_pane_colname = colname;
 				this.setreset_cpanestate_active(match_obj);
 				this.cpanestate_list[index] = match_obj;
 			},
 			check_initialize: function(info_obj, event) {
 				/* initialization UI is selected; manage pane change to initialization UI
 				Scenarios to consider:
-				a) switch within same idproperty - grid to initialization/preconfig
+				a) switch within same idproperty - config to preconfig
 				b) switch between different idproperty - grid to preconfig
 				c) switch between different idproperty - preconfig to preconfig
 				d) swith with same id - preconfig to preconfig - (do nothing)
 				e) no switch - previous pane does not exist - init preconfig
+				f) switch within same idprop - config to config
+
 				Note we don't need to get data from server for any scenario
 				*/
 				var new_idproperty = info_obj.idproperty;
@@ -231,7 +232,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 									info_obj.getServerDBInfo(options_obj);
 								} else {
 									// scenario b
-									options_obj.info_obj.reconfig_infobtn(options_obj, new_idproperty, options_obj.item);
+									var args_obj = {
+										colname:options_obj.item,
+										text_node_str:options_obj.text_node_str,
+										text_node:options_obj.text_node,
+										updatebtn_str:options_obj.updatebtn_str,
+										idproperty:new_idproperty,
+										swapcpane_flag:true,
+										newgrid_flag:false
+									}
+									info_obj.reconfig_infobtn(args_obj);
 								}
 							}
 						} else {
@@ -270,7 +280,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 						if (info_obj.is_serverdata_required(options_obj)) {
 							info_obj.getServerDBInfo(options_obj);
 						} else {
-							options_obj.info_obj.reconfig_infobtn(options_obj, new_idproperty, options_obj.item);
+							var args_obj = {
+								colname:options_obj.item,
+								text_node_str:options_obj.text_node_str,
+								text_node:options_obj.text_node,
+								updatebtn_str:options_obj.updatebtn_str,
+								idproperty:new_idproperty,
+								swapcpane_flag:true,
+								newgrid_flag:false
+							}
+							options_obj.info_obj.reconfig_infobtn(args_obj);
 						}
 					}
 				}

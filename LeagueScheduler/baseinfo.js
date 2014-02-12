@@ -1,16 +1,110 @@
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
-	"dijit/registry", "dijit/form/Button", "LeagueScheduler/editgrid",
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
+	"dojo/_base/array", "dojo/keys",
+	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
+	"LeagueScheduler/editgrid",
 	"dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, registry, Button,
-		EditGrid) {
+	function(dbootstrap, dom, declare, lang, arrayUtil, keys, registry, Tooltip,
+		Button, EditGrid) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
 		};
 		return declare(null, {
-			server_interface:null, editgrid:null,
+			server_interface:null, editgrid:null, uistackmgr:null,
+			idproperty:null, storeutil_obj:null, text_node:null,
+			keyup_handle:null, tooltip_list:null,
+			colname:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.tooltip_list = new Array();
+			},
+			showConfig: function(args_obj) {
+				var tooltipconfig_list = args_obj.tooltipconfig_list;
+				delete args_obj.tooltipconfig_list;  //save space before passing?
+				var entrynum_reg = args_obj.entrynum_reg;
+				// ref http://stackoverflow.com/questions/11743392/check-if-array-is-empty-or-exists
+				// to check if array exists and is non-empty
+				if (typeof tooltipconfig_list !== 'undefined' && this.tooltip_list.length == 0) {
+					arrayUtil.forEach(tooltipconfig_list, function(item) {
+						this.tooltip_list.push(new Tooltip(item));
+					}, this);
+				}
+				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
+				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
+				if (this.keyup_handle)
+					this.keyup_handle.remove();
+				this.keyup_handle = entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input, args_obj));
+			},
+			// ref http://dojotoolkit.org/documentation/tutorials/1.9/key_events/
+			processdivinfo_input: function(args_obj, event) {
+				if (event.keyCode == keys.ENTER) {
+					var form_reg = args_obj.form_reg;
+					var dbname_reg = args_obj.dbname_reg;
+					var entrynum_reg = args_obj.entrynum_reg;
+					var newgrid_flag = args_obj.newgrid_flag;
+					var grid_id = args_obj.grid_id;
+					var server_path = args_obj.server_path;
+					var server_key = args_obj.server_key;
+					var cellselect_flag = args_obj.cellselect_flag;
+					var text_node_str = args_obj.text_node_str;
+					var updatebtn_str = args_obj.updatebtn_str;
+					if (form_reg.validate()) {
+						confirm('Input format is Valid, creating new DB');
+						this.colname = dbname_reg.get("value");
+						if (!this.storeutil_obj.nodupdb_validate(this.colname,
+							this.idproperty)) {
+							alert("Selected sched name already exists, choose another");
+							return;
+						}
+						//var divinfo_obj = this.info_obj;
+						//divnum is the total # of divisions or other entity like fields
+						var divnum = entrynum_reg.get("value");
+						var divinfo_list = this.getInitialList(divnum);
+						if (this.keyup_handle)
+							this.keyup_handle.remove();
+						if (newgrid_flag) {
+							var columnsdef_obj = this.getcolumnsdef_obj();
+							this.editgrid = new EditGrid({griddata_list:divinfo_list,
+								colname:this.colname,
+								server_interface:this.server_interface,
+								grid_id:grid_id,
+								error_node:dom.byId("divisionInfoInputGridErrorNode"),
+								idproperty:this.idproperty,
+								server_path:server_path,
+								server_key:server_key,
+								cellselect_flag:cellselect_flag,
+								info_obj:this,
+								uistackmgr:this.uistackmgr,
+								storeutil_obj:this.storeutil_obj});
+							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+							var args_obj = {
+								colname:this.colname,
+								text_node_str:text_node_str,
+								text_node:this.text_node,
+								updatebtn_str:updatebtn_str,
+								idproperty:this.idproperty,
+								swapcpane_flag:true,
+								newgrid_flag:true
+							}
+						} else {
+							this.editgrid.replace_store(divinfo_list);
+							var args_obj = {
+								colname:this.colname,
+								text_node_str:text_node_str,
+								text_node:this.text_node,
+								updatebtn_str:updatebtn_str,
+								idproperty:this.idproperty,
+								swapcpane_flag:true,
+								newgrid_flag:false
+							}
+						}
+						this.reconfig_infobtn(args_obj);
+						//baseinfoSingleton.set_active_grid(this.editgrid);
+						//baseinfoSingleton.set_active_grid_name(this.colname);
+					} else {
+						alert('Input name is Invalid, please correct');
+					}
+				}
 			},
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
@@ -55,7 +149,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:options_obj.info_obj,
-						uistackmgr:options_obj.uistackmgr,
+						uistackmgr:this.uistackmgr,
 						storeutil_obj:options_obj.storeutil_obj});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 					//baseinfoSingleton.set_active_grid(this.editgrid);
@@ -63,44 +157,43 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				} else {
 					this.editgrid.replace_store(data_list);
 				}
-				options_obj.info_obj.reconfig_infobtn(options_obj, idproperty, colname);
-				// need to rethink structure of setting up and maintaining
-				// updatebtn_widget
-				/*
-				if (idproperty != 'sched_id') {
-					var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
-					options_obj.text_node.innerHTML = text_str;
-					var updatebtn_widget = this.getInfoBtn_widget(
-						options_obj.updatebtn_str, idproperty);
-					updatebtn_widget.set("onClick", lang.hitch(this.editgrid,
-						this.editgrid.sendDivInfoToServer));
-					var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+				var args_obj = {
+					colname:colname,
+					text_node_str:options_obj.text_node_str,
+					text_node:options_obj.text_node,
+					updatebtn_str:options_obj.updatebtn_str,
+					idproperty:idproperty,
+					swapcpane_flag:options_obj.swapcpane_flag,
+					newgrid_flag:options_obj.newgrid_flag
 				}
-				if (options_obj.swapcpane_flag) {
-					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config",
-						text_str, btn_callback);
-					if (!options_obj.newgrid_flag) {
-						// also swap grid if we are not generating a new one
-						options_obj.uistackmgr.switch_gstackcpane(idproperty, false, colname);
-					}
-				} */
-
+				options_obj.info_obj.reconfig_infobtn(args_obj);
 			},
 			// function to reassign infobtn_update with title string and callback
 			// function.  Also update pstack/gstack_cpane.
-			reconfig_infobtn: function(options_obj, idproperty, colname) {
-				var text_str = options_obj.text_node_str + ": <b>"+colname+"</b>";
-				options_obj.text_node.innerHTML = text_str;
-				var updatebtn_widget = this.getInfoBtn_widget(
-					options_obj.updatebtn_str, idproperty);
+			reconfig_infobtn: function(args_obj) {
+				// parse args object
+				var colname = args_obj.colname;
+				var text_node_str = args_obj.text_node_str;
+				var text_node = args_obj.text_node;
+				var updatebtn_str = args_obj.updatebtn_str;
+				var idproperty = args_obj.idproperty;
+				var swapcpane_flag = args_obj.swapcpane_flag;
+				var newgrid_flag = args_obj.newgrid_flag;
+
+				var text_str = text_node_str + ": <b>"+colname+"</b>";
+				text_node.innerHTML = text_str;
+				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
+					idproperty);
 				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
 				updatebtn_widget.set("onClick", btn_callback);
-				if (options_obj.swapcpane_flag) {
-					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config",
+				if (swapcpane_flag) {
+					this.uistackmgr.switch_pstackcpane(idproperty, "config",
 						text_str, btn_callback);
-					if (!options_obj.newgrid_flag) {
+					if (!newgrid_flag) {
 						// also swap grid if we are not generating a new one
-						options_obj.uistackmgr.switch_gstackcpane(idproperty, false, colname);
+						// if we are generating a new grid, switchgstack is called
+						// from within editgrid
+						this.uistackmgr.switch_gstackcpane(idproperty, false, colname);
 					}
 				}
 			},
@@ -131,6 +224,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					return true;
 				else
 					return (this.editgrid.schedInfoGrid)?false:true;
+			},
+			cleanup:function() {
+				arrayUtil.forEach(this.tooltip_list, function(item) {
+					item.destroyRecursive();
+				});
+				if (this.keyup_handle)
+					this.keyup_handle.remove();
 			}
 		})
 	}

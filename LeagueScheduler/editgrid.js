@@ -212,7 +212,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					storedata_json = JSON.stringify(raw_result);
 				}
 				var server_path = this.server_path || "create_newdbcol/";
-				var server_key = this.server_key || 'divinfo_data';
+				var server_key = this.server_key || "";
 				var server_key_obj = {};
 				server_key_obj[server_key] = storedata_json;
 				var options_obj = {item:this.colname};

@@ -30,9 +30,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			divstr_list:null,
-			text_node:null, text_node_str: "",
-			uistackmgr:null, updatebtn_str: constant.updatebtn_str,
-			rendercell_flag:true, today:null, colname:"",
+			text_node:null,
+			rendercell_flag:true, today:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -167,11 +166,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
+				/*
 				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:fieldnum_reg,
 					server_interface:this.server_interface,
-					schedutil_obj:this.schedutil_obj,
 					info_obj:this, idproperty:constant.idproperty_str,
 					server_path:"create_newfieldcol/",
 					server_key:constant.db_type,
@@ -182,14 +181,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					updatebtn_str:constant.updatebtn_str,
 					uistackmgr:this.uistackmgr,
 					storeutil_obj:this.storeutil_obj
-				});
+				}); */
 				var tooltipconfig_list = [{connectId:['fieldnum_input_id'],
 					label:"Specify Number of Fields and press ENTER",
 					position:['below','after']},
 					{connectId:['fieldlistname_input_id'],
 					label:"Specify Field List Name",
 					position:['below','after']}];
-				newFieldGroup.showConfig(tooltipconfig_list, newgrid_flag);
+				var args_obj = {
+					dbname_reg:input_reg,
+					form_reg:form_reg,
+					entrynum_reg:fieldnum_reg,
+					server_path:"create_newfieldcol/",
+					server_key:constant.db_type,
+					text_node_str: constant.text_node_str,
+					grid_id:constant.grid_id,
+					updatebtn_str:constant.updatebtn_str,
+					tooltipconfig_list:tooltipconfig_list,
+					newgrid_flag:newgrid_flag,
+					cellselect_flag:true
+				}
+				this.showConfig(args_obj);
 			},
 			set_obj: function(schedutil_obj, storeutil_obj) {
 				this.schedutil_obj = schedutil_obj;
@@ -220,7 +232,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.grid_id = constant.grid_id;
 				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.uistackmgr = this.uistackmgr;
 				options_obj.storeutil_obj = this.storeutil_obj;
 				// do some clean-up
 				/*

@@ -8,7 +8,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 		return declare(baseinfo, {
 			schedutil_obj:null, divinfo_list:null,
 			select_reg:null, select_reg_handle:null, storeutil_obj:null,
-			idproperty:"sched_id", uistackmgr:null, colname:"",
+			idproperty:"sched_id", colname:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -52,7 +52,6 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						options_obj.cellselect_flag = false;
 						options_obj.text_node_str = 'Schedule Name';
 						options_obj.grid_id = 'schedinfogrid_id';
-						options_obj.uistackmgr = this.uistackmgr;
 						options_obj.storeutil_obj = this.storeutil_obj;
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
@@ -87,12 +86,16 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 			},
 			// overrides base class as sched_id does not have update btn
 			// (but maybe it should)
-			reconfig_infobtn: function(options_obj, idproperty, colname) {
-				if (options_obj.swapcpane_flag) {
-					options_obj.uistackmgr.switch_pstackcpane(idproperty, "config");
-					if (!options_obj.newgrid_flag) {
+			reconfig_infobtn: function(args_obj) {
+				var colname = args_obj.colname;
+				var idproperty = args_obj.idproperty;
+				var swapcpane_flag = args_obj.swapcpane_flag;
+				var newgrid_flag = args_obj.newgrid_flag;
+				if (swapcpane_flag) {
+					this.uistackmgr.switch_pstackcpane(idproperty, "config");
+					if (!newgrid_flag) {
 						// also swap grid if we are not generating a new one
-						options_obj.uistackmgr.switch_gstackcpane(idproperty, false, colname);
+						this.uistackmgr.switch_gstackcpane(idproperty, false, colname);
 					}
 				}
 			},
