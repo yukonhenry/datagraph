@@ -231,7 +231,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 									// scenario h
 									info_obj.getServerDBInfo(options_obj);
 								} else {
-									// scenario b
+									/* scenario b, but see if there is an exception
+									situation to regenerate grid (i.e. for fieldinfo when there is a divinfo colname) */
 									var args_obj = {
 										colname:options_obj.item,
 										text_node_str:options_obj.text_node_str,
@@ -289,7 +290,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 								swapcpane_flag:true,
 								newgrid_flag:false
 							}
-							options_obj.info_obj.reconfig_infobtn(args_obj);
+							info_obj.reconfig_infobtn(args_obj);
 						}
 					}
 				}

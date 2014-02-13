@@ -1,22 +1,26 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/_base/array", "dojo/keys",
+	"dojo/_base/array", "dojo/keys", "dojo/Stateful",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"LeagueScheduler/editgrid",
 	"dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, keys, registry, Tooltip,
-		Button, EditGrid) {
+	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
+		registry, Tooltip, Button, EditGrid) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
 		};
+		var colname_class = declare([Stateful],{
+			colname:null
+		})
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
 			idproperty:null, storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null,
-			colname:"",
+			colname_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
+				this.colname_obj = new colname_class();
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -50,12 +54,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var updatebtn_str = args_obj.updatebtn_str;
 					if (form_reg.validate()) {
 						confirm('Input format is Valid, creating new DB');
-						this.colname = dbname_reg.get("value");
-						if (!this.storeutil_obj.nodupdb_validate(this.colname,
+						var colname = dbname_reg.get("value")
+						if (!this.storeutil_obj.nodupdb_validate(colname,
 							this.idproperty)) {
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
+						this.colname_obj.set('colname',colname);
 						//var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = entrynum_reg.get("value");
@@ -65,7 +70,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:divinfo_list,
-								colname:this.colname,
+								colname:colname,
 								server_interface:this.server_interface,
 								grid_id:grid_id,
 								error_node:dom.byId("divisionInfoInputGridErrorNode"),
@@ -78,7 +83,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								storeutil_obj:this.storeutil_obj});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 							var args_obj = {
-								colname:this.colname,
+								colname:colname,
 								text_node_str:text_node_str,
 								text_node:this.text_node,
 								updatebtn_str:updatebtn_str,
@@ -89,7 +94,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						} else {
 							this.editgrid.replace_store(divinfo_list);
 							var args_obj = {
-								colname:this.colname,
+								colname:colname,
 								text_node_str:text_node_str,
 								text_node:this.text_node,
 								updatebtn_str:updatebtn_str,
@@ -105,6 +110,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						alert('Input name is Invalid, please correct');
 					}
 				}
+			},
+			getServerDBInfo: function(options_obj) {
+				// note third parameter maps to query object, which in this case
+				// there is none.  But we need to provide some argument as js does
+				// not support named function arguments.  Also specifying "" as the
+				// parameter instead of null might be a better choice as the query
+				// object will be emitted in the jsonp request (though not consumed
+				// at the server)
+				var item = options_obj.item;
+				this.colname_obj.set('colname',item);
+				options_obj.text_node = this.text_node;
+				options_obj.storeutil_obj = this.storeutil_obj;
+				this.server_interface.getServerData(options_obj.getserver_path+item,
+					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
@@ -166,7 +185,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					swapcpane_flag:options_obj.swapcpane_flag,
 					newgrid_flag:options_obj.newgrid_flag
 				}
-				options_obj.info_obj.reconfig_infobtn(args_obj);
+				this.reconfig_infobtn(args_obj);
 			},
 			// function to reassign infobtn_update with title string and callback
 			// function.  Also update pstack/gstack_cpane.
@@ -217,7 +236,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				return infobtn_widget;
 			},
 			is_serverdata_required: function(options_obj) {
-				return (options_obj.item != this.colname)?true:false;
+				return (options_obj.item != this.colname_obj.get('colname'))?true:false;
 			},
 			is_newgrid_required: function() {
 				if (!this.editgrid)

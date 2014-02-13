@@ -87,8 +87,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				var item = options_obj.item;
-				this.colname = item;
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'divinfo_data';
@@ -96,11 +94,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;
-				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.storeutil_obj = this.storeutil_obj;
-				this.server_interface.getServerData("get_dbcol/"+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
+				options_obj.getserver_path = 'get_dbcol/'
+				this.inherited(arguments);
+				//this.server_interface.getServerData("get_dbcol/"+item,
+				//lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(divnum) {
 				var divInfo_list = new Array();

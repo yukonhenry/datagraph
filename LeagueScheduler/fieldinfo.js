@@ -156,10 +156,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				return columnsdef_obj;
 			},
 			initialize: function(newgrid_flag) {
-				// get divinfo information here
-				if (this.divinfo_obj.colname) {
-					this.divstr_list = this.divinfo_obj.getDivstr_list();
-				}
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);
 				//var form_dom = dom.byId(form_name);
@@ -208,19 +204,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.storeutil_obj = storeutil_obj;
 			},
 			getServerDBInfo: function(options_obj) {
-				// first get divinfo data for the primaryuse_str checkboxes
-				if (this.divinfo_obj.colname) {
-					this.divstr_list = this.divinfo_obj.getDivstr_list();
-
-				}
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				var item = options_obj.item;
-				this.colname = item;
 				options_obj.info_obj = this;
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newfieldcol/";
@@ -230,21 +219,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
 				options_obj.grid_id = constant.grid_id;
-				options_obj.text_node = this.text_node;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.storeutil_obj = this.storeutil_obj;
-				// do some clean-up
-				/*
-				if (baseinfoSingleton.get_select_reg()) {
-					this.schedutil_obj.makeInvisible(baseinfoSingleton.get_select_dom());
-				}
-				var form_dom = baseinfoSingleton.get_visible_form_dom();
-				if (form_dom) {
-					baseinfoSingleton.reset_visible_form_dom();
-					this.schedutil_obj.makeInvisible(form_dom);
-				} */
-				this.server_interface.getServerData("get_fieldcol/"+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
+				options_obj.getserver_path = 'get_fieldcol/';
+				this.inherited(arguments);
+				//this.server_interface.getServerData("get_fieldcol/"+item,
+				//lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(fieldnum) {
 				// return value defines structure for store for grid
@@ -466,7 +445,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (this.rendercell_flag) {
 					var TDialog = null;
 					var field_id = object.field_id;
-					if (this.divinfo_obj.colname) {
+					if (this.divstr_list) {
 						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 						var content_str = "";
 						var checkboxid_list = new Array();
