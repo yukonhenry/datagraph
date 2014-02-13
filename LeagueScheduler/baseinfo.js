@@ -21,6 +21,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
 				this.colname_obj = new colname_class();
+				this.colname_obj.watch("colname",
+					lang.hitch(this,function(name, oldValue, value) {
+						if (this.idproperty == 'div_id') {
+							var divstr_list = this.getDivstr_list();
+							console.log("divstr list  ="+divstr_list);_
+						}
+					})
+				);
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -60,7 +68,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
-						this.colname_obj.set('colname',colname);
+						//this.colname_obj.set('colname',colname);
 						//var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = entrynum_reg.get("value");
@@ -119,7 +127,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
-				this.colname_obj.set('colname',item);
+				//this.colname_obj.set('colname',item);
 				options_obj.text_node = this.text_node;
 				options_obj.storeutil_obj = this.storeutil_obj;
 				this.server_interface.getServerData(options_obj.getserver_path+item,

@@ -62,10 +62,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				//if (this.info_obj && 'editgrid' in this.info_obj) {
 				//	this.info_obj.editgrid = this.schedInfoGrid;
 				//}
-				if (this.idproperty == 'div_id') {
+				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
-					this.info_obj.colname = this.colname;
 					this.info_obj.infogrid_store = this.schedInfoStore;
+					this.info_obj.colname_obj.set("colname", this.colname);
 				}
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
@@ -226,6 +226,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// we might not always need to switch the gstack, but do it
 				// by default right now
 				//this.uistackmgr.switch_gstackcpane(this.idproperty);
+				if ('infogrid_store' in this.info_obj) {
+					// set property that divinfo collection has been selected
+					this.info_obj.infogrid_store = this.schedInfoStore;
+					this.info_obj.colname_obj.set("colname", this.colname);
+				}
 			},
 			cleanup: function() {
 				/*
