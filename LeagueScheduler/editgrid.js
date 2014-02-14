@@ -193,7 +193,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						}
 					}
 					return break_flag;
-				})) return;
+				})) // insert return statement here if plan is to prevent saving.
+					console.log("Not all fields complete, but saving");
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();
