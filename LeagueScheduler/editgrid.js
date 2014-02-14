@@ -52,7 +52,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 				this.schedInfoGrid.startup();
 				// switch to content pane that has above generated grid
-				this.uistackmgr.switch_gstackcpane(this.idproperty);
+				this.uistackmgr.switch_gstackcpane(this.idproperty, false,
+					this.schedInfoGrid);
 				//scontainer_reg.selectChild(this.cpane_id);
 				// the resize on grid is required; another option is to
 				// have a callback on scontainer_reg.on('show')
@@ -65,8 +66,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
-					this.info_obj.colname_obj.set("colname", this.colname);
 				}
+				// IMPORTANT: call to colname_obj.set needs to be later than
+				// setting info_obj.infogrid_store above as colname_obj watch
+				// function utilizes infogrid_store (for div_id idprop)
+				this.info_obj.colname_obj.set("colname", this.colname);
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
 					this.error_node.className = "message error";
@@ -220,17 +224,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.server_interface.server_ack, server_key_obj, options_obj);
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty);
 			},
-			replace_store: function(griddata_list) {
+			replace_store: function(colname, griddata_list) {
+				this.colname = colname;
 				this.schedInfoStore.setData(griddata_list);
 				this.schedInfoGrid.refresh();
 				// we might not always need to switch the gstack, but do it
 				// by default right now
-				//this.uistackmgr.switch_gstackcpane(this.idproperty);
+				this.uistackmgr.switch_gstackcpane(this.idproperty, false, this.schedInfoGrid);
 				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
-					this.info_obj.colname_obj.set("colname", this.colname);
 				}
+				this.info_obj.colname_obj.set("colname", colname);
 			},
 			cleanup: function() {
 				/*

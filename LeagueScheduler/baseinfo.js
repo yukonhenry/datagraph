@@ -1,10 +1,10 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dojo/keys", "dojo/Stateful",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
-	"LeagueScheduler/editgrid",
+	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
-		registry, Tooltip, Button, EditGrid) {
+		registry, Tooltip, Button, EditGrid, baseinfoSingleton) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
@@ -15,7 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
 			idproperty:null, storeutil_obj:null, text_node:null,
-			keyup_handle:null, tooltip_list:null,
+			keyup_handle:null, tooltip_list:null, rownum:0,
 			colname_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -23,9 +23,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				this.colname_obj = new colname_class();
 				this.colname_obj.watch("colname",
 					lang.hitch(this,function(name, oldValue, value) {
+						console.log('switching from '+oldValue+' to '+value);
 						if (this.idproperty == 'div_id') {
 							var divstr_list = this.getDivstr_list();
-							console.log("divstr list  ="+divstr_list);_
+							if (divstr_list.length > 0) {
+								baseinfoSingleton.watch_obj.set('divstr_list',
+									divstr_list);
+							}
+
 						}
 					})
 				);
@@ -72,6 +77,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						//var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = entrynum_reg.get("value");
+						this.rownum = divnum;
 						var divinfo_list = this.getInitialList(divnum);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
@@ -100,7 +106,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								newgrid_flag:true
 							}
 						} else {
-							this.editgrid.replace_store(divinfo_list);
+							this.editgrid.replace_store(colname, divinfo_list);
 							var args_obj = {
 								colname:colname,
 								text_node_str:text_node_str,
@@ -112,8 +118,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							}
 						}
 						this.reconfig_infobtn(args_obj);
-						//baseinfoSingleton.set_active_grid(this.editgrid);
-						//baseinfoSingleton.set_active_grid_name(this.colname);
 					} else {
 						alert('Input name is Invalid, please correct');
 					}
@@ -145,6 +149,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// Note server_key is key for outgoing request
 				// serverdata_key is for incoming data
 				var data_list = server_data[options_obj.serverdata_key];
+				this.rownum = data_list.length;
 				if (server_key == constant.fielddb_type) {
 					if (idproperty == 'field_id') {
 						arrayUtil.forEach(data_list, function(item, index) {
@@ -179,10 +184,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						uistackmgr:this.uistackmgr,
 						storeutil_obj:options_obj.storeutil_obj});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
-					//baseinfoSingleton.set_active_grid(this.editgrid);
-					//baseinfoSingleton.set_active_grid_name(colname);
 				} else {
-					this.editgrid.replace_store(data_list);
+					this.editgrid.replace_store(colname, data_list);
 				}
 				var args_obj = {
 					colname:colname,
@@ -220,7 +223,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// also swap grid if we are not generating a new one
 						// if we are generating a new grid, switchgstack is called
 						// from within editgrid
-						this.uistackmgr.switch_gstackcpane(idproperty, false, colname);
+						this.uistackmgr.switch_gstackcpane(idproperty, false,
+							this.editgrid.schedInfoGrid);
 					}
 				}
 			},

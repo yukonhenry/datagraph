@@ -1,5 +1,6 @@
 /* manage UI content pane structure, especially switching stack container panes */
-define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/registry", "dojo/domReady!"],
+define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+	"dijit/registry", "dojo/domReady!"],
 	function(declare, lang, arrayUtil, registry) {
 		var constant = {
 			// param stack id's
@@ -21,6 +22,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 			pstackcontainer_reg:null, pstackmap_list:null,
 			gstackcontainer_reg:null, gstackmap_list:null,
 			cpanestate_list:null, updatebtn_widget:null,
+			current_grid:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
@@ -123,9 +125,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 				}
 				match_obj.active_flag = true;
 			},
-			switch_gstackcpane: function(id, preconfig_flag, colname) {
+			switch_gstackcpane: function(id, preconfig_flag, current_grid) {
 				var preconfig_flag = (typeof preconfig_flag === "undefined") ? false:preconfig_flag;
-				var colname = (typeof colname === "undefined") ? "":colname;
 				var select_pane = "";
 				if (preconfig_flag) {
 					select_pane = constant.blankcpane_id;
@@ -135,6 +136,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dijit/regi
 							return item.id == id;
 						});
 					select_pane = idmatch_list[0].pane_id;
+					this.current_grid = current_grid;
 				}
 				this.gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state

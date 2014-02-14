@@ -95,7 +95,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					this.uistackmgr.switch_pstackcpane(idproperty, "config");
 					if (!newgrid_flag) {
 						// also swap grid if we are not generating a new one
-						this.uistackmgr.switch_gstackcpane(idproperty, false, colname);
+						this.uistackmgr.switch_gstackcpane(idproperty, false, this.editgrid.schedInfoGrid);
 					}
 				}
 			},

@@ -407,10 +407,14 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		}
 		var resizeEditPaneGrids = function(evt) {
 			console.log("show edit pane");
+			if (uiStackManager && uiStackManager.current_grid) {
+				uiStackManager.current_grid.resize();
+			}
+			/*
 			var active_grid = baseinfoSingleton.get_active_grid();
 			if (active_grid) {
 				active_grid.schedInfoGrid.resize();
-			}
+			} */
 			var pane_dom = dom.byId("editPane");
 			pane_dom.scrollTop = 0;
 			//to resize bracket info grid also

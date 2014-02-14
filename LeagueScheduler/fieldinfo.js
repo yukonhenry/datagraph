@@ -20,7 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		};
 		return declare(baseinfo, {
  			schedutil_obj:null, storeutil_obj:null,
- 			divinfo_obj:null, idproperty:constant.idproperty_str,
+ 			idproperty:constant.idproperty_str,
 			fieldnum:0, calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
@@ -29,7 +29,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			calendar:null,
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
-			divstr_list:null,
 			text_node:null,
 			rendercell_flag:true, today:null,
 			constructor: function(args) {
@@ -39,6 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
 				this.today = new Date();
+				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -444,12 +444,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			primaryuse_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
 					var TDialog = null;
+					var tdialogprop_obj = null;
 					var field_id = object.field_id;
-					if (this.divstr_list) {
+					var divstr_list = baseinfoSingleton.watch_obj.get('divstr_list');
+					if (divstr_list && divstr_list.length > 0) {
+						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
+						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
+						TDialog = primaryuse_obj.tdialog;
+						/*
 						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 						var content_str = "";
 						var checkboxid_list = new Array();
-						arrayUtil.forEach(this.divstr_list, function(divstr, index) {
+						arrayUtil.forEach(divstr_list, function(divstr, index) {
 							var idstr = "checkbox"+divstr+field_id+"_id";
 							content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
 							'" value="'+index+'"><label for="'+idstr+'">'+divstr+'</label><br>';
@@ -462,12 +468,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 							content: content_str
 			    		});
 			    		var tdialogprop_obj = {field_id:field_id,
-			    			checkboxid_list:checkboxid_list};
+			    			checkboxid_list:checkboxid_list,
+			    			divstr_list:divstr_list};
 			    		//this.tdialogprop_list.push({field_id:field_id,
 			    		//	checkboxid_list:checkboxid_list});
 			    		var button_reg = registry.byId(button_id);
-			    		button_reg.on("click",
+			    		button_reg.set("onClick",
 			    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
+*/
 			    	} else {
 			    		TDialog = new TooltipDialog({
 			    			content:"Select Database using Select Config->Division Info"
@@ -480,10 +488,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						id:'fielddropdownbtn'+field_id+'_id'
 					});
 					// fill in checkboxes if store already has checkbox info
-		    		if (this.divinfo_obj.colname && object.primaryuse_str) {
-		    			this.init_checkbox(tdialogprop_obj,
-		    				object.primaryuse_str, this.divstr_list,
-		    				"fielddropdownbtn");
+					// this has to be called after dropdown_btn is created
+		    		if (divstr_list && divstr_list.length > 0 && object.primaryuse_str) {
+		    			this.init_checkbox(tdialogprop_obj, object.primaryuse_str,
+		    				divstr_list, "fielddropdownbtn");
 		    		}
 				} else {
 					// retrieve widget that had already been instantiated
@@ -494,17 +502,59 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				//dropdown_btn.startup();
 				return dropdown_btn;
 			},
+			create_primaryuse_dialog: function(divstr_list, field_id) {
+				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
+				var content_str = "";
+				var checkboxid_list = new Array();
+				arrayUtil.forEach(divstr_list, function(divstr, index) {
+					var idstr = "checkbox"+divstr+field_id+"_id";
+					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
+					'" value="'+index+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+					checkboxid_list.push(idstr);
+				});
+				var button_id = 'tdialogbtn'+field_id+'_id';
+				content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+				var TDialog = registry.byId('tooltip'+field_id);
+				if (TDialog) {
+					TDialog.set('content', content_str);
+				} else {
+					TDialog = new TooltipDialog({
+						id:"tooltip"+field_id,
+						content: content_str
+	    			});
+				}
+	    		var tdialogprop_obj = {field_id:field_id,
+	    			checkboxid_list:checkboxid_list,
+	    			divstr_list:divstr_list};
+	    		//this.tdialogprop_list.push({field_id:field_id,
+	    		//	checkboxid_list:checkboxid_list});
+	    		var button_reg = registry.byId(button_id);
+	    		button_reg.set("onClick",
+	    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
+	    		return {tdialog:TDialog, tdialogprop_obj:tdialogprop_obj};
+			},
+			set_primaryuse_dialog_dropdown: function(divstr_list) {
+				for (var field_id = 1; field_id < this.rownum+1; field_id++) {
+					var primaryuse_obj = this.create_primaryuse_dialog(divstr_list, field_id);
+					var TDialog = primaryuse_obj.tdialog;
+					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
+					if (dropdown_btn) {
+						dropdown_btn.set('dropDown', TDialog);
+					}
+				}
+			},
 			// handler for primary use dialog btn
 			dialogbtn_process: function(tdialogprop_obj, event) {
 				var field_id = tdialogprop_obj.field_id;
 				var checkboxid_list = tdialogprop_obj.checkboxid_list;
+				var divstr_list = tdialogprop_obj.divstr_list;
 				var display_str = "";
 				var value_str = "";
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
 						// create str to display in buttone
-						display_str += this.divstr_list[index]+',';
+						display_str += divstr_list[index]+',';
 						// create str to store (str of integer id elements)
 						value_str += checkbox_reg.get("value")+',';
 					}
