@@ -2,9 +2,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dojo/keys", "dojo/Stateful",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
+	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
-		registry, Tooltip, Button, EditGrid, baseinfoSingleton) {
+		registry, Tooltip, Button, EditGrid, baseinfoSingleton, put) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			fielddb_type:"fielddb"
@@ -16,7 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			server_interface:null, editgrid:null, uistackmgr:null,
 			idproperty:null, storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
-			colname_obj:null,
+			colname_obj:null, button_div:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
@@ -216,6 +217,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					idproperty);
 				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
 				updatebtn_widget.set("onClick", btn_callback);
+				// https://github.com/kriszyp/put-selector
+				// button is enclosed in a div
+				// outer div has class that has the float:right property
+				var generate_button = null;
+				if (!this.button_div) {
+					this.button_div = put(updatebtn_widget.domNode,
+						"+div.generate_button button");
+					generate_button = new Button({
+						label:"Generate", type:"button", class:"success"},
+						button_div);
+					generate_button.startup();
+				} else {
+					generate_button = registry.byId(this.button_div);
+				}
 				if (swapcpane_flag) {
 					this.uistackmgr.switch_pstackcpane(idproperty, "config",
 						text_str, btn_callback);

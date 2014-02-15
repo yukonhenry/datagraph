@@ -187,7 +187,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					var break_flag = false;
 					for (var prop in item) {
 						if (item[prop] === "") {
-							alert("Not all fields in grid filled out");
+							alert("Not all fields in grid filled out, but saving");
 							break_flag = true;
 							break;
 						}

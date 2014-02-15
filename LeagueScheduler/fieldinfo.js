@@ -21,7 +21,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		return declare(baseinfo, {
  			schedutil_obj:null, storeutil_obj:null,
  			idproperty:constant.idproperty_str,
-			fieldnum:0, calendar_id:0, calendar_store:null,
+			calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			starttime_handle:null,
@@ -228,7 +228,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			getInitialList: function(fieldnum) {
 				// return value defines structure for store for grid
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
-				this.fieldnum = fieldnum;
 				var later_date = date.add(this.today, 'month', 3);
 				var fieldinfo_list = new Array();
 				// assign default values for grid
@@ -294,14 +293,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// if field select widget does not exist, create one.
 					this.fieldselect_reg = registry.byId("fieldselect_id");
 					var fieldselect_list = new Array();
-					for (var i = 1; i < this.fieldnum+1; i++) {
+					for (var i = 1; i < this.rownum+1; i++) {
 						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
 					}
 					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
 					// add field list for schedule duplication select drop-down
 					var dupfieldselect_list = lang.clone(fieldselect_list);
-					dupfieldselect_list.push({label:'All Fields', value:this.fieldnum+1, selected:false});
+					dupfieldselect_list.push({label:'All Fields', value:this.rownum+1, selected:false});
 					this.dupfieldselect_reg = registry.byId("dupfieldselect_id");
 					this.dupfieldselect_reg.addOption(dupfieldselect_list);
 					//this.dupfieldselect_reg.startup();

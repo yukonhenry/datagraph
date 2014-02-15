@@ -126,3 +126,7 @@ div.bar {
   float:left;
   margin:2px;
 }
+.generate_button {
+  float:right;
+  margin:2px;
+}
