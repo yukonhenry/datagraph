@@ -2,12 +2,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
-	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox", "dijit/form/Button",
+	"dijit/form/TimeTextBox", "dijit/form/DateTextBox",
+	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox", "dijit/form/Button", "dijit/Tooltip",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, newscheduler,
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
-		put, Calendar){
+		Tooltip, put, Calendar){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
@@ -24,7 +25,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
-			starttime_handle:null,
+			starttime_handle:null, tooltip:null,
 			datetimeset_handle:null, datetimedel_handle:null,
 			calendar:null,
 			field_id:0, fieldselect_handle:null,
@@ -331,6 +332,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					}
 					this.datetimeset_handle = datetimeset_reg.on("click",
 						lang.hitch(this, this.datetimeset_submit));
+					var tooltipconfig = {connectId:['fieldevent_id'],
+						label:"Enter Event Type and Name",
+						position:['below','after']};
+					this.tooltip = new Tooltip(tooltipconfig);
 					this.eventdate_reg.set('value', this.today);
 					this.eventdate_reg.startup();
 					// setup titlepane widget to generate event when it opens
@@ -692,6 +697,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.calendar.destroyRecursive();
 				//delete this.calendar;
 				delete this.calendar_store;
+				if (this.tooltip)
+					this.tooltip.destroyRecursive();
 			}
 		});
 });

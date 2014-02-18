@@ -1,30 +1,48 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/date",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, EditGrid,
-		baseinfoSingleton) {
-		var weekoffset_CONST = 12;
+	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox",
+	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
+	"put-selector/put", "dojo/domReady!"],
+	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys,
+		Memory,registry, Tooltip, ValidationTextBox,
+		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
+		baseinfoSingleton, put) {
+		var constant = {
+			weekoffset:12,
+			idproperty_str:'newsched_id',
+			form_name:'newsched_form_id'
+		};
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			newsched_dom:"", schedutil_obj:null, storeutil_obj:null,
-			form_name:"",
-			info_obj:null, idproperty:"", server_path:"", server_key:"",
+			info_obj:null, idproperty:constant.idproperty_str,
+			server_path:"", server_key:"",
 			seasondates_btn_reg:null,
-			callback:null, text_node_str:"",
+			callback:null, text_node_str:"", tooltip:null,
 			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null,
-			eventsrc_flag:false, idproperty:null, uistackmgr:null,
+			eventsrc_flag:false, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.form_name = "newsched_form_id";
-				this.idproperty = "newsched_id";
 			},
 			initialize: function(arg_obj) {
-				this.form_reg = registry.byId(this.form_name);
-				this.dbname_reg = registry.byId("newsched_input_id");
+				this.form_reg = registry.byId(constant.form_name);
+				//this.dbname_reg = registry.byId("newsched_input_id");
+				// put selector documentation
+				// http://davidwalsh.name/put-selector
+				// https://github.com/kriszyp/put-selector
+				put(this.form_reg.domNode, "label.input_box[for=newsched_input_id]",
+					'New Schedule Name:');
+				var sched_input = put(this.form_reg.domNode,
+					"input#newsched_input_id[type=text][required=true]")
+				this.dbname_reg = new ValidationTextBox({
+					value:'PHMSA2014',
+					regExp:'[\\w]+',
+					promptMessage:'Enter New Schedule - only alphanumeric characters and _',
+					invalidMessage:'only alphanumeric characters and _',
+					missingMessage:'enter schedule name'
+				}, sched_input);
 				this.seasondates_btn_reg = registry.byId("seasondates_btn");
 				this.newsched_dom = dom.byId("newsched_text");
 				this.showConfig();
@@ -34,8 +52,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.storeutil_obj = storeutil_obj;
 			},
 			showConfig: function() {
+
 				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
+				var tooltipconfig = {connectId:['newsched_input_id'],
+					label:"Enter Schedule Name and press ENTER",
+					position:['below','after']};
+				this.tooltip = new Tooltip(tooltipconfig);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = this.dbname_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
@@ -63,8 +86,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						var today = new Date();
 						this.seasonstart_reg.set('value', today);
 						this.seasonend_reg.set('value',
-							date.add(today, 'week', weekoffset_CONST));
-						this.seasonlength_reg.set('value', weekoffset_CONST);
+							date.add(today, 'week', constant.weekoffset));
+						this.seasonlength_reg.set('value', constant.weekoffset);
 						if (this.seasonstart_handle)
 							this.seasonstart_handle.remove();
 						// note pausable/resume handler does not work trying to control changes made to textbox's programmatically
@@ -169,6 +192,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.seasonlength_handle.remove();
 				if (this.sdates_handle)
 					this.sdates_handle.remove();
+				if (this.tooltip)
+					this.tooltip.destroyRecursive();
 			}
 		});
 	})

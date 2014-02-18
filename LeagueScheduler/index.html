@@ -14,14 +14,15 @@
         <title>Event Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.12l</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.12n</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
 			require(["dbootstrap", "dojo/dom", "LeagueScheduler/scheduler",
                 "dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/layout/StackContainer",
-                "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox","dijit/form/DropDownButton", "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/Tooltip", "dijit/form/Button", "dijit/form/ToggleButton", "dijit/form/NumberSpinner",
+                "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox","dijit/form/DropDownButton",
+                "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button", "dijit/form/ToggleButton", "dijit/form/NumberSpinner",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
     			//var greeting = dom.byId("greeting");
@@ -153,10 +154,11 @@
                     <div id="dummy" data-dojo-type="dijit/layout/ContentPane"></div>
                     <div id="newschedcpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <form data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id">
-                            <label for="newsched_input_id">New Schedule Name</label>
+                            <!--<label for="newsched_input_id">New Schedule Name</label>
+                            <input id="newsched_input_id"/> -->
+                        <!--
                             <input type="text" name="newsched_input" id="newsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
-                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                            <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'newsched_input_id', position:['below','after']">Enter Schedule Name and Press ENTER</span></div>
+                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/> -->
                         </form>
                     </div>
                     <div id="seasoncalendar_input" data-dojo-type="dijit/layout/ContentPane">
@@ -254,7 +256,9 @@
                                     <label for="fieldevent_id">Event Name</label><br>
                                     <input type="text" id="fieldevent_id" value="Sports" required="true" data-dojo-type="dijit/form/ValidationTextBox"
                                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldevent_id', position:['below','after']">Enter Event Type and Name</span></div><br>
+                                    <!--
+                                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldevent_id', position:['below','after']">Enter Event Type and Name</span></div>-->
+                                    <br>
                                     <label for="eventdate_id">Event Date:</label><br>
                                     <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
                                     <br>
