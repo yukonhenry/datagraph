@@ -39,14 +39,14 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			watch_initialize: function() {
 				this.watch_obj.watch('divstr_list',
 					lang.hitch(this,function(name, oldValue, value) {
-						var fieldinfo_obj = this.get_info_obj('field_id');
+						var fieldinfo_obj = this.get_obj('field_id');
 						if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
 							console.log("calling fieldinfo set dialog w "+value);
 							fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
 						}
 					}));
 			},
-			get_info_obj: function(idproperty) {
+			get_obj: function(idproperty) {
 				var match_list = arrayUtil.filter(this.obj_list,
 				function(item, index) {
 					return item.idproperty == idproperty;

@@ -34,14 +34,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// http://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
 				var dbtype_result = this.dbselect_store.query({db_type:db_type});
 				dbtype_result.observe(lang.hitch(this, function(object, removeIndex, insertIndex) {
+					var newsched_obj = baseinfoSingleton.get_obj('newsched_id');
 					if (removeIndex > -1) {
 						// note removing by index only may not be reliable
 						// other option is to pass in the object and then search
 						// the reg children to find a math on the label
 						this.schedutil_obj.regenDelDBCollection_smenu(removeIndex, db_type);
+						if (newsched_obj) {
+							newsched_obj.removefrom_select(db_type, removeIndex);
+						}
 					}
 					if (insertIndex > -1) {
-						this.schedutil_obj.regenAddDBCollection_smenu(object, insertIndex)
+						this.schedutil_obj.regenAddDBCollection_smenu(object, insertIndex);
+						if (newsched_obj) {
+							newsched_obj.addto_select(db_type, object.label, insertIndex);
+						}
 					}
 				}));
 			},

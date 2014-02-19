@@ -201,6 +201,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}
 				}
 			},
+			removefrom_select: function(db_type, index) {
+				// remove entries from the div or field group dropdown
+				if (db_type == 'db') {
+					this.league_select.removeOption(index);
+				} else if (db_type == 'fielddb') {
+					this.fg_slect.removeOption(index)
+				}
+			},
+			addto_select: function(db_type, label, insertIndex) {
+				var soption_obj = {label:label, value:insertIndex+1,
+					selected:false};
+				if (db_type == 'db') {
+					this.league_select.addOption(soption_obj);
+				} else if (db_type == 'fielddb') {
+					this.fg_slect.addOption(soption_obj);
+				}
+			},
 			getSeasonDatesFromInput: function(event) {
 				var seasonstart_date = this.seasonstart_reg.get("value");
 				var seasonend_date = this.seasonend_reg.get("value");
