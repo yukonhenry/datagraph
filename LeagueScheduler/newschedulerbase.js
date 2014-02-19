@@ -1,16 +1,18 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/date",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox",
+	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
+	"dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox", "dijit/form/Select",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys,
-		Memory,registry, Tooltip, ValidationTextBox,
+		Memory,registry, Tooltip, ValidationTextBox, Select,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, put) {
 		var constant = {
 			weekoffset:12,
 			idproperty_str:'newsched_id',
-			form_name:'newsched_form_id'
+			form_name:'newsched_form_id',
+			scinput_div:'seasoncalendar_input'
 		};
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
@@ -21,10 +23,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			callback:null, text_node_str:"", tooltip:null,
 			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
 			seasonstart_handle:null, seasonend_handle:null,
-			seasonlength_handle:null,
+			seasonlength_handle:null, league_select:null, fg_select:null,
 			eventsrc_flag:false, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			initialize: function(arg_obj) {
 				this.form_reg = registry.byId(constant.form_name);
@@ -32,10 +35,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// put selector documentation
 				// http://davidwalsh.name/put-selector
 				// https://github.com/kriszyp/put-selector
-				put(this.form_reg.domNode, "label.input_box[for=newsched_input_id]",
+				put(this.form_reg.domNode, "label.label_box[for=newsched_input_id]",
 					'New Schedule Name:');
 				var sched_input = put(this.form_reg.domNode,
-					"input#newsched_input_id[type=text][required=true]")
+					"input#newsched_input_id[type=text][required=true]");
 				this.dbname_reg = new ValidationTextBox({
 					value:'PHMSA2014',
 					regExp:'[\\w]+',
@@ -164,6 +167,33 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
 							lang.hitch(this, this.getSeasonDatesFromInput));
+						if (!this.league_select) {
+							// get parent dom and generate dropdown selects
+							var scinput_dom = dom.byId(constant.scinput_div);
+							put(scinput_dom,
+								"label.label_box[for=league_select_id]",
+								"Select League");
+							var select_div = put(scinput_dom,
+								"select#league_select_id[name=league_select]");
+							this.league_select = new Select({
+								name:'league_select'
+							}, select_div);
+							var option_array = this.generateLabelDropDown('db',
+								'Select League');
+							this.league_select.addOption(option_array);
+							put(scinput_dom, "span.empty_gap");  // add space
+							put(scinput_dom,
+								"label.label_box[for=fg_select_id]",
+								"Select Field Group");
+							var fg_select_div = put(scinput_dom,
+								"select#fg_select_id[name=fg_select]");
+							this.fg_select = new Select({
+								name:'fg_select'
+							}, fg_select_div);
+							option_array = this.generateLabelDropDown('fielddb',
+								'Select Field Group');
+							this.fg_select.addOption(option_array);
+						}
 						this.uistackmgr.switch_pstackcpane(this.idproperty,
 							"config");
 					} else {
@@ -183,6 +213,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			is_newgrid_required: function() {
 				return false;
 			},
+			generateLabelDropDown: function(db_type, label_str) {
+				var label_list = this.storeutil_obj.getfromdb_store_value(db_type,
+					'label');
+				var option_array = [{label:label_str, value:"",
+					selected:true}];
+				arrayUtil.forEach(label_list, function(item, index) {
+					option_array.push({label:item, value:index+1, selected:false});
+				});
+				return option_array;
+			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
 					this.seasonstart_handle.remove();
@@ -194,6 +234,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.sdates_handle.remove();
 				if (this.tooltip)
 					this.tooltip.destroyRecursive();
+				if (this.dbname_reg)
+					this.dbname_reg.destroyRecursive();
 			}
 		});
 	})

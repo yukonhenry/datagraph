@@ -56,6 +56,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = match_obj.db_type;
 				this.dbselect_store.add({id:colname+'_'+db_type, label:colname, db_type:db_type})
 			},
+			getfromdb_store_value:function(db_type, key) {
+				var dbtype_result = this.dbselect_store.query({db_type:db_type})
+					.map(function(item){
+						return item[key];
+					});
+				return dbtype_result;
+			},
 			removefromdb_store: function(item, db_type) {
 				// confirm format of id field
 				this.dbselect_store.remove(item+'_'+db_type);

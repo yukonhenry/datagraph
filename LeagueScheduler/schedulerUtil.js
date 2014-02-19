@@ -85,7 +85,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					var divstr = item.div_age + item.div_gen;
 					// division code is 1-index based so increment by 1
 					option_array.push({label:divstr, value:index+1, selected:false});
-				}, this);
+				});
 				select_reg.addOption(option_array);
 			},
 			getNumberTeams: function(div_id) {

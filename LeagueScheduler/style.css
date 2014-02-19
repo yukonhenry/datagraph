@@ -130,6 +130,9 @@ div.bar {
   float:right;
   margin:2px;
 }
-.input_box {
+.label_box {
   margin:3px;
+}
+.empty_gap {
+  margin-left:50px;
 }

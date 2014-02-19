@@ -53,6 +53,9 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						options_obj.text_node_str = 'Schedule Name';
 						options_obj.grid_id = 'schedinfogrid_id';
 						options_obj.storeutil_obj = this.storeutil_obj;
+						// recalculate need for a new grid here
+						// as code flow does not go through uistackmanager
+						options_obj.newgrid_flag = this.is_newgrid_required();
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
 							{divisioncode:divisioncode}, options_obj);

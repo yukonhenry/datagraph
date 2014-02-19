@@ -11,12 +11,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
-		"LeagueScheduler/newscheduler", "LeagueScheduler/serverinterface",
+		"LeagueScheduler/serverinterface",
 		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
 		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil","dojox/calendar/Calendar",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, newscheduler, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, Calendar) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, Calendar) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -62,10 +62,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		//}).then(function(ldata){
 		var leaguediv_func = function(ldata) {
 			ldata_array = ldata.leaguedivinfo;
-			fdata_array = ldata.field_info;
+			var fdata_array = ldata.field_info;
 			grid.renderArray(ldata_array);
 			fieldInfoGrid.renderArray(fdata_array);
-			dbstatus = ldata.dbstatus;
+			var dbstatus = ldata.dbstatus;
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
 			var storeutil_obj = new storeUtil({schedutil_obj:schedUtil, uistackmgr:uiStackManager, server_interface:serverInterface});
 			newSchedulerBase.set_obj(schedUtil, storeutil_obj);

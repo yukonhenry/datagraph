@@ -40,7 +40,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				this.pstackmap_list.push({id:'sched_id', stage:'preconfig',
 					pane_id:constant.sdcpane_id})
 				this.pstackmap_list.push({id:'sched_id', stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:constant.sdcpane_id});  // for sched_id, stays in preconfig pane (with dropdown)
 				this.pstackmap_list.push({id:'newsched_id', stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				this.pstackmap_list.push({id:'newsched_id', stage:'config',
