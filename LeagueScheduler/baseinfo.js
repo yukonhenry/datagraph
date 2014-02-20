@@ -226,7 +226,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						"+div.generate_button button");
 					generate_button = new Button({
 						label:"Generate", type:"button", class:"success"},
-						button_div);
+						this.button_div);
 					generate_button.startup();
 				} else {
 					generate_button = registry.byId(this.button_div);

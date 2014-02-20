@@ -45,20 +45,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var form_reg = registry.byId(form_name);
 				var input_reg = registry.byId("newdivinfo_input_id");
 				var divnum_reg = registry.byId("divnum_input_id");
-				/*
-				var newScheduler = new newscheduler({dbname_reg:input_reg,
-					form_reg:form_reg,
-					entrynum_reg:divnum_reg,
-					server_interface:this.server_interface,
-					info_obj: this, idproperty:constant.idproperty_str,
-					server_path:"create_newdbcol/",
-					text_node_str: constant.text_node_str,
-					grid_id:constant.grid_id,
-					text_node:this.text_node,
-					updatebtn_str:constant.updatebtn_str,
-					uistackmgr:this.uistackmgr,
-					storeutil_obj:this.storeutil_obj,
-				}); */
 				var tooltipconfig_list = [{connectId:['divnum_input_id'],
 					label:"Specify Number of Divisions and press ENTER",
 					position:['below','after']},
@@ -115,6 +101,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				if (this.infogrid_store) {
 					var divstr_list = this.infogrid_store.query().map(function(item) {
 						return item.div_age+item.div_gen;
+					}).filter(function(divstr) {
+						return divstr != "";
 					});
 					var dup_list = this.schedutil_obj.detect_arrayduplicate(divstr_list);
 					if (dup_list.length > 0) {

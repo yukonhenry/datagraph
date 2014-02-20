@@ -163,22 +163,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
-				/*
-				var newFieldGroup = new newscheduler({dbname_reg:input_reg,
-					form_reg:form_reg,
-					entrynum_reg:fieldnum_reg,
-					server_interface:this.server_interface,
-					info_obj:this, idproperty:constant.idproperty_str,
-					server_path:"create_newfieldcol/",
-					server_key:constant.db_type,
-					cellselect_flag:true,
-					text_node_str: constant.text_node_str,
-					grid_id:constant.grid_id,
-					text_node:this.text_node,
-					updatebtn_str:constant.updatebtn_str,
-					uistackmgr:this.uistackmgr,
-					storeutil_obj:this.storeutil_obj
-				}); */
 				var tooltipconfig_list = [{connectId:['fieldnum_input_id'],
 					label:"Specify Number of Fields and press ENTER",
 					position:['below','after']},

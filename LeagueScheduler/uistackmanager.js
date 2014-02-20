@@ -79,7 +79,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				match_obj.text_str = text_str || "";
 				match_obj.btn_callback = btn_callback;
 				this.setreset_cpanestate_active(match_obj);
-				this.cpanestate_list[index] = match_obj;
+				// not necessary to reassign as the list index already points
+				// to match_obj
+				//this.cpanestate_list[index] = match_obj;
+			},
+			swapactive_pstackcpane: function(id) {
+				var state_obj = this.get_cpanestate(id);
+				var match_obj = state_obj.match_obj;
+				this.pstackcontainer_reg.selectChild(match_obj.p_pane);
+				this.setreset_cpanestate_active(match_obj);
 			},
 			get_cpanestate: function(id) {
 				var idmatch_list = arrayUtil.filter(this.cpanestate_list,
@@ -186,6 +194,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					}
 				} else {
 					// scenarios b, c, or e
+					if (match_obj.p_stage) {
+						// if ppane_stage exists, switch to it
+						this.swapactive_pstackcpane(new_idproperty);
+					}
 					info_obj.initialize(newgrid_flag);
 				}
 			},
