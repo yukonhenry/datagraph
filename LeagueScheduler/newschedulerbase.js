@@ -1,11 +1,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/date",
 	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
-	"dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox", "dijit/form/Select",
+	"dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox", "dijit/form/Select", "dijit/form/Button",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys,
-		Memory,registry, Tooltip, ValidationTextBox, Select,
+		Memory,registry, Tooltip, ValidationTextBox, Select, Button,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, put) {
 		var constant = {
@@ -193,6 +193,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							option_array = this.generateLabelDropDown('fielddb',
 								'Select Field Group');
 							this.fg_select.addOption(option_array);
+							put(scinput_dom, "span.empty_gap");
+							var btn_node = put(scinput_dom,
+								"button.dijitButton[type=button]",
+								"Submit Schedule Parameters");
+							var schedule_btn = new Button({
+								class:"primary"
+							}, btn_node);
 						}
 						// need to add btn callbacks here
 						this.uistackmgr.switch_pstackcpane({
