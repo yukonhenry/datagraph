@@ -16,7 +16,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			divcpane_id:"divinfocpane_id",
 			schedcpane_id:"schedinfocpane_id",
 			fieldcpane_id:"fieldinfocpane_id",
-			blankcpane_id:"blankcpane_id"
+			blankcpane_id:"blankcpane_id",
+			// entry_pt id's
+			init:"init", fromdb:"fromdb"
 		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
@@ -29,21 +31,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// define param stack mapping that maps tuple (id_property, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();
-				this.pstackmap_list.push({id:'field_id', stage:'preconfig',
+				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
 					pane_id:constant.nfcpane_id});
-				this.pstackmap_list.push({id:'field_id', stage:'config',
+				this.pstackmap_list.push({id:'field_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
-				this.pstackmap_list.push({id:'div_id', stage:'preconfig',
+				this.pstackmap_list.push({id:'div_id', p_stage:'preconfig',
 					pane_id:constant.ndcpane_id});
-				this.pstackmap_list.push({id:'div_id', stage:'config',
+				this.pstackmap_list.push({id:'div_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
-				this.pstackmap_list.push({id:'sched_id', stage:'preconfig',
+				this.pstackmap_list.push({id:'sched_id', p_stage:'preconfig',
 					pane_id:constant.sdcpane_id})
-				this.pstackmap_list.push({id:'sched_id', stage:'config',
+				this.pstackmap_list.push({id:'sched_id', p_stage:'config',
 					pane_id:constant.sdcpane_id});  // for sched_id, stays in preconfig pane (with dropdown)
-				this.pstackmap_list.push({id:'newsched_id', stage:'preconfig',
+				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
-				this.pstackmap_list.push({id:'newsched_id', stage:'config',
+				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
 					pane_id:constant.sccpane_id});
 				// define mapping object for the grid content pane
 				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
@@ -59,34 +61,39 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				arrayUtil.forEach(id_list, function(item, index) {
 					this.gstackmap_list.push({id:item,
 					pane_id:cpane_list[index]});
+					/* cpanestate_list tracks current configuration state for each
+					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
+					g_pane: grid name, text_str, btn_callback: send server button
+					parameters, active_flag:boolean whether idprop is currently
+					active or not.
+					*/
 					this.cpanestate_list.push({id:item,
-						p_pane:null, p_stage:null,
+						p_pane:null, p_stage:null, entry_pt:null,
 						g_pane:constant.blankcpane_id,
-						text_str:"", btn_callback:null,
+						text_str:"", btn_callback:null, updatebtn_str:"",
 						active_flag:false})
 				}, this);
 			},
-			switch_pstackcpane: function(id, stage, text_str, btn_callback) {
-				var select_pane = this.getp_pane(id, stage);
+			switch_pstackcpane: function(args_obj) {
+				id = args_obj.idproperty;
+				p_stage = args_obj.p_stage;
+				var select_pane = this.getp_pane(id, p_stage);
 				this.pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index
 				var state_obj = this.get_cpanestate(id);
 				var match_obj = state_obj.match_obj;
 				var index = state_obj.index;
-				// modify matched obj
+				// http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/
+				lang.mixin(match_obj, args_obj);
 				match_obj.p_pane = select_pane;
-				match_obj.p_stage = stage;
-				match_obj.text_str = text_str || "";
-				match_obj.btn_callback = btn_callback;
 				this.setreset_cpanestate_active(match_obj);
 				// not necessary to reassign as the list index already points
 				// to match_obj
 				//this.cpanestate_list[index] = match_obj;
 			},
-			swapactive_pstackcpane: function(id) {
-				var state_obj = this.get_cpanestate(id);
-				var match_obj = state_obj.match_obj;
+			swapactive_pgstackcpane: function(match_obj) {
 				this.pstackcontainer_reg.selectChild(match_obj.p_pane);
+				this.gstackcontainer_reg.selectChild(match_obj.g_pane);
 				this.setreset_cpanestate_active(match_obj);
 			},
 			get_cpanestate: function(id) {
@@ -116,12 +123,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				} else
 					return null;
 			},
-			getp_pane: function(id, stage) {
-				// get parameter pane corresponding to id and stage
+			getp_pane: function(id, p_stage) {
+				// get parameter pane corresponding to id and p_stage
 				// ('config' or 'preconfig')
 				var idmatch_list = arrayUtil.filter(this.pstackmap_list,
 					function(item, index) {
-						return item.id == id && item.stage == stage;
+						return item.id == id && item.p_stage == p_stage;
 					});
 				return idmatch_list[0].pane_id;
 			},
@@ -195,10 +202,20 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				} else {
 					// scenarios b, c, or e
 					if (match_obj.p_stage) {
-						// if ppane_stage exists, switch to it
-						this.swapactive_pstackcpane(new_idproperty);
+						if (match_obj.entry_pt == constant.init) {
+							// if previous match for idprop was also an init
+							// then just swap into that
+							this.swapactive_pgstackcpane(match_obj);
+							info_obj.reconfig_infobtn_fromuistack(match_obj);
+						} else {
+							// else if previous match for idprop was from server
+							// then call init
+							info_obj.initialize(newgrid_flag);
+						}
+					} else {
+						// if no p_stage with matched obj, then initialize
+						info_obj.initialize(newgrid_flag);
 					}
-					info_obj.initialize(newgrid_flag);
 				}
 			},
 			check_getServerDBInfo: function(options_obj) {
@@ -254,7 +271,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 										updatebtn_str:options_obj.updatebtn_str,
 										idproperty:new_idproperty,
 										swapcpane_flag:true,
-										newgrid_flag:false
+										newgrid_flag:false,
+										entry_pt:constant.fromdb
 									}
 									info_obj.reconfig_infobtn(args_obj);
 								}
@@ -302,7 +320,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 								updatebtn_str:options_obj.updatebtn_str,
 								idproperty:new_idproperty,
 								swapcpane_flag:true,
-								newgrid_flag:false
+								newgrid_flag:false,
+								entry_pt:constant.fromdb
 							}
 							info_obj.reconfig_infobtn(args_obj);
 						}

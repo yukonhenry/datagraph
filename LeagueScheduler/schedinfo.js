@@ -41,8 +41,8 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 						baseinfoSingleton.set_select_reg(this.select_reg);
 						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.divinfo_list);
 					}
-					this.uistackmgr.switch_pstackcpane(this.idproperty,
-						"preconfig", "", null);
+					this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+						p_stage:"preconfig", entry_pt:"fromdb"});
 					this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 					options_obj.serverdata_key = 'game_list';
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {
@@ -94,8 +94,10 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				var idproperty = args_obj.idproperty;
 				var swapcpane_flag = args_obj.swapcpane_flag;
 				var newgrid_flag = args_obj.newgrid_flag;
+				var entry_pt = args_obj.entry_pt;
 				if (swapcpane_flag) {
-					this.uistackmgr.switch_pstackcpane(idproperty, "config");
+					this.uistackmgr.switch_pstackcpane({idproperty:idproperty,
+						p_stage:"config", entry_pt:entry_pty});
 					if (!newgrid_flag) {
 						// also swap grid if we are not generating a new one
 						this.uistackmgr.switch_gstackcpane(idproperty, false, this.editgrid.schedInfoGrid);

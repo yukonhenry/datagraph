@@ -55,8 +55,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.storeutil_obj = storeutil_obj;
 			},
 			showConfig: function() {
-
-				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
+				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+					p_stage:"preconfig", entry_pt:"init"});
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 				var tooltipconfig = {connectId:['newsched_input_id'],
 					label:"Enter Schedule Name and press ENTER",
@@ -194,8 +194,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								'Select Field Group');
 							this.fg_select.addOption(option_array);
 						}
-						this.uistackmgr.switch_pstackcpane(this.idproperty,
-							"config");
+						// need to add btn callbacks here
+						this.uistackmgr.switch_pstackcpane({
+							idproperty:this.idproperty, p_stage:"config",
+							entry_pt:"init"});
 					} else {
 						alert('Input name is Invalid, please correct');
 					}

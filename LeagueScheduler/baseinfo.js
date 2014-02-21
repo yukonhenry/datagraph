@@ -8,7 +8,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		registry, Tooltip, Button, EditGrid, baseinfoSingleton, put) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
-			fielddb_type:"fielddb"
+			fielddb_type:"fielddb",
+			// entry_pt id's
+			init:"init", fromdb:"fromdb"
 		};
 		var colname_class = declare([Stateful],{
 			colname:null
@@ -47,7 +49,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						this.tooltip_list.push(new Tooltip(item));
 					}, this);
 				}
-				this.uistackmgr.switch_pstackcpane(this.idproperty, "preconfig");
+				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+					p_stage: "preconfig", entry_pt:constant.init});
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
@@ -118,6 +121,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								newgrid_flag:false
 							}
 						}
+						args_obj.entry_pt = constant.init;
 						this.reconfig_infobtn(args_obj);
 					} else {
 						alert('Input name is Invalid, please correct');
@@ -197,6 +201,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					swapcpane_flag:options_obj.swapcpane_flag,
 					newgrid_flag:options_obj.newgrid_flag
 				}
+				args_obj.entry_pt = constant.fromdb;
 				this.reconfig_infobtn(args_obj);
 			},
 			// function to reassign infobtn_update with title string and callback
@@ -210,6 +215,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var idproperty = args_obj.idproperty;
 				var swapcpane_flag = args_obj.swapcpane_flag;
 				var newgrid_flag = args_obj.newgrid_flag;
+				var entry_pt = args_obj.entry_pt;
 
 				var text_str = text_node_str + ": <b>"+colname+"</b>";
 				text_node.innerHTML = text_str;
@@ -220,6 +226,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// https://github.com/kriszyp/put-selector
 				// button is enclosed in a div
 				// outer div has class that has the float:right property
+				/*
 				var generate_button = null;
 				if (!this.button_div) {
 					this.button_div = put(updatebtn_widget.domNode,
@@ -230,10 +237,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					generate_button.startup();
 				} else {
 					generate_button = registry.byId(this.button_div);
-				}
+				} */
 				if (swapcpane_flag) {
-					this.uistackmgr.switch_pstackcpane(idproperty, "config",
-						text_str, btn_callback);
+					this.uistackmgr.switch_pstackcpane({idproperty:idproperty,
+						p_stage:"config", entry_pt:entry_pt,
+						text_str:text_str, btn_callback: btn_callback,
+						updatebtn_str:updatebtn_str});
 					if (!newgrid_flag) {
 						// also swap grid if we are not generating a new one
 						// if we are generating a new grid, switchgstack is called
@@ -242,6 +251,30 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.editgrid.schedInfoGrid);
 					}
 				}
+			},
+			reconfig_infobtn_fromuistack: function(args_obj) {
+				// parse args object
+				this.text_node.innerHTML = args_obj.text_str;
+				var updatebtn_str = args_obj.updatebtn_str;
+				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
+					args_obj.idproperty);
+				var btn_callback = args_obj.btn_callback;
+				updatebtn_widget.set("onClick", btn_callback);
+				// https://github.com/kriszyp/put-selector
+				// button is enclosed in a div
+				// outer div has class that has the float:right property
+				/*
+				var generate_button = null;
+				if (!this.button_div) {
+					this.button_div = put(updatebtn_widget.domNode,
+						"+div.generate_button button");
+					generate_button = new Button({
+						label:"Generate", type:"button", class:"success"},
+						this.button_div);
+					generate_button.startup();
+				} else {
+					generate_button = registry.byId(this.button_div);
+				} */
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str) {
 				var infobtn_widget = registry.byId(constant.infobtn_id);
