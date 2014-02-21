@@ -195,11 +195,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.fg_select.addOption(option_array);
 							put(scinput_dom, "span.empty_gap");
 							var btn_node = put(scinput_dom,
-								"button.dijitButton[type=button]",
-								"Submit Schedule Parameters");
+								"button.dijitButton#schedparambtn_id[type=button]");
+							var btn_tooltipconfig = {
+								connectId:['schedparambtn_id'],
+								label:"Enter",
+								position:['above','after']};
 							var schedule_btn = new Button({
-								class:"primary"
+								label:"Generate",
+								disabled:true,
+								class:"success",
 							}, btn_node);
+							schedule_btn.startup();
+							var btn_tooltip = new Tooltip(btn_tooltipconfig);
 						}
 						// need to add btn callbacks here
 						this.uistackmgr.switch_pstackcpane({
