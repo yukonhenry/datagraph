@@ -1,10 +1,10 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
-	"dojo/_base/lang", "dojo/date",
-	"dojo/dom-class", "dojo/_base/array", "dojo/keys", "dojo/store/Memory",
+	"dojo/_base/lang", "dojo/date", "dojo/Stateful",
+	"dojo/_base/array", "dojo/keys", "dojo/store/Memory",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox", "dijit/form/Select", "dijit/form/Button",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, date, domClass, arrayUtil, keys,
+	function(dbootstrap, dom, on, declare, lang, date, Stateful, arrayUtil, keys,
 		Memory,registry, Tooltip, ValidationTextBox, Select, Button,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, put) {
@@ -14,6 +14,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			form_name:'newsched_form_id',
 			scinput_div:'seasoncalendar_input'
 		};
+		var newschedwatch_class = declare([Stateful],{
+			leagueselect_val:-1,
+			leagueselect_flag:false,
+			fgselect_val:-1,
+			fgselect_flag:false,
+			league_fg_flag:false
+		})
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			newsched_dom:"", schedutil_obj:null, storeutil_obj:null,
@@ -24,10 +31,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null, league_select:null, fg_select:null,
-			eventsrc_flag:false, uistackmgr:null,
+			eventsrc_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
+				this.newschedwatch_obj = new newschedwatch_class();
 			},
 			initialize: function(arg_obj) {
 				this.form_reg = registry.byId(constant.form_name);
@@ -35,17 +43,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// put selector documentation
 				// http://davidwalsh.name/put-selector
 				// https://github.com/kriszyp/put-selector
-				put(this.form_reg.domNode, "label.label_box[for=newsched_input_id]",
-					'New Schedule Name:');
-				var sched_input = put(this.form_reg.domNode,
-					"input#newsched_input_id[type=text][required=true]");
-				this.dbname_reg = new ValidationTextBox({
-					value:'PHMSA2014',
-					regExp:'[\\w]+',
-					promptMessage:'Enter New Schedule - only alphanumeric characters and _',
-					invalidMessage:'only alphanumeric characters and _',
-					missingMessage:'enter schedule name'
-				}, sched_input);
+				// first check to see if the domNode has already been created by
+				// seeing the dom node can be retrieved
+				var sched_input = dom.byId("newched_input_id");
+				if (!sched_input) {
+					put(this.form_reg.domNode, "label.label_box[for=newsched_input_id]",
+						'New Schedule Name:');
+					sched_input = put(this.form_reg.domNode,
+						"input#newsched_input_id[type=text][required=true]");
+					this.dbname_reg = new ValidationTextBox({
+						value:'PHMSA2014',
+						regExp:'[\\w]+',
+						promptMessage:'Enter New Schedule - only alphanumeric characters and _',
+						invalidMessage:'only alphanumeric characters and _',
+						missingMessage:'enter schedule name'
+					}, sched_input);
+				} else {
+					// domnode already exists, get widget that should also be there
+					this.dbname_reg = registry.byNode(sched_input);
+				}
+
 				this.seasondates_btn_reg = registry.byId("seasondates_btn");
 				this.newsched_dom = dom.byId("newsched_text");
 				this.showConfig();
@@ -167,38 +184,78 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
 							lang.hitch(this, this.getSeasonDatesFromInput));
-						if (!this.league_select) {
+						var select_div = dom.byId("league_select_id");
+						if (!select_div) {
 							// get parent dom and generate dropdown selects
 							var scinput_dom = dom.byId(constant.scinput_div);
 							put(scinput_dom,
 								"label.label_box[for=league_select_id]",
 								"Select League");
-							var select_div = put(scinput_dom,
+							select_div = put(scinput_dom,
 								"select#league_select_id[name=league_select]");
 							this.league_select = new Select({
-								name:'league_select'
+								name:'league_select',
+								onChange: lang.hitch(this, function(evt) {
+									// copy event (value of option) to watched obj
+									this.newschedwatch_obj.set('leagueselect_val',
+										evt);
+									this.newschedwatch_obj.set('leagueselect_flag',evt>0);
+								})
 							}, select_div);
+							this.newschedwatch_obj.watch('leagueselect_flag',
+								lang.hitch(this,
+									function(name, oldValue, value) {
+										this.newschedwatch_obj.set('league_fg_flag',
+											this.newschedwatch_obj.get('fgselect_flag') && value);
+									}
+								)
+							)
 							var option_array = this.generateLabelDropDown('db',
 								'Select League');
 							this.league_select.addOption(option_array);
 							put(scinput_dom, "span.empty_gap");  // add space
+						} else {
+							this.league_select = registry.byNode(select_div);
+						}
+						var fg_select_div = dom.byId("fg_select_id");
+						if (!fg_select_div) {
 							put(scinput_dom,
 								"label.label_box[for=fg_select_id]",
 								"Select Field Group");
-							var fg_select_div = put(scinput_dom,
+							fg_select_div = put(scinput_dom,
 								"select#fg_select_id[name=fg_select]");
 							this.fg_select = new Select({
-								name:'fg_select'
+								name:'fg_select',
+								onChange: lang.hitch(this, function(evt) {
+									// copy event (value of option) to watched obj
+									this.newschedwatch_obj.set('fgselect_val',
+										evt);
+									this.newschedwatch_obj.set('fgselect_flag',
+										evt>0);
+								})
 							}, fg_select_div);
+							this.newschedwatch_obj.watch('fgselect_flag',
+								lang.hitch(this,
+									function(name, oldValue, value) {
+										this.newschedwatch_obj.set('league_fg_flag',
+											this.newschedwatch_obj.get('leagueselect_flag') && value);
+									}
+								)
+							)
 							option_array = this.generateLabelDropDown('fielddb',
 								'Select Field Group');
 							this.fg_select.addOption(option_array);
 							put(scinput_dom, "span.empty_gap");
-							var btn_node = put(scinput_dom,
+						} else {
+							this.fg_select = registry.byNode(fg_select_div);
+						}
+						var btn_node = dom.byId("schedparambtn_id");
+						if (!btn_node) {
+							btn_node = put(scinput_dom,
 								"button.dijitButton#schedparambtn_id[type=button]");
 							var btn_tooltipconfig = {
 								connectId:['schedparambtn_id'],
-								label:"Enter",
+								label:"Ensure League and Field Group are Selected",
 								position:['above','after']};
 							var schedule_btn = new Button({
 								label:"Generate",
@@ -207,6 +264,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							}, btn_node);
 							schedule_btn.startup();
 							var btn_tooltip = new Tooltip(btn_tooltipconfig);
+							this.newschedwatch_obj.watch('league_fg_flag',
+								function(name, oldValue, value) {
+									if (value) {
+										schedule_btn.set('disabled', false);
+									}
+								}
+							)
 						}
 						// need to add btn callbacks here
 						this.uistackmgr.switch_pstackcpane({
