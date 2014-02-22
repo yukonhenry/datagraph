@@ -180,14 +180,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								}
 							})
 						);
+						/*
 						if (this.sdates_handle)
 							this.sdates_handle.remove();
 						this.sdates_handle = this.seasondates_btn_reg.on("click",
-							lang.hitch(this, this.getSeasonDatesFromInput));
+							lang.hitch(this, this.getSeasonDatesFromInput)); */
+						var scinput_dom = dom.byId(constant.scinput_div);
+						var sdbtn_node = dom.byId("sdbtn_id");
+						if (!sdbtn_node) {
+							sdbtn_node = put(scinput_dom,
+								"button.dijitButton#sdbtn_id[type=button]");
+							var sdbtn = new Button({
+								label:"Save Season Dates",
+								class:"primary",
+								onClick: lang.hitch(this,
+									this.getSeasonDatesFromInput)
+							}, sdbtn_node);
+							put(scinput_dom, "br, br");
+						}
 						var select_div = dom.byId("league_select_id");
 						if (!select_div) {
 							// get parent dom and generate dropdown selects
-							var scinput_dom = dom.byId(constant.scinput_div);
 							put(scinput_dom,
 								"label.label_box[for=league_select_id]",
 								"Select League");
@@ -213,6 +226,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							var option_array = this.generateLabelDropDown('db',
 								'Select League');
 							this.league_select.addOption(option_array);
+							if (option_array.length < 2) {
+								var ls_tooltipconfig = {
+									connectId:['league_select_id'],
+									label:"If Empty Specify League Spec's First",
+									position:['above','after']};
+								var ls_tooltip = new Tooltip(ls_tooltipconfig);
+							}
 							put(scinput_dom, "span.empty_gap");  // add space
 						} else {
 							this.league_select = registry.byNode(select_div);
@@ -245,6 +265,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							option_array = this.generateLabelDropDown('fielddb',
 								'Select Field Group');
 							this.fg_select.addOption(option_array);
+							if (option_array.length < 2) {
+								var fg_tooltipconfig = {
+									connectId:['fg_select_id'],
+									label:"If Empty Specify Field Groups First",
+									position:['above','after']};
+								var fg_tooltip = new Tooltip(fg_tooltipconfig);
+							}
 							put(scinput_dom, "span.empty_gap");
 						} else {
 							this.fg_select = registry.byNode(fg_select_div);
@@ -268,6 +295,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								function(name, oldValue, value) {
 									if (value) {
 										schedule_btn.set('disabled', false);
+										btn_tooltipconfig.set('label',
+											'Press to Save Sched Parameters');
 									}
 								}
 							)
@@ -301,7 +330,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getSeasonDatesFromInput: function(event) {
 				var seasonstart_date = this.seasonstart_reg.get("value");
 				var seasonend_date = this.seasonend_reg.get("value");
+				var season_len = this.seasonlength_reg.get("value");
 				console.log("start end="+seasonstart_date+" "+seasonend_date);
+				baseinfoSingleton.watch_obj.set('numweeks', season_len);
 			},
 			is_serverdata_required: function(options_obj) {
 				// follow up on cases where data needs to be queried from server.
@@ -327,8 +358,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.seasonend_handle.remove();
 				if (this.seasonlength_handle)
 					this.seasonlength_handle.remove();
-				if (this.sdates_handle)
-					this.sdates_handle.remove();
 				if (this.tooltip)
 					this.tooltip.destroyRecursive();
 				if (this.dbname_reg)

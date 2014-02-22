@@ -4,7 +4,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 	"dojo/Stateful", "dojo/domReady!"],
 	function(declare, arrayUtil, lang, Stateful){
 		var watch_class = declare([Stateful],{
-			divstr_list:null
+			divstr_list:null,
+			numweeks:0
 		})
 		var baseinfoSingleton = declare(null, {
 			select_reg:null, select_dom:null, active_grid:null,
@@ -14,18 +15,6 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				this.obj_list = new Array();
 				this.watch_obj = new watch_class();
 				//this.watch_obj.set('divstr_list',[]);
-			},
-			set_select_reg: function(select_reg) {
-				this.select_reg = select_reg;
-			},
-			get_select_reg: function() {
-				return this.select_reg;
-			},
-			set_select_dom: function(select_dom) {
-				this.select_dom = select_dom;
-			},
-			get_select_dom: function() {
-				return this.select_dom;
 			},
 			set_tbutton_reg: function(tbutton_reg) {
 				this.tbutton_reg = tbutton_reg;
@@ -43,6 +32,13 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 						if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
 							console.log("calling fieldinfo set dialog w "+value);
 							fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
+						}
+					}));
+				this.watch_obj.watch('numweeks',
+					lang.hitch(this,function(name, oldValue, value) {
+						var divinfo_obj = this.get_obj('div_id');
+						if (divinfo_obj) {
+							divinfo_obj.base_numweeks = value;
 						}
 					}));
 			},

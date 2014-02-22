@@ -14,17 +14,17 @@
         <title>Event Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.12u</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.12w</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
-			require(["dbootstrap", "dojo/dom", "LeagueScheduler/scheduler",
+			require(["dbootstrap", "LeagueScheduler/scheduler",
                 "dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/layout/StackContainer",
                 "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox","dijit/form/DropDownButton",
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button", "dijit/form/ToggleButton", "dijit/form/NumberSpinner",
                 "dojo/domReady!"],
-			function(dbootstrap, dom){
+			function(dbootstrap){
     			//var greeting = dom.byId("greeting");
     			//greeting.innerHTML +="";
 			});
@@ -173,7 +173,8 @@
                             data-dojo-props="smallDelta:1,
                                 constraints:{min:1,max:50,places:0}, style:'width:80px'"
                             name="seasonlength_spinner"/>
-                        <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="seasondatesButton" id="seasondates_btn" value="Submit">Submit Season Dates</button><br>
+                        <!--
+                        <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" name="seasondatesButton" id="seasondates_btn" value="Submit">Save Season Dates</button><br> -->
                     </div>
                     <div id="textbtncpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <span id="infoTextNode_id"></span>
@@ -289,7 +290,6 @@
     			<b>Generate Schedule</b>
                 <span class="dijitButton" style="display:inline">
     			<button class="primary" id="schedule_btn" data-dojo-type="dijit/form/Button" type="button">Generate Sched</button>
-    			<!--<button class="warning" id="cup_btn" data-dojo-type="dijit/form/Button" type="button">Generate Cup Sched</button> -->
                 <div data-dojo-type="dijit/form/DropDownButton" class="primary dijitDropDownButton">
                     <span>Generate Cup Sched</span>
                     <div data-dojo-type="dijit/DropDownMenu">
@@ -302,8 +302,6 @@
                     </div>
                 </div>
     			<button class="primary" id="export_btn" data-dojo-type="dijit/form/Button" type="button">Export</button>
-                <!--
-                <button class="primary" id="exporttourn_btn" data-dojo-type="dijit/form/Button" type="button">Export Tournament</button> -->
                 <div data-dojo-type="dijit/form/DropDownButton" class="primary dijitDropDownButton">
                     <span>Export Cup Sched</span>
                     <div data-dojo-type="dijit/DropDownMenu">

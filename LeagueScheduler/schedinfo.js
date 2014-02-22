@@ -38,7 +38,6 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					this.divinfo_list = data.divinfo_list;
 					if (!this.select_reg) {
 						this.select_reg = registry.byId("schedDBDivisionSelect");
-						baseinfoSingleton.set_select_reg(this.select_reg);
 						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.divinfo_list);
 					}
 					this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,

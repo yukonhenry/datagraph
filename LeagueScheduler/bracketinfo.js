@@ -41,7 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_
 				}
 				if (!this.schedDBSelectDiv_dom) {
 					this.schedDBSelectDiv_dom = dom.byId("schedDBSelectDiv");
-					baseinfoSingleton.set_select_dom(this.schedDBSelectDiv_dom);
+					//baseinfoSingleton.set_select_dom(this.schedDBSelectDiv_dom);
 				}
 				this.schedutil_obj.makeVisible(this.schedDBSelectDiv_dom);
 				// we don't necessariy need to call get_dbcol again if select_reg already exists (we don't need to recreate the drop down)

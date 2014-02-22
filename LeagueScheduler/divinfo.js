@@ -16,10 +16,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		return declare(baseinfo, {
 			schedutil_obj:null, storeutil_obj:null,
 			infogrid_store:null, idproperty:constant.idproperty_str,
-			text_node:null,
+			text_node:null, base_numweeks:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
+				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
