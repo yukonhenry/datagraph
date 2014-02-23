@@ -38,7 +38,11 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					lang.hitch(this,function(name, oldValue, value) {
 						var divinfo_obj = this.get_obj('div_id');
 						if (divinfo_obj) {
-							divinfo_obj.base_numweeks = value;
+							if (divinfo_obj.infogrid_store) {
+								divinfo_obj.update_numweeks(value);
+							} else {
+								divinfo_obj.base_numweeks = value;
+							}
 						}
 					}));
 			},

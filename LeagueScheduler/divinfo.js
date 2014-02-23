@@ -28,6 +28,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
 					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
+					numweeks: editor({label:"Number Weeks", field:"numweeks", autoSave:true}, "text", "dblclick"),
 					totalbrackets: editor({label:"Total RR Brackets", field:"totalbrackets", autoSave:true}, "text", "dblclick"),
 					elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true}, "text", "dblclick"),
 					elimination_type: editor({label:"Elimination Type", field:"elimination_type", autoSave:true}, "text", "dblclick"),
@@ -91,12 +92,20 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var divInfo_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
-					                  totalteams:1, totalbrackets:1,
+					                  totalteams:1, numweeks:this.base_numweeks,
+					                  totalbrackets:1,
 					                  elimination_num:1,
 					                  elimination_type:"",field_id_str:"",
 					                  gameinterval:1, rr_gamedays:1});
 				}
 				return divInfo_list;
+			},
+			update_numweeks: function(numweeks) {
+				this.infogrid_store.query({})
+				.forEach(lang.hitch(this, function(obj) {
+					obj.numweeks = numweeks;
+					this.infogrid_store.put(obj);
+				}))
 			},
 			getDivstr_list: function() {
 				if (this.infogrid_store) {

@@ -28,8 +28,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// make store observable
 				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
 				// Observable Memory + dgrid has issues - switching to Memory only
-				//this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
-				this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
+				if (this.idproperty == 'div_id') {
+					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
+				} else {
+					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
+				}
 				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
 				// 'in' operator is generic and works through inherited objects
 				// To use hasOwnProperty, initialize the.info_obj w new Object()
