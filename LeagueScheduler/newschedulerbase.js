@@ -1,15 +1,18 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/date", "dojo/Stateful",
 	"dojo/_base/array", "dojo/keys", "dojo/store/Memory",
-	"dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox", "dijit/form/Select", "dijit/form/Button",
+	"dijit/registry", "dijit/Tooltip",
+	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
+	"dijit/form/NumberSpinner", "dijit/form/DateTextBox",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Stateful, arrayUtil, keys,
-		Memory,registry, Tooltip, ValidationTextBox, Select, Button,
+		Memory,registry, Tooltip, ValidationTextBox, Select, Button, NumberSpinner,
+		DateTextBox,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, put) {
 		var constant = {
-			weekoffset:12,
+			numweeks:12,
 			idproperty_str:'newsched_id',
 			form_name:'newsched_form_id',
 			scinput_div:'seasoncalendar_input'
@@ -28,10 +31,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			server_path:"", server_key:"",
 			seasondates_btn_reg:null,
 			callback:null, text_node_str:"", tooltip:null,
-			seasonstart_reg:null, seasonend_reg:null, seasonlength_reg:null,
+			start_dtbox:null, end_dtbox:null, sl_spinner:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null, league_select:null, fg_select:null,
-			eventsrc_flag:false, uistackmgr:null, newschedwatch_obj:null,
+			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -100,92 +103,197 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.keyup_handle.remove();
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
 						// set initial values for seasonstart and end dates
-						this.seasonstart_reg = registry.byId("seasonstart_date");
-						this.seasonend_reg = registry.byId("seasonend_date");
-						this.seasonlength_reg = registry.byId("seasonlength_spinner");
+						//this.start_dtbox = registry.byId("seasonstart_date");
+						//this.end_dtbox = registry.byId("seasonend_date");
+						//this.sl_spinner = registry.byId("seasonlength_spinner");
 						var today = new Date();
-						this.seasonstart_reg.set('value', today);
-						this.seasonend_reg.set('value',
-							date.add(today, 'week', constant.weekoffset));
-						this.seasonlength_reg.set('value', constant.weekoffset);
+						//this.start_dtbox.set('value', today);
+						//this.end_dtbox.set('value',
+						//	date.add(today, 'week', constant.numweeks));
+						//this.sl_spinner.set('value', constant.numweeks);
+/*
 						if (this.seasonstart_handle)
 							this.seasonstart_handle.remove();
-						// note pausable/resume handler does not work trying to control changes made to textbox's programmatically
-						// just use manual eventsrc_flag to control double/cascading event firing
-						this.seasonstart_handle = on(this.seasonstart_reg,
+						this.seasonstart_handle = on(this.start_dtbox,
 							"change",
 							lang.hitch(this, function(event) {
-								if (!this.eventsrc_flag) {
-									var enddate = this.seasonend_reg.get('value');
+								console.log('season start handle'+this.event_flag);
+								if (!this.event_flag) {
+									var enddate = this.end_dtbox.get('value');
 									var numweeks = date.difference(event, enddate,'week');
 									if (numweeks < 1) {
 										alert("end date needs to be at least one week after start date");
 										// reset the date to an arbitrary default
-										numweeks = this.seasonlength_reg.get('value');
+										numweeks = this.sl_spinner.get('value');
 										//this.seasonstart_handle.pause();
-										this.seasonstart_reg.set('value',
+										this.start_dtbox.set('value',
 											date.add(enddate, 'week', -numweeks));
 										//this.seasonstart_handle.resume();
 									} else {
-										this.eventsrc_flag = true;
 										//this.seasonlength_handle.pause();
-										this.seasonlength_reg.set('value', numweeks);
+										this.sl_spinner.set('value', numweeks);
 										//this.seasonlength_handle.resume();
 									}
+									this.event_flag = true;
 								} else {
-									this.eventsrc_flag = false;
+									this.event_flag = false;
 								}
 							})
-						);
+						); */
+						/*
 						if (this.seasonend_handle)
 							this.seasonend_handle.remove();
-						this.seasonend_handle = on(this.seasonend_reg,
+						this.seasonend_handle = on(this.end_dtbox,
 							"change",
 							lang.hitch(this, function(event) {
-								if (!this.eventsrc_flag) {
-									var startdate = this.seasonstart_reg.get('value');
+								console.log('season end handle'+this.event_flag);
+								if (!this.event_flag) {
+									var startdate = this.start_dtbox.get('value');
 									var numweeks = date.difference(startdate, event,'week');
 									if (numweeks < 1) {
 										alert("end date needs to be at least one week after start date");
-										numweeks = this.seasonlength_reg.get('value');
+										numweeks = this.sl_spinner.get('value');
 										//this.seasonend_handle.pause();
-										this.seasonend_reg.set('value',
+										this.end_dtbox.set('value',
 											date.add(startdate, 'week', numweeks));
 										//this.seasonend_handle.resume();
 									} else {
-										this.eventsrc_flag = true;
 										//this.seasonlength_handle.pause();
-										this.seasonlength_reg.set('value', numweeks);
+										this.sl_spinner.set('value', numweeks);
 										//this.seasonlength_handle.resume();
 									}
+									this.event_flag = true;
 								} else {
-									this.eventsrc_flag = false;
+									this.event_flag = false;
 								}
 							})
-						);
+						); */
+						/*
 						if (this.seasonlength_handle)
 							this.seasonlength_handle.remove();
-						this.seasonlength_handle = on(this.seasonlength_reg,
+						this.seasonlength_handle = on(this.sl_spinner,
 							"change",
 							lang.hitch(this, function(event) {
-								if (!this.eventsrc_flag) {
-									var startdate = this.seasonstart_reg.get('value');
+								console.log("season len handle="+this.event_flag)
+								if (!this.event_flag) {
+									var startdate = this.start_dtbox.get('value');
 									var enddate = date.add(startdate, 'week', event);
 									//this.seasonend_handle.pause();
-									this.eventsrc_flag = true;
-									this.seasonend_reg.set('value', enddate);
+									this.event_flag = true;
+									this.end_dtbox.set('value', enddate);
 									//this.seasonend_handle.resume();
 								} else {
-									this.eventsrc_flag = false;
+									this.event_flag = false;
 								}
 							})
-						);
-						/*
-						if (this.sdates_handle)
-							this.sdates_handle.remove();
-						this.sdates_handle = this.seasondates_btn_reg.on("click",
-							lang.hitch(this, this.getSeasonDatesFromInput)); */
+						); */
+						/* note pausable/resume handler does not work trying to control changes made to textbox's programmatically
+						just use manual event_flag to control double/cascading event firing; set event_flag to true anytime another start/end/length register is set from within a similar handler.  The flag will be used to prevent cascading event handling which will be unnecessary.
+						NOTE a boolean event flag only works if a handler sets only one other register.  If multiple registers are set in the
+						handler than the event_flag needs to be turned into a counter. */
 						var scinput_dom = dom.byId(constant.scinput_div);
+						// create season start date entry
+						var start_dtbox_node = dom.byId('start_dtbox_id');
+						if (!start_dtbox_node) {
+							put(scinput_dom,
+								"label.label_box[for=start_dtbox_id]",
+								"Season Start Date");
+							start_dtbox_node = put(scinput_dom,
+								"input#start_dtbox_id");
+							this.start_dtbox = new DateTextBox({
+								value: today,
+								style:'width:120px; margin-right:50px',
+								onChange: lang.hitch(this, function(event) {
+									if (!this.event_flag) {
+										var enddate = this.end_dtbox.get('value');
+										var numweeks = date.difference(event, enddate,'week');
+										if (numweeks < 1) {
+											alert("end date needs to be at least one week after start date");
+											// reset the date to an arbitrary default
+											numweeks = this.sl_spinner.get('value');
+											//this.seasonstart_handle.pause();
+											this.start_dtbox.set('value',
+												date.add(enddate, 'week', -numweeks));
+											//this.seasonstart_handle.resume();
+										} else {
+											//this.seasonlength_handle.pause();
+											this.sl_spinner.set('value', numweeks);
+											//this.seasonlength_handle.resume();
+										}
+										this.event_flag = true;
+									} else {
+										this.event_flag = false;
+									}
+								})
+							}, start_dtbox_node);
+						} else {
+							this.start_dtbox = registry.byNode(start_dtbox_node);
+						}
+						// create season end date entry
+						var end_dtbox_node = dom.byId('end_dtbox_id');
+						if (!end_dtbox_node) {
+							put(scinput_dom,
+								"label.label_box[for=end_dtbox_id]",
+								"Season End Date");
+							end_dtbox_node = put(scinput_dom,
+								"input#end_dtbox_id");
+							this.end_dtbox = new DateTextBox({
+								value: date.add(today, 'week', constant.numweeks),
+								style:'width:120px; margin-right:50px',
+								onChange: lang.hitch(this, function(event) {
+									if (!this.event_flag) {
+										var startdate = this.start_dtbox.get('value');
+										var numweeks = date.difference(startdate, event,'week');
+										if (numweeks < 1) {
+											alert("end date needs to be at least one week after start date");
+											numweeks = this.sl_spinner.get('value');
+											//this.seasonend_handle.pause();
+											this.end_dtbox.set('value',
+												date.add(startdate, 'week', numweeks));
+											//this.seasonend_handle.resume();
+										} else {
+											//this.seasonlength_handle.pause();
+											this.sl_spinner.set('value', numweeks);
+											//this.seasonlength_handle.resume();
+										}
+										this.event_flag = true;
+									} else {
+										this.event_flag = false;
+									}
+								})
+							}, end_dtbox_node);
+						} else {
+							this.end_dtbox = registry.byNode(end_dtbox_node);
+						}
+						// create season length spinner
+						var sl_spinner_node = dom.byId('sl_spinner_id');
+						if (!sl_spinner_node) {
+							put(scinput_dom,
+								"label.label_box[for=sl_spinner_id]",
+								"Season Length (weeks)");
+							sl_spinner_node = put(scinput_dom,
+								"input#sl_spinner_id[name=sl_spinner_id]");
+							this.sl_spinner = new NumberSpinner({
+								value:constant.numweeks,
+								smallDelta:1,
+								constraints:{min:1, max:50, places:0},
+								style:'width:80px',
+								onChange: lang.hitch(this, function(event) {
+									if (!this.event_flag) {
+										var startdate = this.start_dtbox.get('value');
+										var enddate = date.add(startdate, 'week', event);
+										//this.seasonend_handle.pause();
+										this.event_flag = true;
+										this.end_dtbox.set('value', enddate);
+										//this.seasonend_handle.resume();
+									} else {
+										this.event_flag = false;
+									}
+								})
+							}, sl_spinner_node);
+						} else {
+							this.sl_spinner = registry.byNode(sl_spinner_node);
+						}
 						var sdbtn_node = dom.byId("sdbtn_id");
 						if (!sdbtn_node) {
 							sdbtn_node = put(scinput_dom,
@@ -328,10 +436,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 			},
 			getSeasonDatesFromInput: function(event) {
-				var seasonstart_date = this.seasonstart_reg.get("value");
-				var seasonend_date = this.seasonend_reg.get("value");
-				var season_len = this.seasonlength_reg.get("value");
-				console.log("start end="+seasonstart_date+" "+seasonend_date);
+				var seasonstart_date = this.start_dtbox.get("value");
+				var seasonend_date = this.end_dtbox.get("value");
+				var season_len = this.sl_spinner.get("value");
 				baseinfoSingleton.watch_obj.set('numweeks', season_len);
 			},
 			is_serverdata_required: function(options_obj) {

@@ -136,3 +136,6 @@ div.bar {
 .empty_gap {
   margin-left:50px;
 }
+.date_input {
+  width:100px;
+}
