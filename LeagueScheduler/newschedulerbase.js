@@ -202,7 +202,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								"input#start_dtbox_id");
 							this.start_dtbox = new DateTextBox({
 								value: today,
-								style:'width:120px; margin-right:50px',
+								style:'width:120px; margin-right:40px',
 								onChange: lang.hitch(this, function(event) {
 									if (!this.event_flag) {
 										var enddate = this.end_dtbox.get('value');
@@ -239,7 +239,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								"input#end_dtbox_id");
 							this.end_dtbox = new DateTextBox({
 								value: date.add(today, 'week', constant.numweeks),
-								style:'width:120px; margin-right:50px',
+								style:'width:120px; margin-right:40px',
 								onChange: lang.hitch(this, function(event) {
 									if (!this.event_flag) {
 										var startdate = this.start_dtbox.get('value');
@@ -291,6 +291,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								})
 							}, sl_spinner_node);
+							put(scinput_dom, "br");
 						} else {
 							this.sl_spinner = registry.byNode(sl_spinner_node);
 						}
