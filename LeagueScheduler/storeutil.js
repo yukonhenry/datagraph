@@ -5,7 +5,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	function(declare, lang, arrayUtil, Observable, Memory, registry) {
 		var constant = {
 			submenu_list:[{id:'div_id', db_type:'db', name:"dbcollection_submenu"},
-				{id:'tourndiv_id', db_type:'db', name:"tourndbcollection_submenu"},
+				{id:'tourndiv_id', db_type:'tourndb',
+					name:"tourndbcollection_submenu"},
 				{id:'field_id', db_type:'fielddb', name:"fielddb_submenu"},
 				{id:'sched_id', db_type:'db', name:"scheddbcollection_submenu"},
 				{id:'newsched_id', db_type:'db', name:""}],
@@ -13,7 +14,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				db_type:'db', name:"deldbcollection_submenu",
 				server_path:"delete_dbcol/"},
 				{id:'tourndiv_id',
-				db_type:'db', name:"deltourndbcollection_submenu",
+				db_type:'tourndb', name:"deltourndbcollection_submenu",
 				server_path:"delete_tourndbcol/"},
 				{id:'field_id', db_type:'fielddb', name:"delfielddb_submenu",
 				server_path:"delete_fieldcol/"}]

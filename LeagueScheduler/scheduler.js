@@ -19,7 +19,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
 		script, arrayUtil, request, schedulerUtil, schedulerConfig, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, tourndivinfo) {
-		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
+		var constant = {SERVER_PREFIX:"http://localhost:8080/",
+			tourndb:'tourndb'};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
 		var earliest_count_CONST = 'EARLIEST_COUNT';
@@ -88,7 +89,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// fill initial store and create dropdown menu
 			storeutil_obj.createdb_store(dbcollection_list, 'db');
 			storeutil_obj.create_menu(dbcollection_list, 'div_id', divinfo_obj, true);
+			var tourndbcollection_list = [];
+			//var tourndbcollection_list = ldata.tourdbcollection_list;
+			storeutil_obj.createdb_store(tourndbcollection_list, constant.tourndb);
 			storeutil_obj.create_menu(dbcollection_list, 'tourndiv_id', tourndivinfo_obj, true);
+			// note we need to add delete to the schedule here by passing 'true'
+			storeutil_obj.create_menu(dbcollection_list, 'sched_id', schedinfo_obj, false);
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.cupdbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
@@ -99,8 +105,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013,
 				{db_type:'export'});
-			// note we need to add delete to the schedule here by passing 'true'
-			storeutil_obj.create_menu(dbcollection_list, 'sched_id', schedinfo_obj, false);
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
 			storeutil_obj.createdb_store(fielddb_list, 'fielddb');

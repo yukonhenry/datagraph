@@ -9,8 +9,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
 			idproperty_str:"tourndiv_id",
-			updatebtn_str:"Update Div Info",
-			grid_id:"divinfogrid_id",
+			updatebtn_str:"Update Tourn Div Info",
+			grid_id:"tourndivinfogrid_id",
 			text_node_str: 'Schedule Name',
 		};
 		return declare(baseinfo, {

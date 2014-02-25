@@ -14,6 +14,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			// grid stack id's
 			gstackcontainer_id:"gridContainer_id",
 			divcpane_id:"divinfocpane_id",
+			tourndivcpane_id:"tourndivinfocpane_id",
 			schedcpane_id:"schedinfocpane_id",
 			fieldcpane_id:"fieldinfocpane_id",
 			blankcpane_id:"blankcpane_id",
@@ -53,25 +54,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					pane_id:constant.sccpane_id});
 				// define mapping object for the grid content pane
 				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
-				var id_list = ['newsched_id', 'div_id', 'tourndiv_id', 'sched_id',
-					'field_id'];
-				var cpane_list = [constant.blankcpane_id,
-					constant.divcpane_id,
-					constant.schedcpane_id,
-					constant.fieldcpane_id];
 				// gstackmap_list maps from id to corresponding grid name
-				this.gstackmap_list = new Array();
+				this.gstackmap_list = [{id:'newsched_id', pane_id:constant.blankcpane_id},
+					{id:'div_id', pane_id:constant.divcpane_id},
+					{id:'tourndiv_id', pane_id:constant.tourndivcpane_id},
+					{id:'sched_id', pane_id:constant.schedcpane_id},
+					{id:'field_id', pane_id:constant.fieldcpane_id}];
 				this.cpanestate_list = new Array();
-				arrayUtil.forEach(id_list, function(item, index) {
-					this.gstackmap_list.push({id:item,
-					pane_id:cpane_list[index]});
+				arrayUtil.forEach(this.gstackmap_list, function(item, index) {
 					/* cpanestate_list tracks current configuration state for each
 					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
 					g_pane: grid name, text_str, btn_callback: send server button
 					parameters, active_flag:boolean whether idprop is currently
 					active or not.
 					*/
-					this.cpanestate_list.push({id:item,
+					this.cpanestate_list.push({id:item.id,
 						p_pane:null, p_stage:null, entry_pt:null,
 						g_pane:constant.blankcpane_id,
 						text_str:"", btn_callback:null, updatebtn_str:"",
