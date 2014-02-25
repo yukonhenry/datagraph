@@ -6,8 +6,8 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 	function(dom, declare, lang, arrayUtil, registry, editor,
 		baseinfo, baseinfoSingleton){
 		return declare(baseinfo, {
-			schedutil_obj:null, divinfo_list:null,
-			select_reg:null, select_reg_handle:null, storeutil_obj:null,
+			divinfo_list:null,
+			select_reg:null, select_reg_handle:null,
 			idproperty:"sched_id", colname:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -23,10 +23,6 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					comment: "Comment"
 				};
 				return columnsdef_obj;
-			},
-			set_obj: function(schedutil_obj, storeutil_obj) {
-				this.schedutil_obj = schedutil_obj;
-				this.storeutil_obj = storeutil_obj;
 			},
 			getServerDBInfo: function(options_obj) {
 				var item = options_obj.item;

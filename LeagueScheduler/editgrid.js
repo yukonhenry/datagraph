@@ -28,7 +28,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// make store observable
 				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
 				// Observable Memory + dgrid has issues - switching to Memory only
-				if (this.idproperty == 'div_id') {
+				if (this.idproperty == 'div_id' ||
+					this.idproperty == 'tourndiv_id') {
 					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});

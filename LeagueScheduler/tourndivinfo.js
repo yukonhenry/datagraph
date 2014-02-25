@@ -8,14 +8,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
-			idproperty_str:"div_id",
+			idproperty_str:"tourndiv_id",
 			updatebtn_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
 			text_node_str: 'Schedule Name',
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
-			text_node:null, base_numweeks:0,
+			text_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
@@ -27,14 +27,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
 					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
-					numweeks: editor({label:"Number Weeks", field:"numweeks", autoSave:true}, "text", "dblclick"),
-					numgamedaysperweek: editor({label:"Num Gamedays per Week", autoSave:true}, "text", "dblclick"),
-					totalgamedays: {label:"Total Gamedays",
-						get:function(item) {
-							return item.numweeks*item.numgamedaysperweek;
-						}
-					},
+					totalbrackets: editor({label:"Total RR Brackets", field:"totalbrackets", autoSave:true}, "text", "dblclick"),
+					elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true}, "text", "dblclick"),
+					elimination_type: editor({label:"Elimination Type", field:"elimination_type", autoSave:true}, "text", "dblclick"),
+					field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true}, "text", "dblclick"),
 					gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true}, "text", "dblclick"),
+					rr_gamedays: editor({label:"Number RR Gamedays", field:"rr_gamedays", autoSave:true}, "text", "dblclick")
 				};
 				return columnsdef_obj;
 			},
@@ -53,7 +51,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:divnum_reg,
-					server_path:"create_newdbcol/",
+					server_path:"create_tournnewdbcol/",
 					server_key:"divinfo_data",
 					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
@@ -74,12 +72,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'divinfo_data';
-				options_obj.server_path = "create_newdbcol/";
+				options_obj.server_path = "create_tournnewdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.getserver_path = 'get_dbcol/'
+				options_obj.getserver_path = 'get_tourndbcol/'
 				this.inherited(arguments);
 				//this.server_interface.getServerData("get_dbcol/"+item,
 				//lang.hitch(this, this.createEditGrid), null, options_obj);
@@ -88,19 +86,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				var divInfo_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
-					                  totalteams:1, numweeks:this.base_numweeks,
-					                  numgamedaysperweek:1,
-					                  totalgamedays:this.base_numweeks,
-					                  gameinterval:1});
+					                  totalteams:1,
+					                  totalbrackets:1,
+					                  elimination_num:1,
+					                  elimination_type:"",field_id_str:"",
+					                  gameinterval:1, rr_gamedays:1});
 				}
 				return divInfo_list;
-			},
-			update_numweeks: function(numweeks) {
-				this.infogrid_store.query({})
-				.forEach(lang.hitch(this, function(obj) {
-					obj.numweeks = numweeks;
-					this.infogrid_store.put(obj);
-				}))
 			},
 			getDivstr_list: function() {
 				if (this.infogrid_store) {

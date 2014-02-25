@@ -12,11 +12,13 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
 		"LeagueScheduler/serverinterface",
-		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo", "LeagueScheduler/fieldinfo","LeagueScheduler/baseinfoSingleton",
-		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil","dojox/calendar/Calendar",
+		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo",
+		"LeagueScheduler/fieldinfo", "LeagueScheduler/baseinfoSingleton",
+		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager",
+		"LeagueScheduler/storeutil", "LeagueScheduler/tourndivinfo",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, Calendar) {
+		script, arrayUtil, request, schedulerUtil, schedulerConfig, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, tourndivinfo) {
 		var constant = {'SERVER_PREFIX':"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -34,8 +36,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
-		// note fieldinfo constructor needs to be called after divinfo constructor
-		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,divinfo_obj: divinfo_obj});
+		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface});
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface});
 		var schedinfo_obj = new schedinfo({server_interface:serverInterface});
 		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
@@ -71,6 +73,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			newSchedulerBase.set_obj(schedUtil, storeutil_obj);
 			fieldinfo_obj.set_obj(schedUtil, storeutil_obj);
 			divinfo_obj.set_obj(schedUtil, storeutil_obj);
+			tourndivinfo_obj.set_obj(schedUtil, storeutil_obj);
 			schedinfo_obj.set_obj(schedUtil, storeutil_obj);
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
@@ -85,6 +88,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// fill initial store and create dropdown menu
 			storeutil_obj.createdb_store(dbcollection_list, 'db');
 			storeutil_obj.create_menu(dbcollection_list, 'div_id', divinfo_obj, true);
+			storeutil_obj.create_menu(dbcollection_list, 'tourndiv_id', tourndivinfo_obj, true);
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.cupdbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
@@ -437,6 +441,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// as UIStackManager constructor needs to identify widgets
 			uiStackManager = new UIStackManager();
 			divinfo_obj.uistackmgr = uiStackManager;
+			tourndivinfo_obj.uistackmgr = uiStackManager;
 			fieldinfo_obj.uistackmgr = uiStackManager;
 			schedinfo_obj.uistackmgr = uiStackManager;
 			newSchedulerBase.uistackmgr = uiStackManager;
@@ -456,6 +461,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			//	);
 			on(registry.byId("newdivinfo_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, divinfo_obj));
+			on(registry.byId("tournnewdivinfo_item"), "click",
+				lang.hitch(uiStackManager, uiStackManager.check_initialize, tourndivinfo_obj));
 			on(registry.byId("newfieldlist_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, fieldinfo_obj));
 			on(registry.byId("newsched_item"), "click",

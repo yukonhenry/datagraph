@@ -19,15 +19,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			server_interface:null, editgrid:null, uistackmgr:null,
 			idproperty:null, storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
-			colname_obj:null, button_div:null,
+			colname_obj:null, button_div:null, schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
 				this.colname_obj = new colname_class();
 				this.colname_obj.watch("colname",
 					lang.hitch(this,function(name, oldValue, value) {
-						console.log('switching from '+oldValue+' to '+value);
-						if (this.idproperty == 'div_id') {
+						if (this.idproperty == 'div_id' ||
+							this.idproperty == 'tourndiv_id') {
 							var divstr_list = this.getDivstr_list();
 							if (divstr_list.length > 0) {
 								baseinfoSingleton.watch_obj.set('divstr_list',
@@ -303,6 +303,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					return true;
 				else
 					return (this.editgrid.schedInfoGrid)?false:true;
+			},
+			set_obj: function(schedutil_obj, storeutil_obj) {
+				this.schedutil_obj = schedutil_obj;
+				this.storeutil_obj = storeutil_obj;
 			},
 			cleanup:function() {
 				arrayUtil.forEach(this.tooltip_list, function(item) {

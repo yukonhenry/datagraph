@@ -39,6 +39,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					pane_id:constant.ndcpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
+				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
+					pane_id:constant.ndcpane_id});
+				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
+					pane_id:constant.tcpane_id});
 				this.pstackmap_list.push({id:'sched_id', p_stage:'preconfig',
 					pane_id:constant.sdcpane_id})
 				this.pstackmap_list.push({id:'sched_id', p_stage:'config',
@@ -49,7 +53,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					pane_id:constant.sccpane_id});
 				// define mapping object for the grid content pane
 				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
-				var id_list = ['newsched_id', 'div_id', 'sched_id',
+				var id_list = ['newsched_id', 'div_id', 'tourndiv_id', 'sched_id',
 					'field_id'];
 				var cpane_list = [constant.blankcpane_id,
 					constant.divcpane_id,

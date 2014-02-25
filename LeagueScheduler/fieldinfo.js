@@ -20,7 +20,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			day_list:['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 		};
 		return declare(baseinfo, {
- 			schedutil_obj:null, storeutil_obj:null,
  			idproperty:constant.idproperty_str,
 			calendar_id:0, calendar_store:null,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
@@ -183,10 +182,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					cellselect_flag:true
 				}
 				this.showConfig(args_obj);
-			},
-			set_obj: function(schedutil_obj, storeutil_obj) {
-				this.schedutil_obj = schedutil_obj;
-				this.storeutil_obj = storeutil_obj;
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
