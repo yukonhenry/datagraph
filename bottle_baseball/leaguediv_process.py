@@ -19,6 +19,7 @@ import logging
 from singletonlite import mongoClient
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
+from rrdbinterface import RRDBInterface
 
 dbInterface = MongoDBInterface(mongoClient)
 
@@ -43,7 +44,7 @@ def leaguedivinfo_all():
     ldata_tuple = getLeagueDivInfo()
     field_tuple = getFieldInfo()
     dbstatus = dbInterface.getSchedStatus()
-    schedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.RoundRobinTourn, DB_Col_Type.ElimTourn])
+    schedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.RoundRobin, DB_Col_Type.ElimTourn])
     cupschedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.ElimTourn])
     #cupschedcol_list = dbInterface.getCupScheduleCollections()
     fielddb_list = dbInterface.getScheduleCollections([DB_Col_Type.FieldInfo])
@@ -210,35 +211,55 @@ def schedulemetrics(div_id):
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
+    rdbInterface = RRDBInterface(mongoClient, newcol_name)
+    rdbInterface.writeDB(divinfo_data)
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    a = json.dumps({'test':'divasdf'})
+    return callback_name+'('+a+')'
+
+@route('/create_newdbcol/<newcol_name>')
+def create_newtourndbcol(newcol_name):
+    callback_name = request.query.callback
+    divinfo_data = request.query.divinfo_data
     tdbInterface = TournDBInterface(mongoClient, newcol_name)
     tdbInterface.writeDB(divinfo_data)
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
-    a = json.dumps({'test':'asdf'})
+    a = json.dumps({'test':'tournasdf'})
     return callback_name+'('+a+')'
 
 @route('/delete_dbcol/<delcol_name>')
 def delete_dbcol(delcol_name):
     callback_name = request.query.callback
-    tdbInterface = TournDBInterface(mongoClient, delcol_name)
-    tdbInterface.dbInterface.dropDB_col()
+    rdbInterface = RRDBInterface(mongoClient, delcol_name)
+    rdbInterface.dbInterface.dropDB_col()
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
 
-@route('/delete_divdbcol/<deldivcol_name>')
-def delete_divdbcol(deldivcol_name):
+@route('/delete_tourndbcol/<delcol_name>')
+def delete_tourndbcol(delcol_name):
     callback_name = request.query.callback
-    print 'delete div db', deldivcol_name
+    tdbInterface = TournDBInterface(mongoClient, delcol_name)
+    tdbInterface.dbInterface.dropDB_col()
     a = json.dumps({'test':'adsfer'})
     return callback_name+'('+a+')'
 
 @route('/get_dbcol/<getcol_name>')
 def get_dbcol(getcol_name):
     callback_name = request.query.callback
+    rdbInterface = RRDBInterface(mongoClient, getcol_name)
+    divinfo_list = rdbInterface.readDB().dict_list
+    print 'divinfo_list', divinfo_list
+    a = json.dumps({'divinfo_list':divinfo_list})
+    return callback_name+'('+a+')'
+
+@route('/get_tourndbcol/<getcol_name>')
+def get_tourndbcol(getcol_name):
+    callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
     divinfo_list = tdbInterface.readDB().dict_list
-    print 'divinfo_list', divinfo_list
+    print 'rrdivinfo_list', divinfo_list
     a = json.dumps({'divinfo_list':divinfo_list})
     return callback_name+'('+a+')'
 
@@ -246,6 +267,8 @@ def get_dbcol(getcol_name):
 def get_scheddbcol(getcol_name):
     callback_name = request.query.callback
     divcode = int(request.query.divisioncode)
+    # revisit whether this call should be made against RRDBInterface
+    # or TournDBInterface
     div = getTournAgeGenderDivision(divcode)
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
     game_list = tdbInterface.readSchedDB(div.age, div.gender)

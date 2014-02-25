@@ -1,8 +1,9 @@
 // define observable store-related utility functions
 define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Observable","dojo/store/Memory","dijit/registry",
+	"LeagueScheduler/baseinfoSingleton",
 	"dojo/domReady!"],
-	function(declare, lang, arrayUtil, Observable, Memory, registry) {
+	function(declare, lang, arrayUtil, Observable, Memory, registry, baseinfoSingleton) {
 		var constant = {
 			submenu_list:[{id:'div_id', db_type:'db', name:"dbcollection_submenu"},
 				{id:'tourndiv_id', db_type:'tourndb',
@@ -45,13 +46,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						// other option is to pass in the object and then search
 						// the reg children to find a math on the label
 						this.schedutil_obj.regenDelDBCollection_smenu(removeIndex, db_type);
-						if (newsched_obj) {
+						if (newsched_obj && newsched_obj.selectexists_flag) {
 							newsched_obj.removefrom_select(db_type, removeIndex);
 						}
 					}
 					if (insertIndex > -1) {
 						this.schedutil_obj.regenAddDBCollection_smenu(object, insertIndex);
-						if (newsched_obj) {
+						if (newsched_obj && newsched_obj.selectexists_flag) {
 							newsched_obj.addto_select(db_type, object.label, insertIndex);
 						}
 					}

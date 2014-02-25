@@ -43,13 +43,13 @@ _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 # http://pythonhosted.org/flufl.enum/docs/using.html
 class DB_Col_Type(Enum):
-    RoundRobinTourn = 1
+    RoundRobin = 1
     ElimTourn = 2
     FieldInfo = 3
 
 class MongoDBInterface:
     def __init__(self, mongoClient, collection_name='games',
-                 db_col_type=DB_Col_Type.RoundRobinTourn):
+                 db_col_type=DB_Col_Type.RoundRobin):
         self.schedule_db = mongoClient.schedule_db
 #        self.games_col = self.schedule_db.games
         self.games_col = self.schedule_db[collection_name]
@@ -70,7 +70,7 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateTournamentDivInfo(self, document, div_id):
+    def updateDivInfo(self, document, div_id):
         docID = self.games_col.update({div_id_CONST:div_id},
                                       {"$set": document}, upsert=True, safe=True)
 

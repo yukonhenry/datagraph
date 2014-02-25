@@ -35,6 +35,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null, league_select:null, fg_select:null,
 			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
+			selectexists_flag:false,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -410,6 +411,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								}
 							)
 						}
+						// set flag that is used by observable memory update in
+						// storeutl
+						this.selectexists_flag = true;
 						// need to add btn callbacks here
 						this.uistackmgr.switch_pstackcpane({
 							idproperty:this.idproperty, p_stage:"config",
@@ -424,7 +428,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (db_type == 'db') {
 					this.league_select.removeOption(index);
 				} else if (db_type == 'fielddb') {
-					this.fg_slect.removeOption(index)
+					this.fg_select.removeOption(index)
 				}
 			},
 			addto_select: function(db_type, label, insertIndex) {
@@ -433,7 +437,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (db_type == 'db') {
 					this.league_select.addOption(soption_obj);
 				} else if (db_type == 'fielddb') {
-					this.fg_slect.addOption(soption_obj);
+					this.fg_select.addOption(soption_obj);
 				}
 			},
 			getSeasonDatesFromInput: function(event) {

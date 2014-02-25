@@ -28,10 +28,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
 					numweeks: editor({label:"Number Weeks", field:"numweeks", autoSave:true}, "text", "dblclick"),
-					numgamedaysperweek: editor({label:"Num Gamedays per Week", autoSave:true}, "text", "dblclick"),
+					numgdaysperweek: editor({label:"Num Gamedays per Week", autoSave:true}, "text", "dblclick"),
 					totalgamedays: {label:"Total Gamedays",
 						get:function(item) {
-							return item.numweeks*item.numgamedaysperweek;
+							return item.numweeks*item.numgdaysperweek;
 						}
 					},
 					gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true}, "text", "dblclick"),
@@ -81,15 +81,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
 				this.inherited(arguments);
-				//this.server_interface.getServerData("get_dbcol/"+item,
-				//lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(divnum) {
 				var divInfo_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
 					                  totalteams:1, numweeks:this.base_numweeks,
-					                  numgamedaysperweek:1,
+					                  numgdaysperweek:1,
 					                  totalgamedays:this.base_numweeks,
 					                  gameinterval:1});
 				}
