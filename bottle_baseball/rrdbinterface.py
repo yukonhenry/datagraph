@@ -9,9 +9,10 @@ gen_CONST = 'GEN'
 div_id_CONST = 'DIV_ID'
 totalteams_CONST = 'TOTALTEAMS'
 numweeks_CONST = 'NUMWEEKS'
-numgdaysperweek_CONST = 'numgdaysperweek'
+numgdaysperweek_CONST = 'NUMGDAYSPERWEEK'
 totalgamedays_CONST = 'TOTALGAMEDAYS'
 gameinterval_CONST = 'GAMEINTERVAL'
+division_list_CONST = 'DIVISION_LIST'
 gameday_id_CONST = 'GAMEDAY_ID'
 match_id_CONST = 'MATCH_ID'
 start_time_CONST = 'START_TIME'
@@ -27,19 +28,20 @@ class RRDBInterface:
 
     def writeDB(self, divinfo_str):
         divinfo_dict = json.loads(divinfo_str)
+        document_list = []
         for divinfo in divinfo_dict:
-            div_id = divinfo['div_id']
-            document = {div_id_CONST:int(div_id), age_CONST:divinfo['div_age'],
-                        gen_CONST:divinfo['div_gen'],
-                        totalteams_CONST:int(divinfo['totalteams']),
-                        numweeks_CONST:int(divinfo['numweeks']),
-                        numgdaysperweek_CONST:int(divinfo['numgdaysperweek']),
-                        totalgamedays_CONST:int(divinfo['totalgamedays']),
-                        gameinterval_CONST:int(divinfo['gameinterval'])}
-            self.dbInterface.updateDivInfo(document, div_id)
+            document_list.append({div_id_CONST:int(divinfo['div_id']),
+                                 age_CONST:divinfo['div_age'],
+                                 gen_CONST:divinfo['div_gen'],
+                                 totalteams_CONST:int(divinfo['totalteams']),
+                                 numweeks_CONST:int(divinfo['numweeks']),
+                                 numgdaysperweek_CONST:int(divinfo['numgdaysperweek']),
+                                 totalgamedays_CONST:int(divinfo['totalgamedays']),
+                                 gameinterval_CONST:int(divinfo['gameinterval'])})
+        self.dbInterface.updateDivInfoDocument({division_list_CONST:document_list})
 
     def readDB(self):
-        divlist = self.dbInterface.getTournamentDivInfo().dict_list
+        divlist = self.dbInterface.getDivInfoDocument().dict_list
         divinfo_list = []
         for divinfo in divlist:
             divinfo_list.append({'div_id':divinfo[div_id_CONST],

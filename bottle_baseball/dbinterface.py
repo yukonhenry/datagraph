@@ -38,6 +38,7 @@ match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
 round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
+division_list_CONST = 'DIVISION_LIST'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
@@ -73,6 +74,11 @@ class MongoDBInterface:
     def updateDivInfo(self, document, div_id):
         docID = self.games_col.update({div_id_CONST:div_id},
                                       {"$set": document}, upsert=True, safe=True)
+
+    def updateDivInfoDocument(self, document):
+        docID = self.games_col.update({sched_type_CONST:self.sched_type},
+                                      {"$set": document},
+                                      upsert=True, safe=True)
 
     def updateFieldInfo(self, document, field_id):
         docID = self.games_col.update({field_id_CONST:field_id},
@@ -342,6 +348,14 @@ class MongoDBInterface:
         divinfo_list = []
         for div_dict in result_list:
             divinfo_list.append(div_dict)
+        d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
+        return _List_Indexer(divinfo_list, d_indexerGet)
+
+    def getDivInfoDocument(self):
+        result = self.games_col.find_one({sched_type_CONST:self.sched_type,
+                                              division_list_CONST:{"$exists":True}},
+                                              {'_id':0})
+        divinfo_list = result[division_list_CONST]
         d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         return _List_Indexer(divinfo_list, d_indexerGet)
 

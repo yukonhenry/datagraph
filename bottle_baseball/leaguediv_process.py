@@ -217,7 +217,7 @@ def create_newdbcol(newcol_name):
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
-@route('/create_newdbcol/<newcol_name>')
+@route('/create_newtourndbcol/<newcol_name>')
 def create_newtourndbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
