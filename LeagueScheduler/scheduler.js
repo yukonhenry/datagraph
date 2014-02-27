@@ -85,18 +85,18 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
 
-			var dbcollection_list = ldata.dbcollection_list;
+			var rrdbcollection_list = ldata.rrdbcollection_list;
 			// fill initial store and create dropdown menu
-			storeutil_obj.createdb_store(dbcollection_list, 'db');
-			storeutil_obj.create_menu(dbcollection_list, 'div_id', divinfo_obj, true);
-			var tourndbcollection_list = [];
-			//var tourndbcollection_list = ldata.tourdbcollection_list;
+			storeutil_obj.createdb_store(rrdbcollection_list, 'rrdb');
+			storeutil_obj.create_menu(rrdbcollection_list, 'div_id', divinfo_obj, true);
+			var tourndbcollection_list = ldata.tourndbcollection_list;
 			storeutil_obj.createdb_store(tourndbcollection_list, constant.tourndb);
-			storeutil_obj.create_menu(dbcollection_list, 'tourndiv_id', tourndivinfo_obj, true);
+			storeutil_obj.create_menu(tourndbcollection_list, 'tourndiv_id', tourndivinfo_obj, true);
 			// note we need to add delete to the schedule here by passing 'true'
+			var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)
 			storeutil_obj.create_menu(dbcollection_list, 'sched_id', schedinfo_obj, false);
 			// generate dropdown for 'generate cup schedule'
-			var cupdbcollection_list = ldata.cupdbcollection_list;
+			var cupdbcollection_list = ldata.tourndbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(cupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.getCupSchedule,
@@ -109,6 +109,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var fielddb_list = ldata.fielddb_list;
 			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
 			storeutil_obj.create_menu(fielddb_list, 'field_id', fieldinfo_obj, true);
+			console.log("load basic info complete");
 		}
 		//});
 		grid.on("dgrid-select", function(event){

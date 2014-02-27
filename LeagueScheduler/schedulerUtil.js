@@ -156,7 +156,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				});  // context should be function
 				if (typeof options_obj.db_type !== 'undefined') {
 					var db_type = options_obj.db_type;
-					if (db_type == 'db') {
+					if (db_type == 'rrdb') {
 						this.dbmenureg_list.push({reg:submenu_reg,
 							context:onclick_context, func:onclick_func,
 							options_obj:options_obj});
@@ -172,7 +172,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				alert(item);
 			},
 			regenDelDBCollection_smenu: function(delindex, db_type) {
-				var dbmenureg_list = (db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
+				var dbmenureg_list = (db_type == 'rrdb') ? this.dbmenureg_list : this.fielddbmenureg_list;
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					dbmenureg.removeChild(delindex);
@@ -185,7 +185,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				});
 			},
 			regenAddDBCollection_smenu: function(object, insertIndex) {
-				var dbmenureg_list = (object.db_type == 'db') ? this.dbmenureg_list : this.fielddbmenureg_list;
+				var dbmenureg_list = (object.db_type == 'rrdb') ? this.dbmenureg_list : this.fielddbmenureg_list;
 				var item_name = object.label;
 				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {

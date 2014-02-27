@@ -333,7 +333,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								)
 							)
-							var option_array = this.generateLabelDropDown('db',
+							var option_array = this.generateLabelDropDown('rrdb',
 								'Select League');
 							this.league_select.addOption(option_array);
 							if (option_array.length < 2) {
@@ -425,7 +425,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			removefrom_select: function(db_type, index) {
 				// remove entries from the div or field group dropdown
-				if (db_type == 'db') {
+				if (db_type == 'rrdb') {
 					this.league_select.removeOption(index);
 				} else if (db_type == 'fielddb') {
 					this.fg_select.removeOption(index)
@@ -434,7 +434,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			addto_select: function(db_type, label, insertIndex) {
 				var soption_obj = {label:label, value:insertIndex+1,
 					selected:false};
-				if (db_type == 'db') {
+				if (db_type == 'rrdb') {
 					this.league_select.addOption(soption_obj);
 				} else if (db_type == 'fielddb') {
 					this.fg_select.addOption(soption_obj);

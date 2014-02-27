@@ -27,23 +27,24 @@ class TournDBInterface:
     def __init__(self, mongoClient, newcol_name):
         self.dbInterface = MongoDBInterface(mongoClient, newcol_name, db_col_type=DB_Col_Type.ElimTourn)
 
-    def writeDB(self, divinfo_str):
+    def writeDB(self, divinfo_str, configdone_flag):
         divinfo_dict = json.loads(divinfo_str)
-        for division in divinfo_dict:
-            div_id = division['div_id']
-            document = {div_id_CONST:int(div_id), age_CONST:division['div_age'],
-                        gen_CONST:division['div_gen'],
-                        totalteams_CONST:int(division['totalteams']),
-                        totalbrackets_CONST: int(division['totalbrackets']),
-                        elimination_num_CONST:int(division['elimination_num']),
-                        elimination_type_CONST:division['elimination_type'],
-                        field_id_list_CONST:division['field_id_str'].split(),
-                        gameinterval_CONST:int(division['gameinterval']),
-                        rr_gamedays_CONST:int(division['rr_gamedays'])}
-            self.dbInterface.updateDivInfo(document, div_id)
+        document_list = []
+        for divinfo in divinfo_dict:
+            document_list.append({div_id_CONST:int(divinfo['div_id']),
+                                 age_CONST:divinfo['div_age'],
+                                 gen_CONST:divinfo['div_gen'],
+                                 totalteams_CONST:int(divinfo['totalteams']),
+                                 totalbrackets_CONST: int(divinfo['totalbrackets']),
+                                 elimination_num_CONST:int(divinfo['elimination_num']),
+                                 elimination_type_CONST:divinfo['elimination_type'],
+                                 field_id_list_CONST:divinfo['field_id_str'].split(),
+                                 gameinterval_CONST:int(divinfo['gameinterval']),
+                                 rr_gamedays_CONST:int(divinfo['rr_gamedays'])})
+        self.dbInterface.updateDivInfoDocument(document_list, configdone_flag)
 
     def readDB(self):
-        divlist = self.dbInterface.getTournamentDivInfo().dict_list
+        divlist = self.dbInterface.getDivInfoDocument().dict_list
         divinfo_list = []
         for divinfo in divlist:
             divinfo_list.append({'div_id':divinfo[div_id_CONST],

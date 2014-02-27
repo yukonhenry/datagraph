@@ -71,13 +71,11 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateDivInfo(self, document, div_id):
-        docID = self.games_col.update({div_id_CONST:div_id},
-                                      {"$set": document}, upsert=True, safe=True)
-
-    def updateDivInfoDocument(self, document):
-        docID = self.games_col.update({sched_type_CONST:self.sched_type},
-                                      {"$set": document},
+    def updateDivInfoDocument(self, division_list, configdone_flag):
+        docID = self.games_col.update({sched_type_CONST:self.sched_type,
+                                      division_list_CONST:{"$exists":True}},
+                                      {"$set": {division_list_CONST:division_list,
+                                      'CONFIG_FLAG':configdone_flag}},
                                       upsert=True, safe=True)
 
     def updateFieldInfo(self, document, field_id):

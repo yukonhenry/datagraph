@@ -183,6 +183,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendDivInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
 				// do check to make sure all fields have been filled.
+				var configdone_flag = false;
 				if (arrayUtil.some(raw_result, function(item, index) {
 					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
 					// iterate through object's own properties too see if there
@@ -197,8 +198,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						}
 					}
 					return break_flag;
-				})) // insert return statement here if plan is to prevent saving.
+				})) {
+					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete, but saving");
+				} else {
+					configdone_flag = true;
+				}
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();
@@ -224,6 +229,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var server_key = this.server_key || "";
 				var server_key_obj = {};
 				server_key_obj[server_key] = storedata_json;
+				server_key_obj.configdone_flag = configdone_flag;
 				var options_obj = {item:this.colname};
 				this.server_interface.getServerData(server_path+this.colname,
 					this.server_interface.server_ack, server_key_obj, options_obj);

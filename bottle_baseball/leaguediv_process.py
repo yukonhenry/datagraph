@@ -44,8 +44,8 @@ def leaguedivinfo_all():
     ldata_tuple = getLeagueDivInfo()
     field_tuple = getFieldInfo()
     dbstatus = dbInterface.getSchedStatus()
-    schedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.RoundRobin, DB_Col_Type.ElimTourn])
-    cupschedcol_list = dbInterface.getScheduleCollections([DB_Col_Type.ElimTourn])
+    rrdbcol_list = dbInterface.getScheduleCollections([DB_Col_Type.RoundRobin])
+    tourndbcol_list = dbInterface.getScheduleCollections([DB_Col_Type.ElimTourn])
     #cupschedcol_list = dbInterface.getCupScheduleCollections()
     fielddb_list = dbInterface.getScheduleCollections([DB_Col_Type.FieldInfo])
     logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
@@ -53,9 +53,9 @@ def leaguedivinfo_all():
                     "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "dbstatus":dbstatus,
-                    "dbcollection_list":schedcol_list,
+                    "rrdbcollection_list":rrdbcol_list,
                     "fielddb_list": fielddb_list,
-                    "cupdbcollection_list":cupschedcol_list})
+                    "tourndbcollection_list":tourndbcol_list})
     return callback_name+'('+a+')'
 
 # Get per-division schedule
@@ -211,8 +211,9 @@ def schedulemetrics(div_id):
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
+    configdone_flag = request.query.configdone_flag
     rdbInterface = RRDBInterface(mongoClient, newcol_name)
-    rdbInterface.writeDB(divinfo_data)
+    rdbInterface.writeDB(divinfo_data, configdone_flag)
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
@@ -221,8 +222,9 @@ def create_newdbcol(newcol_name):
 def create_newtourndbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
+    configdone_flag = request.query.configdone_flag
     tdbInterface = TournDBInterface(mongoClient, newcol_name)
-    tdbInterface.writeDB(divinfo_data)
+    tdbInterface.writeDB(divinfo_data, configdone_flag)
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
     a = json.dumps({'test':'tournasdf'})
     return callback_name+'('+a+')'

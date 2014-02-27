@@ -12,7 +12,6 @@ numweeks_CONST = 'NUMWEEKS'
 numgdaysperweek_CONST = 'NUMGDAYSPERWEEK'
 totalgamedays_CONST = 'TOTALGAMEDAYS'
 gameinterval_CONST = 'GAMEINTERVAL'
-division_list_CONST = 'DIVISION_LIST'
 gameday_id_CONST = 'GAMEDAY_ID'
 match_id_CONST = 'MATCH_ID'
 start_time_CONST = 'START_TIME'
@@ -26,7 +25,7 @@ class RRDBInterface:
     def __init__(self, mongoClient, newcol_name):
         self.dbInterface = MongoDBInterface(mongoClient, collection_name=newcol_name, db_col_type=DB_Col_Type.RoundRobin)
 
-    def writeDB(self, divinfo_str):
+    def writeDB(self, divinfo_str, configdone_flag):
         divinfo_dict = json.loads(divinfo_str)
         document_list = []
         for divinfo in divinfo_dict:
@@ -38,7 +37,7 @@ class RRDBInterface:
                                  numgdaysperweek_CONST:int(divinfo['numgdaysperweek']),
                                  totalgamedays_CONST:int(divinfo['totalgamedays']),
                                  gameinterval_CONST:int(divinfo['gameinterval'])})
-        self.dbInterface.updateDivInfoDocument({division_list_CONST:document_list})
+        self.dbInterface.updateDivInfoDocument(document_list, configdone_flag)
 
     def readDB(self):
         divlist = self.dbInterface.getDivInfoDocument().dict_list
