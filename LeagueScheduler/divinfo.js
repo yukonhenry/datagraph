@@ -22,6 +22,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
+				console.log('divinfo columndef');
 				var columnsdef_obj = {
 					div_id: "Div ID",
 					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),

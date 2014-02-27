@@ -90,7 +90,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			storeutil_obj.createdb_store(rrdbcollection_list, 'rrdb');
 			storeutil_obj.create_menu(rrdbcollection_list, 'div_id', divinfo_obj, true);
 			var tourndbcollection_list = ldata.tourndbcollection_list;
-			storeutil_obj.createdb_store(tourndbcollection_list, constant.tourndb);
+			storeutil_obj.createdb_store(tourndbcollection_list, 'tourndb');
 			storeutil_obj.create_menu(tourndbcollection_list, 'tourndiv_id', tourndivinfo_obj, true);
 			// note we need to add delete to the schedule here by passing 'true'
 			var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)

@@ -86,6 +86,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						if (newgrid_flag) {
+							console.log("getting init columnsdef");
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:divinfo_list,
 								colname:colname,

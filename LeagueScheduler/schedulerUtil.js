@@ -27,13 +27,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
 			leaguedata: null, server_interface:null, editGrid:null,
-			dbmenureg_list:null, fielddbmenureg_list:null,
+			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
 				// than declare.safeMixin
 				lang.mixin(this, args);
-				this.dbmenureg_list = new Array();
+				this.rrdbmenureg_list = new Array();
+				this.tdbmenureg_list = new Array();
 				this.fielddbmenureg_list = new Array();
 			},
 			getCalendarMap: function(gameday_id) {
@@ -157,7 +158,11 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				if (typeof options_obj.db_type !== 'undefined') {
 					var db_type = options_obj.db_type;
 					if (db_type == 'rrdb') {
-						this.dbmenureg_list.push({reg:submenu_reg,
+						this.rrdbmenureg_list.push({reg:submenu_reg,
+							context:onclick_context, func:onclick_func,
+							options_obj:options_obj});
+					} else if (db_type == 'tourndb') {
+						this.tdbmenureg_list.push({reg:submenu_reg,
 							context:onclick_context, func:onclick_func,
 							options_obj:options_obj});
 					} else if (db_type == 'fielddb') {
@@ -172,20 +177,27 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				alert(item);
 			},
 			regenDelDBCollection_smenu: function(delindex, db_type) {
-				var dbmenureg_list = (db_type == 'rrdb') ? this.dbmenureg_list : this.fielddbmenureg_list;
+				var dbmenureg_list = null;
+				if (db_type == 'rrdb')
+					dbmenureg_list = this.rrdbmenureg_list;
+				else if (db_type == 'tourndb')
+					dbmenureg_list = this.tdbmenureg_list;
+				else
+					dbmenureg_list = this.fielddbmenureg_list;
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					dbmenureg.removeChild(delindex);
-					/*
-					arrayUtil.forEach(dbmenureg.getChildren(), function(smenuitem, index2) {
-						if (smenuitem.get('label') == item_name) {
-							dbmenureg.removeChild(smenuitem);
-						}
-					}); */
 				});
 			},
 			regenAddDBCollection_smenu: function(object, insertIndex) {
-				var dbmenureg_list = (object.db_type == 'rrdb') ? this.dbmenureg_list : this.fielddbmenureg_list;
+				var dbmenureg_list = null;
+				var db_type = object.db_type;
+				if (db_type == 'rrdb')
+					dbmenureg_list = this.rrdbmenureg_list;
+				else if (db_type == 'tourndb')
+					dbmenureg_list = this.tdbmenureg_list;
+				else
+					dbmenureg_list = this.fielddbmenureg_list;
 				var item_name = object.label;
 				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {

@@ -22,10 +22,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
+				console.log("tourndiv columndef");
 				var columnsdef_obj = {
 					div_id: "Div ID",
-					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
-					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
+					div_age: editor({label:"Age", autoSave:true},"text","dblclick"),
+					div_gen: editor({label:"Gender", autoSave:true}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
 					totalbrackets: editor({label:"Total RR Brackets", field:"totalbrackets", autoSave:true}, "text", "dblclick"),
 					elimination_num: editor({label:"Elimination #", field:"elimination_num", autoSave:true}, "text", "dblclick"),
