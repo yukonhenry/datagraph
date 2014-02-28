@@ -59,15 +59,19 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}));
 			},
 			nodupdb_validate: function(colname, id) {
-				var match_obj = this.getmatch_obj(constant.submenu_list, id);
+				var match_obj = this.getmatch_obj(constant.submenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				return this.dbselect_store.query({label:colname,
 					db_type:db_type}).total == 0;
 			},
 			addtodb_store: function(colname, id) {
-				var match_obj = this.getmatch_obj(constant.submenu_list, id);
+				var match_obj = this.getmatch_obj(constant.submenu_list, 'id', id);
 				var db_type = match_obj.db_type;
-				this.dbselect_store.add({id:colname+'_'+db_type, label:colname, db_type:db_type})
+				var query_obj = {id:colname+'_'+db_type, label:colname, db_type:db_type};
+				if (this.dbselect_store.query(query_obj).total == 0)
+					this.dbselect_store.add({id:colname+'_'+db_type, label:colname, db_type:db_type})
+				else
+					console.log("addtodb_store: colname="+colname+ "dbtype="+db_type+" already in dbname store");
 			},
 			getfromdb_store_value:function(db_type, key) {
 				var dbtype_result = this.dbselect_store.query({db_type:db_type})
@@ -82,7 +86,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			},
 			create_menu: function(db_list, id, info_obj, delflag) {
 				// get submenu names based on db_type
-				var match_obj = this.getmatch_obj(constant.submenu_list, id);
+				var match_obj = this.getmatch_obj(constant.submenu_list,
+					'id', id);
 				var submenu_name = match_obj.name;
 				var db_type = match_obj.db_type;
 				// create respective db menu
@@ -91,7 +96,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					this.uistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
 				if (delflag) {
-					match_obj = this.getmatch_obj(constant.delsubmenu_list, id);
+					match_obj = this.getmatch_obj(constant.delsubmenu_list,
+						'id', id);
 					// set up menus for delete if required
 					submenu_name = match_obj.name;
 					db_type = match_obj.db_type;
@@ -104,10 +110,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 							storeutil_obj:this});
 				}
 			},
-			getmatch_obj: function(list, id) {
+			getmatch_obj: function(list, key, value) {
 				var match_list = arrayUtil.filter(list,
 					function(item) {
-						return item.id == id;
+						return item[key] == value;
 					});
 				return match_list[0];
 			},
@@ -115,6 +121,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var item = options_obj.item;
 				var server_path = options_obj.server_path;
 				this.removefromdb_store(item, options_obj.db_type);
+				var match_obj = this.getmatch_obj(constant.delsubmenu_list, 'db_type',
+					options_obj.db_type);
+				var idproperty = match_obj.id;
+				this.uistackmgr.switch_pstackcpane(
+					{idproperty:idproperty, p_stage:"preconfig",
+					entry_pt:"fromddel"});
+				this.uistackmgr.switch_gstackcpane(idproperty, true, null)
 				this.server_interface.getServerData(server_path+item,
 					this.server_interface.server_ack);
 			},

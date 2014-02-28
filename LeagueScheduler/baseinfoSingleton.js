@@ -16,12 +16,6 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				this.watch_obj = new watch_class();
 				//this.watch_obj.set('divstr_list',[]);
 			},
-			set_tbutton_reg: function(tbutton_reg) {
-				this.tbutton_reg = tbutton_reg;
-			},
-			get_tbutton_reg: function() {
-				return this.tbutton_reg;
-			},
 			register_obj: function(obj, idproperty) {
 				this.obj_list.push({obj:obj, idproperty:idproperty});
 			},

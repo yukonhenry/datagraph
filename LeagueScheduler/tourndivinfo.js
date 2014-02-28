@@ -7,7 +7,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		baseinfoSingleton){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
-			text_id:"infoTextNode_id",
 			idproperty_str:"tourndiv_id",
 			updatebtn_str:"Update Tourn Div Info",
 			grid_id:"tourndivinfogrid_id",
@@ -15,16 +14,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
-			text_node:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.text_node = dom.byId(constant.text_id);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
-				console.log("tourndiv columndef");
+				// IMPORTANT: make sure one field matches the idproperty string, if
+				// the idproperty is going to be used at the idProperty field for
+				// the store
 				var columnsdef_obj = {
-					div_id: "Div ID",
+					tourndiv_id: "Div ID",
 					div_age: editor({label:"Age", autoSave:true},"text","dblclick"),
 					div_gen: editor({label:"Gender", autoSave:true}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
@@ -33,7 +32,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					elimination_type: editor({label:"Elimination Type", field:"elimination_type", autoSave:true}, "text", "dblclick"),
 					field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true}, "text", "dblclick"),
 					gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true}, "text", "dblclick"),
-					rr_gamedays: editor({label:"Number RR Gamedays", field:"rr_gamedays", autoSave:true}, "text", "dblclick")
+					rr_gamedays: editor({label:"Number RR Gamedays", field:"rr_gamedays", autoSave:true}, "text", "dblclick"),
 				};
 				return columnsdef_obj;
 			},
@@ -84,7 +83,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			getInitialList: function(divnum) {
 				var divInfo_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
-					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
+					// make sure one of the keys matches the idProperty used for
+					// store.
+					divInfo_list.push({tourndiv_id:i, div_age:"", div_gen:"",
 					                  totalteams:1,
 					                  totalbrackets:1,
 					                  elimination_num:1,

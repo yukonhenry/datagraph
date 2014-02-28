@@ -82,8 +82,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				});
 				if (this.datachangeHandle)
 					this.datachangeHandle.remove();
+				//this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
+				//	lang.hitch(this, this.editschedInfoGrid));
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
-					lang.hitch(this, this.editschedInfoGrid));
+					this.editschedInfoGrid);
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
 				}
@@ -183,6 +185,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendDivInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
 				// do check to make sure all fields have been filled.
+				// note construct of using arrayUtil.some works better than
+				// query.filter() as loop will exit immediately if .some() returns
+				// true.
 				var configdone_flag = false;
 				if (arrayUtil.some(raw_result, function(item, index) {
 					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
@@ -192,7 +197,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					var break_flag = false;
 					for (var prop in item) {
 						if (item[prop] === "") {
-							alert("Not all fields in grid filled out, but saving");
+							//alert("Not all fields in grid filled out, but saving");
 							break_flag = true;
 							break;
 						}
@@ -204,6 +209,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				} else {
 					configdone_flag = true;
 				}
+				this.info_obj.update_configdone(configdone_flag);
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();

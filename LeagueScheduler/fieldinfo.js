@@ -11,7 +11,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		Tooltip, put, Calendar){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
-			text_id:"infoTextNode_id",
 			idproperty_str:"field_id",
 			updatebtn_str:"Update Field Info",
 			grid_id:"fieldinfogrid_id",
@@ -29,14 +28,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			calendar:null,
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
-			text_node:null,
 			rendercell_flag:true, today:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
 				// (non-objects can be initialized in member var declaration)
 				lang.mixin(this, args);
-				this.text_node = dom.byId(constant.text_id);
 				this.today = new Date();
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},

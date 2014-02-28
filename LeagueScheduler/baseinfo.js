@@ -8,9 +8,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		registry, Tooltip, Button, EditGrid, baseinfoSingleton, put) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
+			text_id:"infoTextNode_id",
 			fielddb_type:"fielddb",
 			// entry_pt id's
-			init:"init", fromdb:"fromdb"
+			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
 		var colname_class = declare([Stateful],{
 			colname:null
@@ -22,6 +23,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			colname_obj:null, button_div:null, schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.text_node = dom.byId(constant.text_id);
 				this.tooltip_list = new Array();
 				this.colname_obj = new colname_class();
 				this.colname_obj.watch("colname",
@@ -83,10 +85,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						var divnum = entrynum_reg.get("value");
 						this.rownum = divnum;
 						var divinfo_list = this.getInitialList(divnum);
-						if (this.keyup_handle)
-							this.keyup_handle.remove();
+						//if (this.keyup_handle)
+						//	this.keyup_handle.remove();
 						if (newgrid_flag) {
-							console.log("getting init columnsdef");
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:divinfo_list,
 								colname:colname,
@@ -104,7 +105,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							var args_obj = {
 								colname:colname,
 								text_node_str:text_node_str,
-								text_node:this.text_node,
 								updatebtn_str:updatebtn_str,
 								idproperty:this.idproperty,
 								swapcpane_flag:true,
@@ -115,7 +115,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							var args_obj = {
 								colname:colname,
 								text_node_str:text_node_str,
-								text_node:this.text_node,
 								updatebtn_str:updatebtn_str,
 								idproperty:this.idproperty,
 								swapcpane_flag:true,
@@ -138,7 +137,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// at the server)
 				var item = options_obj.item;
 				//this.colname_obj.set('colname',item);
-				options_obj.text_node = this.text_node;
 				options_obj.storeutil_obj = this.storeutil_obj;
 				this.server_interface.getServerData(options_obj.getserver_path+item,
 					lang.hitch(this, this.createEditGrid), null, options_obj);
@@ -196,7 +194,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var args_obj = {
 					colname:colname,
 					text_node_str:options_obj.text_node_str,
-					text_node:options_obj.text_node,
 					updatebtn_str:options_obj.updatebtn_str,
 					idproperty:idproperty,
 					swapcpane_flag:options_obj.swapcpane_flag,
@@ -211,7 +208,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// parse args object
 				var colname = args_obj.colname;
 				var text_node_str = args_obj.text_node_str;
-				var text_node = args_obj.text_node;
 				var updatebtn_str = args_obj.updatebtn_str;
 				var idproperty = args_obj.idproperty;
 				var swapcpane_flag = args_obj.swapcpane_flag;
@@ -219,11 +215,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var entry_pt = args_obj.entry_pt;
 
 				var text_str = text_node_str + ": <b>"+colname+"</b>";
-				text_node.innerHTML = text_str;
+				this.text_node.innerHTML = text_str;
 				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
 					idproperty);
 				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
 				updatebtn_widget.set("onClick", btn_callback);
+				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
 				// https://github.com/kriszyp/put-selector
 				// button is enclosed in a div
 				// outer div has class that has the float:right property
@@ -261,6 +258,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					args_obj.idproperty);
 				var btn_callback = args_obj.btn_callback;
 				updatebtn_widget.set("onClick", btn_callback);
+				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
 				// https://github.com/kriszyp/put-selector
 				// button is enclosed in a div
 				// outer div has class that has the float:right property
@@ -295,6 +293,25 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					infobtn_widget.startup();
 				}
 				return infobtn_widget;
+			},
+			get_gridstatus_node: function(updatebtn_widget) {
+				var gridstatus_node = dom.byId('gridstatus_span');
+				if (!gridstatus_node) {
+					gridstatus_node = put(updatebtn_widget.domNode,
+						"+span.empty_smallgap#gridstatus_span");
+					//gridstatus_node.innerHTML = 'test span';
+				}
+				return gridstatus_node;
+			},
+			update_configdone: function(configdone_flag) {
+				var gridstatus_node = dom.byId('gridstatus_span');
+				if (configdone_flag) {
+					gridstatus_node.style.color = 'green';
+					gridstatus_node.innerHTML = "Config Complete";
+				} else {
+					gridstatus_node.style.color = 'orange';
+					gridstatus_node.innerHTML = "Config Not Complete";
+				}
 			},
 			is_serverdata_required: function(options_obj) {
 				return (options_obj.item != this.colname_obj.get('colname'))?true:false;

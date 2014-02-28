@@ -7,7 +7,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		baseinfoSingleton){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
-			text_id:"infoTextNode_id",
 			idproperty_str:"div_id",
 			updatebtn_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
@@ -15,14 +14,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
-			text_node:null, base_numweeks:0,
+			base_numweeks:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.text_node = dom.byId(constant.text_id);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
-				console.log('divinfo columndef');
 				var columnsdef_obj = {
 					div_id: "Div ID",
 					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),

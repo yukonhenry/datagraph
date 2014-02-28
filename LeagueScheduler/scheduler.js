@@ -84,7 +84,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// generate links for individual team schedules
 			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
-
 			var rrdbcollection_list = ldata.rrdbcollection_list;
 			// fill initial store and create dropdown menu
 			storeutil_obj.createdb_store(rrdbcollection_list, 'rrdb');

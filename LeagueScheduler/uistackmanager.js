@@ -19,7 +19,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			fieldcpane_id:"fieldinfocpane_id",
 			blankcpane_id:"blankcpane_id",
 			// entry_pt id's
-			init:"init", fromdb:"fromdb"
+			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,

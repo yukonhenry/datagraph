@@ -134,7 +134,11 @@ div.bar {
   margin:3px;
 }
 .empty_gap {
-  margin-left:50px;
+    margin-left:50px;
+}
+.empty_smallgap {
+    margin-left:25px;
+    color:orange;
 }
 .date_input {
   width:120px;
