@@ -25,7 +25,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			pstackcontainer_reg:null, pstackmap_list:null,
 			gstackcontainer_reg:null, gstackmap_list:null,
 			cpanestate_list:null, updatebtn_widget:null,
-			current_grid:null,
+			current_grid:null, null_cpanestate:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
@@ -61,6 +61,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					{id:'sched_id', pane_id:constant.schedcpane_id},
 					{id:'field_id', pane_id:constant.fieldcpane_id}];
 				this.cpanestate_list = new Array();
+				this.null_cpanestate = {
+						p_pane:null, p_stage:null, entry_pt:null,
+						g_pane:constant.blankcpane_id,
+						text_str:"", btn_callback:null, updatebtn_str:"",
+						active_flag:false};
 				arrayUtil.forEach(this.gstackmap_list, function(item, index) {
 					/* cpanestate_list tracks current configuration state for each
 					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
@@ -72,7 +77,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						p_pane:null, p_stage:null, entry_pt:null,
 						g_pane:constant.blankcpane_id,
 						text_str:"", btn_callback:null, updatebtn_str:"",
-						active_flag:false})
+						active_flag:false});
 				}, this);
 			},
 			switch_pstackcpane: function(args_obj) {
@@ -91,6 +96,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// not necessary to reassign as the list index already points
 				// to match_obj
 				//this.cpanestate_list[index] = match_obj;
+			},
+			reset_cpane: function(idproperty) {
+				// reset pstackcpane for idproperty to quiscent/initial state
+				this.pstackcontainer_reg.selectChild('dummy_id');
+				var match_obj = this.get_cpanestate(idproperty).match_obj;
+				lang.mixin(match_obj, this.null_cpanestate);
+				this.gstackcontainer_reg.selectChild(constant.blankcpane_id);
+				this.reset_cpanestate_active();
 			},
 			swapactive_pgstackcpane: function(match_obj) {
 				this.pstackcontainer_reg.selectChild(match_obj.p_pane);
@@ -134,12 +147,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				return idmatch_list[0].pane_id;
 			},
 			setreset_cpanestate_active: function(match_obj) {
+				this.reset_cpanestate_active();
+				match_obj.active_flag = true;
+			},
+			reset_cpanestate_active: function() {
 				var active_state = this.get_cpanestate_active();
 				if (active_state) {
 					var oldmatch_obj = active_state.match_obj;
 					oldmatch_obj.active_flag = false;
 				}
-				match_obj.active_flag = true;
 			},
 			switch_gstackcpane: function(id, preconfig_flag, current_grid) {
 				var preconfig_flag = (typeof preconfig_flag === "undefined") ? false:preconfig_flag;

@@ -79,14 +79,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
-						//this.colname_obj.set('colname',colname);
-						//var divinfo_obj = this.info_obj;
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = entrynum_reg.get("value");
 						this.rownum = divnum;
 						var divinfo_list = this.getInitialList(divnum);
-						//if (this.keyup_handle)
-						//	this.keyup_handle.remove();
+						if (this.keyup_handle)
+							this.keyup_handle.remove();
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:divinfo_list,

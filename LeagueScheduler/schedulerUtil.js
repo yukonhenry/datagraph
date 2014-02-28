@@ -189,7 +189,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					dbmenureg.removeChild(delindex);
 				});
 			},
-			regenAddDBCollection_smenu: function(object, insertIndex) {
+			regenAddDBCollection_smenu: function(insertIndex, object) {
 				var dbmenureg_list = null;
 				var db_type = object.db_type;
 				if (db_type == 'rrdb')
@@ -203,6 +203,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					var options_obj = dbmenudata.options_obj;
+					options_obj.item = item_name;
 					var smenuitem = new MenuItem({label:item_name,
 						onClick:lang.hitch(dbmenudata.context, dbmenudata.func, options_obj)});
     				dbmenureg.addChild(smenuitem, insertIndex);

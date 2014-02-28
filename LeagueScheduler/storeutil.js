@@ -51,7 +51,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						}
 					}
 					if (insertIndex > -1) {
-						this.schedutil_obj.regenAddDBCollection_smenu(object, insertIndex);
+						this.schedutil_obj.regenAddDBCollection_smenu(insertIndex,
+							object);
 						if (newsched_obj && newsched_obj.selectexists_flag) {
 							newsched_obj.addto_select(db_type, object.label, insertIndex);
 						}
@@ -124,10 +125,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var match_obj = this.getmatch_obj(constant.delsubmenu_list, 'db_type',
 					options_obj.db_type);
 				var idproperty = match_obj.id;
+				this.uistackmgr.reset_cpane(idproperty);
+				/*
 				this.uistackmgr.switch_pstackcpane(
 					{idproperty:idproperty, p_stage:"preconfig",
 					entry_pt:"fromddel"});
-				this.uistackmgr.switch_gstackcpane(idproperty, true, null)
+				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
 				this.server_interface.getServerData(server_path+item,
 					this.server_interface.server_ack);
 			},
