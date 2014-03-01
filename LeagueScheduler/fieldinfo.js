@@ -25,7 +25,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			starttime_reg:null, endtime_reg:null,
 			starttime_handle:null, tooltip:null,
 			datetimeset_handle:null, datetimedel_handle:null,
-			calendar:null,
+			calendar:null, db_type:constant.db_type,
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null,

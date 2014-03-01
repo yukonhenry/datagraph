@@ -210,14 +210,18 @@ def schedulemetrics(div_id):
 @route('/create_newdbcol/<newcol_name>')
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
-    divinfo_data = request.query.divinfo_data
+    info_data = request.query.info_data
     config_status = request.query.config_status
-    rdbInterface = RRDBInterface(mongoClient, newcol_name)
-    rdbInterface.writeDB(divinfo_data, config_status)
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
+    db_type = request.query.db_type
+    if db_type == 'rrdb':
+        dbInterface = RRDBInterface(mongoClient, newcol_name)
+    elif db_type == 'tourndb':
+        dbInterface = TournDBInterface(mongoClient, newcol_name)
+    dbInterface.writeDB(info_data, config_status)
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
+'''
 @route('/create_newtourndbcol/<newcol_name>')
 def create_newtourndbcol(newcol_name):
     callback_name = request.query.callback
@@ -228,6 +232,7 @@ def create_newtourndbcol(newcol_name):
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     a = json.dumps({'test':'tournasdf'})
     return callback_name+'('+a+')'
+'''
 
 @route('/delete_dbcol/<delcol_name>')
 def delete_dbcol(delcol_name):

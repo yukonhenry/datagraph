@@ -18,7 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		})
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
-			idproperty:null, storeutil_obj:null, text_node:null,
+			storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
 			colname_obj:null, button_div:null, schedutil_obj:null,
 			constructor: function(args) {
@@ -98,7 +98,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
 								uistackmgr:this.uistackmgr,
-								storeutil_obj:this.storeutil_obj});
+								storeutil_obj:this.storeutil_obj,
+								db_type:this.db_type});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 							var args_obj = {
 								colname:colname,
@@ -188,7 +189,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:options_obj.info_obj,
 						uistackmgr:this.uistackmgr,
-						storeutil_obj:options_obj.storeutil_obj});
+						storeutil_obj:options_obj.storeutil_obj,
+						db_type:this.db_type});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 				} else {
 					this.editgrid.replace_store(colname, data_list);
@@ -305,9 +307,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				return gridstatus_node;
 			},
-			update_configdone: function(status_flag) {
+			update_configdone: function(config_status) {
 				var gridstatus_node = dom.byId('gridstatus_span');
-				if (status_flag) {
+				if (config_status) {
 					gridstatus_node.style.color = 'green';
 					gridstatus_node.innerHTML = "Config Complete";
 				} else {

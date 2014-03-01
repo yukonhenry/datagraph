@@ -18,7 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			idproperty:null,
 			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
 			server_path:"", server_key:"",
-			info_obj:null, uistackmgr:null, storeutil_obj:null,
+			info_obj:null, uistackmgr:null, storeutil_obj:null, db_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -188,7 +188,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// note construct of using arrayUtil.some works better than
 				// query.filter() as loop will exit immediately if .some() returns
 				// true.
-				var status_flag = false;
+				// config_status is an integer type as booleans cannot be directly
+				// be transmitted to server (sent as 'true'/'false' string)
+				var config_status = 0;
 				if (arrayUtil.some(raw_result, function(item, index) {
 					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
 					// iterate through object's own properties too see if there
@@ -207,9 +209,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete, but saving");
 				} else {
-					status_flag = true;
+					config_status = 1;
 				}
-				this.info_obj.update_configdone(status_flag);
+				this.info_obj.update_configdone(config_status);
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();
@@ -235,12 +237,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var server_key = this.server_key || "";
 				var server_key_obj = {};
 				server_key_obj[server_key] = storedata_json;
-				server_key_obj.config_status = status_flag;
+				server_key_obj.config_status = config_status;
+				server_key_obj.db_type = this.db_type;
 				var options_obj = {item:this.colname};
 				this.server_interface.getServerData(server_path+this.colname,
 					this.server_interface.server_ack, server_key_obj, options_obj);
 				// add to select db store (for dropdowns)
-				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, status_flag);
+				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);
 			},
 			replace_store: function(colname, griddata_list) {
 				this.colname = colname;

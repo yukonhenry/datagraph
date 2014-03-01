@@ -11,9 +11,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			updatebtn_str:"Update Tourn Div Info",
 			grid_id:"tourndivinfogrid_id",
 			text_node_str: 'Schedule Name',
+			db_type:'tourndb',
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
+			db_type:constant.db_type,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -51,8 +53,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:divnum_reg,
-					server_path:"create_newtourndbcol/",
-					server_key:"divinfo_data",
+					server_path:"create_newdbcol/",
+					server_key:"info_data",
 					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
 					updatebtn_str:constant.updatebtn_str,
@@ -71,8 +73,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// at the server)
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = constant.idproperty_str;
-				options_obj.server_key = 'divinfo_data';
-				options_obj.server_path = "create_newtourndbcol/";
+				options_obj.server_key = 'info_data';
+				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;

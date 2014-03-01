@@ -70,17 +70,17 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				return this.dbselect_store.query({label:colname,
 					db_type:db_type}).total == 0;
 			},
-			addtodb_store: function(colname, id, status_flag) {
+			addtodb_store: function(colname, id, config_status) {
 				var match_obj = this.getmatch_obj(constant.submenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				var query_obj = {name:colname+'_'+db_type, label:colname, db_type:db_type};
 				result_list = this.dbselect_store.query(query_obj);
 				if (result_list.total == 0) {
-					query_obj.config_status = status_flag; // add status field
+					query_obj.config_status = config_status; // add status field
 					this.dbselect_store.add(query_obj);
 				} else {
 					var match_obj = result_list[0];
-					match_obj.config_status = status_flag;
+					match_obj.config_status = config_status;
 					this.dbselect_store.put(match_obj);
 				}
 			},

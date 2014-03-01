@@ -11,9 +11,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			updatebtn_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
 			text_node_str: 'Schedule Name',
+			db_type:'rrdb'
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
+			db_type:constant.db_type,
 			base_numweeks:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -52,7 +54,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					form_reg:form_reg,
 					entrynum_reg:divnum_reg,
 					server_path:"create_newdbcol/",
-					server_key:"divinfo_data",
+					server_key:"info_data",
 					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
 					updatebtn_str:constant.updatebtn_str,
@@ -71,14 +73,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// at the server)
 				options_obj.serverdata_key = 'divinfo_list';
 				options_obj.idproperty = constant.idproperty_str;
-				options_obj.server_key = 'divinfo_data';
+				options_obj.server_key = 'info_data';
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
-				options_obj.db_type = 'rrdb';
+				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},
 			getInitialList: function(divnum) {

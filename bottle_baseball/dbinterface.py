@@ -73,11 +73,11 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateDivInfoDocument(self, divdoc_list, status):
+    def updateDivInfoDocument(self, divdoc_list, config_status):
         docID = self.games_col.update({sched_type_CONST:self.sched_type,
                                       divdoc_list_CONST:{"$exists":True}},
                                       {"$set": {divdoc_list_CONST:divdoc_list,
-                                      config_status_CONST:status}},
+                                      config_status_CONST:config_status}},
                                       upsert=True, safe=True)
 
     def updateFieldInfo(self, document, field_id):
