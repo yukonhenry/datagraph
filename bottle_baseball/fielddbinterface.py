@@ -9,6 +9,7 @@ import logging
 
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
+_List_Status = namedtuple('_List_Status', 'list config_status')
 
 field_id_CONST = 'FIELD_ID'
 field_name_CONST = 'FIELD_NAME'
@@ -25,10 +26,9 @@ class FieldDBInterface:
         self.dbInterface = MongoDBInterface(mongoClient, newcol_name,
                                             db_col_type=DB_Col_Type.FieldInfo)
 
-    def writeDB(self, fieldinfo_str):
-        fieldinfo_dict = json.loads(fieldinfo_str)
-        for fieldinfo in fieldinfo_dict:
-            field_id = fieldinfo['field_id']
+    def writeDB(self, fieldinfo_str, config_status):
+        fieldinfo_list = json.loads(fieldinfo_str)
+        for fieldinfo in fieldinfo_list:
             start_date_str = fieldinfo['start_date']
             end_date_str = fieldinfo['end_date']
             dayweek_list = fieldinfo['dayweek_str'].split(',')
@@ -37,6 +37,14 @@ class FieldDBInterface:
             else:
                 numgamedays = self.calcNumGameDays(start_date_str, end_date_str,
                                                    dayweek_list)
+            fieldinfo['numgamedays'] = numgamedays
+            fieldinfo['dayweek_list'] = dayweek_list
+            # check if primary use is not empty
+            fieldinfo['primaryuse_list'] = [int(x) for x in fieldinfo['primaryuse_str'].split(',')]
+            del fieldinfo['dayweek_str']
+            del fieldinfo['primaryuse_str']
+        document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
+        '''
             document = {field_id_CONST:int(field_id),
                         field_name_CONST:fieldinfo['field_name'],
                         primaryuse_list_CONST:fieldinfo['primaryuse_str'].split(','),
@@ -47,6 +55,8 @@ class FieldDBInterface:
                         dayweek_list_CONST:dayweek_list,
                         numgamedays_CONST:numgamedays}
             self.dbInterface.updateFieldInfo(document, field_id)
+        '''
+        self.dbInterface.updateDivInfoDocument(document_list, config_status)
 
     def readDB(self):
         flist = self.dbInterface.getFieldInfo().dict_list

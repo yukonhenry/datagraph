@@ -135,8 +135,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
-				//this.colname_obj.set('colname',item);
-				options_obj.storeutil_obj = this.storeutil_obj;
+				//options_obj.storeutil_obj = this.storeutil_obj;
 				var query_obj = null;
 				if ('db_type' in options_obj) {
 					query_obj = {db_type:options_obj.db_type};
@@ -187,9 +186,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
-						info_obj:options_obj.info_obj,
+						info_obj:this,
 						uistackmgr:this.uistackmgr,
-						storeutil_obj:options_obj.storeutil_obj,
+						storeutil_obj:this.storeutil_obj,
 						db_type:this.db_type});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 				} else {

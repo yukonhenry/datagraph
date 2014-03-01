@@ -169,8 +169,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					dbname_reg:input_reg,
 					form_reg:form_reg,
 					entrynum_reg:fieldnum_reg,
-					server_path:"create_newfieldcol/",
-					server_key:constant.db_type,
+					server_path:"create_newdbcol/",
+					server_key:'info_data',
 					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
 					updatebtn_str:constant.updatebtn_str,
@@ -187,17 +187,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				options_obj.info_obj = this;
 				options_obj.idproperty = constant.idproperty_str;
-				options_obj.server_path = "create_newfieldcol/";
-				options_obj.server_key = constant.db_type;
+				options_obj.server_path = "create_newdbcol/";
+				options_obj.server_key = 'info_data';
 				options_obj.cellselect_flag = true;
 				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server
 				options_obj.serverdata_key = 'fieldinfo_list';
 				options_obj.grid_id = constant.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.getserver_path = 'get_fieldcol/';
+				options_obj.getserver_path = 'get_dbcol/';
+				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 				//this.server_interface.getServerData("get_fieldcol/"+item,
 				//lang.hitch(this, this.createEditGrid), null, options_obj);

@@ -38,7 +38,7 @@ match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
 round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
-divdoc_list_CONST = 'DIVDOC_LIST'
+doc_list_CONST = 'DOC_LIST'
 config_status_CONST = 'CONFIG_STATUS'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
@@ -73,10 +73,10 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateDivInfoDocument(self, divdoc_list, config_status):
+    def updateDivInfoDocument(self, doc_list, config_status):
         docID = self.games_col.update({sched_type_CONST:self.sched_type,
-                                      divdoc_list_CONST:{"$exists":True}},
-                                      {"$set": {divdoc_list_CONST:divdoc_list,
+                                      doc_list_CONST:{"$exists":True}},
+                                      {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status}},
                                       upsert=True, safe=True)
 

@@ -31,7 +31,8 @@ class TournDBInterface:
         divinfo_list = json.loads(divinfo_str)
         for divinfo in divinfo_list:
             # convert field_id_str field into list of int elements
-            divinfo['field_id_str'] = [int(x) for x in divinfo['field_id_str'].split(',')]
+            divinfo['field_id_list'] = [int(x) for x in divinfo['field_id_str'].split(',')]
+            del divinfo['field_id_str']  # remove old element
         # convert keys to uppercase
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
         self.dbInterface.updateDivInfoDocument(document_list, config_status)

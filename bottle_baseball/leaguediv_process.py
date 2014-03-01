@@ -20,6 +20,7 @@ from singletonlite import mongoClient
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
+from sched_exceptions import CodeLogicError
 
 dbInterface = MongoDBInterface(mongoClient)
 
@@ -211,26 +212,32 @@ def schedulemetrics(div_id):
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
     info_data = request.query.info_data
-    config_status = request.query.config_status
+    # variables intended to be scalar ints should be converted from
+    # ints that come across as strings over the wire back to int
+    config_status = int(request.query.config_status)
     db_type = request.query.db_type
     if db_type == 'rrdb':
         dbInterface = RRDBInterface(mongoClient, newcol_name)
     elif db_type == 'tourndb':
         dbInterface = TournDBInterface(mongoClient, newcol_name)
+    elif db_type == 'fielddb':
+        dbInterface = FieldDBInterface(mongoClient, newcol_name)
+    else:
+        raise CodeLogicError("leaguedivprocess:create_newdbcol: db_type not recognized db_type=%s" % (db_type,))
     dbInterface.writeDB(info_data, config_status)
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
 '''
-@route('/create_newtourndbcol/<newcol_name>')
-def create_newtourndbcol(newcol_name):
+@route('/create_newfieldcol/<newcol_name>')
+def create_newfieldcol(newcol_name):
     callback_name = request.query.callback
-    divinfo_data = request.query.divinfo_data
-    config_status = request.query.config_status
-    tdbInterface = TournDBInterface(mongoClient, newcol_name)
-    tdbInterface.writeDB(divinfo_data, config_status)
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
-    a = json.dumps({'test':'tournasdf'})
+    fieldinfo_data = request.query.fielddb
+    fdbInterface = FieldDBInterface(mongoClient, newcol_name)
+    print "fileinfodata=",fieldinfo_data
+    fdbInterface.writeDB(fieldinfo_data)
+    #schedcol_list = fdbInterface.dbInterface.getScheduleCollection()
+    a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'
 '''
 
@@ -260,25 +267,14 @@ def get_dbcol(getcol_name):
         dbInterface = RRDBInterface(mongoClient, getcol_name)
     elif db_type == 'tourndb':
         dbInterface = TournDBInterface(mongoClient, getcol_name)
+    else:
+        raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
     dbtuple = dbInterface.readDB();
     divinfo_list = dbtuple.list
     config_status = dbtuple.config_status
     print 'divinfo_list', divinfo_list
     a = json.dumps({'divinfo_list':divinfo_list, 'config_status':config_status})
     return callback_name+'('+a+')'
-
-'''
-@route('/get_tourndbcol/<getcol_name>')
-def get_tourndbcol(getcol_name):
-    callback_name = request.query.callback
-    tdbInterface = TournDBInterface(mongoClient, getcol_name)
-    ttuple = tdbInterface.readDB();
-    divinfo_list = ttuple.list
-    status = ttuple.config_status
-    print 'rrdivinfo_list', divinfo_list
-    a = json.dumps({'divinfo_list':divinfo_list, 'status':status})
-    return callback_name+'('+a+')'
-'''
 
 @route('/get_scheddbcol/<getcol_name>')
 def get_scheddbcol(getcol_name):
@@ -290,17 +286,6 @@ def get_scheddbcol(getcol_name):
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
     game_list = tdbInterface.readSchedDB(div.age, div.gender)
     a = json.dumps({'game_list':game_list})
-    return callback_name+'('+a+')'
-
-@route('/create_newfieldcol/<newcol_name>')
-def create_newfieldcol(newcol_name):
-    callback_name = request.query.callback
-    fieldinfo_data = request.query.fielddb
-    fdbInterface = FieldDBInterface(mongoClient, newcol_name)
-    print "fileinfodata=",fieldinfo_data
-    fdbInterface.writeDB(fieldinfo_data)
-    #schedcol_list = fdbInterface.dbInterface.getScheduleCollection()
-    a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'
 
 @route('/get_fieldcol/<getcol_name>')
