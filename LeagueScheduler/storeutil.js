@@ -25,16 +25,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			server_interface:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.dbselect_store = new Observable(new Memory({data:new Array()}));
+				// idProperty not assigned as we are using an 'id' field
+				this.dbselect_store = new Observable(new Memory({data:new Array(),
+					idProperty:'name'}));
 			},
 			createdb_store: function(db_list, db_type) {
-				// follow observable store model followed by
-				// https://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
-				// http://dojotoolkit.org/reference-guide/1.9/dojo/store/Observable.html#dojo-store-observable
-				// note we can't tie the store directly to select since we are
-				// using dropdown->menuitem instead of select
+				/* create store for db name labels which are used for select dropdowns
+				follow observable store model followed by
+				https://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
+				http://dojotoolkit.org/reference-guide/1.9/dojo/store/Observable.html#dojo-store-observable
+				Note we can't tie the store directly to select since we are
+				using dropdown->menuitem instead of select
+				Assume db_list is a list of objects {name:, config_status:}
+				that is returned from server */
 				arrayUtil.forEach(db_list, function(item, index) {
-					this.dbselect_store.add({id:item+'_'+db_type, label:item, db_type:db_type});
+					this.dbselect_store.add({name:item.name+'_'+db_type, label:item.name, db_type:db_type, config_status:item.config_status});
 				}, this);
 				// ref http://dojotoolkit.org/reference-guide/1.9/dojo/store/Observable.html
 				// http://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
@@ -65,17 +70,24 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				return this.dbselect_store.query({label:colname,
 					db_type:db_type}).total == 0;
 			},
-			addtodb_store: function(colname, id) {
+			addtodb_store: function(colname, id, status_flag) {
 				var match_obj = this.getmatch_obj(constant.submenu_list, 'id', id);
 				var db_type = match_obj.db_type;
-				var query_obj = {id:colname+'_'+db_type, label:colname, db_type:db_type};
-				if (this.dbselect_store.query(query_obj).total == 0)
-					this.dbselect_store.add({id:colname+'_'+db_type, label:colname, db_type:db_type})
-				else
-					console.log("addtodb_store: colname="+colname+ "dbtype="+db_type+" already in dbname store");
+				var query_obj = {name:colname+'_'+db_type, label:colname, db_type:db_type};
+				result_list = this.dbselect_store.query(query_obj);
+				if (result_list.total == 0) {
+					query_obj.config_status = status_flag; // add status field
+					this.dbselect_store.add(query_obj);
+				} else {
+					var match_obj = result_list[0];
+					match_obj.config_status = status_flag;
+					this.dbselect_store.put(match_obj);
+				}
 			},
-			getfromdb_store_value:function(db_type, key) {
-				var dbtype_result = this.dbselect_store.query({db_type:db_type})
+			getfromdb_store_value:function(db_type, key, config_status) {
+				var query_obj = (typeof config_status === "undefined") ?
+					{db_type:db_type}:{db_type:db_type,config_status:config_status}
+				var dbtype_result = this.dbselect_store.query(query_obj)
 					.map(function(item){
 						return item[key];
 					});
@@ -85,13 +97,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// confirm format of id field
 				this.dbselect_store.remove(item+'_'+db_type);
 			},
-			create_menu: function(db_list, id, info_obj, delflag) {
+			create_menu: function(id, info_obj, delflag) {
 				// get submenu names based on db_type
 				var match_obj = this.getmatch_obj(constant.submenu_list,
 					'id', id);
 				var submenu_name = match_obj.name;
 				var db_type = match_obj.db_type;
 				// create respective db menu
+				var db_list = this.getfromdb_store_value(db_type, 'label');
 				this.schedutil_obj.generateDB_smenu(db_list,
 					submenu_name, this.uistackmgr,
 					this.uistackmgr.check_getServerDBInfo,

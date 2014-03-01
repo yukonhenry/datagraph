@@ -296,6 +296,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						} else {
 							this.sl_spinner = registry.byNode(sl_spinner_node);
 						}
+						// create button to save season start/end/length
 						var sdbtn_node = dom.byId("sdbtn_id");
 						if (!sdbtn_node) {
 							sdbtn_node = put(scinput_dom,
@@ -308,6 +309,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							}, sdbtn_node);
 							put(scinput_dom, "br, br");
 						}
+						// create league info dropdowns
 						var select_div = dom.byId("league_select_id");
 						if (!select_div) {
 							// get parent dom and generate dropdown selects
@@ -347,6 +349,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						} else {
 							this.league_select = registry.byNode(select_div);
 						}
+						// create field group dropdown
 						var fg_select_div = dom.byId("fg_select_id");
 						if (!fg_select_div) {
 							put(scinput_dom,
@@ -454,8 +457,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				return false;
 			},
 			generateLabelDropDown: function(db_type, label_str) {
+				// get list of db's from store that have been completed
 				var label_list = this.storeutil_obj.getfromdb_store_value(db_type,
-					'label');
+					'label', true);
 				var option_array = [{label:label_str, value:"",
 					selected:true}];
 				arrayUtil.forEach(label_list, function(item, index) {

@@ -19,8 +19,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
 		script, arrayUtil, request, schedulerUtil, schedulerConfig, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, tourndivinfo) {
-		var constant = {SERVER_PREFIX:"http://localhost:8080/",
-			tourndb:'tourndb'};
+		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
 		var earliest_count_CONST = 'EARLIEST_COUNT';
@@ -87,13 +86,13 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var rrdbcollection_list = ldata.rrdbcollection_list;
 			// fill initial store and create dropdown menu
 			storeutil_obj.createdb_store(rrdbcollection_list, 'rrdb');
-			storeutil_obj.create_menu(rrdbcollection_list, 'div_id', divinfo_obj, true);
+			storeutil_obj.create_menu('div_id', divinfo_obj, true);
 			var tourndbcollection_list = ldata.tourndbcollection_list;
 			storeutil_obj.createdb_store(tourndbcollection_list, 'tourndb');
-			storeutil_obj.create_menu(tourndbcollection_list, 'tourndiv_id', tourndivinfo_obj, true);
+			storeutil_obj.create_menu('tourndiv_id', tourndivinfo_obj, true);
 			// note we need to add delete to the schedule here by passing 'true'
 			var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)
-			storeutil_obj.create_menu(dbcollection_list, 'sched_id', schedinfo_obj, false);
+			storeutil_obj.create_menu('sched_id', schedinfo_obj, false);
 			// generate dropdown for 'generate cup schedule'
 			var cupdbcollection_list = ldata.tourndbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
@@ -107,7 +106,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
 			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
-			storeutil_obj.create_menu(fielddb_list, 'field_id', fieldinfo_obj, true);
+			storeutil_obj.create_menu('field_id', fieldinfo_obj, true);
 			console.log("load basic info complete");
 		}
 		//});
@@ -229,7 +228,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 	        script.get(constant.SERVER_PREFIX+"exportschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
-	        	//console.log("getalldiv schedule status"+adata.status);
 			});
 		}
 		var getDivisionTeamData = function(evt) {

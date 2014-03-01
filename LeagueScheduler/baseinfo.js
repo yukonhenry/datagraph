@@ -136,8 +136,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var item = options_obj.item;
 				//this.colname_obj.set('colname',item);
 				options_obj.storeutil_obj = this.storeutil_obj;
+				var query_obj = null;
+				if ('db_type' in options_obj) {
+					query_obj = {db_type:options_obj.db_type};
+				}
 				this.server_interface.getServerData(options_obj.getserver_path+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
+					lang.hitch(this, this.createEditGrid), query_obj, options_obj);
 			},
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
@@ -301,9 +305,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				return gridstatus_node;
 			},
-			update_configdone: function(configdone_flag) {
+			update_configdone: function(status_flag) {
 				var gridstatus_node = dom.byId('gridstatus_span');
-				if (configdone_flag) {
+				if (status_flag) {
 					gridstatus_node.style.color = 'green';
 					gridstatus_node.innerHTML = "Config Complete";
 				} else {

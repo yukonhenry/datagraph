@@ -38,9 +38,11 @@ match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
 round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
-division_list_CONST = 'DIVISION_LIST'
+divdoc_list_CONST = 'DIVDOC_LIST'
+config_status_CONST = 'CONFIG_STATUS'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
+_List_Status = namedtuple('_List_Status', 'list config_status')
 
 # http://pythonhosted.org/flufl.enum/docs/using.html
 class DB_Col_Type(Enum):
@@ -71,11 +73,11 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateDivInfoDocument(self, division_list, configdone_flag):
+    def updateDivInfoDocument(self, divdoc_list, status):
         docID = self.games_col.update({sched_type_CONST:self.sched_type,
-                                      division_list_CONST:{"$exists":True}},
-                                      {"$set": {division_list_CONST:division_list,
-                                      'CONFIG_FLAG':configdone_flag}},
+                                      divdoc_list_CONST:{"$exists":True}},
+                                      {"$set": {divdoc_list_CONST:divdoc_list,
+                                      config_status_CONST:status}},
                                       upsert=True, safe=True)
 
     def updateFieldInfo(self, document, field_id):
@@ -324,15 +326,17 @@ class MongoDBInterface:
     def getSchedStatus(self):
         return self.games_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
 
-    def getScheduleCollections(self, db_col_type_list = []):
+    def getScheduleCollection(self, db_col_type):
         # ref http://api.mongodb.org/python/current/api/pymongo/database.html
         # make sure python version >= 2.7 for include_system_collections
-        sc_list = self.schedule_db.collection_names(include_system_collections=False)
+        # note that only instance of the dbname is present in the returned list if
+        # db_col_type_list includes multiple entries and the same db name exists
+        # corresponding to the multiple db_col_types (see use of 'any' below)
+        rawsc_list = self.schedule_db.collection_names(include_system_collections=False)
         # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
-        schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1 and any(self.schedule_db[x].find_one({sched_type_CONST:str(y)}) for y in db_col_type_list)]
-
-        #schedcollect_list = [x for x in sc_list if self.schedule_db[x].count() > 1]
-        return schedcollect_list
+        sc_list = [x for x in rawsc_list if self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), config_status_CONST:{"$exists":True}})]
+        sc_config_list = [{'name':x, 'config_status':self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), config_status_CONST:{"$exists":True}})[config_status_CONST]} for x in sc_list]
+        return sc_config_list
 
     def getCupScheduleCollections(self):
         sc_list = self.schedule_db.collection_names(include_system_collections=False)
@@ -341,21 +345,15 @@ class MongoDBInterface:
                              if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:str(DB_Col_Type.ElimTourn)}) ]
         return schedcollect_list
 
-    def getTournamentDivInfo(self):
-        result_list = self.games_col.find({div_id_CONST:{"$exists":True}},{'_id':0})
-        divinfo_list = []
-        for div_dict in result_list:
-            divinfo_list.append(div_dict)
-        d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
-        return _List_Indexer(divinfo_list, d_indexerGet)
-
     def getDivInfoDocument(self):
         result = self.games_col.find_one({sched_type_CONST:self.sched_type,
-                                              division_list_CONST:{"$exists":True}},
-                                              {'_id':0})
-        divinfo_list = result[division_list_CONST]
-        d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
-        return _List_Indexer(divinfo_list, d_indexerGet)
+                                         divdoc_list_CONST:{"$exists":True}},
+                                         {'_id':0})
+        divinfo_list = result[divdoc_list_CONST]
+        config_status = result[config_status_CONST]
+        #d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
+        #return _List_Indexer(divinfo_list, d_indexerGet)
+        return _List_Status(divinfo_list, config_status)
 
     def getFieldInfo(self):
         result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)

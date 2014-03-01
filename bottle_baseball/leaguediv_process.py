@@ -44,10 +44,10 @@ def leaguedivinfo_all():
     ldata_tuple = getLeagueDivInfo()
     field_tuple = getFieldInfo()
     dbstatus = dbInterface.getSchedStatus()
-    rrdbcol_list = dbInterface.getScheduleCollections([DB_Col_Type.RoundRobin])
-    tourndbcol_list = dbInterface.getScheduleCollections([DB_Col_Type.ElimTourn])
+    rrdbcol_list = dbInterface.getScheduleCollection(DB_Col_Type.RoundRobin)
+    tourndbcol_list = dbInterface.getScheduleCollection(DB_Col_Type.ElimTourn)
     #cupschedcol_list = dbInterface.getCupScheduleCollections()
-    fielddb_list = dbInterface.getScheduleCollections([DB_Col_Type.FieldInfo])
+    fielddb_list = dbInterface.getScheduleCollection(DB_Col_Type.FieldInfo)
     logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
@@ -211,10 +211,10 @@ def schedulemetrics(div_id):
 def create_newdbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
-    configdone_flag = request.query.configdone_flag
+    config_status = request.query.config_status
     rdbInterface = RRDBInterface(mongoClient, newcol_name)
-    rdbInterface.writeDB(divinfo_data, configdone_flag)
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    rdbInterface.writeDB(divinfo_data, config_status)
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
@@ -222,10 +222,10 @@ def create_newdbcol(newcol_name):
 def create_newtourndbcol(newcol_name):
     callback_name = request.query.callback
     divinfo_data = request.query.divinfo_data
-    configdone_flag = request.query.configdone_flag
+    config_status = request.query.config_status
     tdbInterface = TournDBInterface(mongoClient, newcol_name)
-    tdbInterface.writeDB(divinfo_data, configdone_flag)
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    tdbInterface.writeDB(divinfo_data, config_status)
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     a = json.dumps({'test':'tournasdf'})
     return callback_name+'('+a+')'
 
@@ -234,7 +234,7 @@ def delete_dbcol(delcol_name):
     callback_name = request.query.callback
     rdbInterface = RRDBInterface(mongoClient, delcol_name)
     rdbInterface.dbInterface.dropDB_col()
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
@@ -250,20 +250,30 @@ def delete_tourndbcol(delcol_name):
 @route('/get_dbcol/<getcol_name>')
 def get_dbcol(getcol_name):
     callback_name = request.query.callback
-    rdbInterface = RRDBInterface(mongoClient, getcol_name)
-    divinfo_list = rdbInterface.readDB().dict_list
+    db_type = request.query.db_type
+    if db_type == 'rrdb':
+        dbInterface = RRDBInterface(mongoClient, getcol_name)
+    elif db_type == 'tourndb':
+        dbInterface = TournDBInterface(mongoClient, getcol_name)
+    dbtuple = dbInterface.readDB();
+    divinfo_list = dbtuple.list
+    config_status = dbtuple.config_status
     print 'divinfo_list', divinfo_list
-    a = json.dumps({'divinfo_list':divinfo_list})
+    a = json.dumps({'divinfo_list':divinfo_list, 'config_status':config_status})
     return callback_name+'('+a+')'
 
+'''
 @route('/get_tourndbcol/<getcol_name>')
 def get_tourndbcol(getcol_name):
     callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, getcol_name)
-    divinfo_list = tdbInterface.readDB().dict_list
+    ttuple = tdbInterface.readDB();
+    divinfo_list = ttuple.list
+    status = ttuple.config_status
     print 'rrdivinfo_list', divinfo_list
-    a = json.dumps({'divinfo_list':divinfo_list})
+    a = json.dumps({'divinfo_list':divinfo_list, 'status':status})
     return callback_name+'('+a+')'
+'''
 
 @route('/get_scheddbcol/<getcol_name>')
 def get_scheddbcol(getcol_name):
@@ -284,7 +294,7 @@ def create_newfieldcol(newcol_name):
     fdbInterface = FieldDBInterface(mongoClient, newcol_name)
     print "fileinfodata=",fieldinfo_data
     fdbInterface.writeDB(fieldinfo_data)
-    #schedcol_list = fdbInterface.dbInterface.getScheduleCollections()
+    #schedcol_list = fdbInterface.dbInterface.getScheduleCollection()
     a = json.dumps({'test':'asdf'})
     return callback_name+'('+a+')'
 
@@ -301,7 +311,7 @@ def delete_fieldcol(delcol_name):
     callback_name = request.query.callback
     fdbInterface = FieldDBInterface(mongoClient, delcol_name)
     fdbInterface.dbInterface.dropDB_col()
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollections()
+    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'

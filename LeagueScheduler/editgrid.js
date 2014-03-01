@@ -188,7 +188,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// note construct of using arrayUtil.some works better than
 				// query.filter() as loop will exit immediately if .some() returns
 				// true.
-				var configdone_flag = false;
+				var status_flag = false;
 				if (arrayUtil.some(raw_result, function(item, index) {
 					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
 					// iterate through object's own properties too see if there
@@ -207,9 +207,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete, but saving");
 				} else {
-					configdone_flag = true;
+					status_flag = true;
 				}
-				this.info_obj.update_configdone(configdone_flag);
+				this.info_obj.update_configdone(status_flag);
 				var storedata_json = null;
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();
@@ -235,11 +235,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var server_key = this.server_key || "";
 				var server_key_obj = {};
 				server_key_obj[server_key] = storedata_json;
-				server_key_obj.configdone_flag = configdone_flag;
+				server_key_obj.config_status = status_flag;
 				var options_obj = {item:this.colname};
 				this.server_interface.getServerData(server_path+this.colname,
 					this.server_interface.server_ack, server_key_obj, options_obj);
-				this.storeutil_obj.addtodb_store(this.colname, this.idproperty);
+				// add to select db store (for dropdowns)
+				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, status_flag);
 			},
 			replace_store: function(colname, griddata_list) {
 				this.colname = colname;

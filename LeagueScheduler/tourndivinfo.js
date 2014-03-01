@@ -77,7 +77,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				options_obj.text_node_str = "Division List Name";
 				options_obj.grid_id = constant.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.getserver_path = 'get_tourndbcol/'
+				options_obj.getserver_path = 'get_dbcol/';
+				options_obj.db_type = 'tourndb';
 				this.inherited(arguments);
 			},
 			getInitialList: function(divnum) {
