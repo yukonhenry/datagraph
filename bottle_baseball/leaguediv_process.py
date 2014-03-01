@@ -267,13 +267,15 @@ def get_dbcol(getcol_name):
         dbInterface = RRDBInterface(mongoClient, getcol_name)
     elif db_type == 'tourndb':
         dbInterface = TournDBInterface(mongoClient, getcol_name)
+    elif db_type == 'fielddb':
+        dbInterface = FieldDBInterface(mongoClient, getcol_name)
     else:
         raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
     dbtuple = dbInterface.readDB();
-    divinfo_list = dbtuple.list
+    info_list = dbtuple.list
     config_status = dbtuple.config_status
-    print 'divinfo_list', divinfo_list
-    a = json.dumps({'divinfo_list':divinfo_list, 'config_status':config_status})
+    print 'info_list', info_list
+    a = json.dumps({'info_list':info_list, 'config_status':config_status})
     return callback_name+'('+a+')'
 
 @route('/get_scheddbcol/<getcol_name>')

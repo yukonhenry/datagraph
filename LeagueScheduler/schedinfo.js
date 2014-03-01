@@ -6,7 +6,7 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 	function(dom, declare, lang, arrayUtil, registry, editor,
 		baseinfo, baseinfoSingleton){
 		return declare(baseinfo, {
-			divinfo_list:null,
+			info_list:null,
 			select_reg:null, select_reg_handle:null,
 			idproperty:"sched_id", colname:"",
 			constructor: function(args) {
@@ -31,10 +31,10 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					this.select_reg_handle.remove();
 				// we don't necessariy need to call get_dbcol again if select_reg already exists (we don't need to recreate the drop down)
 				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
-					this.divinfo_list = data.divinfo_list;
+					this.info_list = data.info_list;
 					if (!this.select_reg) {
 						this.select_reg = registry.byId("schedDBDivisionSelect");
-						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.divinfo_list);
+						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.info_list);
 					}
 					this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
 						p_stage:"preconfig", entry_pt:"fromdb"});

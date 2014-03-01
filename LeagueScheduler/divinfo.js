@@ -71,7 +71,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				options_obj.serverdata_key = 'divinfo_list';
+				options_obj.serverdata_key = 'info_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'info_data';
 				options_obj.server_path = "create_newdbcol/";
@@ -84,15 +84,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				this.inherited(arguments);
 			},
 			getInitialList: function(divnum) {
-				var divInfo_list = new Array();
+				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
-					divInfo_list.push({div_id:i, div_age:"", div_gen:"",
+					info_list.push({div_id:i, div_age:"", div_gen:"",
 					                  totalteams:1, numweeks:this.base_numweeks,
 					                  numgdaysperweek:1,
 					                  totalgamedays:this.base_numweeks,
 					                  gameinterval:1});
 				}
-				return divInfo_list;
+				return info_list;
 			},
 			update_numweeks: function(numweeks) {
 				this.infogrid_store.query({})

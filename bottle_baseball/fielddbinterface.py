@@ -40,7 +40,7 @@ class FieldDBInterface:
             fieldinfo['numgamedays'] = numgamedays
             fieldinfo['dayweek_list'] = dayweek_list
             # check if primary use is not empty
-            fieldinfo['primaryuse_list'] = [int(x) for x in fieldinfo['primaryuse_str'].split(',')]
+            fieldinfo['primaryuse_list'] = fieldinfo['primaryuse_str'].split(',')
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]

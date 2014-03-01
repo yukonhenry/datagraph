@@ -193,7 +193,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.cellselect_flag = true;
 				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server
-				options_obj.serverdata_key = 'fieldinfo_list';
+				options_obj.serverdata_key = 'info_list';
 				options_obj.grid_id = constant.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/';
@@ -206,17 +206,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				// return value defines structure for store for grid
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
 				var later_date = date.add(this.today, 'month', 3);
-				var fieldinfo_list = new Array();
+				var info_list = new Array();
 				// assign default values for grid
 				for (var i = 1; i < fieldnum+1; i++) {
-					fieldinfo_list.push({field_id:i, field_name:"",
+					info_list.push({field_id:i, field_name:"",
 						primaryuse_str:"",
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
 						dayweek_str:"", dates:"", numgamedays:0});
 				}
-				return fieldinfo_list;
+				return info_list;
 			},
 			// main entry point for creating dojox calendar inst
 			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html

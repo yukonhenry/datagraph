@@ -46,11 +46,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_
 				this.schedutil_obj.makeVisible(this.schedDBSelectDiv_dom);
 				// we don't necessariy need to call get_dbcol again if select_reg already exists (we don't need to recreate the drop down)
 				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
-					this.divinfo_list = data.divinfo_list;
+					this.info_list = data.info_list;
 					if (!this.select_reg) {
 						this.select_reg = registry.byId("schedDBDivisionSelect");
 						baseinfoSingleton.set_select_reg(this.select_reg);
-						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.divinfo_list);
+						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.info_list);
 					}
 					options_obj.serverdata_key = 'game_list';
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {

@@ -347,9 +347,9 @@ class MongoDBInterface:
 
     def getDivInfoDocument(self):
         result = self.games_col.find_one({sched_type_CONST:self.sched_type,
-                                         divdoc_list_CONST:{"$exists":True}},
+                                         doc_list_CONST:{"$exists":True}},
                                          {'_id':0})
-        divinfo_list = result[divdoc_list_CONST]
+        divinfo_list = result[doc_list_CONST]
         config_status = result[config_status_CONST]
         #d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         #return _List_Indexer(divinfo_list, d_indexerGet)

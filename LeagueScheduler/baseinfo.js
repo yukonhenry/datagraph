@@ -82,12 +82,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						//divnum is the total # of divisions or other entity like fields
 						var divnum = entrynum_reg.get("value");
 						this.rownum = divnum;
-						var divinfo_list = this.getInitialList(divnum);
+						var info_list = this.getInitialList(divnum);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
-							this.editgrid = new EditGrid({griddata_list:divinfo_list,
+							this.editgrid = new EditGrid({griddata_list:info_list,
 								colname:colname,
 								server_interface:this.server_interface,
 								grid_id:grid_id,
@@ -110,7 +110,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								newgrid_flag:true
 							}
 						} else {
-							this.editgrid.replace_store(colname, divinfo_list);
+							this.editgrid.replace_store(colname, info_list);
 							var args_obj = {
 								colname:colname,
 								text_node_str:text_node_str,
