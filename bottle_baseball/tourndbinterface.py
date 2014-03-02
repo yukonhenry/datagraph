@@ -38,12 +38,12 @@ class TournDBInterface:
         self.dbInterface.updateDivInfoDocument(document_list, config_status)
 
     def readDB(self):
-        liststatus_tuple = self.dbInterface.getDivInfoDocument()
+        liststatus_tuple = self.dbInterface.getInfoDocument()
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         # update field_id list val as string of comma-separated field_id's
         for div in divlist:
-            div[field_id_CONST] = ','.join(str(f)
+            div[field_id_list_CONST] = ','.join(str(f)
                                            for f in divinfo[field_id_list_CONST])
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
         return _List_Status(divinfo_list, config_status)

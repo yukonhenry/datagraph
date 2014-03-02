@@ -5,10 +5,9 @@ http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class con
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
 define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang", "dojo/dom-class",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem", "dijit/form/Button",
-	"LeagueScheduler/editgrid","LeagueScheduler/divinfo", "LeagueScheduler/baseinfoSingleton", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
+	"LeagueScheduler/editgrid","LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
 	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil,
-		registry, MenuItem, Button, EditGrid, DivInfo, baseinfoSingleton,
-		FieldInfo){
+		registry, MenuItem, Button, EditGrid, DivInfo, FieldInfo){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};

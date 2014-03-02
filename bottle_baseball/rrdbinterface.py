@@ -32,7 +32,7 @@ class RRDBInterface:
         self.dbInterface.updateDivInfoDocument(document_list, config_status)
 
     def readDB(self):
-        liststatus_tuple = self.dbInterface.getDivInfoDocument()
+        liststatus_tuple = self.dbInterface.getInfoDocument()
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python

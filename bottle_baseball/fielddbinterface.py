@@ -59,6 +59,17 @@ class FieldDBInterface:
         self.dbInterface.updateDivInfoDocument(document_list, config_status)
 
     def readDB(self):
+        liststatus_tuple = self.dbInterface.getInfoDocument()
+        field_list = liststatus_tuple.list
+        config_status = liststatus_tuple.config_status
+        for field in field_list:
+            field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
+            del field[primaryuse_list_CONST]
+            field['dayweek_str'] = ','.join(str(f) for f in field[dayweek_list_CONST])
+            del field[dayweek_list_CONST]
+        fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
+        return _List_Status(fieldinfo_list, config_status)
+        '''
         flist = self.dbInterface.getFieldInfo().dict_list
         fieldinfo_list = []
         for fieldinfo in flist:
@@ -73,6 +84,7 @@ class FieldDBInterface:
                                  'numgamedays':fieldinfo[numgamedays_CONST]})
         f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
         return _List_Indexer(fieldinfo_list, f_indexerGet)
+    '''
 
     def updateFieldTimes(self, fieldtime_str):
         fieldtime_dict = json.loads(fieldtime_str)

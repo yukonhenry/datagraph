@@ -199,8 +199,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				options_obj.getserver_path = 'get_dbcol/';
 				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
-				//this.server_interface.getServerData("get_fieldcol/"+item,
-				//lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(fieldnum) {
 				// return value defines structure for store for grid
@@ -426,7 +424,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					var TDialog = null;
 					var tdialogprop_obj = null;
 					var field_id = object.field_id;
-					var divstr_list = baseinfoSingleton.watch_obj.get('divstr_list');
+					// first see if there is data read in from the store
+					var divstr_list = [];
+					if (data) {
+						divstr_list = data.split(',');
+					} else {
+						// if no data is passed in, then see if there is a divstr
+						// that we can grab from baseinfoSingleton
+						divstr_list = baseinfoSingleton.watch_obj.get('divstr_list');
+					}
 					if (divstr_list && divstr_list.length > 0) {
 						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
@@ -513,6 +519,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
 	    		return {tdialog:TDialog, tdialogprop_obj:tdialogprop_obj};
 			},
+			// below function called after divstr_list changed externally
 			set_primaryuse_dialog_dropdown: function(divstr_list) {
 				for (var field_id = 1; field_id < this.rownum+1; field_id++) {
 					var primaryuse_obj = this.create_primaryuse_dialog(divstr_list, field_id);

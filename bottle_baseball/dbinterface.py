@@ -345,15 +345,15 @@ class MongoDBInterface:
                              if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:str(DB_Col_Type.ElimTourn)}) ]
         return schedcollect_list
 
-    def getDivInfoDocument(self):
+    def getInfoDocument(self):
         result = self.games_col.find_one({sched_type_CONST:self.sched_type,
                                          doc_list_CONST:{"$exists":True}},
                                          {'_id':0})
-        divinfo_list = result[doc_list_CONST]
+        info_list = result[doc_list_CONST]
         config_status = result[config_status_CONST]
         #d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
         #return _List_Indexer(divinfo_list, d_indexerGet)
-        return _List_Status(divinfo_list, config_status)
+        return _List_Status(info_list, config_status)
 
     def getFieldInfo(self):
         result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)

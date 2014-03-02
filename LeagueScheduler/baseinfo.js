@@ -9,7 +9,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
-			fielddb_type:"fielddb",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
@@ -136,6 +135,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// at the server)
 				var item = options_obj.item;
 				//options_obj.storeutil_obj = this.storeutil_obj;
+				// define key for object returned from server to get
+				// status of configuration - config_status
+				options_obj.serverstatus_key = 'config_status'
 				var query_obj = null;
 				if ('db_type' in options_obj) {
 					query_obj = {db_type:options_obj.db_type};
@@ -149,14 +151,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var idproperty = options_obj.idproperty;
-				var server_key = options_obj.server_key;
 				// if server data is fielddb information, then we need to do
 				// some data conversion (convert to date obj) before passing onto grid
 				// Note server_key is key for outgoing request
 				// serverdata_key is for incoming data
 				var data_list = server_data[options_obj.serverdata_key];
+				// extract configuration status from server. integer value 0/1
+				var config_status = server_data[options_obj.serverstatus_key];
 				this.rownum = data_list.length;
-				if (server_key == constant.fielddb_type) {
+				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
 						arrayUtil.forEach(data_list, function(item, index) {
 							// save date str to pass into start and end time calc
@@ -204,6 +207,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				args_obj.entry_pt = constant.fromdb;
 				this.reconfig_infobtn(args_obj);
+				// add config status text next to update btn
+				this.update_configdone(config_status);
 			},
 			// function to reassign infobtn_update with title string and callback
 			// function.  Also update pstack/gstack_cpane.
@@ -224,6 +229,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
+				this.update_configdone(-1); // reset
 				// https://github.com/kriszyp/put-selector
 				// button is enclosed in a div
 				// outer div has class that has the float:right property
@@ -262,6 +268,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var btn_callback = args_obj.btn_callback;
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
+				this.update_configdone(-1); // reset
 				// https://github.com/kriszyp/put-selector
 				// button is enclosed in a div
 				// outer div has class that has the float:right property
@@ -308,12 +315,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			},
 			update_configdone: function(config_status) {
 				var gridstatus_node = dom.byId('gridstatus_span');
-				if (config_status) {
+				if (config_status == 1) {
 					gridstatus_node.style.color = 'green';
 					gridstatus_node.innerHTML = "Config Complete";
-				} else {
+				} else if (config_status == 0) {
 					gridstatus_node.style.color = 'orange';
 					gridstatus_node.innerHTML = "Config Not Complete";
+				} else {
+					// implement reset condition
+					gridstatus_node.innerHTML = "";
 				}
 			},
 			is_serverdata_required: function(options_obj) {
