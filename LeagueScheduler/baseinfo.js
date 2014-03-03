@@ -171,6 +171,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							item.start_time = new Date(start_str+' '+item.start_time);
 							item.end_time = new Date(end_str+' '+item.end_time);
 						})
+						// For field grids, create radio button pair to select
+						// schedule type - rr or tourn
+						/*
+						var fieldgrid_node = dom.byId(options_obj.grid_id);
+						var radioinput1_node = dom.byId('radioinput1_id');
+						if (!radioinput1_node) {
+							put(fieldgrid_node, "-input#radioinput1_id[type=radio]")
+						} */
 					} else {
 						alert('check db_type and idproperty consistency');
 					}
