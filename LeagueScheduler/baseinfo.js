@@ -3,10 +3,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"dijit/form/RadioButton",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
+	"LeagueScheduler/widgetgen",
 	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
-		registry, Tooltip, Button, RadioButton, EditGrid, baseinfoSingleton, put) {
+		registry, Tooltip, Button, RadioButton, EditGrid, baseinfoSingleton,
+		WidgetGen, put) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
@@ -176,6 +178,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// schedule type - rr or tourn
 						var fieldinfogrid_node = dom.byId('fieldinfogrid_id');
 						var topdiv_node = put(fieldinfogrid_node, "-div");
+						var widgetgen = new WidgetGen();
+						widgetgen.create_dbtype_radiobtn(topdiv_node,
+							'div1_radio_id','div2_radio_id');
+						/*
 						put(topdiv_node, "span", "Select Schedule Type:")
 						var div1_radio_node = dom.byId('div1_radio_id');
 						if (!div1_radio_node) {
@@ -208,7 +214,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						} else {
 							div2_radio = registry.byNode(div2_radio_node);
 						}
-						put(topdiv_node, "br, br");
+						put(topdiv_node, "br, br"); */
 					} else {
 						alert('check db_type and idproperty consistency');
 					}
