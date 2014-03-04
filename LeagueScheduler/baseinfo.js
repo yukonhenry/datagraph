@@ -1,11 +1,12 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dojo/keys", "dojo/Stateful",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
+	"dijit/form/RadioButton",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
-		registry, Tooltip, Button, EditGrid, baseinfoSingleton, put) {
+		registry, Tooltip, Button, RadioButton, EditGrid, baseinfoSingleton, put) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
@@ -171,14 +172,43 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							item.start_time = new Date(start_str+' '+item.start_time);
 							item.end_time = new Date(end_str+' '+item.end_time);
 						})
-						// For field grids, create radio button pair to select
+						//For field grids, create radio button pair to select
 						// schedule type - rr or tourn
-						/*
-						var fieldgrid_node = dom.byId(options_obj.grid_id);
-						var radioinput1_node = dom.byId('radioinput1_id');
-						if (!radioinput1_node) {
-							put(fieldgrid_node, "-input#radioinput1_id[type=radio]")
-						} */
+						var fieldinfogrid_node = dom.byId('fieldinfogrid_id');
+						var topdiv_node = put(fieldinfogrid_node, "-div");
+						put(topdiv_node, "span", "Select Schedule Type:")
+						var div1_radio_node = dom.byId('div1_radio_id');
+						if (!div1_radio_node) {
+							div1_radio_node = put(topdiv_node,
+								"div#div1_radio_id");
+							put(topdiv_node,
+								"label.label_box[for=div1_radio_id]",
+								"Round Robin");
+							var div1_radio = new RadioButton({
+								name:'db_type',
+								value:'rrdb',
+								checked:true,
+								style:"margin-left:5px"
+							}, div1_radio_node);
+						} else {
+							div1_radio = registry.byNode(div1_radio_node);
+						}
+						var div2_radio_node = dom.byId('div2_radio_id');
+						if (!div2_radio_node) {
+							div2_radio_node = put(topdiv_node,
+								"div#div2_radio_id");
+							put(topdiv_node,
+								"label.label_box[for=div2_radio_id]",
+								"Tournament");
+							var div2_radio = new RadioButton({
+								name:'db_type',
+								value:'tourndb',
+								style:"margin-left:10px"
+							}, div2_radio_node);
+						} else {
+							div2_radio = registry.byNode(div2_radio_node);
+						}
+						put(topdiv_node, "br, br");
 					} else {
 						alert('check db_type and idproperty consistency');
 					}
@@ -316,7 +346,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var gridstatus_node = dom.byId('gridstatus_span');
 				if (!gridstatus_node) {
 					gridstatus_node = put(updatebtn_widget.domNode,
-						"+span.empty_smallgap#gridstatus_span");
+						"+span.empty_smallgap_color#gridstatus_span");
 					//gridstatus_node.innerHTML = 'test span';
 				}
 				return gridstatus_node;
