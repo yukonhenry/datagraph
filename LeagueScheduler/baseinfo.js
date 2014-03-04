@@ -178,7 +178,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// schedule type - rr or tourn
 						var fieldinfogrid_node = dom.byId('fieldinfogrid_id');
 						var topdiv_node = put(fieldinfogrid_node, "-div");
-						var widgetgen = new WidgetGen();
+						var widgetgen = new WidgetGen({
+							storeutil_obj:this.storeutil_obj
+						});
 						widgetgen.create_dbtype_radiobtn(topdiv_node,
 							'div1_radio_id','div2_radio_id');
 						/*

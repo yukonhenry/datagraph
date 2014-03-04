@@ -5,6 +5,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "put-selector/put","dojo/domReady!"],
     function(dbootstrap, dom, declare, lang, arrayUtil, registry, RadioButton, put) {
         return declare(null, {
+            storeutil_obj:null,
             constructor: function(args) {
                 lang.mixin(this, args);
             },
@@ -63,9 +64,24 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 
                         }
                     }, select_node);
+                    var option_array = this.generateLabelDropDown(db_type,
+                        "Select League");
+                    var league_select.addOption(option_array);
                 } else {
                     select_node = registry.byNode(select_node);
                 }
-            }
+
+            },
+            generateLabelDropDown: function(db_type, label_str) {
+                // get list of db's from store that have been completed
+                var label_list = this.storeutil_obj.getfromdb_store_value(db_type,
+                    'label', true);
+                var option_array = [{label:label_str, value:"",
+                    selected:true}];
+                arrayUtil.forEach(label_list, function(item, index) {
+                    option_array.push({label:item, value:index+1, selected:false});
+                });
+                return option_array;
+            },
         })
     })
