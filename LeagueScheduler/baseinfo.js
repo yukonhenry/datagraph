@@ -183,6 +183,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						});
 						widgetgen.create_dbtype_radiobtn(topdiv_node,
 							'div1_radio_id','div2_radio_id');
+						widgetgen.create_league_select(topdiv_node,"lselect_forfield_id", 'rrdb');
 						/*
 						put(topdiv_node, "span", "Select Schedule Type:")
 						var div1_radio_node = dom.byId('div1_radio_id');

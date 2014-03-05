@@ -3,7 +3,7 @@
 define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 	"dojo/Stateful", "dojo/domReady!"],
 	function(declare, arrayUtil, lang, Stateful){
-		var watch_class = declare([Stateful],{
+		var Watch_class = declare([Stateful],{
 			divstr_list:null,
 			numweeks:0
 		})
@@ -13,7 +13,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			obj_list:null, watch_obj:null,
 			constructor: function() {
 				this.obj_list = new Array();
-				this.watch_obj = new watch_class();
+				this.watch_obj = new Watch_class();
 				//this.watch_obj.set('divstr_list',[]);
 			},
 			register_obj: function(obj, idproperty) {
