@@ -15,6 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 this.watch_obj = new Watch_class();
                 this.watch_obj.watch("db_type",
                     lang.hitch(this, function(name, oldValue, value) {
+                        console.log('new dbtype='+value);
                     })
                 )
             },
@@ -35,9 +36,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         value:'rrdb',
                         checked:true,
                         style:"margin-left:5px",
-                        onChange: function(evt) {
-                            console.log("radio1 change to "+evt);
-                        }
+                        onChange: lang.hitch(this, function(evt) {
+                            if (evt) {
+                                this.watch_obj.set('db_type', 'rrdb');
+                            }
+                        })
                     }, div1_radio_node);
                     div1_radio.startup();
                 } else {
@@ -55,20 +58,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         name:'db_type',
                         value:'tourndb',
                         style:"margin-left:10px",
-                        onChange: function(evt) {
-                            console.log("radio2 change to "+evt);
-                        }
+                        onChange: lang.hitch(this, function(evt) {
+                            this.watch_obj.set('db_type', 'tourndb');
+                        })
                     }, div2_radio_node);
                     div2_radio.startup();
                 } else {
                     div2_radio = registry.byNode(div2_radio_node);
                 }
-                /*
+                // initialize watch_obj db_type value
                 if (div1_radio.get("checked")) {
-                    console.log("radio 1 checked")
+                    this.watch_obj.set('db_type', div1_radio.get('value'));
                 } else if (div2_radio.get("checked")) {
-                    console.log("radio2 checked");
-                } */
+                    this.watch_obj.set('db_type', div2_radio.get('value'));
+                }
             },
             create_league_select: function(topdiv_node, lselect_id, db_type) {
                 var league_select = null;
@@ -91,17 +94,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     league_select = registry.byNode(select_node);
                 }
 
-            },
-            generateLabelDropDown: function(db_type, label_str) {
-                // get list of db's from store that have been completed
-                var label_list = this.storeutil_obj.getfromdb_store_value(db_type,
-                    'label', true);
-                var option_array = [{label:label_str, value:"",
-                    selected:true}];
-                arrayUtil.forEach(label_list, function(item, index) {
-                    option_array.push({label:item, value:index+1, selected:false});
-                });
-                return option_array;
             },
         })
     })

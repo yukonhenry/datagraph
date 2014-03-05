@@ -3,12 +3,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"dijit/form/RadioButton",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
-	"LeagueScheduler/widgetgen",
 	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
 		registry, Tooltip, Button, RadioButton, EditGrid, baseinfoSingleton,
-		WidgetGen, put) {
+		put) {
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			text_id:"infoTextNode_id",
@@ -87,6 +86,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						var info_list = this.getInitialList(divnum);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
+						// if idproperty is field, create radio buttons for
+						// db selection (for div select)
+						/*
+						if (this.idproperty == 'field_id') {
+							this.create_dbselect_radiobtnselect(
+								'new_radio1_id', 'new_radio2_id', 'new_select_id');
+						} */
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:info_list,
@@ -176,6 +182,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						})
 						//For field grids, create radio button pair to select
 						// schedule type - rr or tourn
+						/*
+						this.create_dbselect_radiobtnselect('serverdata_radio1_id',
+							'serverdata_radio2_id', 'serverdata_select_id'); */
+						/*
 						var fieldinfogrid_node = dom.byId('fieldinfogrid_id');
 						var topdiv_node = put(fieldinfogrid_node, "-div");
 						var widgetgen = new WidgetGen({
@@ -183,7 +193,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						});
 						widgetgen.create_dbtype_radiobtn(topdiv_node,
 							'div1_radio_id','div2_radio_id');
-						widgetgen.create_league_select(topdiv_node,"lselect_forfield_id", 'rrdb');
+						widgetgen.create_league_select(topdiv_node,"lselect_forfield_id", 'rrdb'); */
 						/*
 						put(topdiv_node, "span", "Select Schedule Type:")
 						var div1_radio_node = dom.byId('div1_radio_id');

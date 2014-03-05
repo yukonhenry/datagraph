@@ -1,12 +1,12 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
-	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/newscheduler",
+	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox",
 	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox", "dijit/form/Button", "dijit/Tooltip",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
-		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, newscheduler,
+		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
 		Tooltip, put, Calendar){
 		var constant = {
@@ -28,7 +28,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			calendar:null, db_type:constant.db_type,
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
-			rendercell_flag:true, today:null,
+			rendercell_flag:true, today:null, widgetgen:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -667,6 +667,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				display_str = display_str.substring(0, display_str.length-1);
 				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
 				dropdownbtn_reg.set('label', display_str);
+			},
+			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id) {
+				//For field grids, create radio button pair to select
+				// schedule type - rr or tourn
+				var fieldinfogrid_node = dom.byId(constant.grid_id);
+				var topdiv_node = put(fieldinfogrid_node, "-div");
+				if (!this.widgetgen) {
+					this.widgetgen = new WidgetGen({
+						storeutil_obj:this.storeutil_obj
+					});
+				}
+				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
+					radio1_id, radio2_id);
+				this.widgetgen.create_league_select(topdiv_node, select_id, 'rrdb');
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
