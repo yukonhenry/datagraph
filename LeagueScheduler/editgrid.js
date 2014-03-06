@@ -74,7 +74,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// IMPORTANT: call to colname_obj.set needs to be later than
 				// setting info_obj.infogrid_store above as colname_obj watch
 				// function utilizes infogrid_store (for div_id idprop)
-				this.info_obj.colname_obj.set("colname", this.colname);
+				//this.info_obj.colname_obj.set("colname", this.colname);
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
 					this.error_node.className = "message error";
@@ -256,7 +256,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
 				}
-				this.info_obj.colname_obj.set("colname", colname);
+				//this.info_obj.colname_obj.set("colname", colname);
 			},
 			cleanup: function() {
 				/*

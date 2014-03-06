@@ -14,6 +14,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
         }
         return declare(null, {
             storeutil_obj:null, radio_db_type:null, watch_obj:null,
+            server_interface:null,
             defaultzero_store:null,
             constructor: function(args) {
                 lang.mixin(this, args);
@@ -33,7 +34,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             // http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
             // http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
             create_dbtype_radiobtn: function(topdiv_node, div1_radio_id, div2_radio_id) {
-                put(topdiv_node, "span", "Select Schedule Type:")
+                put(topdiv_node, "span", "Select Schedule Type:");
                 // NOTE: dom.byID after the widget does not recover the
                 // widget's domNode. In this example, the widget's domNode is a
                 // HTML div element, but the dom.byId after the widget is created
@@ -104,25 +105,30 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         "label.label_box[for=$][style=margin-left:50px]", lselect_id, "Select League");
                     select_node = put(topdiv_node,
                         "select[id=$][name=league_select]", lselect_id);
-                    var dbselect_store = this.storeutil_obj.getselect_store(db_type);
                     var league_select = new Select({
                         name:'league_select',
-                        store:dbselect_store,
+                        //store:dbselect_store,
                         labelAttr:"name",
-                        onChange: function(evt) {
-
-                        }
+                        onChange: lang.hitch(this, function(evt) {
+                            var dbtype_list = this.getdbtype_list(evt, db_type);
+                        })
                     }, select_node);
+                    var dbselect_store = this.storeutil_obj.getselect_store(db_type);
                     if (dbselect_store.data.length == 0) {
                         league_select.setStore(this.defaultzero_store);
+                    } else {
+                        league_select.setStore(dbselect_store);
+                        var first_elem = dbselect_store.query({},
+                            {start:0, count:1})[0];
                     }
                     league_select.startup();
                 } else {
                     // we can use by Node here as both node and widget are selects
                     league_select = registry.byNode(select_node);
                 }
-
             },
+            // get list of items in db specified by db_type from server
+            getdbtype_list:
             // swap the store for the league select widget
             // usually driven by radio button db type selection
             swap_league_select_db: function(lselect_id, db_type) {

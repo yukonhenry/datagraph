@@ -671,7 +671,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var topdiv_node = put(fieldinfogrid_node, "-div");
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
-						storeutil_obj:this.storeutil_obj
+						storeutil_obj:this.storeutil_obj,
+						server_interface:this.server_interface
 					});
 				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
