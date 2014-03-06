@@ -310,13 +310,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							put(scinput_dom, "br, br");
 						}
 						// create league info dropdowns
-						var select_div = dom.byId("league_select_id");
-						if (!select_div) {
+						var select_node = dom.byId("league_select_id");
+						if (!select_node) {
 							// get parent dom and generate dropdown selects
 							put(scinput_dom,
 								"label.label_box[for=league_select_id]",
 								"Select League");
-							select_div = put(scinput_dom,
+							select_node = put(scinput_dom,
 								"select#league_select_id[name=league_select]");
 							this.league_select = new Select({
 								name:'league_select',
@@ -326,7 +326,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 										evt);
 									this.newschedwatch_obj.set('leagueselect_flag',evt>0);
 								})
-							}, select_div);
+							}, select_node);
 							this.newschedwatch_obj.watch('leagueselect_flag',
 								lang.hitch(this,
 									function(name, oldValue, value) {
@@ -347,15 +347,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							}
 							put(scinput_dom, "span.empty_gap");  // add space
 						} else {
-							this.league_select = registry.byNode(select_div);
+							this.league_select = registry.byNode(select_node);
 						}
 						// create field group dropdown
-						var fg_select_div = dom.byId("fg_select_id");
-						if (!fg_select_div) {
+						var fg_select_node = dom.byId("fg_select_id");
+						if (!fg_select_node) {
 							put(scinput_dom,
 								"label.label_box[for=fg_select_id]",
 								"Select Field Group");
-							fg_select_div = put(scinput_dom,
+							fg_select_node = put(scinput_dom,
 								"select#fg_select_id[name=fg_select]");
 							this.fg_select = new Select({
 								name:'fg_select',
@@ -366,7 +366,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									this.newschedwatch_obj.set('fgselect_flag',
 										evt>0);
 								})
-							}, fg_select_div);
+							}, fg_select_node);
 							this.newschedwatch_obj.watch('fgselect_flag',
 								lang.hitch(this,
 									function(name, oldValue, value) {
@@ -387,7 +387,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							}
 							put(scinput_dom, "span.empty_gap");
 						} else {
-							this.fg_select = registry.byNode(fg_select_div);
+							this.fg_select = registry.byNode(fg_select_node);
 						}
 						var btn_node = dom.byId("schedparambtn_id");
 						if (!btn_node) {

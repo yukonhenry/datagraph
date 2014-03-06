@@ -437,42 +437,24 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
 						TDialog = primaryuse_obj.tdialog;
-						/*
 						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-						var content_str = "";
-						var checkboxid_list = new Array();
-						arrayUtil.forEach(divstr_list, function(divstr, index) {
-							var idstr = "checkbox"+divstr+field_id+"_id";
-							content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-							'" value="'+index+'"><label for="'+idstr+'">'+divstr+'</label><br>';
-							checkboxid_list.push(idstr);
-						});
-						var button_id = 'tdialogbtn'+field_id+'_id';
-						content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
-						TDialog = new TooltipDialog({
-							id:"tooltip"+field_id,
-							content: content_str
-			    		});
-			    		var tdialogprop_obj = {field_id:field_id,
-			    			checkboxid_list:checkboxid_list,
-			    			divstr_list:divstr_list};
-			    		//this.tdialogprop_list.push({field_id:field_id,
-			    		//	checkboxid_list:checkboxid_list});
-			    		var button_reg = registry.byId(button_id);
-			    		button_reg.set("onClick",
-			    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
-*/
 			    	} else {
 			    		TDialog = new TooltipDialog({
 			    			content:"Select Database using Select Config->Division Info"
-			    		})
+			    		});
 			    	}
 					//myDialog.startup();
-					var dropdown_btn = new DropDownButton({
-						label:"Config",
-						dropDown:TDialog,
-						id:'fielddropdownbtn'+field_id+'_id'
-					});
+					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
+					if (!dropdown_btn) {
+						var dropdown_btn = new DropDownButton({
+							label:"Config",
+							dropDown:TDialog,
+							id:'fielddropdownbtn'+field_id+'_id'
+						});
+						dropdown_btn.startup();
+					} else {
+						dropdown_btn.set('dropDown', TDialog);
+					}
 					// fill in checkboxes if store already has checkbox info
 					// this has to be called after dropdown_btn is created
 		    		if (divstr_list && divstr_list.length > 0 && object.primaryuse_str) {
@@ -562,13 +544,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dates_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
 					var field_id = object.field_id;
-					var config_btn = new Button({
-						label:"Config Venue"+field_id,
-						id:"fielddatesbtn"+field_id+"_id",
-						onClick: lang.hitch(this, function() {
-							this.edit_calendar(field_id);
-						})
-					})
+					var config_btn = registry.byId("fielddatesbtn"+field_id+"_id");
+					if (!config_btn) {
+						config_btn = new Button({
+							label:"Config Venue"+field_id,
+							id:"fielddatesbtn"+field_id+"_id",
+							onClick: lang.hitch(this, function() {
+								this.edit_calendar(field_id);
+							})
+						});
+						config_btn.startup();
+					}
 				} else {
 					// retrieve widget that had already been instantiated
 					var field_id = object.field_id;
@@ -594,22 +580,32 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					});
 					var button_id = 'dwdialogbtn'+field_id+'_id';
 					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
-					var dwdialog = new TooltipDialog({
-						id:"dwtooltip"+field_id,
-						content: content_str
-		    		});
+					var dwdialog = registry.byId("dwtooltip"+field_id);
+					if (!dwdialog) {
+						dwdialog = new TooltipDialog({
+							id:"dwtooltip"+field_id,
+							content: content_str
+			    		});
+					} else {
+						dwdialog.set('content', content_str);
+					}
 		    		var dwdialogprop_obj = {field_id:field_id,
 		    			checkboxid_list:checkboxid_list,
 		    			day_list:constant.day_list};
 		    		var button_reg = registry.byId(button_id);
 		    		button_reg.on("click",
 		    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
-					//myDialog.startup();
-					var dropdown_btn = new DropDownButton({
-						label:"Config",
-						dropDown:dwdialog,
-						id:'dwfielddropdownbtn'+field_id+'_id'
-					});
+		    		var dropdown_btn = registry.byId('dwfielddropdownbtn'+field_id+'_id');
+		    		if (!dropdown_btn) {
+						dropdown_btn = new DropDownButton({
+							label:"Config",
+							dropDown:dwdialog,
+							id:'dwfielddropdownbtn'+field_id+'_id'
+						});
+						dropdown_btn.startup();
+		    		} else {
+		    			dropdown_btn.set('dropDown', dwdialog);
+		    		}
 		    		if (object.dayweek_str) {
 		    			this.init_checkbox(dwdialogprop_obj, object.dayweek_str,
 		    				dwdialogprop_obj.day_list, "dwfielddropdownbtn");
@@ -680,7 +676,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
 					radio1_id, radio2_id);
-				this.widgetgen.create_league_select(topdiv_node, select_id, 'rrdb');
+				this.widgetgen.create_league_select(topdiv_node, select_id, 'default');
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

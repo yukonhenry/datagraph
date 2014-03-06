@@ -43,8 +43,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				create a list of stores, where each store is specific to a db_type */
 				var dbselect_store = new Observable(new Memory({data:new Array(),
 					idProperty:'name'}));
+				// add initial entry
 				arrayUtil.forEach(db_list, function(item, index) {
-					dbselect_store.add({name:item.name, config_status:item.config_status});
+					dbselect_store.add({name:item.name,
+						config_status:item.config_status});
 				});
 				this.dbstore_list.push({db_type:db_type,
 					dbselect_store:dbselect_store});
