@@ -40,6 +40,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.newschedwatch_obj = new newschedwatch_class();
+				this.newschedwatch_obj.watch('leagueselect_flag',
+					lang.hitch(this, function(name, oldValue, value) {
+						this.newschedwatch_obj.set('league_fg_flag',
+							this.newschedwatch_obj.get('fgselect_flag') && value);
+					}));
+				this.newschedwatch_obj.watch('fgselect_flag',
+					lang.hitch(this, function(name, oldValue, value) {
+						this.newschedwatch_obj.set('league_fg_flag',
+							this.newschedwatch_obj.get('leagueselect_flag') && value);
+					}));
 			},
 			initialize: function(arg_obj) {
 				this.form_reg = registry.byId(constant.form_name);
@@ -245,19 +255,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								name:'league_select',
 								onChange: lang.hitch(this, function(evt) {
 									// copy event (value of option) to watched obj
-									this.newschedwatch_obj.set('leagueselect_val',
-										evt);
-									this.newschedwatch_obj.set('leagueselect_flag',evt>0);
+									//this.newschedwatch_obj.set('leagueselect_val',
+									//	evt);
+									this.newschedwatch_obj.set('leagueselect_flag',evt!="");
 								})
 							}, select_node);
-							this.newschedwatch_obj.watch('leagueselect_flag',
-								lang.hitch(this,
-									function(name, oldValue, value) {
-										this.newschedwatch_obj.set('league_fg_flag',
-											this.newschedwatch_obj.get('fgselect_flag') && value);
-									}
-								)
-							)
 							args_obj = {db_type:'rrdb', label_str:'Select League',
 								config_status:true};
 							var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
@@ -286,10 +288,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								name:'fg_select',
 								onChange: lang.hitch(this, function(evt) {
 									// copy event (value of option) to watched obj
-									this.newschedwatch_obj.set('fgselect_val',
-										evt);
+									//this.newschedwatch_obj.set('fgselect_val',
+									//	evt);
 									this.newschedwatch_obj.set('fgselect_flag',
-										evt>0);
+										evt!="");
 								})
 							}, fg_select_node);
 							args_obj = {db_type:'fielddb',
@@ -304,14 +306,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									position:['above','after']};
 								var fg_tooltip = new Tooltip(fg_tooltipconfig);
 							}
-							this.newschedwatch_obj.watch('fgselect_flag',
-								lang.hitch(this,
-									function(name, oldValue, value) {
-										this.newschedwatch_obj.set('league_fg_flag',
-											this.newschedwatch_obj.get('leagueselect_flag') && value);
-									}
-								)
-							)
 							put(scinput_dom, "span.empty_gap");
 						} else {
 							this.fg_select = registry.byNode(fg_select_node);
@@ -331,11 +325,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							}, btn_node);
 							schedule_btn.startup();
 							var btn_tooltip = new Tooltip(btn_tooltipconfig);
+							btn_tooltip.startup();
 							this.newschedwatch_obj.watch('league_fg_flag',
 								function(name, oldValue, value) {
 									if (value) {
 										schedule_btn.set('disabled', false);
-										btn_tooltipconfig.set('label',
+										btn_tooltip.set('label',
 											'Press to Save Sched Parameters');
 									}
 								}
