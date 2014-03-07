@@ -79,13 +79,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 				// without 3rd argument for  forEach, scope is global
 				// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
 				var info_list = (typeof info_list === "undefined") ? this.leaguedata : info_list;
-				var option_array = [{label:"Select Division", value:"", selected:true}];
+				var option_list = [{label:"Select Division", value:"", selected:true}];
 				arrayUtil.forEach(info_list, function(item, index) {
 					var divstr = item.div_age + item.div_gen;
 					// division code is 1-index based so increment by 1
-					option_array.push({label:divstr, value:index+1, selected:false});
+					option_list.push({label:divstr, value:index+1, selected:false});
 				});
-				select_reg.addOption(option_array);
+				select_reg.addOption(option_list);
 			},
 			getNumberTeams: function(div_id) {
 				// ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/array.html#dojo-base-array

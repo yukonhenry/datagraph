@@ -24,7 +24,6 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					lang.hitch(this,function(name, oldValue, value) {
 						var fieldinfo_obj = this.get_obj('field_id');
 						if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
-							console.log("calling fieldinfo set dialog w "+value);
 							fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
 						}
 					}));

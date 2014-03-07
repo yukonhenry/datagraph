@@ -160,6 +160,20 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					});
 				return match_list[0];
 			},
+			getLabelDropDown_list: function(args_obj) {
+				var db_type = args_obj.db_type;
+				var label_str = args_obj.label_str;
+				var config_status = args_obj.config_status;
+				// get list of db's from store that have been completed
+				var label_list = this.getfromdb_store_value(db_type,
+					'name', config_status);
+				var option_list = [{label:label_str, value:"",
+					selected:true}];
+				arrayUtil.forEach(label_list, function(item, index) {
+					option_list.push({label:item, value:item, selected:false});
+				});
+				return option_list;
+			},
 			delete_dbcollection: function(options_obj) {
 				var item = options_obj.item;
 				var server_path = options_obj.server_path;

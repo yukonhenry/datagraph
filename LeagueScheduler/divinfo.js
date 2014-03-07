@@ -101,25 +101,5 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					this.infogrid_store.put(obj);
 				}))
 			},
-			getDivstr_list: function() {
-				if (this.infogrid_store) {
-					var divstr_list = this.infogrid_store.query().map(function(item) {
-						return item.div_age+item.div_gen;
-					}).filter(function(divstr) {
-						return divstr != "";
-					});
-					var dup_list = this.schedutil_obj.detect_arrayduplicate(divstr_list);
-					if (dup_list.length > 0) {
-						alert("duplicate div info entries (or blank)");
-					}
-					return divstr_list;
-				} else {
-					return [];
-				}
-			},
-			/*
-			createEditGrid: function(server_data, options_obj) {
-				this.inherited(arguments);
-			}, */
 		});
 });

@@ -103,91 +103,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
-						// set initial values for seasonstart and end dates
-						//this.start_dtbox = registry.byId("seasonstart_date");
-						//this.end_dtbox = registry.byId("seasonend_date");
-						//this.sl_spinner = registry.byId("seasonlength_spinner");
 						var today = new Date();
-						//this.start_dtbox.set('value', today);
-						//this.end_dtbox.set('value',
-						//	date.add(today, 'week', constant.numweeks));
-						//this.sl_spinner.set('value', constant.numweeks);
-/*
-						if (this.seasonstart_handle)
-							this.seasonstart_handle.remove();
-						this.seasonstart_handle = on(this.start_dtbox,
-							"change",
-							lang.hitch(this, function(event) {
-								console.log('season start handle'+this.event_flag);
-								if (!this.event_flag) {
-									var enddate = this.end_dtbox.get('value');
-									var numweeks = date.difference(event, enddate,'week');
-									if (numweeks < 1) {
-										alert("end date needs to be at least one week after start date");
-										// reset the date to an arbitrary default
-										numweeks = this.sl_spinner.get('value');
-										//this.seasonstart_handle.pause();
-										this.start_dtbox.set('value',
-											date.add(enddate, 'week', -numweeks));
-										//this.seasonstart_handle.resume();
-									} else {
-										//this.seasonlength_handle.pause();
-										this.sl_spinner.set('value', numweeks);
-										//this.seasonlength_handle.resume();
-									}
-									this.event_flag = true;
-								} else {
-									this.event_flag = false;
-								}
-							})
-						); */
-						/*
-						if (this.seasonend_handle)
-							this.seasonend_handle.remove();
-						this.seasonend_handle = on(this.end_dtbox,
-							"change",
-							lang.hitch(this, function(event) {
-								console.log('season end handle'+this.event_flag);
-								if (!this.event_flag) {
-									var startdate = this.start_dtbox.get('value');
-									var numweeks = date.difference(startdate, event,'week');
-									if (numweeks < 1) {
-										alert("end date needs to be at least one week after start date");
-										numweeks = this.sl_spinner.get('value');
-										//this.seasonend_handle.pause();
-										this.end_dtbox.set('value',
-											date.add(startdate, 'week', numweeks));
-										//this.seasonend_handle.resume();
-									} else {
-										//this.seasonlength_handle.pause();
-										this.sl_spinner.set('value', numweeks);
-										//this.seasonlength_handle.resume();
-									}
-									this.event_flag = true;
-								} else {
-									this.event_flag = false;
-								}
-							})
-						); */
-						/*
-						if (this.seasonlength_handle)
-							this.seasonlength_handle.remove();
-						this.seasonlength_handle = on(this.sl_spinner,
-							"change",
-							lang.hitch(this, function(event) {
-								console.log("season len handle="+this.event_flag)
-								if (!this.event_flag) {
-									var startdate = this.start_dtbox.get('value');
-									var enddate = date.add(startdate, 'week', event);
-									//this.seasonend_handle.pause();
-									this.event_flag = true;
-									this.end_dtbox.set('value', enddate);
-									//this.seasonend_handle.resume();
-								} else {
-									this.event_flag = false;
-								}
-							})
-						); */
 						/* note pausable/resume handler does not work trying to control changes made to textbox's programmatically
 						just use manual event_flag to control double/cascading event firing; set event_flag to true anytime another start/end/length register is set from within a similar handler.  The flag will be used to prevent cascading event handling which will be unnecessary.
 						NOTE a boolean event flag only works if a handler sets only one other register.  If multiple registers are set in the
@@ -227,6 +143,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								})
 							}, start_dtbox_node);
+							this.start_dtbox.startup();
 						} else {
 							this.start_dtbox = registry.byNode(start_dtbox_node);
 						}
@@ -263,6 +180,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								})
 							}, end_dtbox_node);
+							this.end_dtbox.startup();
 						} else {
 							this.end_dtbox = registry.byNode(end_dtbox_node);
 						}
@@ -292,22 +210,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								})
 							}, sl_spinner_node);
+							this.sl_spinner.startup();
 							put(scinput_dom, "br");
 						} else {
 							this.sl_spinner = registry.byNode(sl_spinner_node);
 						}
 						// create button to save season start/end/length
 						var sdbtn_node = dom.byId("sdbtn_id");
+						var sdbtn = null;
 						if (!sdbtn_node) {
 							sdbtn_node = put(scinput_dom,
 								"button.dijitButton#sdbtn_id[type=button]");
-							var sdbtn = new Button({
+							sdbtn = new Button({
 								label:"Save Season Dates",
 								class:"primary",
 								onClick: lang.hitch(this,
 									this.getSeasonDatesFromInput)
 							}, sdbtn_node);
+							sdbtn.startup();
 							put(scinput_dom, "br, br");
+						} else {
+							sdbtn = registry.byNode(sdbtn_node);
 						}
 						// create league info dropdowns
 						var select_node = dom.byId("league_select_id");
@@ -335,10 +258,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								)
 							)
-							var option_array = this.generateLabelDropDown('rrdb',
-								'Select League');
-							this.league_select.addOption(option_array);
-							if (option_array.length < 2) {
+							args_obj = {db_type:'rrdb', label_str:'Select League',
+								config_status:true};
+							var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
+							this.league_select.addOption(option_list);
+							this.league_select.startup();
+							if (option_list.length < 2) {
 								var ls_tooltipconfig = {
 									connectId:['league_select_id'],
 									label:"If Empty Specify League Spec's First",
@@ -367,6 +292,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 										evt>0);
 								})
 							}, fg_select_node);
+							args_obj = {db_type:'fielddb',
+								label_str:'Select Field Group', config_status:true};
+							var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
+							this.fg_select.addOption(option_list);
+							this.fg_select.startup();
+							if (option_list.length < 2) {
+								var fg_tooltipconfig = {
+									connectId:['fg_select_id'],
+									label:"If Empty Specify Field Groups First",
+									position:['above','after']};
+								var fg_tooltip = new Tooltip(fg_tooltipconfig);
+							}
 							this.newschedwatch_obj.watch('fgselect_flag',
 								lang.hitch(this,
 									function(name, oldValue, value) {
@@ -375,16 +312,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								)
 							)
-							option_array = this.generateLabelDropDown('fielddb',
-								'Select Field Group');
-							this.fg_select.addOption(option_array);
-							if (option_array.length < 2) {
-								var fg_tooltipconfig = {
-									connectId:['fg_select_id'],
-									label:"If Empty Specify Field Groups First",
-									position:['above','after']};
-								var fg_tooltip = new Tooltip(fg_tooltipconfig);
-							}
 							put(scinput_dom, "span.empty_gap");
 						} else {
 							this.fg_select = registry.byNode(fg_select_node);
@@ -455,17 +382,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			is_newgrid_required: function() {
 				return false;
-			},
-			generateLabelDropDown: function(db_type, label_str) {
-				// get list of db's from store that have been completed
-				var label_list = this.storeutil_obj.getfromdb_store_value(db_type,
-					'label', true);
-				var option_array = [{label:label_str, value:"",
-					selected:true}];
-				arrayUtil.forEach(label_list, function(item, index) {
-					option_array.push({label:item, value:index+1, selected:false});
-				});
-				return option_array;
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

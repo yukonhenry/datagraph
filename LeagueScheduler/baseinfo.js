@@ -16,32 +16,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
 			leagueselect_id:"leagueselect_id",
 		};
-		var colname_class = declare([Stateful],{
-			colname:null
-		})
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
 			storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
-			colname_obj:null, button_div:null, schedutil_obj:null,
+			button_div:null, schedutil_obj:null, activegrid_colname:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
 				this.tooltip_list = new Array();
-				this.colname_obj = new colname_class();
-				this.colname_obj.watch("colname",
-					lang.hitch(this,function(name, oldValue, value) {
-						if (this.idproperty == 'div_id' ||
-							this.idproperty == 'tourndiv_id') {
-							var divstr_list = this.getDivstr_list();
-							if (divstr_list.length > 0) {
-								baseinfoSingleton.watch_obj.set('divstr_list',
-									divstr_list);
-							}
-
-						}
-					})
-				);
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -76,9 +59,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var updatebtn_str = args_obj.updatebtn_str;
 					if (form_reg.validate()) {
 						confirm('Input format is Valid, creating new DB');
-						var colname = dbname_reg.get("value")
-						if (!this.storeutil_obj.nodupdb_validate(colname,
-							this.idproperty)) {
+						this.activegrid_colname = dbname_reg.get("value")
+						if (!this.storeutil_obj.nodupdb_validate(
+							this.activegrid_colname, this.idproperty)) {
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
@@ -98,7 +81,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:info_list,
-								colname:colname,
+								colname:this.activegrid_colname,
 								server_interface:this.server_interface,
 								grid_id:grid_id,
 								error_node:dom.byId("divisionInfoInputGridErrorNode"),
@@ -112,7 +95,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								db_type:this.db_type});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 							var args_obj = {
-								colname:colname,
+								colname:this.activegrid_colname,
 								text_node_str:text_node_str,
 								updatebtn_str:updatebtn_str,
 								idproperty:this.idproperty,
@@ -120,9 +103,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								newgrid_flag:true
 							}
 						} else {
-							this.editgrid.replace_store(colname, info_list);
+							this.editgrid.replace_store(this.activegrid_colname, info_list);
 							var args_obj = {
-								colname:colname,
+								colname:this.activegrid_colname,
 								text_node_str:text_node_str,
 								updatebtn_str:updatebtn_str,
 								idproperty:this.idproperty,
@@ -159,7 +142,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
-				var colname = options_obj.item;
+				this.activegrid_colname = options_obj.item;
 				var columnsdef_obj = options_obj.columnsdef_obj;
 				var idproperty = options_obj.idproperty;
 				// if server data is fielddb information, then we need to do
@@ -196,7 +179,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				if (options_obj.newgrid_flag) {
 					this.editgrid = new EditGrid({griddata_list:data_list,
-						colname:colname,
+						colname:this.activegrid_colname,
 						server_interface:this.server_interface,
 						grid_id:options_obj.grid_id,
 						error_node:dom.byId("divisionInfoInputGridErrorNode"),
@@ -210,10 +193,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						db_type:this.db_type});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
 				} else {
-					this.editgrid.replace_store(colname, data_list);
+					this.editgrid.replace_store(this.activegrid_colname, data_list);
 				}
 				var args_obj = {
-					colname:colname,
+					colname:this.activegrid_colname,
 					text_node_str:options_obj.text_node_str,
 					updatebtn_str:options_obj.updatebtn_str,
 					idproperty:idproperty,
@@ -229,7 +212,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			// function.  Also update pstack/gstack_cpane.
 			reconfig_infobtn: function(args_obj) {
 				// parse args object
-				var colname = args_obj.colname;
+				this.activegrid_colname = args_obj.colname;
 				var text_node_str = args_obj.text_node_str;
 				var updatebtn_str = args_obj.updatebtn_str;
 				var idproperty = args_obj.idproperty;
@@ -237,7 +220,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var newgrid_flag = args_obj.newgrid_flag;
 				var entry_pt = args_obj.entry_pt;
 
-				var text_str = text_node_str + ": <b>"+colname+"</b>";
+				var text_str = text_node_str + ": <b>"+this.activegrid_colname+"</b>";
 				this.text_node.innerHTML = text_str;
 				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
 					idproperty);
@@ -342,7 +325,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 			},
 			is_serverdata_required: function(options_obj) {
-				return (options_obj.item != this.colname_obj.get('colname'))?true:false;
+				return (options_obj.item != this.activegrid_colname)?true:false;
 			},
 			is_newgrid_required: function() {
 				if (!this.editgrid)

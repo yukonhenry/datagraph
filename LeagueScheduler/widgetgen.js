@@ -3,19 +3,20 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "dojo/_base/array", "dojo/Stateful", "dojo/store/Memory", "dijit/registry",
     "dijit/form/RadioButton", "dijit/form/Select",
-    "put-selector/put","dojo/domReady!"],
+    "put-selector/put", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
     function(dbootstrap, dom, declare, lang, arrayUtil, Stateful, Memory,
-        registry, RadioButton, Select, put) {
+        registry, RadioButton, Select, put, baseinfoSingleton) {
         var Watch_class = declare([Stateful], {
             db_type:null
         });
         var constant = {
-            default_db_type:'rrdb'
+            default_db_type:'rrdb',
+            serverdata_key:'info_list',
+            serverstatus_key:'config_status'
         }
         return declare(null, {
             storeutil_obj:null, radio_db_type:null, watch_obj:null,
             server_interface:null,
-            defaultzero_store:null,
             constructor: function(args) {
                 lang.mixin(this, args);
                 this.watch_obj = new Watch_class();
@@ -24,9 +25,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         this.swap_league_select_db('leagueselect_id', value);
                     })
                 );
-                this.defaultzero_store = new Memory({data:new Array(),
-                    idProperty:'name'});
-                this.defaultzero_store.add({name:"None created", config_status:0});
             },
             // function to create radio button selects for  db_type
             // ref https://github.com/kriszyp/put-selector for put selector
@@ -95,6 +93,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     //this.watch_obj.set('db_type', 'tourndb');
                 }
             },
+            // create select dropdown
+            // programmatic creation of enclosing node and then widget itself
             create_league_select: function(topdiv_node, lselect_id, db_type) {
                 var db_type = (db_type == 'default') ?
                     constant.default_db_type:db_type;
@@ -108,19 +108,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     var league_select = new Select({
                         name:'league_select',
                         //store:dbselect_store,
-                        labelAttr:"name",
+                        //labelAttr:"name",
                         onChange: lang.hitch(this, function(evt) {
-                            var dbtype_list = this.getdbtype_list(evt, db_type);
+                            var name_list = this.getname_list(evt, db_type);
                         })
                     }, select_node);
-                    var dbselect_store = this.storeutil_obj.getselect_store(db_type);
-                    if (dbselect_store.data.length == 0) {
-                        league_select.setStore(this.defaultzero_store);
-                    } else {
-                        league_select.setStore(dbselect_store);
-                        var first_elem = dbselect_store.query({},
-                            {start:0, count:1})[0];
-                    }
+                    args_obj = {db_type:db_type, label_str:'Select League',
+                                config_status:true};
+                    var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
+                    league_select.addOption(option_list);
                     league_select.startup();
                 } else {
                     // we can use by Node here as both node and widget are selects
@@ -128,20 +124,34 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 }
             },
             // get list of items in db specified by db_type from server
-            getdbtype_list:
+            getname_list: function(colname, db_type) {
+                var query_obj = {db_type:db_type};
+                this.server_interface.getServerData('get_dbcol/'+colname,
+                    lang.hitch(this, this.create_divstr_list), query_obj);
+            },
             // swap the store for the league select widget
             // usually driven by radio button db type selection
             swap_league_select_db: function(lselect_id, db_type) {
-                console.log("switching to dbtype="+db_type)
-                var dbselect_store = this.storeutil_obj.getselect_store(db_type);
+                args_obj = {db_type:db_type, label_str:'Select League',
+                            config_status:true};
+                var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
                 var league_select = registry.byId(lselect_id);
-                if (league_select) {
-                    if (dbselect_store.data.length > 0) {
-                        league_select.setStore(dbselect_store);
-                    } else {
-                        league_select.setStore(this.defaultzero_store);
-                    }
-               }
+                // ref http://dojotoolkit.org/documentation/tutorials/1.9/selects_using_stores/ (section of using select without stores)
+                league_select.set("options", option_list);
+                league_select.startup();
+            },
+            create_divstr_list: function(server_data) {
+                var data_list = server_data[constant.serverdata_key];
+                var config_status = server_data[constant.serverstatus_key];
+                // config_status below should always be 1 as the db's are selected
+                // from a list that includes only fully complete configurations
+                if (config_status) {
+                    var divstr_list = arrayUtil.map(data_list,
+                        function(item, index) {
+                            return item.div_age + item.div_gen;
+                        })
+                    baseinfoSingleton.watch_obj.set('divstr_list', divstr_list);
+                }
             }
         })
     })
