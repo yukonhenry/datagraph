@@ -293,6 +293,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
     			});
 			}));
 		}
+		/*
 		var getElimDivisionData = function(evt) {
 			var divisioncode = registry.byId("elimDivisionSelect").get("value");
 			if (elimDivisionGrid) {
@@ -305,7 +306,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				if (divisionGridHandle)
 					divisionGridHandle.remove();
 			}
-		}
+		} */
 		var getTeamMetrics = function(evt) {
 			var division_id = registry.byId("divisionSelectForMetrics").get("value");
     		script.get(constant.SERVER_PREFIX+"schedulemetrics/"+division_id,{
@@ -472,7 +473,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 					newSchedulerBase));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
-			on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
+			//on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
  		});
 	}
 );

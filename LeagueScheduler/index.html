@@ -14,7 +14,7 @@
         <title>Event Scheduler</title>
     </head>
     <body class="dbootstrap">
-        <h1 id="greeting">Event Scheduler ver2014_1.0.0.14h</h1>
+        <h1 id="greeting">Event Scheduler ver2014_1.0.0.14i</h1>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -30,45 +30,7 @@
 			});
 		</script>
 		<div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;">
-        	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="divisionPane" data-dojo-props="selected:true">
-                <div id="dbstatus_txt"></div>
-                <b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
-                <div id="divisionInfoGrid"></div>
-                <div id="scheduleInfoGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Teams" id="teamsPane">
-    			<label for="divisionSelect">Select Division</label>
-    			<select id="divisionSelect" data-dojo-type="dijit/form/Select" name="divisionSelect">
-    			</select>
-    			<b>Selection division, then click on row</b> with team to see team schedule.  Scroll down. <b>Note on Bye Weeks:</b> Because of the odd number of teams in some divisions, some teams ih the division will have bye week(s) in their schedule.
-    			<div id="divisionGridLinkTeams"></div>
-    			<div id="teamDataGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Fields" id="fieldsPane">
-    			<b>click on Field row</b> to see field schedule.  Scroll down
-    			<div id="fieldInfoGrid"></div>
-    			<div id="fieldScheduleGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Metrics" id="metricsPane">
-    			Internal use - display metrics for schedule fairness. Some specific schedule metrics impacted by constraints implemented for specific teams.<br>
-    			<label for="divisionSelectForMetrics">Select Division</label>
-                <select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">
-    			</select>
-    			<div id="metricsHeader"></div>
-    			<div id="metricsGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Download Here" id="DownloadPane">
-                <div id="divScheduleLinks">
-    			<b>Schedules for Download</b><br><br>
-    			<i>Team Schedules in one XLS file, by division: </i></div>
-                <br>
-				<i>U6-U12 League Schedule, sorted by date and time, one file</i>
-				<a href="http://localhost/doc/xls/2013PHMSAFall_schedule_RefFormat.xls">U6-U12 League Schedule</a>
-				<br>
-				<i>All Team Schedules by Team (XLS)</i>:<br>
-				<div id="teamScheduleLinks"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Edit" id="editPane" data-dojo-props="selected:true">
                 <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/DropDownMenu.html#dijit-dropdownmenu -->
                 <div data-dojo-type="dijit/form/DropDownButton" class="dijit dijitReset dijitInline primary dijitDropDownButton editsched" role="presentation">
                     <span>Select Configuration</span>
@@ -309,6 +271,44 @@
                     </div> <!---outer bordercontainer as one of content panes-->
                 </div> <!--stackcontainer-->
                 <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->
+            </div>
+        	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="divisionPane">
+                <div id="dbstatus_txt"></div>
+                <b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
+                <div id="divisionInfoGrid"></div>
+                <div id="scheduleInfoGrid"></div>
+    		</div>
+    		<div data-dojo-type="dijit/layout/ContentPane" title="Teams" id="teamsPane">
+    			<label for="divisionSelect">Select Division</label>
+    			<select id="divisionSelect" data-dojo-type="dijit/form/Select" name="divisionSelect">
+    			</select>
+    			<b>Selection division, then click on row</b> with team to see team schedule.  Scroll down. <b>Note on Bye Weeks:</b> Because of the odd number of teams in some divisions, some teams ih the division will have bye week(s) in their schedule.
+    			<div id="divisionGridLinkTeams"></div>
+    			<div id="teamDataGrid"></div>
+    		</div>
+    		<div data-dojo-type="dijit/layout/ContentPane" title="Fields" id="fieldsPane">
+    			<b>click on Field row</b> to see field schedule.  Scroll down
+    			<div id="fieldInfoGrid"></div>
+    			<div id="fieldScheduleGrid"></div>
+    		</div>
+    		<div data-dojo-type="dijit/layout/ContentPane" title="Metrics" id="metricsPane">
+    			Internal use - display metrics for schedule fairness. Some specific schedule metrics impacted by constraints implemented for specific teams.<br>
+    			<label for="divisionSelectForMetrics">Select Division</label>
+                <select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">
+    			</select>
+    			<div id="metricsHeader"></div>
+    			<div id="metricsGrid"></div>
+    		</div>
+    		<div data-dojo-type="dijit/layout/ContentPane" title="Download Here" id="DownloadPane">
+                <div id="divScheduleLinks">
+    			<b>Schedules for Download</b><br><br>
+    			<i>Team Schedules in one XLS file, by division: </i></div>
+                <br>
+				<i>U6-U12 League Schedule, sorted by date and time, one file</i>
+				<a href="http://localhost/doc/xls/2013PHMSAFall_schedule_RefFormat.xls">U6-U12 League Schedule</a>
+				<br>
+				<i>All Team Schedules by Team (XLS)</i>:<br>
+				<div id="teamScheduleLinks"></div>
     		</div>
     		<div data-dojo-type="dijit/layout/ContentPane" title="Generate" id="generatePane">
     			<b>Generate Schedule</b>
@@ -340,13 +340,14 @@
                 </span>
                 <div id="dbstatus1_txt"></div>
     		</div>
+            <!--
             <div data-dojo-type="dijit/layout/ContentPane" title="Tournament" id="tournamentPane">
                 <label for="elimDivisionSelect">Select Division</label>
                 <select id="elimDivisionSelect" data-dojo-type="dijit/form/Select" name="elimdivisionSelect">
                 </select>
                 <b>Selection division</b>
                 <div id="elimDivisionGrid"></div>
-            </div>
+            </div> -->
     	</div>
     </body>
 </html>
