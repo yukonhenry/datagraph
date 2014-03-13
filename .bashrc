@@ -85,7 +85,7 @@ alias golog='cd ~/Downloads/android-sdk-linux_x86/platform-tools'
 alias gwd='cd ~/workspace/datagraph'
 alias gwb='cd ~/workspace/datagraph/bottle_baseball'
 alias monreset='cd /var/lib/mongodb; sudo rm mongod.lock; sudo service mongodb start; gwb'
-alias scpweb='gwd; scp bottle_baseball/*.py tominaga@tominaga.webfactional.com:~/workspace/datagraph/bottle_baseball; scp LeagueScheduler/* tominaga@tominaga.webfactional.com:~/workspace/datagraph/LeagueScheduler'
+alias scpweb='gwd; scp bottle_baseball/*.py tominaga@tominaga.webfactional.com:~/workspace/datagraph/bottle_baseball; scp LeagueScheduler/* tominaga@tominaga.webfactional.com:~/workspace/datagraph/LeagueScheduler; scp dojox/calendar/themes/dbootstrap/Calendar.css tominaga@tominaga.webfactional.com:~/workspace/datagraph/dojox/calendar/themes/dbootstrap'
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'

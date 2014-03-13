@@ -231,11 +231,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						if (!sdbtn_node) {
 							sdbtn_node = put(scinput_dom,
 								"button.dijitButton#sdbtn_id[type=button]");
+							var sdbtn_status_span = put(sdbtn_node,"+span.empty_smallgap_color");
 							sdbtn = new Button({
 								label:"Save Season Dates",
 								class:"primary",
-								onClick: lang.hitch(this,
-									this.getSeasonDatesFromInput)
+								onClick: lang.hitch(this, function(evt) {
+									sdbtn_status_span.innerHTML = "Season Dates Saved";
+									this.getSeasonDatesFromInput(evt);
+								})
 							}, sdbtn_node);
 							sdbtn.startup();
 							put(scinput_dom, "br, br");
