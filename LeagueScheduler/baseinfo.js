@@ -77,6 +77,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.create_dbselect_radiobtnselect(
 								constant.radiobtn1_id, constant.radiobtn2_id,
 								constant.leagueselect_id);
+						} else if (this.idproperty == 'div_id') {
+							this.create_calendar_input();
 						}
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();

@@ -1,22 +1,27 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
-	"dijit/registry", "dgrid/editor", "LeagueScheduler/baseinfo",
-	"LeagueScheduler/baseinfoSingleton",
-	"dojo/domReady!"],
-	function(declare, dom, lang, registry, editor, baseinfo,
-		baseinfoSingleton){
+	"dijit/registry", "dgrid/editor",
+	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
+	"LeagueScheduler/widgetgen", "put-selector/put", "dojo/domReady!"],
+	function(declare, dom, lang, registry, editor,
+		baseinfo, baseinfoSingleton, WidgetGen, put){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			idproperty_str:"div_id",
 			updatebtn_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
 			text_node_str: 'Schedule Name',
-			db_type:'rrdb'
+			db_type:'rrdb',
+			start_datebox_id:'start_dtbox_id',
+			end_datebox_id:'end_dtbox_id',
+			weeksspinner_id:'sl_spinner_id',
+			seasondates_btn_id:'sdbtn_id',
+			numweeks:12
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
-			base_numweeks:0,
+			base_numweeks:0, widgetgen:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -100,6 +105,25 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					obj.numweeks = numweeks;
 					this.infogrid_store.put(obj);
 				}))
+			},
+			create_calendar_input: function() {
+				var divinfogrid_node = dom.byId(constant.grid_id);
+				var topdiv_node = put(divinfogrid_node, "-div");
+				if (!this.widgetgen) {
+					this.widgetgen = new WidgetGen({
+						storeutil_obj:this.storeutil_obj,
+						server_interface:this.server_interface
+					});
+				}
+				args_obj = {
+					topdiv_node:topdiv_node,
+					start_datebox_id:constant.start_datebox_id,
+					end_datebox_id:constant.end_datebox_id,
+					spinner_id:constant.weeksspinner_id,
+					numweeks:constant.numweeks,
+					seasondates_btn_id:constant.seasondates_btn_id
+				}
+				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
 		});
 });
