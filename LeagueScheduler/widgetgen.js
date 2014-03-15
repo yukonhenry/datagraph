@@ -102,7 +102,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             },
             // create select dropdown
             // programmatic creation of enclosing node and then widget itself
-            create_league_select: function(topdiv_node, lselect_id, db_type) {
+            create_league_select: function(topdiv_node, lselect_id, db_type, info_obj) {
                 var db_type = (db_type == 'default') ?
                     constant.default_db_type:db_type;
                 var league_select = null;
@@ -117,7 +117,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         //store:dbselect_store,
                         //labelAttr:"name",
                         onChange: lang.hitch(this, function(evt) {
-                            var name_list = this.getname_list(evt, db_type);
+                            this.getname_list(evt, db_type, info_obj);
                         })
                     }, select_node);
                     args_obj = {db_type:db_type, label_str:'Select League',
@@ -131,10 +131,18 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 }
             },
             // get list of items in db specified by db_type from server
-            getname_list: function(colname, db_type) {
+            // collection name is the event of calling onChange event handler
+            getname_list: function(colname, db_type, info_obj) {
                 var query_obj = {db_type:db_type};
+                // note {colname:colname} is the options_obj obj passed directly
+                // to the callback function create_divstr_list
+                // we want to pass the colname back to the callback so that the colname
+                // can be attached to the fieldinfo data when it is saved to the
+                // local store and also sent back to the server
+                options_obj = {colname:colname, db_type:db_type, info_obj:info_obj};
                 this.server_interface.getServerData('get_dbcol/'+colname,
-                    lang.hitch(this, this.create_divstr_list), query_obj);
+                    lang.hitch(this, this.create_divstr_list), query_obj,
+                    options_obj);
             },
             // swap the store for the league select widget
             // usually driven by radio button db type selection
@@ -147,9 +155,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 league_select.set("options", option_list);
                 league_select.startup();
             },
-            create_divstr_list: function(server_data) {
+            create_divstr_list: function(server_data, options_obj) {
                 var data_list = server_data[constant.serverdata_key];
                 var config_status = server_data[constant.serverstatus_key];
+                var colname = options_obj.colname; // collection name for divinfo
+                var db_type = options_obj.db_type; // db_type for divstr
+                var info_obj = options_obj.info_obj; // where to return colname and db_type info
                 // config_status below should always be 1 as the db's are selected
                 // from a list that includes only fully complete configurations
                 if (config_status) {
@@ -157,6 +168,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         function(item, index) {
                             return item.div_age + item.div_gen;
                         })
+                    // save divinfo obj information that is attached to the current
+                    // fieldinfo obj
+                    info_obj.setdivstr_obj(colname, db_type);
                     baseinfoSingleton.watch_obj.set('divstr_list', divstr_list);
                 }
             },

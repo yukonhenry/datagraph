@@ -154,6 +154,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var data_list = server_data[options_obj.serverdata_key];
 				// extract configuration status from server. integer value 0/1
 				var config_status = server_data[options_obj.serverstatus_key];
+				var serverdb_type = server_data.db_type;
+				if (serverdb_type != this.db_type) {
+					// db_type retruned from server should match up with this obj's
+					// db_type; if not, reanalyze
+					console.log("createEditGrid: warning: check db_type/serverdb_type logic");
+				}
 				this.rownum = data_list.length;
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
@@ -171,6 +177,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// schedule type - rr or tourn
 						this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
 							constant.radiobtn2_id, constant.leagueselect_id);
+						// extract divinfo obj related parameters from server data
+						var divstr_colname = server_data.divstr_colname;
+						var divstr_db_type = server_data.divstr_db_type;
+						this.getdivstr_list(divstr_colname, divstr_db_type);
 					} else {
 						alert('check db_type and idproperty consistency');
 					}
@@ -226,7 +236,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				this.text_node.innerHTML = text_str;
 				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
 					idproperty);
-				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendDivInfoToServer);
+				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendStoreInfoToServer);
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
 				this.update_configdone(-1); // reset

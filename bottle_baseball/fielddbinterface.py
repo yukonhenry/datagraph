@@ -26,7 +26,7 @@ class FieldDBInterface:
         self.dbInterface = MongoDBInterface(mongoClient, newcol_name,
                                             db_col_type=DB_Col_Type.FieldInfo)
 
-    def writeDB(self, fieldinfo_str, config_status):
+    def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
         for fieldinfo in fieldinfo_list:
             start_date_str = fieldinfo['start_date']
@@ -44,19 +44,7 @@ class FieldDBInterface:
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
-        '''
-            document = {field_id_CONST:int(field_id),
-                        field_name_CONST:fieldinfo['field_name'],
-                        primaryuse_list_CONST:fieldinfo['primaryuse_str'].split(','),
-                        start_date_CONST:start_date_str,
-                        end_date_CONST:end_date_str,
-                        start_time_CONST:fieldinfo['start_time'],
-                        end_time_CONST:fieldinfo['end_time'],
-                        dayweek_list_CONST:dayweek_list,
-                        numgamedays_CONST:numgamedays}
-            self.dbInterface.updateFieldInfo(document, field_id)
-        '''
-        self.dbInterface.updateDivInfoDocument(document_list, config_status)
+        self.dbInterface.updateFieldInfoDocument(document_list, config_status, divstr_colname=divstr_colname, divstr_db_type=divstr_db_type)
 
     def readDB(self):
         liststatus_tuple = self.dbInterface.getInfoDocument()

@@ -218,28 +218,22 @@ def create_newdbcol(newcol_name):
     db_type = request.query.db_type
     if db_type == 'rrdb':
         dbInterface = RRDBInterface(mongoClient, newcol_name)
+        dbInterface.writeDB(info_data, config_status)
     elif db_type == 'tourndb':
         dbInterface = TournDBInterface(mongoClient, newcol_name)
+        dbInterface.writeDB(info_data, config_status)
     elif db_type == 'fielddb':
         dbInterface = FieldDBInterface(mongoClient, newcol_name)
+        # get divinfo parameters associated with fieldinfo obj
+        divstr_colname = request.query.divstr_colname
+        divstr_db_type = requet.query.divstr_db_type
+        dbInterface.writeDB(info_data, config_status,
+                            divstr_colname=divstr_colname,
+                            divstr_db_type=divstr_db_type)
     else:
         raise CodeLogicError("leaguedivprocess:create_newdbcol: db_type not recognized db_type=%s" % (db_type,))
-    dbInterface.writeDB(info_data, config_status)
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
-
-'''
-@route('/create_newfieldcol/<newcol_name>')
-def create_newfieldcol(newcol_name):
-    callback_name = request.query.callback
-    fieldinfo_data = request.query.fielddb
-    fdbInterface = FieldDBInterface(mongoClient, newcol_name)
-    print "fileinfodata=",fieldinfo_data
-    fdbInterface.writeDB(fieldinfo_data)
-    #schedcol_list = fdbInterface.dbInterface.getScheduleCollection()
-    a = json.dumps({'test':'asdf'})
-    return callback_name+'('+a+')'
-'''
 
 @route('/delete_dbcol/<delcol_name>')
 def delete_dbcol(delcol_name):
@@ -289,7 +283,7 @@ def get_scheddbcol(getcol_name):
     game_list = tdbInterface.readSchedDB(div.age, div.gender)
     a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'
-
+'''
 @route('/get_fieldcol/<getcol_name>')
 def get_fieldcol(getcol_name):
     callback_name = request.query.callback
@@ -297,6 +291,7 @@ def get_fieldcol(getcol_name):
     fieldinfo_list = fdbInterface.readDB().dict_list
     a = json.dumps({'fieldinfo_list':fieldinfo_list})
     return callback_name+'('+a+')'
+'''
 
 @route('/delete_fieldcol/<delcol_name>')
 def delete_fieldcol(delcol_name):

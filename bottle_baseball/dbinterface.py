@@ -40,6 +40,8 @@ round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
 doc_list_CONST = 'DOC_LIST'
 config_status_CONST = 'CONFIG_STATUS'
+divstr_colname_CONST = 'DIVSTR_COLNAME'
+divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
@@ -73,12 +75,21 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.games_col.insert(document, safe=True)
 
-    def updateDivInfoDocument(self, doc_list, config_status):
+    def updateInfoDocument(self, doc_list, config_status):
         docID = self.games_col.update({sched_type_CONST:self.sched_type,
                                       doc_list_CONST:{"$exists":True}},
                                       {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status}},
                                       upsert=True, safe=True)
+
+    def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
+        docID = self.games_col.update({sched_type_CONST:self.sched_type,
+                                      doc_list_CONST:{"$exists":True}},
+                                      {"$set": {doc_list_CONST:doc_list,
+                                      config_status_CONST:config_status,
+                                      divstr_colname_CONST:divstr_colname,
+                                      divstr_db_type_CONST:divstr_db_type}},
+                                      upsert=True)
 
     def updateFieldInfo(self, document, field_id):
         docID = self.games_col.update({field_id_CONST:field_id},

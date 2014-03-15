@@ -29,6 +29,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			field_id:0, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
+			divstr_colname:"", divstr_db_type:"",
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -424,15 +425,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					var TDialog = null;
 					var tdialogprop_obj = null;
 					var field_id = object.field_id;
-					// first see if there is data read in from the store
-					var divstr_list = [];
-					if (data) {
-						divstr_list = data.split(',');
-					} else {
-						// if no data is passed in, then see if there is a divstr
-						// that we can grab from baseinfoSingleton
-						divstr_list = baseinfoSingleton.watch_obj.get('divstr_list');
-					}
+					// get data to create the possible check list items
+					// which is the all the divinfo items
+					// Data for actually entering the checks will come later
+					divstr_list = baseinfoSingleton.watch_obj.get('divstr_list')
 					if (divstr_list && divstr_list.length > 0) {
 						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
@@ -677,7 +673,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
 					radio1_id, radio2_id);
-				this.widgetgen.create_league_select(topdiv_node, select_id, 'default');
+				this.widgetgen.create_league_select(topdiv_node, select_id,
+					'default', this);
+			},
+			// get divinfo divstr info from server and
+			// save list in baseinfoSingleton
+			getdivstr_list: function(colname, db_type) {
+				if (!this.widgetgen) {
+					this.widgetgen = new WidgetGen({
+						storeutil_obj:this.storeutil_obj,
+						server_interface:this.server_interface
+					});
+				}
+				this.widgetgen.getname_list(colname, db_type, this);
+			},
+			// set and get divinfo  obj information that is attached to the current
+			// fieldinfo obj
+			setdivstr_obj: function(colname, db_type) {
+				this.divstr_colname = colname;
+				this.divstr_db_type = db_type;
+			},
+			getdivstr_obj: function() {
+				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

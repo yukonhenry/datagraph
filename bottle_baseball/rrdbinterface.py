@@ -29,7 +29,7 @@ class RRDBInterface:
     def writeDB(self, divinfo_str, config_status):
         divinfo_list = json.loads(divinfo_str)
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
-        self.dbInterface.updateDivInfoDocument(document_list, config_status)
+        self.dbInterface.updateInfoDocument(document_list, config_status)
 
     def readDB(self):
         liststatus_tuple = self.dbInterface.getInfoDocument()

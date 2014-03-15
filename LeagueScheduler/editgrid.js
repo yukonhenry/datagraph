@@ -181,7 +181,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}
 				}
 			},
-			sendDivInfoToServer: function(event) {
+			sendStoreInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than
@@ -214,6 +214,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 				this.info_obj.update_configdone(config_status);
 				var storedata_json = null;
+				var server_path = this.server_path || "create_newdbcol/";
+				var server_key = this.server_key || "";
+				var server_key_obj = {};
 				if (this.idproperty == "field_id") {
 					var newlist = new Array();
 					// for the field grid data convert Data objects to str
@@ -231,12 +234,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						newlist.push(obj);
 					});
 					storedata_json = JSON.stringify(newlist);
+					divstr_obj = this.info_obj.getdivstr_obj();
+					// get colname and db_type for the divinfo obj attached to the
+					// current fieldinfo obj.
+					server_key_obj.divstr_colname = divstr_obj.colname;
+					server_key_obj.divstr_db_type = divstr_obj.db_type;
 				} else {
 					storedata_json = JSON.stringify(raw_result);
 				}
-				var server_path = this.server_path || "create_newdbcol/";
-				var server_key = this.server_key || "";
-				var server_key_obj = {};
 				server_key_obj[server_key] = storedata_json;
 				server_key_obj.config_status = config_status;
 				server_key_obj.db_type = this.db_type;

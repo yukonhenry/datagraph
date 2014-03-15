@@ -8,8 +8,6 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			numweeks:0
 		})
 		var baseinfoSingleton = declare(null, {
-			select_reg:null, select_dom:null, active_grid:null,
-			dbname_list:null, active_grid_name:"", tbutton_reg:null,
 			obj_list:null, watch_obj:null,
 			constructor: function() {
 				this.obj_list = new Array();
