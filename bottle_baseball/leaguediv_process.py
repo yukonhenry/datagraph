@@ -226,7 +226,7 @@ def create_newdbcol(newcol_name):
         dbInterface = FieldDBInterface(mongoClient, newcol_name)
         # get divinfo parameters associated with fieldinfo obj
         divstr_colname = request.query.divstr_colname
-        divstr_db_type = requet.query.divstr_db_type
+        divstr_db_type = request.query.divstr_db_type
         dbInterface.writeDB(info_data, config_status,
                             divstr_colname=divstr_colname,
                             divstr_db_type=divstr_db_type)
@@ -268,8 +268,14 @@ def get_dbcol(getcol_name):
     dbtuple = dbInterface.readDB();
     info_list = dbtuple.list
     config_status = dbtuple.config_status
+    return_obj = {'info_list':info_list, 'config_status':config_status}
     print 'info_list', info_list
-    a = json.dumps({'info_list':info_list, 'config_status':config_status})
+    if db_type == 'fielddb':
+        divstr_colname = dbtuple.divstr_colname
+        divstr_db_type = dbtuple.divstr_db_type
+        return_obj.update({'divstr_colname':divstr_colname,
+                          'divstr_db_type':divstr_db_type})
+    a = json.dumps(return_obj)
     return callback_name+'('+a+')'
 
 @route('/get_scheddbcol/<getcol_name>')

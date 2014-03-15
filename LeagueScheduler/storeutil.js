@@ -101,7 +101,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = match_obj.db_type;
 				var dbselect_store = this.getselect_store(db_type);
 				var query_obj = {name:colname};
-				result_list = dbselect_store.query(query_obj);
+				var result_list = dbselect_store.query(query_obj);
 				if (result_list.total == 0) {
 					query_obj.config_status = config_status; // add status field
 					dbselect_store.add(query_obj);

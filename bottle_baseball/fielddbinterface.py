@@ -10,6 +10,7 @@ import logging
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
+_FieldList_Status = namedtuple('_FieldList_Status', 'list config_status divstr_colname divstr_db_type')
 
 field_id_CONST = 'FIELD_ID'
 field_name_CONST = 'FIELD_NAME'
@@ -47,32 +48,19 @@ class FieldDBInterface:
         self.dbInterface.updateFieldInfoDocument(document_list, config_status, divstr_colname=divstr_colname, divstr_db_type=divstr_db_type)
 
     def readDB(self):
-        liststatus_tuple = self.dbInterface.getInfoDocument()
-        field_list = liststatus_tuple.list
-        config_status = liststatus_tuple.config_status
+        liststatus_qtuple = self.dbInterface.getFieldInfoDocument()
+        field_list = liststatus_qtuple.list
+        config_status = liststatus_qtuple.config_status
+        divstr_colname = listatus_qtuple.divstr_colname
+        divstr_db_type = listatus_qtuple.divstr_db_type
         for field in field_list:
             field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
             field['dayweek_str'] = ','.join(str(f) for f in field[dayweek_list_CONST])
             del field[dayweek_list_CONST]
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
-        return _List_Status(fieldinfo_list, config_status)
-        '''
-        flist = self.dbInterface.getFieldInfo().dict_list
-        fieldinfo_list = []
-        for fieldinfo in flist:
-            fieldinfo_list.append({'field_id':fieldinfo[field_id_CONST],
-                                 'field_name':fieldinfo[field_name_CONST],
-                                 'primaryuse_str':','.join(str(f) for f in fieldinfo[primaryuse_list_CONST]),
-                                 'start_date':fieldinfo[start_date_CONST],
-                                 'end_date':fieldinfo[end_date_CONST],
-                                 'start_time':fieldinfo[start_time_CONST],
-                                 'end_time':fieldinfo[end_time_CONST],
-                                 'dayweek_str':','.join(str(f) for f in fieldinfo[dayweek_list_CONST]),
-                                 'numgamedays':fieldinfo[numgamedays_CONST]})
-        f_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
-        return _List_Indexer(fieldinfo_list, f_indexerGet)
-    '''
+        return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
+                                 divstr_db_type)
 
     def updateFieldTimes(self, fieldtime_str):
         fieldtime_dict = json.loads(fieldtime_str)

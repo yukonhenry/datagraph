@@ -45,6 +45,7 @@ divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
+_FieldList_Status = namedtuple('_FieldList_Status', 'list config_status divstr_colname divstr_db_type')
 
 # http://pythonhosted.org/flufl.enum/docs/using.html
 class DB_Col_Type(Enum):
@@ -362,9 +363,18 @@ class MongoDBInterface:
                                          {'_id':0})
         info_list = result[doc_list_CONST]
         config_status = result[config_status_CONST]
-        #d_indexerGet = lambda x: dict((p[div_id_CONST],i) for i,p in enumerate(divinfo_list)).get(x)
-        #return _List_Indexer(divinfo_list, d_indexerGet)
         return _List_Status(info_list, config_status)
+
+    def getFieldInfoDocument(self):
+        result = self.games_col.find_one({sched_type_CONST:self.sched_type,
+                                         doc_list_CONST:{"$exists":True}},
+                                         {'_id':0})
+        info_list = result[doc_list_CONST]
+        config_status = result[config_status_CONST]
+        divstr_colname = result[divstr_colname_CONST]
+        divstr_db_type = result[divstr_db_type_CONST]
+        return _FieldList_Status(info_list, config_status, divstr_colname,
+                            divstr_db_type)
 
     def getFieldInfo(self):
         result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)
