@@ -173,13 +173,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							item.start_time = new Date(start_str+' '+item.start_time);
 							item.end_time = new Date(end_str+' '+item.end_time);
 						})
-						//For field grids, create radio button pair to select
-						// schedule type - rr or tourn
-						this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
-							constant.radiobtn2_id, constant.leagueselect_id);
 						// extract divinfo obj related parameters from server data
 						var divstr_colname = server_data.divstr_colname;
 						var divstr_db_type = server_data.divstr_db_type;
+						//For field grids, create radio button pair to select
+						// schedule type - rr or tourn
+						this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
+							constant.radiobtn2_id, constant.leagueselect_id,
+							divstr_db_type, divstr_colname);
 						this.getdivstr_list(divstr_colname, divstr_db_type);
 					} else {
 						alert('check db_type and idproperty consistency');
@@ -240,21 +241,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
 				this.update_configdone(-1); // reset
-				// https://github.com/kriszyp/put-selector
-				// button is enclosed in a div
-				// outer div has class that has the float:right property
-				/*
-				var generate_button = null;
-				if (!this.button_div) {
-					this.button_div = put(updatebtn_widget.domNode,
-						"+div.generate_button button");
-					generate_button = new Button({
-						label:"Generate", type:"button", class:"success"},
-						this.button_div);
-					generate_button.startup();
-				} else {
-					generate_button = registry.byId(this.button_div);
-				} */
 				if (swapcpane_flag) {
 					this.uistackmgr.switch_pstackcpane({idproperty:idproperty,
 						p_stage:"config", entry_pt:entry_pt,

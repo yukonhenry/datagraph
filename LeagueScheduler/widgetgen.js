@@ -34,7 +34,18 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             // also reference
             // http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
             // http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
-            create_dbtype_radiobtn: function(topdiv_node, div1_radio_id, div2_radio_id) {
+            create_dbtype_radiobtn: function(topdiv_node, div1_radio_id, div2_radio_id, init_db_type) {
+                // first figure out which radio button is initially enabled
+                var radio1_flag = false;
+                if (init_db_type) {
+                    // if an init_db_type is specified
+                    radio1_flag = (init_db_type == 'rrdb')?true:false;
+                } else {
+                    // if no init_db_type, then use default for initial
+                    // radiobtn selection
+                    radio1_flag = (constant.default_db_type == 'rrdb')?true:false;
+                }
+
                 put(topdiv_node, "span", "Select Schedule Type:");
                 // NOTE: dom.byID after the widget does not recover the
                 // widget's domNode. In this example, the widget's domNode is a
@@ -55,6 +66,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     div1_radio = new RadioButton({
                         name:'db_type',
                         value:'rrdb',
+                        checked:radio1_flag,
                         style:"margin-left:5px",
                         onChange: lang.hitch(this, function(evt) {
                             if (evt) {
@@ -80,6 +92,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         name:'db_type',
                         value:'tourndb',
                         style:"margin-left:10px",
+                        checked:!radio1_flag,
                         onChange: lang.hitch(this, function(evt) {
                             if (evt) {
                                 this.watch_obj.set('db_type', 'tourndb');
@@ -92,19 +105,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // byNode
                     div2_radio = registry.byId(div2_radio_id);
                 }
-                if (constant.default_db_type == 'rrdb') {
-                    div1_radio.set("checked", true);
-                    //this.watch_obj.set('db_type', 'rrdb');
-                } else {
-                    div2_radio.set("checked", true);
-                    //this.watch_obj.set('db_type', 'tourndb');
-                }
             },
             // create select dropdown
             // programmatic creation of enclosing node and then widget itself
-            create_league_select: function(topdiv_node, lselect_id, db_type, info_obj) {
-                var db_type = (db_type == 'default') ?
-                    constant.default_db_type:db_type;
+            create_league_select: function(topdiv_node, lselect_id, info_obj, init_db_type, init_colname) {
+                var db_type = (init_db_type == "") ?
+                    constant.default_db_type:init_db_type;
                 var league_select = null;
                 var select_node = dom.byId(lselect_id);
                 if (!select_node) {
@@ -121,7 +127,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         })
                     }, select_node);
                     args_obj = {db_type:db_type, label_str:'Select League',
-                                config_status:true};
+                                config_status:true, init_colname:init_colname};
                     var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
                     league_select.addOption(option_list);
                     league_select.startup();

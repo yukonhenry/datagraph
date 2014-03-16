@@ -660,7 +660,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
 				dropdownbtn_reg.set('label', display_str);
 			},
-			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id) {
+			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname) {
+				// passed in init_db_type and init_colname are typicall
+				// for divinfo(divstr) db_type and colname even though it
+				// is used for fieldinfo grid
+				var init_db_type = init_db_type || "";
+				var init_colname = init_colname || "";
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
 				var fieldinfogrid_node = dom.byId(constant.grid_id);
@@ -672,9 +677,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					});
 				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
-					radio1_id, radio2_id);
+					radio1_id, radio2_id, init_db_type);
 				this.widgetgen.create_league_select(topdiv_node, select_id,
-					'default', this);
+					this, init_db_type, init_colname);
 			},
 			// get divinfo divstr info from server and
 			// save list in baseinfoSingleton

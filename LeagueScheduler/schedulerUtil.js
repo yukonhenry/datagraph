@@ -196,7 +196,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					dbmenureg_list = this.tdbmenureg_list;
 				else
 					dbmenureg_list = this.fielddbmenureg_list;
-				var item_name = object.label;
+				var item_name = object.name;
 				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;

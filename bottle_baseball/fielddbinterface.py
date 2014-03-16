@@ -51,8 +51,8 @@ class FieldDBInterface:
         liststatus_qtuple = self.dbInterface.getFieldInfoDocument()
         field_list = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
-        divstr_colname = listatus_qtuple.divstr_colname
-        divstr_db_type = listatus_qtuple.divstr_db_type
+        divstr_colname = liststatus_qtuple.divstr_colname
+        divstr_db_type = liststatus_qtuple.divstr_db_type
         for field in field_list:
             field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]

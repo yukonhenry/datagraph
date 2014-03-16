@@ -164,13 +164,18 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = args_obj.db_type;
 				var label_str = args_obj.label_str;
 				var config_status = args_obj.config_status;
+				var init_colname = args_obj.init_colname;
 				// get list of db's from store that have been completed
 				var label_list = this.getfromdb_store_value(db_type,
 					'name', config_status);
+				var select_flag = init_colname?false:true;
+				// select_flag for the first entry is false if there is an init_colname
 				var option_list = [{label:label_str, value:"",
-					selected:true}];
+					selected:select_flag}];
 				arrayUtil.forEach(label_list, function(item, index) {
-					option_list.push({label:item, value:item, selected:false});
+					select_flag = (init_colname && init_colname == item)
+						? true:false;
+					option_list.push({label:item, value:item, selected:select_flag});
 				});
 				return option_list;
 			},
