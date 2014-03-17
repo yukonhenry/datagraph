@@ -701,6 +701,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			getdivstr_obj: function() {
 				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
 			},
+			checkconfig_status: function(raw_result){
+				var config_status = 0;
+				if (arrayUtil.some(raw_result, function(item, index) {
+					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
+					// iterate through object's own properties too see if there
+					// any unfilled fields.  If so alert and exit without sending
+					// data to server
+					var break_flag = false;
+					var break_prop = "";
+					for (var prop in item) {
+						if (prop=='dates')
+							continue;
+						if (item[prop] === "") {
+							//alert("Not all fields in grid filled out, but saving");
+							break_flag = true;
+							break;
+						}
+					}
+					return break_flag;
+				})) {
+					// insert return statement here if plan is to prevent saving.
+					console.log("Not all fields complete for "+this.idproperty+
+						" but saving");
+				} else {
+					config_status = 1;
+				}
+				return config_status;
+			},
 			cleanup: function() {
 				if (this.starttime_handle)
 					this.starttime_handle.remove();
