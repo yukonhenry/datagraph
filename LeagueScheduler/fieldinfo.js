@@ -702,6 +702,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
 			},
 			checkconfig_status: function(raw_result){
+				// do check to make sure all fields have been filled.
+				// note construct of using arrayUtil.some works better than
+				// query.filter() as loop will exit immediately if .some() returns
+				// true.
+				// config_status is an integer type as booleans cannot be directly
+				// be transmitted to server (sent as 'true'/'false' string)
 				var config_status = 0;
 				if (arrayUtil.some(raw_result, function(item, index) {
 					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
@@ -709,7 +715,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// any unfilled fields.  If so alert and exit without sending
 					// data to server
 					var break_flag = false;
-					var break_prop = "";
 					for (var prop in item) {
 						if (prop=='dates')
 							continue;

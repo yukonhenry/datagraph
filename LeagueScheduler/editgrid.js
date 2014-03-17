@@ -183,35 +183,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			sendStoreInfoToServer: function(event) {
 				var raw_result = this.schedInfoStore.query();
-				// do check to make sure all fields have been filled.
-				// note construct of using arrayUtil.some works better than
-				// query.filter() as loop will exit immediately if .some() returns
-				// true.
-				// config_status is an integer type as booleans cannot be directly
-				// be transmitted to server (sent as 'true'/'false' string)
-				var config_status = 0;
-				if (arrayUtil.some(raw_result, function(item, index) {
-					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
-					// iterate through object's own properties too see if there
-					// any unfilled fields.  If so alert and exit without sending
-					// data to server
-					var break_flag = false;
-					for (var prop in item) {
-						if (this.idproperty == 'field_id' && prop=='dates')
-							continue;
-						if (item[prop] === "") {
-							//alert("Not all fields in grid filled out, but saving");
-							break_flag = true;
-							break;
-						}
-					}
-					return break_flag;
-				}, this)) {
-					// insert return statement here if plan is to prevent saving.
-					console.log("Not all fields complete, but saving");
-				} else {
-					config_status = 1;
-				}
+				var config_status = this.info_obj.checkconfig_status(raw_result);
 				this.info_obj.update_configdone(config_status);
 				var storedata_json = null;
 				var server_path = this.server_path || "create_newdbcol/";
