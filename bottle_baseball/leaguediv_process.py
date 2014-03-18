@@ -289,15 +289,6 @@ def get_scheddbcol(getcol_name):
     game_list = tdbInterface.readSchedDB(div.age, div.gender)
     a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'
-'''
-@route('/get_fieldcol/<getcol_name>')
-def get_fieldcol(getcol_name):
-    callback_name = request.query.callback
-    fdbInterface = FieldDBInterface(mongoClient, getcol_name)
-    fieldinfo_list = fdbInterface.readDB().dict_list
-    a = json.dumps({'fieldinfo_list':fieldinfo_list})
-    return callback_name+'('+a+')'
-'''
 
 @route('/delete_fieldcol/<delcol_name>')
 def delete_fieldcol(delcol_name):
@@ -317,3 +308,10 @@ def update_fieldtimes(col_name):
     fdbInterface.updateFieldTimes(fieldtime_str)
     a = json.dumps({'test':'dfh'})
     return callback_name+'('+a+')'
+
+@route('/send_generate')
+def send_generate():
+    callback_name = request.query.callback
+    div_colname = request.query.div_colname
+    field_colname = request.query.field_colname
+

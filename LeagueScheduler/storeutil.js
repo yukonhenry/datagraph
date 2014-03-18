@@ -66,7 +66,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					}
 					if (insertIndex > -1) {
 						this.schedutil_obj.regenAddDBCollection_smenu(insertIndex,
-							object);
+							object, db_type);
 						if (newsched_obj && newsched_obj.selectexists_flag) {
 							newsched_obj.addto_select(db_type, object.name, insertIndex);
 						}

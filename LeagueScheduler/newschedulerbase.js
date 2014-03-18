@@ -17,10 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			scinput_div:'seasoncalendar_input'
 		};
 		var newschedwatch_class = declare([Stateful],{
-			leagueselect_val:-1,
 			leagueselect_flag:false,
-			fgselect_val:-1,
-			fgselect_flag:false,
 			league_fg_flag:false
 		})
 		return declare(null, {
@@ -35,6 +32,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasonlength_handle:null, league_select:null, fg_select:null,
 			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			selectexists_flag:false,
+			legue_select_value:"", fg_select_value:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -126,10 +124,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.league_select = new Select({
 								name:'league_select',
 								onChange: lang.hitch(this, function(evt) {
-									// copy event (value of option) to watched obj
-									//this.newschedwatch_obj.set('leagueselect_val',
-									//	evt);
 									this.newschedwatch_obj.set('leagueselect_flag',evt!="");
+									this.league_select_value = evt;
 								})
 							}, select_node);
 							args_obj = {db_type:'rrdb', label_str:'Select League',
@@ -159,11 +155,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.fg_select = new Select({
 								name:'fg_select',
 								onChange: lang.hitch(this, function(evt) {
-									// copy event (value of option) to watched obj
-									//this.newschedwatch_obj.set('fgselect_val',
-									//	evt);
 									this.newschedwatch_obj.set('fgselect_flag',
 										evt!="");
+									this.fg_select_value = evt;
 								})
 							}, fg_select_node);
 							args_obj = {db_type:'fielddb',
@@ -194,6 +188,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								label:"Generate",
 								disabled:true,
 								class:"success",
+								onClick: lang.hitch(this, this.send_generate)
 							}, btn_node);
 							schedule_btn.startup();
 							var btn_tooltip = new Tooltip(btn_tooltipconfig);
@@ -243,6 +238,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			is_newgrid_required: function() {
 				return false;
+			},
+			send_generate: function() {
+				var server_key_obj = {div_colname:this.league_select_value,
+					field_colname:this.fg_select_value};
+				this.server_interface.getServerData("send_generate",
+					this.server_interface.server_ack, server_key_obj);
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

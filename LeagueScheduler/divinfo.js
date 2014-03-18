@@ -1,9 +1,9 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
+define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dgrid/editor",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "put-selector/put", "dojo/domReady!"],
-	function(declare, dom, lang, registry, editor,
+	function(declare, dom, lang, arrayUtil, registry, editor,
 		baseinfo, baseinfoSingleton, WidgetGen, put){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
@@ -32,10 +32,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
 					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
-					numweeks: editor({label:"Number Weeks", field:"numweeks", autoSave:true}, "text", "dblclick"),
+					numweeks: editor({label:"Number Weeks", autoSave:true}, "text", "dblclick"),
 					numgdaysperweek: editor({label:"Num Gamedays per Week", autoSave:true}, "text", "dblclick"),
 					totalgamedays: {label:"Total Gamedays",
 						get:function(item) {
+							return item.numweeks*item.numgdaysperweek;
+						},
+						set:function(item) {
 							return item.numweeks*item.numgdaysperweek;
 						}
 					},
@@ -124,6 +127,47 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					seasondates_btn_id:constant.seasondates_btn_id
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
+			},
+			checkconfig_status: function(raw_result){
+				// do check to make sure all fields have been filled.
+				// note construct of using arrayUtil.some works better than
+				// query.filter() as loop will exit immediately if .some() returns
+				// true.
+				// config_status is an integer type as booleans cannot be directly
+				// be transmitted to server (sent as 'true'/'false' string)
+				// Baseline implementation - if need to customize, do so in
+				// inherited child class
+				var config_status = 0;
+				if (arrayUtil.some(raw_result, function(item, index) {
+					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
+					// iterate through object's own properties too see if there
+					// any unfilled fields.  If so alert and exit without sending
+					// data to server
+					var break_flag = false;
+					for (var prop in item) {
+						if (prop == 'totalgamedays') {
+							// for totalgamedays column we want at least positive gamedays
+							if (item[prop] <= 0) {
+								break_flag = true;
+								break;
+							}
+						} else {
+							if (item[prop] === "") {
+								//alert("Not all fields in grid filled out, but saving");
+								break_flag = true;
+								break;
+							}
+						}
+					}
+					return break_flag;
+				})) {
+					// insert return statement here if plan is to prevent saving.
+					console.log("Not all fields complete for "+this.idproperty+
+						" but saving");
+				} else {
+					config_status = 1;
+				}
+				return config_status;
 			},
 		});
 });

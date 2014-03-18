@@ -187,9 +187,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					dbmenureg.removeChild(delindex);
 				});
 			},
-			regenAddDBCollection_smenu: function(insertIndex, object) {
+			regenAddDBCollection_smenu: function(insertIndex, object, db_type) {
 				var dbmenureg_list = null;
-				var db_type = object.db_type;
+				//var db_type = object.db_type;
 				if (db_type == 'rrdb')
 					dbmenureg_list = this.rrdbmenureg_list;
 				else if (db_type == 'tourndb')
