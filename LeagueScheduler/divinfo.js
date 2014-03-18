@@ -35,12 +35,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					numweeks: editor({label:"Number Weeks", autoSave:true}, "text", "dblclick"),
 					numgdaysperweek: editor({label:"Num Gamedays per Week", autoSave:true}, "text", "dblclick"),
 					totalgamedays: {label:"Total Gamedays",
+					/*
 						get:function(item) {
 							return item.numweeks*item.numgdaysperweek;
-						},
-						set:function(item) {
-							return item.numweeks*item.numgdaysperweek;
-						}
+						}, */
 					},
 					gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true}, "text", "dblclick"),
 				};
@@ -106,6 +104,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.infogrid_store.query({})
 				.forEach(lang.hitch(this, function(obj) {
 					obj.numweeks = numweeks;
+					obj.totalgamedays = numweeks*obj.numgdaysperweek;
 					this.infogrid_store.put(obj);
 				}))
 			},

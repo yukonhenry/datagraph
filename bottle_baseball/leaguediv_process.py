@@ -20,6 +20,7 @@ from singletonlite import mongoClient
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
+from schedmaster import SchedMaster
 from sched_exceptions import CodeLogicError
 
 dbInterface = MongoDBInterface(mongoClient)
@@ -312,6 +313,8 @@ def update_fieldtimes(col_name):
 @route('/send_generate')
 def send_generate():
     callback_name = request.query.callback
+    db_type = request.query.db_type
     div_colname = request.query.div_colname
     field_colname = request.query.field_colname
+    schedMaster = SchedMaster(mongoClient, db_type, div_colname, field_colname)
 

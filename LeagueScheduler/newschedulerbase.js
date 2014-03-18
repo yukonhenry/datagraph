@@ -14,7 +14,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		var constant = {
 			idproperty_str:'newsched_id',
 			form_name:'newsched_form_id',
-			scinput_div:'seasoncalendar_input'
+			scinput_div:'seasoncalendar_input',
+			radio1_id:'scradio1_id',
+			radio2_id:'scradio2_id',
+			league_select_id:'scleague_select_id'
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
@@ -32,7 +35,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasonlength_handle:null, league_select:null, fg_select:null,
 			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			selectexists_flag:false,
-			legue_select_value:"", fg_select_value:"",
+			legue_select_value:"", fg_select_value:"", widgetgen:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -112,15 +115,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
 						var today = new Date();
 						var scinput_dom = dom.byId(constant.scinput_div);
+						// get or create handle to widgetgen obj
+						if (!this.widgetgen) {
+							this.widgetgen = new WidgetGen({
+								storeutil_obj:this.storeutil_obj,
+								server_interface:this.server_interface
+							});
+						}
+						this.widgetgen.create_dbtype_radiobtn(scinput_dom,
+							constant.radio1_id, constant.radio2_id, 'rrdb',
+							lang.hitch(this, this.radio1_callback),
+							lang.hitch(this, this.radio2_callback)
+						);
 						// create league info dropdowns
-						var select_node = dom.byId("league_select_id");
+						var select_node = dom.byId(constant.league_select_id);
 						if (!select_node) {
 							// get parent dom and generate dropdown selects
 							put(scinput_dom,
-								"label.label_box[for=league_select_id]",
+								"label.label_box[for=$]", constant.league_select_id,
 								"Select League");
 							select_node = put(scinput_dom,
-								"select#league_select_id[name=league_select]");
+								"select[id=$][name=league_select]",
+								constant.league_select_id);
 							this.league_select = new Select({
 								name:'league_select',
 								onChange: lang.hitch(this, function(evt) {
@@ -135,7 +151,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.league_select.startup();
 							if (option_list.length < 2) {
 								var ls_tooltipconfig = {
-									connectId:['league_select_id'],
+									connectId:[constant.league_select_id],
 									label:"If Empty Specify League Spec's First",
 									position:['above','after']};
 								var ls_tooltip = new Tooltip(ls_tooltipconfig);
@@ -213,6 +229,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					} else {
 						alert('Input name is Invalid, please correct');
 					}
+				}
+			},
+			// callback function when dbtype radiobutton is changed
+			radio1_callback: function(select_id, event) {
+				if (event) {
+					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
+				}
+			},
+			radio2_callback: function(select_id, event) {
+				if (event) {
+					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
 				}
 			},
 			removefrom_select: function(db_type, index) {

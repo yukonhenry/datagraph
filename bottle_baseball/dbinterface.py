@@ -67,21 +67,21 @@ class MongoDBInterface:
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
-        docID = self.games_col.insert(document, safe=True)
+        docID = self.games_col.insert(document)
 
     def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id, comment, around):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away,
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
-        docID = self.games_col.insert(document, safe=True)
+        docID = self.games_col.insert(document)
 
     def updateInfoDocument(self, doc_list, config_status):
         docID = self.games_col.update({sched_type_CONST:self.sched_type,
                                       doc_list_CONST:{"$exists":True}},
                                       {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status}},
-                                      upsert=True, safe=True)
+                                      upsert=True)
 
     def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
         docID = self.games_col.update({sched_type_CONST:self.sched_type,

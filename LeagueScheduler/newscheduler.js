@@ -16,10 +16,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			cellselect_flag:false,
 			text_node_str:"",
 			updatebtn_str:"", storeutil_obj:null,
-			grid_id:"", uistackmgr:null, tooltip_list:null,
+			grid_id:"", uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args)
-				this.tooltip_list = new Array();
 			},
 			cleanup: function() {
 				// cleanup here is cleaning up what is left over from other
@@ -28,9 +27,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					active_grid.cleanup();
 					//baseinfoSingleton.reset_active_grid();
 				}
-				arrayUtil.forEach(this.tooltip_list, function(item) {
-					item.destroyRecursive();
-				});
 			}
 
 		});

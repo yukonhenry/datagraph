@@ -677,9 +677,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					});
 				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
-					radio1_id, radio2_id, init_db_type);
+					radio1_id, radio2_id, init_db_type,
+					this, radio1_callback, radio2_callback, select_id);
 				this.widgetgen.create_league_select(topdiv_node, select_id,
 					this, init_db_type, init_colname);
+			},
+			// callback function when dbtype radiobutton is changed
+			radio1_callback: function(select_id, event) {
+				if (event) {
+					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
+				}
+			},
+			radio2_callback: function(select_id, event) {
+				if (event) {
+					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
+				}
 			},
 			// get divinfo divstr info from server and
 			// save list in baseinfoSingleton
