@@ -4,20 +4,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/NumberSpinner", "dijit/form/DateTextBox",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection", "LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
+	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
+	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
+	"LeagueScheduler/widgetgen",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory,registry, Tooltip, ValidationTextBox, Select, Button, NumberSpinner,
 		DateTextBox,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
-		baseinfoSingleton, put) {
+		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
 			form_name:'newsched_form_id',
 			scinput_div:'seasoncalendar_input',
 			radio1_id:'scradio1_id',
 			radio2_id:'scradio2_id',
-			league_select_id:'scleague_select_id'
+			league_select_id:'scleague_select_id',
+			default_db_type:'rrdb'
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
@@ -36,6 +39,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			selectexists_flag:false,
 			legue_select_value:"", fg_select_value:"", widgetgen:null,
+			current_db_type:constant.default_db_type,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -123,10 +127,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							});
 						}
 						this.widgetgen.create_dbtype_radiobtn(scinput_dom,
-							constant.radio1_id, constant.radio2_id, 'rrdb',
-							lang.hitch(this, this.radio1_callback),
-							lang.hitch(this, this.radio2_callback)
-						);
+							constant.radio1_id, constant.radio2_id,
+							constant.default_db_type, this,
+							this.radio1_callback, this.radio2_callback,
+							constant.league_select_id);
 						// create league info dropdowns
 						var select_node = dom.byId(constant.league_select_id);
 						if (!select_node) {
@@ -156,7 +160,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									position:['above','after']};
 								var ls_tooltip = new Tooltip(ls_tooltipconfig);
 							}
-							put(scinput_dom, "span.empty_gap");  // add space
+							put(scinput_dom, "br, br");  // add space
 						} else {
 							this.league_select = registry.byNode(select_node);
 						}
@@ -235,16 +239,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			radio1_callback: function(select_id, event) {
 				if (event) {
 					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
+					this.current_db_type = 'rrdb';
 				}
 			},
 			radio2_callback: function(select_id, event) {
 				if (event) {
 					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
+					this.current_db_type = 'tourndb';
 				}
 			},
 			removefrom_select: function(db_type, index) {
 				// remove entries from the div or field group dropdown
-				if (db_type == 'rrdb') {
+				if (db_type == 'rrdb' || db_type == 'tourndb') {
 					this.league_select.removeOption(index);
 				} else if (db_type == 'fielddb') {
 					this.fg_select.removeOption(index)
@@ -253,7 +259,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			addto_select: function(db_type, label, insertIndex) {
 				var soption_obj = {label:label, value:insertIndex+1,
 					selected:false};
-				if (db_type == 'rrdb') {
+				// need to take care of tourndb also below
+				// we should be able to do a simple OR between rrdb and
+				// tourndb as this.league_select should be pointing the current
+				// db_type
+				if (db_type == 'rrdb' || db_type == 'tourndb') {
 					this.league_select.addOption(soption_obj);
 				} else if (db_type == 'fielddb') {
 					this.fg_select.addOption(soption_obj);
@@ -268,7 +278,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			send_generate: function() {
 				var server_key_obj = {div_colname:this.league_select_value,
-					field_colname:this.fg_select_value};
+					field_colname:this.fg_select_value,
+					db_type:this.current_db_type};
 				this.server_interface.getServerData("send_generate",
 					this.server_interface.server_ack, server_key_obj);
 			},

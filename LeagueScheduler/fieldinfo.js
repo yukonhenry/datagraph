@@ -678,7 +678,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
 					radio1_id, radio2_id, init_db_type,
-					this, radio1_callback, radio2_callback, select_id);
+					this, this.radio1_callback, this.radio2_callback, select_id);
 				this.widgetgen.create_league_select(topdiv_node, select_id,
 					this, init_db_type, init_colname);
 			},

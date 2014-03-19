@@ -14,7 +14,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
-			leagueselect_id:"leagueselect_id",
+			league_select_id:"league_select_id",
 		};
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
@@ -76,7 +76,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						if (this.idproperty == 'field_id') {
 							this.create_dbselect_radiobtnselect(
 								constant.radiobtn1_id, constant.radiobtn2_id,
-								constant.leagueselect_id);
+								constant.league_select_id);
 						} else if (this.idproperty == 'div_id') {
 							this.create_calendar_input();
 						}
@@ -179,7 +179,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						//For field grids, create radio button pair to select
 						// schedule type - rr or tourn
 						this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
-							constant.radiobtn2_id, constant.leagueselect_id,
+							constant.radiobtn2_id, constant.league_select_id,
 							divstr_db_type, divstr_colname);
 						this.getdivstr_list(divstr_colname, divstr_db_type);
 					} else {

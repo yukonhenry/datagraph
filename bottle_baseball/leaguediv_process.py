@@ -317,4 +317,5 @@ def send_generate():
     div_colname = request.query.div_colname
     field_colname = request.query.field_colname
     schedMaster = SchedMaster(mongoClient, db_type, div_colname, field_colname)
+    schedMaster.generate()
 

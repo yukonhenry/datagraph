@@ -31,16 +31,29 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					div_id: "Div ID",
 					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
 					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
-					totalteams: editor({label:"Total Teams", field:"totalteams", autoSave:true}, "text", "dblclick"),
-					numweeks: editor({label:"Number Weeks", autoSave:true}, "text", "dblclick"),
-					numgdaysperweek: editor({label:"Num Gamedays per Week", autoSave:true}, "text", "dblclick"),
+					totalteams: editor({label:"Total Teams", autoSave:true,
+						set:function(item) {
+							return parseInt(item.totalteams)
+						}}, "text", "dblclick"),
+					numweeks: editor({label:"Number Weeks", autoSave:true,
+						set:function(item) {
+							return parseInt(item.numweeks)
+						}}, "text", "dblclick"),
+					numgdaysperweek: editor({label:"Num Gamedays per Week", autoSave:true,
+						set:function(item) {
+							return parseInt(item.numgdaysperweek)
+						}}, "text", "dblclick"),
 					totalgamedays: {label:"Total Gamedays",
 					/*
 						get:function(item) {
 							return item.numweeks*item.numgdaysperweek;
 						}, */
 					},
-					gameinterval: editor({label:"Inter-Game Interval (min)", field:"gameinterval", autoSave:true}, "text", "dblclick"),
+					gameinterval: editor({label:"Inter-Game Interval (min)",
+						autoSave:true,
+						set:function(item) {
+							return parseInt(item.gameinterval)
+						}}, "text", "dblclick"),
 				};
 				return columnsdef_obj;
 			},
@@ -93,7 +106,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					info_list.push({div_id:i, div_age:"", div_gen:"",
-					                  totalteams:1, numweeks:this.base_numweeks,
+					                  totalteams:2, numweeks:this.base_numweeks,
 					                  numgdaysperweek:1,
 					                  totalgamedays:this.base_numweeks,
 					                  gameinterval:1});
@@ -147,6 +160,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						if (prop == 'totalgamedays') {
 							// for totalgamedays column we want at least positive gamedays
 							if (item[prop] <= 0) {
+								console.log("divinfo:checkconfig:need at least one total gameday");
+								break_flag = true;
+								break;
+							}
+						} else if (prop == 'totalteams') {
+							if (item[prop] < 2) {
+								console.log("divinfo:checkconfig:need at least two teams");
 								break_flag = true;
 								break;
 							}

@@ -25,7 +25,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 this.watch_obj = new Watch_class();
                 this.watch_obj.watch("db_type",
                     lang.hitch(this, function(name, oldValue, value) {
-                        this.swap_league_select_db('leagueselect_id', value);
+                        this.swap_league_select_db('league_select_id', value);
                     })
                 );
             },
@@ -45,7 +45,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // radiobtn selection
                     radio1_flag = (constant.default_db_type == 'rrdb')?true:false;
                 }
-
                 put(topdiv_node, "span", "Select Schedule Type:");
                 // NOTE: dom.byID after the widget does not recover the
                 // widget's domNode. In this example, the widget's domNode is a
@@ -68,11 +67,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         value:'rrdb',
                         checked:radio1_flag,
                         style:"margin-left:5px",
-                        onChange: lang.hitch(this, function(evt) {
-                            if (evt) {
-                                this.watch_obj.set('db_type', 'rrdb');
-                            }
-                        })
+                        onChange: lang.hitch(callback_context, radio1_callback, league_select_id)
                     }, div1_radio_node);
                     div1_radio.startup();
                 } else {
@@ -93,11 +88,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         value:'tourndb',
                         style:"margin-left:10px",
                         checked:!radio1_flag,
-                        onChange: lang.hitch(this, function(evt) {
-                            if (evt) {
-                                this.watch_obj.set('db_type', 'tourndb');
-                            }
-                        })
+                        onChange: lang.hitch(callback_context, radio2_callback, league_select_id)
                     }, div2_radio_node);
                     div2_radio.startup();
                 } else {
