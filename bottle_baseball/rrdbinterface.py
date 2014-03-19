@@ -42,6 +42,9 @@ class RRDBInterface:
         #return _List_Indexer(divinfo_list, d_indexerGet)
         return _List_Status(divinfo_list, config_status)
 
+    def readDBraw(self):
+        return self.readDB()
+
     def readSchedDB(self, age, gender):
         dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
         game_list = []

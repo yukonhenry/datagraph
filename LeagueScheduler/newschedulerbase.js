@@ -38,7 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			seasonlength_handle:null, league_select:null, fg_select:null,
 			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			selectexists_flag:false,
-			legue_select_value:"", fg_select_value:"", widgetgen:null,
+			league_select_value:"", fg_select_value:"", widgetgen:null,
 			current_db_type:constant.default_db_type,
 			constructor: function(args) {
 				lang.mixin(this, args);

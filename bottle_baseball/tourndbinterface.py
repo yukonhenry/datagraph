@@ -48,6 +48,15 @@ class TournDBInterface:
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
         return _List_Status(divinfo_list, config_status)
 
+    # read from DB, and convert fieldnames to lower case, but don't convert lists
+    # back to string representation
+    def readDBraw(self):
+        liststatus_tuple = self.dbInterface.getInfoDocument()
+        divlist = liststatus_tuple.list
+        config_status = liststatus_tuple.config_status
+        divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
+        return _List_Status(divinfo_list, config_status)
+
     def readSchedDB(self, age, gender):
         dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
         game_list = []

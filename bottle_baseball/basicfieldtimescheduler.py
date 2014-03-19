@@ -1,10 +1,11 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
 from itertools import groupby
-from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch, getConnectedDivisionGroup
+from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
-from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDivFieldEdgeWeight_list, getTeamTimeConstraintInfo, getSwapTeamInfo
+from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDivFieldEdgeWeight_list, \
+     getConnectedDivisions, getLeagueDivInfo, getFieldInfo, getTeamTimeConstraintInfo, getSwapTeamInfo
 import logging
 from operator import itemgetter
 from copy import deepcopy
@@ -37,23 +38,25 @@ field_iteration_max_CONST = 10
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
-class FieldTimeScheduleGenerator:
-    def __init__(self, dbinterface, fdbinterface, divinfo_list, fieldinfo_list):
-        self.divinfo_list = divinfo_list
-        self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
+class BasicFieldTimeScheduleGenerator:
+    def __init__(self, dbinterface):
+        leaguediv_tuple = getLeagueDivInfo()
+        self.leaguediv = leaguediv_tuple.dict_list
+        self.leaguediv_indexerGet = leaguediv_tuple.indexerGet
 
-        self.connected_div_components = getConnectedDivisionGroup(fieldinfo_list, key='primaryuse_list')
-        self.fieldinfo_list = fieldinfo_list
-        #self.fieldinfo_indexerGet =
-        fstatus_tuple = self.getFieldSeasonStatus_list()
+        field_tuple = getFieldInfo()
+        self.fieldinfo = field_tuple.dict_list
+        self.fieldinfo_indexerGet = field_tuple.indexerGet
+
+        self.connected_div_components = getConnectedDivisions()
+        fstatus_tuple = getFieldSeasonStatus_list()
         self.fieldSeasonStatus = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
-        print 'seasonstatus init', self.fieldSeasonStatus
         #logging.debug("fieldseasonstatus init=%s",self.fieldSeasonStatus)
 
         self.total_game_dict = {}
         # initialize dictionary (div_id is key)
-        for i in range(1,len(self.divinfo_list)+1):
+        for i in range(1,len(self.leaguediv)+1):
             self.total_game_dict[i] = []
         self.dbinterface = dbinterface
         self.current_earlylate_list = []
@@ -440,7 +443,7 @@ class FieldTimeScheduleGenerator:
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         fieldcountdiff_list = []
         for div_id in connected_div_list:
-            #divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+            #divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
             # http://stackoverflow.com/questions/10543303/number-of-values-in-a-list-greater-than-a-certain-number
             fcountdiff_num = sum(max(tmetrics, key=itemgetter('count'))['count']-min(tmetrics, key=itemgetter('count'))['count'] > 1
@@ -482,8 +485,8 @@ class FieldTimeScheduleGenerator:
     def ReFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         rebalance_count = 0
         for div_id in connected_div_list:
-            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-            totalgamedays = divinfo['totalgamedays']
+            divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
+            #totalgamedays = divinfo['totalgamedays']
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
             team_id = 1
             for team_metrics in tfmetrics:
@@ -870,8 +873,8 @@ class FieldTimeScheduleGenerator:
             divtotal_el_list = []
             # take one of those connected divisions and iterate through each division
             for div_id in connected_div_list:
-                divindex = self.divinfo_indexerGet(div_id)
-                divinfo = self.divinfo_list[divindex]
+                divindex = self.leaguediv_indexerGet(div_id)
+                divinfo = self.leaguediv[divindex]
                 divfields = divinfo['fields']
                 numteams = divinfo['totalteams']
                 fset.update(divfields)  #incremental union to set of shareable fields
@@ -1472,7 +1475,7 @@ class FieldTimeScheduleGenerator:
         ''' recompute current_earlylist_counter structure by going through fieldseasonstatus matrix '''
         for div_id in div_set:
             # first clear counters
-            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+            divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
             numteams = divinfo['totalteams']
             for elcounter in self.current_earlylate_list[self.cel_indexerGet(div_id)]['counter_list']:
                 elcounter['early'] = 0
@@ -1512,7 +1515,7 @@ class FieldTimeScheduleGenerator:
     def ProcessConstraints(self, fset, div_set):
         ''' process specified team constraints - see leaguedivprep data structure'''
         for div_id in div_set:
-            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+            divinfo = self.leaguediv[self.leaguediv_indexerGet(div_id)]
             ginterval = divinfo['gameinterval']
             gameinterval = timedelta(0,0,0,0,ginterval) # to be able to add time - see leaguedivprep fieldseasonstatus
 
@@ -1839,46 +1842,3 @@ class FieldTimeScheduleGenerator:
                                     fieldstatus_round[i]['isgame'] = False
                 finally:
                     gameday_id += 1
-
-    def getFieldSeasonStatus_list(self):
-        # routine to return initialized list of field status slots -
-        # which are all initially set to False
-        # each entry of list is a dictionary with two elemnts - (1)field_id
-        # (2) - two dimensional matrix of True/False status (outer dimension is
-        # round_id, inner dimenstion is time slot)
-        fieldseason_status_list = []
-        for f in self.fieldinfo_list:
-            f_id = f['field_id']
-            interval_list = []
-            totalgamedays_list = []
-            for p in f['primaryuse_list']:
-                divinfo = self.divinfo_list[self.divinfo_indexerGet(p)]
-                interval_list.append(divinfo['gameinterval'])
-                totalgamedays_list.append(divinfo['totalgamedays'])
-            #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
-            interval = max(interval_list)
-            gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
-            totalgamedays = max(totalgamedays_list)
-            gamestart = parser.parse(f['start_time'])
-            end_time = parser.parse(f['end_time'])
-            # slotstatus_list has a list of statuses, one for each gameslot
-            sstatus_list = []
-            while gamestart + gameinterval <= end_time:
-                # for above, correct statement should be adding pure gametime only
-                sstatus_list.append({'start_time':gamestart, 'isgame':False})
-                gamestart += gameinterval
-            sstatus_len = len(sstatus_list)
-            slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
-            closed_gameday_list = f.get('closed_gameday_list')
-            if closed_gameday_list:
-                # if there are fields that are closed on certain days, then slotstatus
-                # entry must be set to null; note gameslotsperday is Not nulled out as the field
-                # applies to the whole season and not individual games.
-                for gameday in closed_gameday_list:
-                    slotstatus_list[gameday-1] = None
-            fieldseason_status_list.append({'field_id':f['field_id'],
-                                            'slotstatus_list':slotstatus_list,
-                                            'gameslotsperday':sstatus_len})
-        fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
-        List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
-        return List_Indexer(fieldseason_status_list, fstatus_indexerGet)

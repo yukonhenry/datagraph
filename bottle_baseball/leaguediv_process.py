@@ -8,7 +8,7 @@ import networkx as nx
 from networkx.readwrite import json_graph
 from networkx import connected_components
 from matchgenerator import MatchGenerator
-from fieldtimescheduler import FieldTimeScheduleGenerator
+from basicfieldtimescheduler import BasicFieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface, DB_Col_Type
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
      getFieldInfo, getTournamentFieldInfo, getTournAgeGenderDivision
@@ -90,13 +90,13 @@ def get_alldivSchedule():
     total_match_list = []
     for division in ldata_divinfo:
         nt = division['totalteams']
-        ng = division['gamesperseason']
+        ng = division['totalgamedays']
         match = MatchGenerator(nt, ng)
         total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_list':match.numGames_list, 'gameslotsperday':match.gameslotsperday})
     # get list of connected divisions through field constraints
     #connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     #connected_div_components = connected_components(connectedG)
-    fieldtimeSchedule = FieldTimeScheduleGenerator(dbInterface)
+    fieldtimeSchedule = BasicFieldTimeScheduleGenerator(dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
     a = json.dumps({"dbstatus":dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'

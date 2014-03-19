@@ -142,14 +142,14 @@ def bipartiteMatch(graph):
 		for v in unmatched: recurse(v)
 
 #find inter-related divisions through the field_info list
-# this should be simplier than the method below whith utilize the division info list
+# this should be simplier than the method below which utilize the division info list
 # note there is an identical function (w different name) in leaguedivprocess - eventuall
 # migrate to using this function.
-def getConnectedDivisionGroup(fieldinfo_list):
+def getConnectedDivisionGroup(fieldinfo_list, key='primaryuse_list'):
     G = nx.Graph()
     for field in fieldinfo_list:
         prev_node = None
-        for div_id in field['primary']:
+        for div_id in field[key]:
             if not G.has_node(div_id):
                 G.add_node(div_id)
             if prev_node is not None and not G.has_edge(prev_node, div_id):

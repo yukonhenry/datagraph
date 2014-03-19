@@ -32,7 +32,7 @@ class FieldDBInterface:
         for fieldinfo in fieldinfo_list:
             start_date_str = fieldinfo['start_date']
             end_date_str = fieldinfo['end_date']
-            dayweek_list = fieldinfo['dayweek_str'].split(',')
+            dayweek_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
             if len(dayweek_list) == 1 and not dayweek_list[0]:
                 numgamedays = 0
             else:
@@ -41,7 +41,8 @@ class FieldDBInterface:
             fieldinfo['numgamedays'] = numgamedays
             fieldinfo['dayweek_list'] = dayweek_list
             # check if primary use is not empty
-            fieldinfo['primaryuse_list'] = fieldinfo['primaryuse_str'].split(',')
+            fieldinfo['primaryuse_list'] = [int(x)
+                for x in fieldinfo['primaryuse_str'].split(',')]
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
@@ -58,6 +59,17 @@ class FieldDBInterface:
             del field[primaryuse_list_CONST]
             field['dayweek_str'] = ','.join(str(f) for f in field[dayweek_list_CONST])
             del field[dayweek_list_CONST]
+        fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
+        return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
+                                 divstr_db_type)
+
+    # read from DB, but don't covert lists back into string representation
+    def readDBraw(self):
+        liststatus_qtuple = self.dbInterface.getFieldInfoDocument()
+        field_list = liststatus_qtuple.list
+        config_status = liststatus_qtuple.config_status
+        divstr_colname = liststatus_qtuple.divstr_colname
+        divstr_db_type = liststatus_qtuple.divstr_db_type
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)

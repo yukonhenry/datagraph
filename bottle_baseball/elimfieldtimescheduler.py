@@ -48,7 +48,7 @@ class EliminationFieldTimeScheduler:
         # better to eventually move this to the tournamentscheduler constructor
         for tfield in self.tfieldinfo_list:
             f_id = tfield['field_id']
-            for d_id in tfield['primary']:
+            for d_id in tfield['primaryuse_list']:
                 index = self.dindexerGet(d_id)
                 if index is not None:
                     division = self.divinfo_list[index]
@@ -174,7 +174,7 @@ class EliminationFieldTimeScheduler:
             # take max for now - this is a simplification
             # default for phmsa is that divisions that share a field have
             # same game intervals
-            ginterval = max(self.divinfo_list[self.dindexerGet(p)]['gameinterval'] for p in f['primary'])
+            ginterval = max(self.divinfo_list[self.dindexerGet(p)]['gameinterval'] for p in f['primaryuse_list'])
             # convert to datetime compatible obj
             gameinterval = timedelta(0,0,0,0,ginterval)
             # slotstatus_list has a list of statuses, one for each gameslot

@@ -3,6 +3,7 @@ from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from matchgenerator import MatchGenerator
+from fieldtimescheduler import FieldTimeScheduleGenerator
 import logging
 from sched_exceptions import CodeLogicError
 class SchedMaster:
@@ -13,7 +14,7 @@ class SchedMaster:
             dbInterface = TournDBInterface(mongoClient, divcol_name)
         else:
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
-        dbtuple = dbInterface.readDB();
+        dbtuple = dbInterface.readDBraw();
         if dbtuple.config_status == 1:
             self.divinfo_list = dbtuple.list
         else:
@@ -21,12 +22,13 @@ class SchedMaster:
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, field_colname)
-        fdbtuple = fdbInterface.readDB();
+        fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
-            self.fieldinfo_list = fdbtuple.list
+            fieldinfo_list = fdbtuple.list
         else:
-            self.fieldinfo_list = None
+            fieldinfo_list = None
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (field_colname,))
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface, fdbinterface=fdbInterface, divinfo_list=self.divinfo_list, fieldinfo_list=fieldinfo_list)
 
     def generate(self):
         total_match_list = []

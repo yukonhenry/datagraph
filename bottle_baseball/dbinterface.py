@@ -198,7 +198,7 @@ class MongoDBInterface:
                 field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST], match_id_CONST:field_game[match_id_CONST], round_CONST:field_game[round_CONST]})
         return field_game_list
 
-    def getTimeSlotMetrics(self, age, gender, fields, numgamesperseason):
+    def getTimeSlotMetrics(self, age, gender, fields, totalgamedays):
         # find max min start time for each gameday/field and provide summary stats for how many earliest/latest games each team has
         # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
         #col.aggregate({$match:{AGE:'U10',GEN:'B',GAMEDAY_ID:1}},{$group:{_id:"$START_TIME",samestart:{$push:{HOME:"$HOME",AWAY:"$AWAY"}}}},{$sort:{_id:-1}},{$group:{_id:0,max:{$first:{samestart:"$samestart"}},min:{$last:{samestart:"$samestart"}}}})
@@ -214,7 +214,7 @@ class MongoDBInterface:
         # col.aggregate({$match:{VENUE:{$in:[1,2]}}},{$group:{_id:{starttime:"$START_TIME",venue:"$VENUE", gameday_id:"$GAMEDAY_ID"}, samestart:{$push:{HOME:"$HOME", AWAY:"$AWAY",VENUE:"$VENUE", GEN:"$GEN"}}}},{$sort:{"_id.starttime":-1}},{$group:{_id:{venue:"$_id.venue",gameday_id:"$_id.gameday_id"},max:{$first:{samestart:"$samestart",time:"$_id.starttime"}},min:{$last:{samestart:"$samestart",time:"$_id.starttime"}}}})
         latest_teams = []
         earliest_teams = []
-        for gameday_id in range(1,numgamesperseason+1):
+        for gameday_id in range(1,totalgamedays+1):
             # note for now we will do a query for each gameday_id - issue is that for each gameday, the earliest (less likely)
             # and latest (more likely) game times may change, complicating aggregation $first and $last aggregation queries
             # if we decide to do one single aggreagation pipeline
@@ -290,8 +290,8 @@ class MongoDBInterface:
     def getMetrics(self, age, gender, divisionData):
         numTeams = divisionData['totalteams']
         fields = divisionData['fields']
-        numgamesperseason = divisionData['gamesperseason']
-        ELcounter_tuple = self.getTimeSlotMetrics(age, gender, fields, numgamesperseason)
+        totalgamedays = divisionData['totalgamedays']
+        ELcounter_tuple = self.getTimeSlotMetrics(age, gender, fields, totalgamedays)
         earliest_counter_dict = ELcounter_tuple.earliest
         latest_counter_dict = ELcounter_tuple.latest
         metrics_list = []

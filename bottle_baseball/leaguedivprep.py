@@ -18,21 +18,21 @@ _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 
 _league_div = [
 { 'div_id':1, 'div_age':'U06', 'div_gen':'B', 'totalteams':15,
-  'gameinterval':60, 'gamesperseason':10},
+  'gameinterval':60, 'totalgamedays':10},
 { 'div_id':2, 'div_age':'U06', 'div_gen':'G', 'totalteams':8,
-  'gameinterval':60, 'gamesperseason':10},
+  'gameinterval':60, 'totalgamedays':10},
 { 'div_id':3, 'div_age':'U08', 'div_gen':'B', 'totalteams':41,
-  'gameinterval':70, 'gamesperseason':10},
+  'gameinterval':70, 'totalgamedays':10},
 { 'div_id':4, 'div_age':'U08', 'div_gen':'G', 'totalteams':28,
-  'gameinterval':70, 'gamesperseason':10},
+  'gameinterval':70, 'totalgamedays':10},
 { 'div_id':5, 'div_age':'U10', 'div_gen':'B', 'totalteams':23,
-  'gameinterval':80, 'gamesperseason':10},
+  'gameinterval':80, 'totalgamedays':10},
 { 'div_id':6, 'div_age':'U10', 'div_gen':'G', 'totalteams':22,
-  'gameinterval':80, 'gamesperseason':10},
+  'gameinterval':80, 'totalgamedays':10},
 { 'div_id':7, 'div_age':'U12', 'div_gen':'B', 'totalteams':15,
-  'gameinterval':90, 'gamesperseason':10},
+  'gameinterval':90, 'totalgamedays':10},
 { 'div_id':8, 'div_age':'U12', 'div_gen':'G', 'totalteams':13,
-  'gameinterval':90, 'gamesperseason':10}
+  'gameinterval':90, 'totalgamedays':10}
 ]
 #assign team numbers
 team_id_start = 1
@@ -44,41 +44,41 @@ for div in _league_div:
 # primary key identifies age groups that have priority for the fields.
 # identified by _id from _league_div dictionary elements
 _field_info = [
-        {'field_id':1, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elem 1',
+        {'field_id':1, 'primaryuse_list':[1,2], 'secondary':[3,4], 'name':'Sequoia Elem 1',
          'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':2, 'primary':[1,2], 'secondary':[3,4], 'name':'Sequoia Elem 2',
+        {'field_id':2, 'primaryuse_list':[1,2], 'secondary':[3,4], 'name':'Sequoia Elem 2',
          'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':3, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elem 1',
+        {'field_id':3, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elem 1',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':4, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elem 2',
+        {'field_id':4, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elem 2',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':5, 'primary':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elem 3',
+        {'field_id':5, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Pleasant Hill Elem 3',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':6, 'primary':[3,4], 'secondary':[1,2], 'name':'Golden Hills 1',
+        {'field_id':6, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Golden Hills 1',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':7, 'primary':[3,4], 'secondary':[1,2], 'name':'Golden Hills 2',
+        {'field_id':7, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Golden Hills 2',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':8, 'primary':[3,4], 'secondary':[1,2], 'name':'Mountain View Park',
+        {'field_id':8, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Mountain View Park',
          'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':9, 'primary':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 1',
+        {'field_id':9, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 1',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':10, 'primary':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 2',
+        {'field_id':10, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 2',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':11, 'primary':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 3',
+        {'field_id':11, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Pleasant Hill Middle 3',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':12, 'primary':[5,6], 'secondary':[1,2], 'name':'Nancy Boyd Park',
+        {'field_id':12, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Nancy Boyd Park',
          'start_time':'09:00', 'end_time':'18:00' },
-        {'field_id':13, 'primary':[5,6], 'secondary':[1,2], 'name':'Strandwood Elem',
+        {'field_id':13, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Strandwood Elem',
          'start_time':'09:00', 'end_time':'18:00' },
-#    {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello Park',
+#    {'field_id':14, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Morello Park',
 #     'start_time':'13:30', 'end_time':'16:30', 'closed_gameday_list':[4] },
-        {'field_id':14, 'primary':[7,8], 'secondary':[1,2], 'name':'Sequoia Middle',
+        {'field_id':14, 'primaryuse_list':[7,8], 'secondary':[1,2], 'name':'Sequoia Middle',
          'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':15, 'primary':[7,8], 'secondary':None, 'name':'Gregory Gardens Elem',
+        {'field_id':15, 'primaryuse_list':[7,8], 'secondary':None, 'name':'Gregory Gardens Elem',
          'start_time':'09:00', 'end_time':'18:00'},
-        {'field_id':16, 'primary':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
+        {'field_id':16, 'primaryuse_list':[7,8], 'secondary':None, 'name':'Pleasant Hill Park',
          'start_time':'09:00', 'end_time':'18:00'}
-#    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elem',
+#    {'field_id':18, 'primaryuse_list':[9,10], 'secondary':None, 'name':'Las Juntas Elem',
 #     'start_time':'09:00', 'end_time':'18:00',
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
@@ -90,7 +90,7 @@ _field_info = [
 _div_indexer = dict((p['div_id'],i) for i,p in enumerate(_league_div))
 for field in _field_info:
 	f_id = field['field_id']
-	for d_id in field['primary']:
+	for d_id in field['primaryuse_list']:
 		index = _div_indexer.get(d_id)
 		if index is not None:
 			division = _league_div[index]
@@ -102,50 +102,50 @@ for field in _field_info:
 
 # for tournament fields - node U10 is div_id 1 and so on
 _tournament_field_info = [
-    {'field_id':9, 'primary':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 1',
+    {'field_id':9, 'primaryuse_list':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 1',
     'start_time':'08:30', 'end_time':'16:30', 'numgamedays':6,'limiteddays':[{'gameday':6, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':1, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':2, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':10, 'primary':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 2',
+    {'field_id':10, 'primaryuse_list':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 2',
     'start_time':'08:30', 'end_time':'16:30', 'numgamedays':6,
     'limiteddays':[{'gameday':6, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':1, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':2, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':11, 'primary':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 3',
+    {'field_id':11, 'primaryuse_list':[1,2], 'secondary':[1,2], 'name':'Pleasant Hill Middle 3',
     'start_time':'08:30', 'end_time':'16:30', 'numgamedays':6,
     'limiteddays':[{'gameday':6, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':1, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':2, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':12, 'primary':[1,2], 'secondary':[1,2], 'name':'Nancy Boyd Park',
+    {'field_id':12, 'primaryuse_list':[1,2], 'secondary':[1,2], 'name':'Nancy Boyd Park',
     'start_time':'08:30', 'end_time':'16:30', 'numgamedays':6,
     'limiteddays':[{'gameday':6, 'start_time':'13:00', 'end_time':'17:00'},{'gameday':1, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':2, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':13, 'primary':[1,2], 'secondary':[1,2], 'name':'Strandwood Elem',
+    {'field_id':13, 'primaryuse_list':[1,2], 'secondary':[1,2], 'name':'Strandwood Elem',
     'start_time':'08:30', 'end_time':'16:30', 'numgamedays':6,
     'limiteddays':[{'gameday':6, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':1, 'start_time':'09:00', 'end_time':'17:00'},{'gameday':2, 'start_time':'09:00', 'end_time':'17:00'}]},
-#   {'field_id':14, 'primary':[5,6], 'secondary':[1,2], 'name':'Morello Park',
+#   {'field_id':14, 'primaryuse_list':[5,6], 'secondary':[1,2], 'name':'Morello Park',
 #   'start_time':'13:30', 'end_time':'16:30', 'closed_gameday_list':[4] },
-    {'field_id':14, 'primary':[3,4], 'secondary':[1,2], 'name':'Sequoia Middle',
+    {'field_id':14, 'primaryuse_list':[3,4], 'secondary':[1,2], 'name':'Sequoia Middle',
     'start_time':'08:00', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':4, 'start_time':'08:00', 'end_time':'17:00'},
     {'gameday':5, 'start_time':'09:00', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':15, 'primary':[3,4], 'secondary':None, 'name':'Gregory Gardens Elem',
+    {'field_id':15, 'primaryuse_list':[3,4], 'secondary':None, 'name':'Gregory Gardens Elem',
     'start_time':'08:00', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':4, 'start_time':'08:00', 'end_time':'17:00'},
     {'gameday':5, 'start_time':'09:00', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':16, 'primary':[3,4], 'secondary':None, 'name':'Pleasant Hill Park',
+    {'field_id':16, 'primaryuse_list':[3,4], 'secondary':None, 'name':'Pleasant Hill Park',
     'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6, 'closed_gameday_list':[4,6],
     'limiteddays':[{'gameday':4, 'start_time':'09:00', 'end_time':'17:00'},
     {'gameday':5, 'start_time':'09:00', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'09:00', 'end_time':'17:00'}]},
-    {'field_id':17, 'primary':[5,6], 'secondary':None, 'name':'Sequoia Middle Large',
+    {'field_id':17, 'primaryuse_list':[5,6], 'secondary':None, 'name':'Sequoia Middle Large',
     'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':2, 'start_time':'09:30', 'end_time':'17:00'},
     {'gameday':1, 'start_time':'08:30', 'end_time':'17:00'},
     {'gameday':5, 'start_time':'08:30', 'end_time':'17:00'}]},
-    {'field_id':18, 'primary':[5,6], 'secondary':None, 'name':'Hidden Lakes',
+    {'field_id':18, 'primaryuse_list':[5,6], 'secondary':None, 'name':'Hidden Lakes',
     'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':1, 'start_time':'08:30', 'end_time':'17:00'},{'gameday':2, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':4, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':5, 'start_time':'08:30', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':1, 'start_time':'08:30', 'end_time':'17:00'}]},
-    {'field_id':19, 'primary':[5,6], 'secondary':None, 'name':'Waterfront',
+    {'field_id':19, 'primaryuse_list':[5,6], 'secondary':None, 'name':'Waterfront',
     'start_time':'09:00', 'end_time':'17:00', 'numgamedays':6,
     'limiteddays':[{'gameday':1, 'start_time':'08:30', 'end_time':'17:00'},
     {'gameday':2, 'start_time':'13:30', 'end_time':'17:00'},
@@ -153,14 +153,14 @@ _tournament_field_info = [
     {'gameday':5, 'start_time':'08:30', 'end_time':'17:00'},
     {'gameday':6, 'start_time':'13:30', 'end_time':'17:00'},
     {'gameday':1, 'start_time':'08:30', 'end_time':'17:00'}]},
-    {'field_id':20, 'primary':[5,6], 'secondary':None, 'name':'College Park Turf',
+    {'field_id':20, 'primaryuse_list':[5,6], 'secondary':None, 'name':'College Park Turf',
     'start_time':'14:00', 'end_time':'17:00', 'numgamedays':6,
     'closed_gameday_list':[1,3,5]}
     #'limiteddays':[{'gameday':1, 'start_time':'14:00', 'end_time':'14:30'},
     #{'gameday':2, 'start_time':'14:00', 'end_time':'15:30'},
     #{'gameday':3, 'start_time':'14:00', 'end_time':'15:30'},
     #{'gameday':5, 'start_time':'14:00', 'end_time':'15:30'}]}
-#    {'field_id':18, 'primary':[9,10], 'secondary':None, 'name':'Las Juntas Elem',
+#    {'field_id':18, 'primaryuse_list':[9,10], 'secondary':None, 'name':'Las Juntas Elem',
 #     'start_time':'09:00', 'end_time':'18:00',
 #     'unavailable':[{'start':'10/28/13','end':'10/28/13'}]}
 ]
@@ -349,10 +349,10 @@ def getFieldSeasonStatus_list():
                 f_id = f['field_id']
                 interval_list = []
                 numgames_list = []
-                for p in f['primary']:
+                for p in f['primaryuse_list']:
                         divinfo = _league_div[_div_indexer.get(p)]
                         interval_list.append(divinfo['gameinterval'])
-                        numgames_list.append(divinfo['gamesperseason'])
+                        numgames_list.append(divinfo['totalgamedays'])
                 #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
                 interval = max(interval_list)
                 gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
@@ -460,21 +460,21 @@ def tournMapGamedayIdToDate(gameday_id):
 #find inter-related divisions through the field_info list
 # this should be simplier than the method below whith utilize the division info list
 def getConnectedDivisions():
-        G = nx.Graph()
-        for field in _field_info:
-                prev_node = None
-                for div_id in field['primary']:
-                        if not G.has_node(div_id):
-                                G.add_node(div_id)
-                        if prev_node is not None and not G.has_edge(prev_node, div_id):
-                                G.add_edge(prev_node, div_id)
-                        prev_node = div_id
-        connected_div_components = connected_components(G)
-        #serialize field-connected divisions as graph and save it
-        #(instead of saving list of connected components); used by leaguediv_process to
-        #determine schedule allocation of connected divisions
-        #connected_graph = json_graph.node_link_data(G)
-        return connected_div_components
+    G = nx.Graph()
+    for field in _field_info:
+            prev_node = None
+            for div_id in field['primaryuse_list']:
+                    if not G.has_node(div_id):
+                            G.add_node(div_id)
+                    if prev_node is not None and not G.has_edge(prev_node, div_id):
+                            G.add_edge(prev_node, div_id)
+                    prev_node = div_id
+    connected_div_components = connected_components(G)
+    #serialize field-connected divisions as graph and save it
+    #(instead of saving list of connected components); used by leaguediv_process to
+    #determine schedule allocation of connected divisions
+    #connected_graph = json_graph.node_link_data(G)
+    return connected_div_components
 
 # create coach conflict graph to find conflict metrics
 conflictG = nx.Graph()
@@ -485,7 +485,7 @@ for coach in _coach_conflict_info:
                 g = team['div_gen']
                 div_id = getDivID(a,g)
                 if not conflictG.has_node(div_id):
-                        conflictG.add_node(div_id)
+                    conflictG.add_node(div_id)
                 if prev_node is not None:
                         if not conflictG.has_edge(prev_node, div_id):
                                 conflictG.add_edge(prev_node, div_id, weight=1.0)
