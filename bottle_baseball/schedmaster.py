@@ -2,6 +2,7 @@
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
+from matchgenerator import MatchGenerator
 import logging
 from sched_exceptions import CodeLogicError
 class SchedMaster:
@@ -28,5 +29,15 @@ class SchedMaster:
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (field_colname,))
 
     def generate(self):
+        total_match_list = []
         for divinfo in self.divinfo_list:
-            print 'divinfo', divinfo
+            totalteams = divinfo['totalteams']
+            totalgamedays = divinfo['totalgamedays']
+            match = MatchGenerator(totalteams, totalgamedays)
+            match_list = match.generateMatchList()
+            args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
+                'numgames_list':match.numGames_list,
+                'gameslotsperday':match.gameslotsperday}
+            total_match_list.append(args_obj)
+        print 'totalmatch', total_match_list
+

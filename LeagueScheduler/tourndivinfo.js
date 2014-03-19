@@ -130,23 +130,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					// data to server
 					var break_flag = false;
 					for (var prop in item) {
-			checkconfig_status: function(raw_result){
-				// do check to make sure all fields have been filled.
-				// note construct of using arrayUtil.some works better than
-				// query.filter() as loop will exit immediately if .some() returns
-				// true.
-				// config_status is an integer type as booleans cannot be directly
-				// be transmitted to server (sent as 'true'/'false' string)
-				// Baseline implementation - if need to customize, do so in
-				// inherited child class
-				var config_status = 0;
-				if (arrayUtil.some(raw_result, function(item, index) {
-					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
-					// iterate through object's own properties too see if there
-					// any unfilled fields.  If so alert and exit without sending
-					// data to server
-					var break_flag = false;
-					for (var prop in item) {
 						if (prop == 'totalteams') {
 							if (item[prop] < 2) {
 								console.log("tourndivinfo:checkconfig:need at least two teams");

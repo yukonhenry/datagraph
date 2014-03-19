@@ -61,7 +61,7 @@ class MongoDBInterface:
         self.games_col = self.schedule_db[collection_name]
         self.sched_type = str(db_col_type)
         if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
-            self.games_col.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type}, safe=True)
+            self.games_col.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type})
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
