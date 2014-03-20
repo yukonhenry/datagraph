@@ -2,7 +2,10 @@
 from itertools import cycle, islice
 import networkx as nx
 from networkx import connected_components
-from collections import Iterable
+from collections import Iterable, namedtuple
+
+_List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+
 def roundrobin(iterable_list):
     '''ref http://docs.python.org/2/library/itertools.html
     # ref http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
@@ -171,3 +174,53 @@ def flatten(l):
                 yield sub
         else:
             yield el
+
+''' create bipartite graph - one column is division, other column is fields
+used to define relationship between division and fields
+ref http://networkx.github.io/documentation/latest/reference/algorithms.bipartite.html'''
+def getDivFieldEdgeWeight_list(divinfo_tuple, fieldinfo_list):
+    divinfo_list = divinfo_tuple.dict_list
+    divinfo_indexerGet = divinfo_tuple.indexerGet
+    df_biparG = nx.Graph()
+    df_biparG.add_nodes_from([x['div_id'] for x in divinfo_list], bipartite=0)
+    # even through we are using a bipartite graph structure, node names between
+    # the column nodes need to be distinct, or else edge (1,2) and (2,1) are not distinguished.
+    # instead use edge (1, f2), (2, f1) - use 'f' prefix for field nodes
+    df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in divinfo_list for y in x['fields']])
+    div_nodes, field_nodes = bipartite.sets(df_biparG)
+    deg_fnodes = {f:df_biparG.degree(f) for f in field_nodes}
+    # effective edge sum lists for each division, the sum of the weights of the connected fields;
+    # the weights of the associated fields, which are represented as field nodes,
+    # are in turn determined by it's degree.  The inverse of the degree for the connected division is
+    # taken, which becomes the weight of the particular field associated with the division.  The weights
+    # of each field are summed for each division.  The weights also represent the 'total fairness share'
+    # of fields associated with a division.
+    # Bipartite graph representations, with divisions as one set of nodes, and fields as the other set
+    # are used.  Thus a neighbor of a division is always a field.
+    edgesum_list = [{'div_id':d,
+        'edgesum': sum([1.0/deg_fnodes[f] for f in df_biparG.neighbors(d)])} for d in div_nodes]
+    sorted_edgesum_list = sorted(edgesum_list, key=itemgetter('div_id'))
+    logging.debug("div fields bipartite graph %s %s effective edge sum for each node %s", df_biparG.nodes(), df_biparG.edges(), sorted_edgesum_list)
+
+    # depending on the number of teams in each division, the 'fairness share' for each division is adjusted;
+    # i.e. a division with more teams is expected to contribute a larger amount to field sharing obligations,
+    # such as the number of expected early/late start times for a particular division.  (If one div has 20 teams
+    # and the other connected div has only 10 teams, the 20-team division should have a larger share of filling
+    # early and late start time games.
+    # ratio is represented as factor that is multiplied against the 'expected' fair share, which is the 1-inverse
+    # of the number of divisions in the connected group - (dividing by the 1-inverse is equiv to multiple by the
+    # number of teams - len(connected_list) as shown below)
+    divratio_list = [{'div_id':x,
+        'ratio': len(connected_list)*float(divinfo_list[divinfo_indexerGet(x)]['totalteams'])/sum(divinfo_list[divinfo_indexerGet(y)]['totalteams'] for y in connected_list)} for connected_list in getConnectedDivisionGroup(fieldinfo_list) for x in connected_list]
+    sorted_divratio_list = sorted(divratio_list, key=itemgetter('div_id'))
+    # multiply sorted edgesum list elements w. sorted divratio list elements
+    # because of the sort all dictionary elements in the list should be sorted according to div_id and obviating
+    # need to create an indexerGet function
+    # x['div_id'] could have been y['div_id'] in the list comprehension below
+    prod_list = [{'div_id': x['div_id'], 'prodratio': x['edgesum']*y['ratio']}
+                             for (x,y) in zip(sorted_edgesum_list, sorted_divratio_list)]
+    logging.debug("getDivFieldEdgeWeight: sorted_edge=%s, sorted_ratio=%s, prod=%s",
+                                sorted_edgesum_list, sorted_divratio_list, prod_list)
+    # define indexer function object
+    prod_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(prod_list)).get(x)
+    return _List_Indexer(prod_list, prod_indexerGet)

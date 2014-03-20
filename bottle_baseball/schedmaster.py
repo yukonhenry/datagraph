@@ -17,6 +17,7 @@ class SchedMaster:
         dbtuple = dbInterface.readDBraw();
         if dbtuple.config_status == 1:
             self.divinfo_list = dbtuple.list
+            self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
         else:
             self.divinfo_list = None
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
@@ -25,10 +26,14 @@ class SchedMaster:
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
             fieldinfo_list = fdbtuple.list
+            self.divfield_correlate(fieldinfo_list)
         else:
             fieldinfo_list = None
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (field_colname,))
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface, fdbinterface=fdbInterface, divinfo_list=self.divinfo_list, fieldinfo_list=fieldinfo_list)
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface, fdbinterface=fdbInterface,
+            divinfo_list=self.divinfo_list,
+            divinfo_indexerGet=self.divinfo_indexerGet,
+            fieldinfo_list=fieldinfo_list)
 
     def generate(self):
         total_match_list = []
@@ -42,4 +47,19 @@ class SchedMaster:
                 'gameslotsperday':match.gameslotsperday}
             total_match_list.append(args_obj)
         print 'totalmatch', total_match_list
+
+    '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
+    def divfield_correlate(self, fieldinfo_list):
+        for fieldinfo in fieldinfo_list:
+            field_id = fieldinfo['field_id']
+            for div_id in fieldinfo['primaryuse_list']:
+                index = self.divinfo_indexerGet(div_id)
+                if index is not None:
+                    divinfo = self.divinfo_list[index]
+                    # check existence of key 'fields' - if it exists, append to list of fields, if not create
+                    if 'fields' in divinfo:
+                        divinfo['fields'].append(field_id)
+                    else:
+                        divinfo['fields'] = [field_id]
+
 

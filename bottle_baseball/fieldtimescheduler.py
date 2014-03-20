@@ -1,10 +1,10 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
 from itertools import groupby
-from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch, getConnectedDivisionGroup
+from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch, getConnectedDivisionGroup, getDivFieldEdgeWeight_list
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
-from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDivFieldEdgeWeight_list, getTeamTimeConstraintInfo, getSwapTeamInfo
+from leaguedivprep import getTeamTimeConstraintInfo, getSwapTeamInfo
 import logging
 from operator import itemgetter
 from copy import deepcopy
@@ -37,18 +37,21 @@ field_iteration_max_CONST = 10
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
-class FieldTimeScheduleGenerator:
-    def __init__(self, dbinterface, fdbinterface, divinfo_list, fieldinfo_list):
-        self.divinfo_list = divinfo_list
-        self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
 
+_List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+
+class FieldTimeScheduleGenerator:
+    def __init__(self, dbinterface, fdbinterface, divinfo_list, divinfo_indexerGet, fieldinfo_list):
+        self.divinfo_list = divinfo_list
+        #self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
+        self.divinfo_indexerGet = divinfo_indexerGet
+        self.divinfo_tuple = _List_Indexer(divinfo_list, divinfo_indexerGet)
         self.connected_div_components = getConnectedDivisionGroup(fieldinfo_list, key='primaryuse_list')
         self.fieldinfo_list = fieldinfo_list
         #self.fieldinfo_indexerGet =
         fstatus_tuple = self.getFieldSeasonStatus_list()
         self.fieldSeasonStatus = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
-        print 'seasonstatus init', self.fieldSeasonStatus
         #logging.debug("fieldseasonstatus init=%s",self.fieldSeasonStatus)
 
         self.total_game_dict = {}
@@ -851,7 +854,8 @@ class FieldTimeScheduleGenerator:
         self.dbinterface.dropGameDocuments()  # reset game schedule collection
 
         # used for calaculating time balancing metrics
-        ew_list_indexer = getDivFieldEdgeWeight_list()
+        ew_list_indexer = getDivFieldEdgeWeight_list(self.divinfo_tuple,
+            self.fieldinfo_list)
         #enum defined in sched_util.py
         EL_enum = enum(NORMAL=0x0, EARLY_DIVTOTAL_NOTMET=0x1, LATE_DIVTOTAL_NOTMET=0x2,
                        EARLY_TEAM_NOTMET=0x4, LATE_TEAM_NOTMET=0x8)
@@ -1327,9 +1331,10 @@ class FieldTimeScheduleGenerator:
                     away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
 
                     gameday_fieldcount[gd_fieldcount_indexerGet(field_id)]['count'] += 1
-                    div = getAgeGenderDivision(div_id)
+                    #div = getAgeGenderDivision(div_id)
+                    div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                     logging.debug("div=%s%s round_id=%d, field=%d gametime=%s slotindex=%d",
-                                  div.age, div.gender, round_id, field_id, gametime, slot_index)
+                                  div.div_age, div.div_gen, round_id, field_id, gametime, slot_index)
                 logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
                               connected_div_list, round_id, gameday_fieldcount)
             self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
@@ -1349,8 +1354,9 @@ class FieldTimeScheduleGenerator:
                                 div_id = teams['div_id']
                                 home_id = teams[home_CONST]
                                 away_id = teams[away_CONST]
-                                div = getAgeGenderDivision(div_id)
-                                self.dbinterface.insertGameData(div.age, div.gender, gameday_id,
+                                #div = getAgeGenderDivision(div_id)
+                                div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+                                self.dbinterface.insertGameData(div.div_age, div.div_gen, gameday_id,
                                                                 gametime.strftime(time_format_CONST),
                                                                 field_id, home_id, away_id)
                     gameday_id += 1

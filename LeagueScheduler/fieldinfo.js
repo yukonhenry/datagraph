@@ -470,10 +470,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 				var content_str = "";
 				var checkboxid_list = new Array();
-				arrayUtil.forEach(divstr_list, function(divstr, index) {
+				var div_list = new Array();
+				arrayUtil.forEach(divstr_list, function(divstr_obj) {
+					var divstr = divstr_obj.divstr;
+					div_list.push(divstr);
 					var idstr = "checkbox"+divstr+field_id+"_id";
 					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-					'" value="'+index+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+					'" value="'+divstr_obj.div_id+'"><label for="'+idstr+'">'+divstr+'</label><br>';
 					checkboxid_list.push(idstr);
 				});
 				var button_id = 'tdialogbtn'+field_id+'_id';
@@ -489,7 +492,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 	    		var tdialogprop_obj = {field_id:field_id,
 	    			checkboxid_list:checkboxid_list,
-	    			divstr_list:divstr_list};
+	    			div_list:div_list};
 	    		//this.tdialogprop_list.push({field_id:field_id,
 	    		//	checkboxid_list:checkboxid_list});
 	    		var button_reg = registry.byId(button_id);
@@ -512,14 +515,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dialogbtn_process: function(tdialogprop_obj, event) {
 				var field_id = tdialogprop_obj.field_id;
 				var checkboxid_list = tdialogprop_obj.checkboxid_list;
-				var divstr_list = tdialogprop_obj.divstr_list;
+				var div_list = tdialogprop_obj.div_list;
 				var display_str = "";
 				var value_str = "";
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
 						// create str to display in buttone
-						display_str += divstr_list[index]+',';
+						display_str += div_list[index]+',';
 						// create str to store (str of integer id elements)
 						value_str += checkbox_reg.get("value")+',';
 					}

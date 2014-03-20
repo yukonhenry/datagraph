@@ -163,7 +163,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 if (config_status) {
                     var divstr_list = arrayUtil.map(data_list,
                         function(item, index) {
-                            return item.div_age + item.div_gen;
+                            // return both the divstr (string) and div_id value
+                            // value used as the value for the checkbox in the fieldinfo grid dropdown
+                            return {'divstr':item.div_age + item.div_gen,
+                                'div_id':item.div_id};
                         })
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
