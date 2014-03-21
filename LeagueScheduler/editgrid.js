@@ -174,7 +174,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					var eventcell = event.cells[0];
 					var row_id = eventcell.row.id;
 					var column_name = eventcell.column.id;
-					if (column_name == 'dates') {
+					if (column_name == 'detaileddates') {
 						// pass collection name to edit_calendar handler as it will be
 						// making independent requests to the server
 						//this.info_obj.edit_calendar(parseInt(row_id), this.colname);

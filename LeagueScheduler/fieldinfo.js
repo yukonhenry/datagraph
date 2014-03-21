@@ -147,7 +147,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					}, TimeTextBox),
 					dayweek_str:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
-					dates: {label:"Detail Config",
+					detaileddates: {label:"Detail Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
 					numgamedays: '# Game Days'
 				};
@@ -213,7 +213,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
-						dayweek_str:"", dates:"", numgamedays:0});
+						dayweek_str:"", detaileddates:"", numgamedays:0});
 				}
 				return info_list;
 			},
@@ -731,7 +731,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// data to server
 					var break_flag = false;
 					for (var prop in item) {
-						if (prop=='dates')
+						if (prop=='detaileddates')
 							continue;
 						if (item[prop] === "") {
 							//alert("Not all fields in grid filled out, but saving");
