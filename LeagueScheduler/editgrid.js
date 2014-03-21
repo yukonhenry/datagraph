@@ -97,6 +97,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							// after grid is rendered and when header row
 							// gets clicked on any column.
 							this.info_obj.rendercell_flag = false;
+						} else {
+							// turn it back on
+							this.info_obj.rendercell_flag = true;
 						}
 					}));
 				/*

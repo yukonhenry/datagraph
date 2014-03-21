@@ -13,8 +13,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			text_id:"infoTextNode_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
-			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
-			league_select_id:"league_select_id",
 		};
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
@@ -154,34 +152,18 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var data_list = server_data[options_obj.serverdata_key];
 				// extract configuration status from server. integer value 0/1
 				var config_status = server_data[options_obj.serverstatus_key];
+				/*
 				var serverdb_type = server_data.db_type;
 				if (serverdb_type != this.db_type) {
 					// db_type retruned from server should match up with this obj's
 					// db_type; if not, reanalyze
 					console.log("createEditGrid: warning: check db_type/serverdb_type logic");
-				}
+				} */
 				this.rownum = data_list.length;
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
-						arrayUtil.forEach(data_list, function(item, index) {
-							// save date str to pass into start and end time calc
-							// (though it can be a dummy date)
-							var start_str = item.start_date;
-							var end_str = item.end_date;
-							item.start_date = new Date(start_str);
-							item.end_date = new Date(end_str);
-							item.start_time = new Date(start_str+' '+item.start_time);
-							item.end_time = new Date(end_str+' '+item.end_time);
-						})
-						// extract divinfo obj related parameters from server data
-						var divstr_colname = server_data.divstr_colname;
-						var divstr_db_type = server_data.divstr_db_type;
-						//For field grids, create radio button pair to select
-						// schedule type - rr or tourn
-						this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
-							constant.radiobtn2_id, constant.league_select_id,
-							divstr_db_type, divstr_colname);
-						this.getdivstr_list(divstr_colname, divstr_db_type);
+						data_list = this.modifyserver_data(data_list,
+							server_data.divstr_obj);
 					} else {
 						alert('check db_type and idproperty consistency');
 					}

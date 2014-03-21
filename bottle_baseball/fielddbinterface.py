@@ -32,7 +32,12 @@ class FieldDBInterface:
         for fieldinfo in fieldinfo_list:
             start_date_str = fieldinfo['start_date']
             end_date_str = fieldinfo['end_date']
-            dayweek_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
+            # make sure fieldinfo['dayweek_str'] is nonempty as split() will fail if
+            # it is
+            if fieldinfo['dayweek_str']:
+                dayweek_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
+            else:
+                dayweek_list = []
             if len(dayweek_list) == 1 and not dayweek_list[0]:
                 numgamedays = 0
             else:
@@ -41,8 +46,11 @@ class FieldDBInterface:
             fieldinfo['numgamedays'] = numgamedays
             fieldinfo['dayweek_list'] = dayweek_list
             # check if primary use is not empty
-            fieldinfo['primaryuse_list'] = [int(x)
-                for x in fieldinfo['primaryuse_str'].split(',')]
+            if fieldinfo['primaryuse_str']:
+                fieldinfo['primaryuse_list'] = [int(x)
+                    for x in fieldinfo['primaryuse_str'].split(',')]
+            else:
+                fieldinfo['primaryuse_list'] = []
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]

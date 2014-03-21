@@ -258,24 +258,24 @@ def delete_tourndbcol(delcol_name):
 def get_dbcol(getcol_name):
     callback_name = request.query.callback
     db_type = request.query.db_type
-    if db_type == 'rrdb':
-        dbInterface = RRDBInterface(mongoClient, getcol_name)
-    elif db_type == 'tourndb':
-        dbInterface = TournDBInterface(mongoClient, getcol_name)
-    elif db_type == 'fielddb':
-        dbInterface = FieldDBInterface(mongoClient, getcol_name)
-    else:
-        raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
+    dbInterface = select_db_interface(db_type, getcol_name)
     dbtuple = dbInterface.readDB();
     info_list = dbtuple.list
     config_status = dbtuple.config_status
     return_obj = {'info_list':info_list, 'config_status':config_status}
     print 'info_list', info_list
     if db_type == 'fielddb':
+        # if db is fielddb, then append divinfo information also-
+        # used as part of fieldinfo config on UI grid
         divstr_colname = dbtuple.divstr_colname
         divstr_db_type = dbtuple.divstr_db_type
-        return_obj.update({'divstr_colname':divstr_colname,
-                          'divstr_db_type':divstr_db_type})
+        dbInterface = select_db_interface(divstr_db_type, divstr_colname)
+        dbtuple = dbInterface.readDB();
+        info_list = dbtuple.list
+        config_status = dbtuple.config_status
+        divstr_obj = {'colname':divstr_colname, 'db_type':divstr_db_type,
+            'info_list':info_list, 'config_status':config_status}
+        return_obj.update({'divstr_obj':divstr_obj})
     a = json.dumps(return_obj)
     return callback_name+'('+a+')'
 
@@ -319,3 +319,14 @@ def send_generate():
     schedMaster = SchedMaster(mongoClient, db_type, div_colname, field_colname)
     schedMaster.generate()
 
+def select_db_interface(db_type, colname):
+    if db_type == 'rrdb':
+        dbInterface = RRDBInterface(mongoClient, colname)
+    elif db_type == 'tourndb':
+        dbInterface = TournDBInterface(mongoClient, colname)
+    elif db_type == 'fielddb':
+        dbInterface = FieldDBInterface(mongoClient, colname)
+    else:
+        raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
+        dbInterface = None
+    return dbInterface

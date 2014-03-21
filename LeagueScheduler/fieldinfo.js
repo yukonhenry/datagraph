@@ -16,7 +16,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
 			db_type:'fielddb',
-			day_list:['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+			day_list:['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
+			league_select_id:"league_select_id"
 		};
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
@@ -428,7 +430,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// get data to create the possible check list items
 					// which is the all the divinfo items
 					// Data for actually entering the checks will come later
-					divstr_list = baseinfoSingleton.watch_obj.get('divstr_list')
+					// if data is already in the store (when selecting a fieldinfo grid that has been stored in the server)
+					// the 'data' field (alternatively object.primaryuse_str) will
+					// have the passed data originating from the server
+					// through local data store.
+					var divstr_list = baseinfoSingleton.watch_obj.get('divstr_list')
 					if (divstr_list && divstr_list.length > 0) {
 						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
@@ -655,6 +661,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var checkboxid_list = dialogprop_obj.checkboxid_list;
 				var display_str = "";
 				arrayUtil.forEach(check_str.split(','), function(item) {
+					var item = parseInt(item);
 					var checkbox_reg = registry.byId(checkboxid_list[item]);
 					checkbox_reg.set("checked", true);
 					display_str += display_list[item]+',';
@@ -698,7 +705,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			},
 			// get divinfo divstr info from server and
 			// save list in baseinfoSingleton
-			getdivstr_list: function(colname, db_type) {
+			getserverdivstr_list: function(colname, db_type) {
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
 						storeutil_obj:this.storeutil_obj,
@@ -748,6 +755,47 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					config_status = 1;
 				}
 				return config_status;
+			},
+			// modify field_id-specific data returned from server
+			modifyserver_data: function(data_list, divstr_obj) {
+				arrayUtil.forEach(data_list, function(item, index) {
+					// save date str to pass into start and end time calc
+					// (though it can be a dummy date)
+					var start_str = item.start_date;
+					var end_str = item.end_date;
+					item.start_date = new Date(start_str);
+					item.end_date = new Date(end_str);
+					item.start_time = new Date(start_str+' '+item.start_time);
+					item.end_time = new Date(end_str+' '+item.end_time);
+				})
+				// datalist modifications end above. However, there are other
+				// field_id-specific processing that needs to be done, concerning
+				// divinfo data attached for fieldinfo data
+				// extract divinfo obj related parameters from server data
+				this.divstr_colname = divstr_obj.colname;
+				this.divstr_db_type = divstr_obj.db_type;
+				var config_status = divstr_obj.config_status;
+				var info_list = divstr_obj.info_list;
+				//For field grids, create radio button pair to select
+				// schedule type - rr or tourn
+				this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
+					constant.radiobtn2_id, constant.league_select_id,
+					this.divstr_db_type, this.divstr_colname);
+				//config_status should always be 1 for as divinfo db's are
+				// selected from a list that includes only fully complete configs
+                if (config_status) {
+                    var divstr_list = arrayUtil.map(info_list,
+                        function(item, index) {
+                            // return both the divstr (string) and div_id value
+                            // value used as the value for the checkbox in the fieldinfo grid dropdown
+                            return {'divstr':item.div_age + item.div_gen,
+                                'div_id':item.div_id};
+                        })
+                    // save divinfo obj information that is attached to the current
+                    // fieldinfo obj
+                    baseinfoSingleton.watch_obj.set('divstr_list', divstr_list);
+                }
+				return data_list;
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
