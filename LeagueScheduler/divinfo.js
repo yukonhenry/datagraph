@@ -44,6 +44,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							return parseInt(item.numgdaysperweek)
 						}}, "text", "dblclick"),
 					totalgamedays: {label:"Total Gamedays",
+						set:function(item) {
+							return parseInt(item.numgdaysperweek) *
+								parseInt(item.numweeks);
+						}
 					/*
 						get:function(item) {
 							return item.numweeks*item.numgdaysperweek;
