@@ -1857,6 +1857,7 @@ class FieldTimeScheduleGenerator:
             f_id = f['field_id']
             interval_list = []
             totalgamedays_list = []
+            # get properties that are defined in divinfo config
             for p in f['primaryuse_list']:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(p)]
                 interval_list.append(divinfo['gameinterval'])
@@ -1864,6 +1865,7 @@ class FieldTimeScheduleGenerator:
             #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
             interval = max(interval_list)
             gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
+            # get max of totalgamedays defined in divinfo config
             totalgamedays = max(totalgamedays_list)
             gamestart = parser.parse(f['start_time'])
             end_time = parser.parse(f['end_time'])

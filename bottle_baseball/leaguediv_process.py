@@ -269,10 +269,16 @@ def get_dbcol(getcol_name):
         # used as part of fieldinfo config on UI grid
         divstr_colname = dbtuple.divstr_colname
         divstr_db_type = dbtuple.divstr_db_type
-        dbInterface = select_db_interface(divstr_db_type, divstr_colname)
-        dbtuple = dbInterface.readDB();
-        info_list = dbtuple.list
-        config_status = dbtuple.config_status
+        if divstr_colname and divstr_db_type:
+            dbInterface = select_db_interface(divstr_db_type, divstr_colname)
+            dbtuple = dbInterface.readDB();
+            info_list = dbtuple.list
+            config_status = dbtuple.config_status
+        else:
+            info_list = []
+            config_status = 0
+            divstr_db_type = ""
+            divstr_colname = ""
         divstr_obj = {'colname':divstr_colname, 'db_type':divstr_db_type,
             'info_list':info_list, 'config_status':config_status}
         return_obj.update({'divstr_obj':divstr_obj})

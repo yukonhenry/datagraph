@@ -20,7 +20,7 @@ end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
 end_time_CONST = 'END_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
-numgamedays_CONST = 'NUMGAMEDAYS'
+totalfielddays_CONST = 'TOTALFIELDDAYS'
 
 class FieldDBInterface:
     def __init__(self, mongoClient, newcol_name):
@@ -38,12 +38,12 @@ class FieldDBInterface:
                 dayweek_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
             else:
                 dayweek_list = []
-            if len(dayweek_list) == 1 and not dayweek_list[0]:
-                numgamedays = 0
+            if not len(dayweek_list):
+                totalfielddays = 0
             else:
-                numgamedays = self.calcNumGameDays(start_date_str, end_date_str,
+                totalfielddays = self.calc_totalfielddays(start_date_str, end_date_str,
                                                    dayweek_list)
-            fieldinfo['numgamedays'] = numgamedays
+            fieldinfo['totalfielddays'] = totalfielddays
             fieldinfo['dayweek_list'] = dayweek_list
             # check if primary use is not empty
             if fieldinfo['primaryuse_str']:
@@ -88,7 +88,7 @@ class FieldDBInterface:
             print 'fieldtime', fieldtime
             field_id = fieldtime['field_id']
 
-    def calcNumGameDays(self, start_date_str, end_date_str, dayweek_list):
+    def calc_totalfielddays(self, start_date_str, end_date_str, dayweek_list):
         start_date = parser.parse(start_date_str)
         # get integer day of week number
         start_day = start_date.weekday()
@@ -99,7 +99,7 @@ class FieldDBInterface:
         diff_days = (end_date - start_date).days
         diff_fullweeks = diff_days / 7
         # calc baseline number of game days based on full weeks
-        numgamedays = len(dayweek_list)*diff_fullweeks
+        totalfielddays = len(dayweek_list)*diff_fullweeks
         # available days in the last week
         avail_days = diff_days % diff_fullweeks
         if avail_days > 0:
@@ -113,5 +113,5 @@ class FieldDBInterface:
             # calculate number of game days during last (partial) week
             # by taking intersection of available days during last week
             # and weekly game days
-            numgamedays += len(set(lw_list).intersection(dayweek_list))
-        return numgamedays
+            totalfielddays += len(set(lw_list).intersection(dayweek_list))
+        return totalfielddays

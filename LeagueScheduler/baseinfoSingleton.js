@@ -12,7 +12,6 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			constructor: function() {
 				this.obj_list = new Array();
 				this.watch_obj = new Watch_class();
-				//this.watch_obj.set('divstr_list',[]);
 			},
 			register_obj: function(obj, idproperty) {
 				this.obj_list.push({obj:obj, idproperty:idproperty});

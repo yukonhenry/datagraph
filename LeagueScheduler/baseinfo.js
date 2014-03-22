@@ -72,9 +72,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// if idproperty is field, create radio buttons for
 						// db selection (for div select)
 						if (this.idproperty == 'field_id') {
-							this.create_dbselect_radiobtnselect(
-								constant.radiobtn1_id, constant.radiobtn2_id,
-								constant.league_select_id);
+							// field_id-specific UI above grid
+							this.initabovegrid_UI();
 						} else if (this.idproperty == 'div_id') {
 							this.create_calendar_input();
 						}

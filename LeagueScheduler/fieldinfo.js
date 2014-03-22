@@ -151,7 +151,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
 					detaileddates: {label:"Detail Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
-					numgamedays: '# Game Days'
+					totalfielddays: '# Open Field Days'
 				};
 				return columnsdef_obj;
 			},
@@ -215,7 +215,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
-						dayweek_str:"", detaileddates:"", numgamedays:0});
+						dayweek_str:"", detaileddates:"", totalfielddays:0});
 				}
 				return info_list;
 			},
@@ -460,8 +460,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// fill in checkboxes if store already has checkbox info
 					// this has to be called after dropdown_btn is created
 		    		if (divstr_list && divstr_list.length > 0 && object.primaryuse_str) {
-		    			this.init_checkbox(tdialogprop_obj, object.primaryuse_str,
-		    				divstr_list, "fielddropdownbtn");
+		    			// index_offset is 1 (-1) as check_str is a list of
+		    			// div_id's, which need to be decremented to be an index
+		    			// into the display_list
+		    			var args_obj = {dialogprop_obj:tdialogprop_obj,
+		    				check_str:object.primaryuse_str,
+		    				display_list:tdialogprop_obj.div_list,
+		    				dropdownbtn_prefix:"fielddropdownbtn",
+		    				index_offset:1}
+		    			this.init_checkbox(args_obj);
 		    		}
 				} else {
 					// retrieve widget that had already been instantiated
@@ -612,8 +619,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		    			dropdown_btn.set('dropDown', dwdialog);
 		    		}
 		    		if (object.dayweek_str) {
-		    			this.init_checkbox(dwdialogprop_obj, object.dayweek_str,
-		    				dwdialogprop_obj.day_list, "dwfielddropdownbtn");
+		    			// note index_offset is 0 as dayweek_str is already
+		    			// a list of indices into the day_list string list
+		    			var args_obj = {dialogprop_obj:dwdialogprop_obj,
+		    				check_str:object.dayweek_str,
+		    				display_list:dwdialogprop_obj.day_list,
+		    				dropdownbtn_prefix:"dwfielddropdownbtn",
+		    				index_offset:0}
+		    			this.init_checkbox(args_obj);
 		    		}
 				} else {
 					var field_id = object.field_id;
@@ -656,15 +669,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				}
 			},
 			// mark checkboxes depending on state of store
-			init_checkbox: function(dialogprop_obj, check_str, display_list, dropdownbtn_prefix) {
+			init_checkbox: function(args_obj) {
+				var dialogprop_obj = args_obj.dialogprop_obj;
+				var check_str = args_obj.check_str;
+				var display_list = args_obj.display_list;
+				var dropdownbtn_prefix = args_obj.dropdownbtn_prefix;
+				var index_offset = args_obj.index_offset;
 				var field_id = dialogprop_obj.field_id;
 				var checkboxid_list = dialogprop_obj.checkboxid_list;
 				var display_str = "";
 				arrayUtil.forEach(check_str.split(','), function(item) {
-					var item = parseInt(item);
-					var checkbox_reg = registry.byId(checkboxid_list[item]);
+					// note index is computed from item
+					// (Not index of function(item, index))
+					var index = parseInt(item)-index_offset;
+					var checkbox_reg = registry.byId(checkboxid_list[index]);
 					checkbox_reg.set("checked", true);
-					display_str += display_list[item]+',';
+					display_str += display_list[index]+',';
 				});
 				display_str = display_str.substring(0, display_str.length-1);
 				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
@@ -702,17 +722,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (event) {
 					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
 				}
-			},
-			// get divinfo divstr info from server and
-			// save list in baseinfoSingleton
-			getserverdivstr_list: function(colname, db_type) {
-				if (!this.widgetgen) {
-					this.widgetgen = new WidgetGen({
-						storeutil_obj:this.storeutil_obj,
-						server_interface:this.server_interface
-					});
-				}
-				this.widgetgen.getname_list(colname, db_type, this);
 			},
 			// set and get divinfo  obj information that is attached to the current
 			// fieldinfo obj
@@ -778,11 +787,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var info_list = divstr_obj.info_list;
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
-				this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
-					constant.radiobtn2_id, constant.league_select_id,
-					this.divstr_db_type, this.divstr_colname);
+				// if divstr parameters were saved with fieldgrid info and returned
+				// to the client, use those to set up the radio buttons.  Otherwise
+				// use default values.
+				if (this.divstr_colname && this.divstr_db_type) {
+					this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
+						constant.radiobtn2_id, constant.league_select_id,
+						this.divstr_db_type, this.divstr_colname);
+				} else {
+					this.initabovegrid_UI();
+				}
 				//config_status should always be 1 for as divinfo db's are
 				// selected from a list that includes only fully complete configs
+				// however, there is a chance that a non-config-complete fieldgrid
+				// was saved to the server.
                 if (config_status) {
                     var divstr_list = arrayUtil.map(info_list,
                         function(item, index) {
@@ -796,6 +814,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
                     baseinfoSingleton.watch_obj.set('divstr_list', divstr_list);
                 }
 				return data_list;
+			},
+			initabovegrid_UI: function() {
+				this.create_dbselect_radiobtnselect(
+					constant.radiobtn1_id, constant.radiobtn2_id,
+					constant.league_select_id);
 			},
 			cleanup: function() {
 				if (this.starttime_handle)
