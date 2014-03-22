@@ -6,6 +6,8 @@ from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 import logging
 from sched_exceptions import CodeLogicError
+_List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+
 class SchedMaster:
     def __init__(self, mongoClient, db_type, divcol_name, field_colname):
         if db_type == 'rrdb':
@@ -36,7 +38,7 @@ class SchedMaster:
             fieldinfo_list=fieldinfo_list)
 
     def generate(self):
-        total_match_list = []
+        totalmatch_list = []
         for divinfo in self.divinfo_list:
             totalteams = divinfo['totalteams']
             totalgamedays = divinfo['totalgamedays']
@@ -45,8 +47,12 @@ class SchedMaster:
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
                 'numgames_list':match.numGames_list,
                 'gameslotsperday':match.gameslotsperday}
-            total_match_list.append(args_obj)
-        print 'totalmatch', total_match_list
+            totalmatch_list.append(args_obj)
+        totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
+        print 'totalmatch', totalmatch_list
+        self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list,
+            totalmatch_indexerGet)
+
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
     def divfield_correlate(self, fieldinfo_list):
