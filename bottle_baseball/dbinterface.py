@@ -227,36 +227,28 @@ class MongoDBInterface:
             # and define group output based on earliest and latest of prev sort operation (but for every field);
             # and carry along latest group operation output with team info, along with time
             res_list = self.games_col.aggregate([{"$match":{venue_CONST:{"$in":fields},
-                                                           gameday_id_CONST:gameday_id}},
-                                                 {"$group":{'_id':{'start_time':"$START_TIME",
-                                                                   'venue':"$VENUE"},
-                                                            'data':{"$push":{'home':"$HOME",
-                                                                             'away':"$AWAY",
-                                                                             'gen':"$GEN",
-                                                                             'age':"$AGE"}}}},
-                                                 {"$sort":{'_id.start_time':1}},
-                                                 {"$group":{'_id':"$_id.venue",
-                                                            'earliest':{"$first":{'data':"$data",
-                                                                                'time':"$_id.start_time"}},
-                                                            'latest':{"$last":{'data':"$data",
-                                                                               'time':"$_id.start_time"}}}},
-                                                 {"$project":{'_id':0, 'venue':"$_id",
-                                                              'earliest':1,'latest':1}}])
+                gameday_id_CONST:gameday_id}},
+                {"$group":{'_id':{'start_time':"$START_TIME",'venue':"$VENUE"},
+                'data':{"$push":{'home':"$HOME", 'away':"$AWAY", 'gen':"$GEN",
+                'age':"$AGE"}}}},
+                {"$sort":{'_id.start_time':1}},
+                {"$group":{'_id':"$_id.venue",
+                'earliest':{"$first":{'data':"$data", 'time':"$_id.start_time"}},
+                'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
+                {"$project":{'_id':0, 'venue':"$_id", 'earliest':1,'latest':1}}])
             '''
-            res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender,
-                                                            gameday_id_CONST:gameday_id}},
-                                                 {"$group":{'_id':"$START_TIME",
-                                                            'hometeam_id_list':{"$push":"$HOME"},
-                                                            'awayteam_id_list':{"$push":"$AWAY"}}},
-                                                 {"$sort":{'_id':-1}},
-                                                 {"$group":{'_id':0,
-                                                            'latest_data':{"$first":{'hometeam_id_list':"$hometeam_id_list",
-                                                                                     'awayteam_id_list':"$awayteam_id_list",
-                                                                                     'time':"$_id"}},
-                                                            'earliest_data':{"$last":{'hometeam_id_list':"$hometeam_id_list",
-                                                            'awayteam_id_list':"$awayteam_id_list",
-                                                                                      'time':"$_id"}}}},
-                                                 {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
+            res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender, gameday_id_CONST:gameday_id}},
+                {"$group":{'_id':"$START_TIME",
+                'hometeam_id_list':{"$push":"$HOME"},
+                'awayteam_id_list':{"$push":"$AWAY"}}},
+                {"$sort":{'_id':-1}},
+                {"$group":{'_id':0,
+                'latest_data':{"$first":{'hometeam_id_list':"$hometeam_id_list",
+                'awayteam_id_list':"$awayteam_id_list",'time':"$_id"}},
+                'earliest_data':{"$last":{'hometeam_id_list':"$hometeam_id_list",
+                'awayteam_id_list':"$awayteam_id_list",
+                'time':"$_id"}}}},
+                {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
         '''
             result = res_list['result'] # there should only be one element which includes the latest and earliest team data
             earliest_home = [x['earliest']['data'][0]['home']

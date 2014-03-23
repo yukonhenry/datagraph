@@ -9,8 +9,12 @@ import logging
 from sched_exceptions import CodeLogicError
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
+# main class for launching schedule generator
+# Handling round-robin season-long schedules.  May extend to handle other schedule
+# generators.
 class SchedMaster:
     def __init__(self, mongoClient, db_type, divcol_name, field_colname):
+        # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':
             dbInterface = RRDBInterface(mongoClient, divcol_name)
         elif db_type == 'tourndb':
@@ -47,7 +51,7 @@ class SchedMaster:
             match_list = match.generateMatchList()
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
                 'numgames_list':match.numGames_list,
-                'gameslotsperday':match.gameslotsperday}
+                'roundgameslots_num':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list,

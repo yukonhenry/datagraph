@@ -39,11 +39,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						set:function(item) {
 							return parseInt(item.numweeks)
 						}}, "text", "dblclick"),
-					numgdaysperweek: editor({label:"Num Gamedays per Week", autoSave:true,
+					numgdaysperweek: editor({label:"Num Gamedays per Week (per team)", autoSave:true,
 						set:function(item) {
 							return parseInt(item.numgdaysperweek)
 						}}, "text", "dblclick"),
-					totalgamedays: {label:"Total Gamedays",
+					totalgamedays: {label:"Total Gamedays (per team)",
 						set:function(item) {
 							return parseInt(item.numgdaysperweek) *
 								parseInt(item.numweeks);
