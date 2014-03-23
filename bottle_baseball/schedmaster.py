@@ -50,7 +50,6 @@ class SchedMaster:
                 'gameslotsperday':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
-        print 'totalmatch', totalmatch_list
         self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list,
             totalmatch_indexerGet)
 

@@ -854,7 +854,8 @@ class FieldTimeScheduleGenerator:
         # alternate method http://stackoverflow.com/questions/3179106/python-select-subset-from-list-based-on-index-set
         # indexer below is used to protect against list of dictionaries that are not ordered according to id,
         # though it is a protective measure, as the list should be ordered with the id.
-        self.dbinterface.dropGameDocuments()  # reset game schedule collection
+        #REDO below - we may have to delete current game schedule collection, once we get the name
+        #self.dbinterface.dropGameDocuments()  # reset game schedule collection
 
         # used for calaculating time balancing metrics
         ew_list_indexer = getDivFieldEdgeWeight_list(self.divinfo_tuple,
@@ -906,6 +907,7 @@ class FieldTimeScheduleGenerator:
                 # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
+                # used for field balancing
                 numgamesperfield_list = [[n/numdivfields]
                                          if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1]
                                          for n in numgames_list]
@@ -1339,7 +1341,7 @@ class FieldTimeScheduleGenerator:
                     #div = getAgeGenderDivision(div_id)
                     div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                     logging.debug("div=%s%s round_id=%d, field=%d gametime=%s slotindex=%d",
-                                  div.div_age, div.div_gen, round_id, field_id, gametime, slot_index)
+                                  div['div_age'], div['div_gen'], round_id, field_id, gametime, slot_index)
                 logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
                               connected_div_list, round_id, gameday_fieldcount)
             self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
