@@ -4,6 +4,7 @@ from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
+from collections import namedtuple
 import logging
 from sched_exceptions import CodeLogicError
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')

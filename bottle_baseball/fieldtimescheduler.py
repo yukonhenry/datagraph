@@ -889,6 +889,8 @@ class FieldTimeScheduleGenerator:
                 gameinterval_dict[div_id] = timedelta(0,0,0,0,ginterval)
                 # get match list for indexed division
                 divmatch_dict = totalmatch_list[totalmatch_indexerGet(div_id)]
+                # submatch_list is a subset of total_match_list corresponding to
+                # connected_div_list
                 submatch_list.append(divmatch_dict)
                 # calculate number of rounds (gameslots) for the division, and update max if it is the largest
                 # amongst connected divisions
