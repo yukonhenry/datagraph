@@ -4,18 +4,8 @@ from dbinterface import MongoDBInterface, DB_Col_Type
 import simplejson as json
 from collections import namedtuple
 import logging
-age_CONST = 'AGE'
-gen_CONST = 'GEN'
-div_id_CONST = 'DIV_ID'
-totalteams_CONST = 'TOTALTEAMS'
-numweeks_CONST = 'NUMWEEKS'
-numgdaysperweek_CONST = 'NUMGDAYSPERWEEK'
-totalgamedays_CONST = 'TOTALGAMEDAYS'
-gameinterval_CONST = 'GAMEINTERVAL'
 gameday_id_CONST = 'GAMEDAY_ID'
-match_id_CONST = 'MATCH_ID'
 start_time_CONST = 'START_TIME'
-gameday_data_CONST = 'GAMEDAY_DATA'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')

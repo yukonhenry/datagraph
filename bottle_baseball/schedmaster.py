@@ -25,22 +25,24 @@ class SchedMaster:
         if dbtuple.config_status == 1:
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
+            divinfo_tuple = _List_Indexer(self.divinfo_list,
+                self.divinfo_indexerGet)
         else:
-            self.divinfo_list = None
+            divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, field_colname)
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
             fieldinfo_list = fdbtuple.list
+            fieldinfo_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
+            fieldinfo_tuple = _List_Indexer(fieldinfo_list, fieldinfo_indexerGet)
             self.divfield_correlate(fieldinfo_list)
         else:
-            fieldinfo_list = None
+            fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (field_colname,))
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface, fdbinterface=fdbInterface,
-            divinfo_list=self.divinfo_list,
-            divinfo_indexerGet=self.divinfo_indexerGet,
-            fieldinfo_list=fieldinfo_list)
+            divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
 
     def generate(self):
         totalmatch_list = []
@@ -54,8 +56,7 @@ class SchedMaster:
                 'roundgameslots_num':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
-        self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list,
-            totalmatch_indexerGet)
+        #self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list, totalmatch_indexerGet)
 
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
