@@ -1901,3 +1901,9 @@ class FieldTimeScheduleGenerator:
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
+
+    def checkFieldAvailability(self):
+        for connected_div in connected_div_components:
+            for div_id in connected_div:
+                divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+                field_id_list = divinfo['fields']
