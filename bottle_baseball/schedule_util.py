@@ -32,6 +32,9 @@ def all_same(items):
 def all_value(items, value):
     return all(x == value for x in items)
 
+def all_isless(items, value):
+    return all(x < value for x in items)
+
 def any_ismore(items, value):
     return any(x > value for x in items)
 

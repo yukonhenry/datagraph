@@ -35,9 +35,12 @@ class FieldConsistencyError(Exception):
 
 class FieldTimeAvailabilityError(Exception):
     ''' Raised if there is a general lack of fields or time to service required number of games'''
-    def __init__(self, div_list):
+    def __init__(self, msg, div_list):
         Exception.__init__(self)
         self.div_list = div_list
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg) + "div_list="+reprr(self.msg)
 
 class CodeLogicError(Exception):
     ''' Generic Exception if there is a logic error in code '''

@@ -956,11 +956,9 @@ class BasicFieldTimeScheduleGenerator:
             logging.debug("for divs=%s fset=%s required slots=%d available=%d",
                           connected_div_list, fset, required_gameslotsperday, available_gameslotsperday)
             if available_gameslotsperday < required_gameslotsperday:
-                logging.error("!!!!!!!!!!!!!!!!")
-                logging.error("Not enough game slots, need %d slots, but only %d available",
-                              required_gameslotsperday, available_gameslotsperday)
                 logging.error("!!!!Either add more time slots or fields!!!")
-                raise FieldTimeAvailabilityError(connected_div_list)
+                raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough game slots, need %d slots, but only %d available" % (required_gameslotsperday, available_gameslotsperday),
+                    connected_div_list)
             for round_id in range(1,max_submatchrounds+1):
                 # counters below count how many time each field is used for every gameday
                 # reset for each round/gameday
@@ -1527,7 +1525,7 @@ class BasicFieldTimeScheduleGenerator:
                     cteam_id = constraint['team_id']
                     cdesired_list = constraint['desired']
                     for cdesired in cdesired_list:
-                        breakflag = False
+                        break_flag = False
                         # each time might have multiple constraints
                         # read each constraint and see if any are already met by default
                         cd_gameday_id = cdesired['gameday_id']
@@ -1613,7 +1611,7 @@ class BasicFieldTimeScheduleGenerator:
                                         if div_id == cdiv_id and (home == cteam_id or away == cteam_id):
                                             logging.info("ftscheduler:constraints: ***constraint satisfied with constraint=%d div=%d team=%d gameday=%d",
                                                          cd_id, div_id, cteam_id, cd_gameday_id)
-                                            breakflag = True
+                                            break_flag = True
                                             break  # from inner for canswapTF_list loop
                                         else:
                                             swapmatch_list.append({'teams':teams, 'slot_index':slot_ind, 'field_id':f})
@@ -1622,7 +1620,7 @@ class BasicFieldTimeScheduleGenerator:
                                               f, cd_id, swapmatch_list)
                                 continue
                             break  # from outer for fset loop
-                        if breakflag:
+                        if break_flag:
                             logging.debug("ftscheduler:processconstraints id %d %s already satisfied as is", cd_id, cdesired)
                             print '*********constraint', cd_id, cdesired, 'is already satisfied'
                         else:
@@ -1758,7 +1756,7 @@ class BasicFieldTimeScheduleGenerator:
 
 
     def findFieldSeasonStatusSlot(self, fset, div_id, team_id, gameday_id):
-        breakflag = False
+        break_flag = False
         for f in fset:
             fgameday_status = self.fieldSeasonStatus[self.fstatus_indexerGet(f)]['slotstatus_list'][gameday_id-1]
             for slot_index, fstatus in enumerate(fgameday_status):
@@ -1766,12 +1764,12 @@ class BasicFieldTimeScheduleGenerator:
                     fteams = fstatus['teams']
                     if fteams['div_id'] == div_id and (fteams[home_CONST]==team_id or fteams[away_CONST]==team_id):
                         oppteam_id = fteams[home_CONST] if fteams[away_CONST]==team_id else fteams[away_CONST]
-                        breakflag = True
+                        break_flag = True
                         break
             else:
                 continue
             break
-        if breakflag:
+        if break_flag:
             StatusSlot_tuple = namedtuple('StatusSlot_tuple', 'slot_index field_id oppteam_id teams')
             return StatusSlot_tuple(slot_index, f, oppteam_id, fteams)
         else:

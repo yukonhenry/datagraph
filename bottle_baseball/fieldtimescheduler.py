@@ -1,7 +1,9 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
 from itertools import groupby
-from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch, getConnectedDivisionGroup, getDivFieldEdgeWeight_list
+from schedule_util import roundrobin, all_same, all_value, enum, shift_list, \
+    bipartiteMatch, getConnectedDivisionGroup, getDivFieldEdgeWeight_list,\
+    all_isless
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getTeamTimeConstraintInfo, getSwapTeamInfo
@@ -54,7 +56,6 @@ class FieldTimeScheduleGenerator:
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
         #logging.debug("fieldseasonstatus init=%s",self.fieldstatus_list)
-        self.checkFieldAvailability();
         self.total_game_dict = {}
         # initialize dictionary (div_id is key)
         for i in range(1,len(self.divinfo_list)+1):
@@ -848,7 +849,10 @@ class FieldTimeScheduleGenerator:
         else:
             return None
 
-    def generateSchedule(self, totalmatch_list, totalmatch_indexerGet):
+    def generateSchedule(self, totalmatch_tuple):
+        totalmatch_list = totalmatch_tuple.dict_list
+        totalmatch_indexerGet = totalmatch_tuple.indexerGet
+        self.checkFieldAvailability(totalmatch_tuple);
         # ref http://stackoverflow.com/questions/4573875/python-get-index-of-dictionary-item-in-list
         # for finding index of dictionary key in array of dictionaries
         # use indexer so that we don't depend on order of divisions in totalmatch_list
@@ -965,11 +969,9 @@ class FieldTimeScheduleGenerator:
             logging.debug("for divs=%s fset=%s required slots=%d available=%d",
                           connected_div_list, fset, required_gameslotsperday, available_gameslotsperday)
             if available_gameslotsperday < required_gameslotsperday:
-                logging.error("!!!!!!!!!!!!!!!!")
-                logging.error("Not enough game slots, need %d slots, but only %d available",
-                              required_gameslotsperday, available_gameslotsperday)
                 logging.error("!!!!Either add more time slots or fields!!!")
-                raise FieldTimeAvailabilityError(connected_div_list)
+                raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough game slots, need %d slots, but only %d available" % (required_gameslotsperday, available_gameslotsperday),
+                    connected_div_list)
             for round_id in range(1,max_submatchrounds+1):
                 # counters below count how many time each field is used for every gameday
                 # reset for each round/gameday
@@ -1538,7 +1540,7 @@ class FieldTimeScheduleGenerator:
                     cteam_id = constraint['team_id']
                     cdesired_list = constraint['desired']
                     for cdesired in cdesired_list:
-                        breakflag = False
+                        break_flag = False
                         # each time might have multiple constraints
                         # read each constraint and see if any are already met by default
                         cd_gameday_id = cdesired['gameday_id']
@@ -1624,7 +1626,7 @@ class FieldTimeScheduleGenerator:
                                         if div_id == cdiv_id and (home == cteam_id or away == cteam_id):
                                             logging.info("ftscheduler:constraints: ***constraint satisfied with constraint=%d div=%d team=%d gameday=%d",
                                                 cd_id, div_id, cteam_id, cd_gameday_id)
-                                            breakflag = True
+                                            break_flag = True
                                             break  # from inner for canswapTF_list loop
                                         else:
                                             swapmatch_list.append({'teams':teams, 'slot_index':slot_ind, 'field_id':f})
@@ -1633,7 +1635,7 @@ class FieldTimeScheduleGenerator:
                                               f, cd_id, swapmatch_list)
                                 continue
                             break  # from outer for fset loop
-                        if breakflag:
+                        if break_flag:
                             logging.debug("ftscheduler:processconstraints id %d %s already satisfied as is", cd_id, cdesired)
                             print '*********constraint', cd_id, cdesired, 'is already satisfied'
                         else:
@@ -1770,7 +1772,7 @@ class FieldTimeScheduleGenerator:
 
 
     def findFieldSeasonStatusSlot(self, fset, div_id, team_id, gameday_id):
-        breakflag = False
+        break_flag = False
         for f in fset:
             fgameday_status = self.fieldstatus_list[self.fstatus_indexerGet(f)]['slotstatus_list'][gameday_id-1]
             for slot_index, fstatus in enumerate(fgameday_status):
@@ -1778,12 +1780,12 @@ class FieldTimeScheduleGenerator:
                     fteams = fstatus['teams']
                     if fteams['div_id'] == div_id and (fteams[home_CONST]==team_id or fteams[away_CONST]==team_id):
                         oppteam_id = fteams[home_CONST] if fteams[away_CONST]==team_id else fteams[away_CONST]
-                        breakflag = True
+                        break_flag = True
                         break
             else:
                 continue
             break
-        if breakflag:
+        if break_flag:
             StatusSlot_tuple = namedtuple('StatusSlot_tuple', 'slot_index field_id oppteam_id teams')
             return StatusSlot_tuple(slot_index, f, oppteam_id, fteams)
         else:
@@ -1903,13 +1905,48 @@ class FieldTimeScheduleGenerator:
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
-    def checkFieldAvailability(self):
+    def checkFieldAvailability(self, totalmatch_tuple):
+        totalmatch_list = totalmatch_tuple.dict_list
+        totalmatch_indexerGet = totalmatch_tuple.indexerGet
+        # http://stackoverflow.com/questions/653509/breaking-out-of-nested-loops
         for connected_div in self.connected_div_components:
             for div_id in connected_div:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 field_id_list = divinfo['fields']
-                req_numgdaysperweek = divinfo['numgdaysperweek']
+                # get number of gamedays per week required by div
+                div_numgdaysperweek = divinfo['numgdaysperweek']
+                div_totalgamedays = divinfo['totalgamedays']
+                totalmatch = totalmatch_list[totalmatch_indexerGet(div_id)]
+                div_roundgameslots_num = totalmatch['roundgameslots_num']
+                # find # days per week available from fields attached to div
+                dayweek_set = set()
+                totalfielddays_list = []
                 for field_id in field_id_list:
                     fieldinfo = self.fieldinfo_list[self.fieldinfo_indexerGet(field_id)]
                     print 'fieldinfo', fieldinfo
+                    dayweek_set.update(fieldinfo['dayweek_list'])
+                    totalfielddays_list.append(fieldinfo['totalfielddays'])
+                dayweek_set_len = len(dayweek_set)
+                # check if there are enough gamedays during the week
+                if dayweek_set_len < div_numgdaysperweek:
+                    logging.error("Not enough gamedays in week for %d" % (div_id,))
+                    raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough gamedays in week, need %d dayss, but only %d available" % (div_numgdaysperweek, dayweek_set_len),
+                        div_id)
+                    break
+                # check if there are enough totalfielddays to cover the total
+                # gamedays required for each division
+                if all_isless(totalfielddays_list, div_totalgamedays):
+                    logging.error("Not enough field days to cover %d" % (div_id,))
+                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available" % (div_totalgamedays, max(totalfielddays_list)),
+                        div_id)
+                    break
+            else:
+                continue
+            break
+        else:
+            # all loops completed, everything is ok
+            return True
+        # there was a break, check failed
+        return False
+
 

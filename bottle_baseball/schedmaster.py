@@ -56,7 +56,8 @@ class SchedMaster:
                 'roundgameslots_num':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
-        #self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list, totalmatch_indexerGet)
+        totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
+        #self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_tuple)
 
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
