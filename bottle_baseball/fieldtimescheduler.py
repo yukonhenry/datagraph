@@ -1869,16 +1869,13 @@ class FieldTimeScheduleGenerator:
         fieldseason_status_list = []
         for f in self.fieldinfo_list:
             f_id = f['field_id']
-            interval_list = []
+            # number of days field is open every week
+            f_dayweek_len = len(f['dayweek_list'])
+            div_numgdaysperweek_list = [self.divinfo_list[self.divinfo_indexerGet(p)]['numgdaysperweek'] for p in f['primaryuse_list']]
             #totalgamedays_list = []
-            # get properties that are defined in divinfo config
-            for p in f['primaryuse_list']:
-                divinfo = self.divinfo_list[self.divinfo_indexerGet(p)]
-                interval_list.append(divinfo['gameinterval'])
-                #totalgamedays_list.append(divinfo['totalgamedays'])
             #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
-            interval = max(interval_list)
-            gameinterval = timedelta(0,0,0,0,interval)  # convert to datetime compatible obj
+            max_interval = max(self.divinfo_list[self.divinfo_indexerGet(p)]['gameinterval'] for p in f['primaryuse_list'])
+            gameinterval = timedelta(0,0,0,0,max_interval)  # convert to datetime compatible obj
             # get max of totalgamedays defined in divinfo config
             #totalgamedays = max(totalgamedays_list)
             totalfielddays = f['totalfielddays']
@@ -1892,7 +1889,7 @@ class FieldTimeScheduleGenerator:
                 gamestart += gameinterval
             sstatus_len = len(sstatus_list)
             #slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
-            slotstatus_list = [{'gameday_id':i,
+            slotstatus_list = [{'week_id':i,
                 'sstatus_list':deepcopy(sstatus_list)}
                 for i in range(1,totalfielddays+1)]
             closed_gameday_list = f.get('closed_gameday_list')
