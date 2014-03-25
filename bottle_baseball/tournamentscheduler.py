@@ -70,9 +70,9 @@ class TournamentScheduler:
                 bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
                 logging.info("tournscheduler:prepGenerate:div=%d bracket=%s bracketmatch_list=%s",
                              div_id, bracket, bracket_match_list)
-                print 'div bracket numgames', div_id, bracket, match.numGames_list
-                if any_isless(match.numGames_list, ng):
-                    index_list = [i for i,j in enumerate(match.numGames_list) if j < ng]
+                print 'div bracket numgames', div_id, bracket, match.numgames_list
+                if any_isless(match.numgames_list, ng):
+                    index_list = [i for i,j in enumerate(match.numgames_list) if j < ng]
                     partialgame_list.append([bracket['team_id_list'][x] for x in index_list])
                 match_list.append(bracket_match_list)
             if partialgame_list:

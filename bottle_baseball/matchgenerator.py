@@ -22,7 +22,7 @@ class MatchGenerator:
             logging.warning("MatchGenerator: some team will need a bye!")
         # actual number of games per team (determined by counter), init to 0 to start
         # position in list is team_id-1
-        self.numGames_list = nt*[0]
+        self.numgames_list = nt*[0]
         self.bye_flag = False
         if (self.numTeams % 2):
             self.eff_numTeams = self.numTeams+1
@@ -78,10 +78,10 @@ class MatchGenerator:
         t1_ind = team1_id - 1
         t2_ind = team2_id - 1
         # update game number (per team) counter
-        self.numGames_list[t1_ind] += 1
-        self.numGames_list[t2_ind] += 1
-        if (self.numGames_list[t1_ind] <= self.maxGamesPerTeam and
-            self.numGames_list[t2_ind] <= self.maxGamesPerTeam):
+        self.numgames_list[t1_ind] += 1
+        self.numgames_list[t2_ind] += 1
+        if (self.numgames_list[t1_ind] <= self.maxGamesPerTeam and
+            self.numgames_list[t2_ind] <= self.maxGamesPerTeam):
             if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
                 # if team1 should be the home team
                 gamematch = {home_CONST:team1_id, away_CONST:team2_id}
@@ -94,8 +94,8 @@ class MatchGenerator:
                 self.metrics_list[t2_ind] += 1
             return gamematch
         else:
-            self.numGames_list[t1_ind] -= 1
-            self.numGames_list[t2_ind] -= 1
+            self.numgames_list[t1_ind] -= 1
+            self.numgames_list[t2_ind] -= 1
             return None
 
     # calculate cost function - euclidean distance between metrics_list and

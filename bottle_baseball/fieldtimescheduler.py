@@ -879,14 +879,13 @@ class FieldTimeScheduleGenerator:
             # outside of the inner div_id/connected_div_list loop below
             targetfieldcount_list = []
             fieldmetrics_list = []
-            max_submatchrounds = 0
             divtotal_el_list = []
+            matchlist_len_list = []
             # take one of those connected divisions and iterate through each division
             for div_id in connected_div_list:
-                divindex = self.divinfo_indexerGet(div_id)
-                divinfo = self.divinfo_list[divindex]
+                divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 divfields = divinfo['fields']
-                numteams = divinfo['totalteams']
+                totalteams = divinfo['totalteams']
                 fset.update(divfields)  #incremental union to set of shareable fields
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
@@ -898,11 +897,9 @@ class FieldTimeScheduleGenerator:
                 # submatch_list is a subset of total_match_list corresponding to
                 # connected_div_list
                 submatch_list.append(divmatch_dict)
-                # calculate number of rounds (gameslots) for the division, and update max if it is the largest
-                # amongst connected divisions
-                submatchrounds = len(divmatch_dict['match_list'])
-                if submatchrounds > max_submatchrounds:
-                    max_submatchrounds = submatchrounds
+                # calculate number of rounds (gameslots) for the division
+                # amongst connected divisions and add to list
+                matchlist_len_list.append(len(divmatch_dict['match_list']))
                 # describe target fair field usage cout
                 numdivfields = len(divfields)
                 # get number of games scheduled for each team in dvision
@@ -919,8 +916,8 @@ class FieldTimeScheduleGenerator:
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
                 fmetrics_list = [{'field_id':x, 'count':0} for x in divfields]
-                # note below numteams*[fmetrics_list] only does a shallow copy; use deepcopy
-                tfmetrics_list = [deepcopy(fmetrics_list) for i in range(numteams)]
+                # note below totalteams*[fmetrics_list] only does a shallow copy; use deepcopy
+                tfmetrics_list = [deepcopy(fmetrics_list) for i in range(totalteams)]
                 fieldmetrics_list.append({'div_id':div_id, 'tfmetrics':tfmetrics_list})
                 # metrics and counters for time balancing:
                 totalgamedays = divinfo['totalgamedays']
@@ -932,9 +929,9 @@ class FieldTimeScheduleGenerator:
                 ew_indexerGet = ew_list_indexer.indexerGet
                 divtarget_el = 2*totalgamedays*ew_list[ew_indexerGet(div_id)]['prodratio']
                 # per team fair share of early or late time slots
-                teamtarget_el = int(ceil(divtarget_el/numteams))  # float value
+                teamtarget_el = int(ceil(divtarget_el/totalteams))  # float value
                 # calculate each team's target share of early and late games
-                earlylate_list = [{'early':teamtarget_el, 'late':teamtarget_el} for i in range(numteams)]
+                earlylate_list = [{'early':teamtarget_el, 'late':teamtarget_el} for i in range(totalteams)]
                 self.target_earlylate_list.append({'div_id':div_id, 'target_list':earlylate_list})
                 # each division's target share of early and late games
                 # we have this metric because we are using 'ceil' for the team target so not every team
@@ -946,7 +943,7 @@ class FieldTimeScheduleGenerator:
                 divtotal_el_list.append({'div_id':div_id, 'early':int(round(divtarget_el)),
                                                 'late':int(round(divtarget_el))})
                 #initialize early late slot counter
-                counter_list = [{'early':0, 'late':0} for i in range(numteams)]
+                counter_list = [{'early':0, 'late':0} for i in range(totalteams)]
                 self.current_earlylate_list.append({'div_id':div_id, 'counter_list':counter_list})
             logging.debug('ftscheduler: target num games per fields=%s',targetfieldcount_list)
             logging.debug('ftscheduler: target early late games=%s divtotal target=%s',
@@ -963,8 +960,11 @@ class FieldTimeScheduleGenerator:
 
             # use generator list comprehenshion to calcuate sum of required and available fieldslots
             # http://www.python.org/dev/peps/pep-0289/
-            required_gameslotsperday = sum(totalmatch_list[totalmatch_indexerGet(d)]['gameslotsperday']
+            #required_gameslotsperday = sum(totalmatch_list[totalmatch_indexerGet(d)]['gameslotsperday']
+            #    for d in connected_div_list)
+            required_roundgameslots_num = sum(totalmatch_list[totalmatch_indexerGet(d)]['roundgameslots_num']
                 for d in connected_div_list)
+            '''
             available_gameslotsperday = sum(self.fieldstatus_list[self.fstatus_indexerGet(f)]['gameslotsperday'] for f in fset)
             logging.debug("for divs=%s fset=%s required slots=%d available=%d",
                           connected_div_list, fset, required_gameslotsperday, available_gameslotsperday)
@@ -972,7 +972,8 @@ class FieldTimeScheduleGenerator:
                 logging.error("!!!!Either add more time slots or fields!!!")
                 raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough game slots, need %d slots, but only %d available" % (required_gameslotsperday, available_gameslotsperday),
                     connected_div_list)
-            for round_id in range(1,max_submatchrounds+1):
+            '''
+            for round_id in range(1,max(matchlist_len_list)+1):
                 # counters below count how many time each field is used for every gameday
                 # reset for each round/gameday
                 gameday_fieldcount = [{'field_id':y, 'count':0} for y in fset]
@@ -982,29 +983,27 @@ class FieldTimeScheduleGenerator:
                 combined_match_list = []
                 for div_dict in submatch_list:
                     divmatch_list = div_dict['match_list']
-                    matchlist_indexer = dict((p[round_id_CONST],i) for i,p in enumerate(divmatch_list))
-                    rindex = matchlist_indexer.get(round_id)
+                    matchlist_indexerGet = lambda x: dict((p[round_id_CONST],i) for i,p in enumerate(divmatch_list)).get(x)
+                    rindex = matchlist_indexerGet(round_id)
                     if rindex is not None:
                         div_id = div_dict['div_id']
                         match_list = divmatch_list[rindex]
                         game_list = match_list[game_team_CONST]
                         round_match_list = []
                         for game in game_list:
-                            round_match_list.append({'div_id':div_id, 'game':game, 'round_id':round_id,
-                                                     'gameinterval':gameinterval_dict[div_id]})
+                            round_match_list.append({'div_id':div_id, 'game':game,
+                                'round_id':round_id,
+                                'gameinterval':gameinterval_dict[div_id]})
                         combined_match_list.append(round_match_list)
                     else:
                         continue  # skip over this division if it has run out of gameslots
-
                 # mutliplex the divisions that are sharing fields; user itertools round robin utility
                 #http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion
                 # http://stackoverflow.com/questions/7529376/pythonic-way-to-mix-two-lists
                 rrgenobj = roundrobin(combined_match_list)
                 for rrgame in rrgenobj:
                     div_id = rrgame['div_id']
-                    dindex = fieldmetrics_indexerGet(div_id)
-                    teamfieldmetrics_list = fieldmetrics_list[dindex]['tfmetrics']
-
+                    teamfieldmetrics_list = fieldmetrics_list[fieldmetrics_indexerGet(div_id)]['tfmetrics']
                     gameinfo = rrgame['game']
                     home_id = gameinfo[home_CONST]
                     away_id = gameinfo[away_CONST]
@@ -1044,8 +1043,9 @@ class FieldTimeScheduleGenerator:
                     submin = 0
                     while True:
                         # first find fields based strictly on field balancing criteria
-                        fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list,
-                                                                    gameday_fieldcount, required_gameslotsperday, submin)
+                        fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
+                            away_fieldmetrics_list, gameday_fieldcount,
+                            required_roundgameslots_num, submin)
                         if not fieldcand_list:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
@@ -1489,7 +1489,7 @@ class FieldTimeScheduleGenerator:
         for div_id in div_set:
             # first clear counters
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-            numteams = divinfo['totalteams']
+            totalteams = divinfo['totalteams']
             for elcounter in self.current_earlylate_list[self.cel_indexerGet(div_id)]['counter_list']:
                 elcounter['early'] = 0
                 elcounter['late'] = 0
@@ -1889,8 +1889,9 @@ class FieldTimeScheduleGenerator:
                 gamestart += gameinterval
             sstatus_len = len(sstatus_list)
             #slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
-            slotstatus_list = [deepcopy(sstatus_list)
-                for i in range(totalfielddays)]
+            slotstatus_list = [{'gameday_id':i,
+                'sstatus_list':deepcopy(sstatus_list)}
+                for i in range(1,totalfielddays+1)]
             closed_gameday_list = f.get('closed_gameday_list')
             if closed_gameday_list:
                 # if there are fields that are closed on certain days, then slotstatus
@@ -1906,18 +1907,34 @@ class FieldTimeScheduleGenerator:
         return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
 
     def checkFieldAvailability(self, totalmatch_tuple):
+        '''check if there is enough field availability by comparing against what is
+        required as dictated by divinfo configuration and also generated matches.
+        Following comparisons are made:
+        a)for each div, Compare # games per week versus # days fields available per week
+        b)For each div, Compare total required games for each team and total open
+        days for each field attached to div.  At least one field should be able
+        cover the required game days (this is a simplification as minimum necessary
+        requirement for all fields to contribute towards meeting the totalgamedays
+        requirement)
+        c)Make sure there are enough time slots across all fields attached to
+        aggregated divs that make up the connected_div_list to cover time slots
+        required by the matches generated for the connected divs '''
         totalmatch_list = totalmatch_tuple.dict_list
         totalmatch_indexerGet = totalmatch_tuple.indexerGet
         # http://stackoverflow.com/questions/653509/breaking-out-of-nested-loops
         for connected_div in self.connected_div_components:
+            required_slots = 0
+            field_id_set = {}
             for div_id in connected_div:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 field_id_list = divinfo['fields']
+                field_id_set.update(field_id_list)
                 # get number of gamedays per week required by div
                 div_numgdaysperweek = divinfo['numgdaysperweek']
                 div_totalgamedays = divinfo['totalgamedays']
                 totalmatch = totalmatch_list[totalmatch_indexerGet(div_id)]
-                div_roundgameslots_num = totalmatch['roundgameslots_num']
+                # for comparison criteria c) compute total number of required slots
+                required_slots += totalmatch['roundgameslots_num']*max(totalmatch['numgames_list'])
                 # find # days per week available from fields attached to div
                 dayweek_set = set()
                 totalfielddays_list = []
@@ -1941,6 +1958,11 @@ class FieldTimeScheduleGenerator:
                         div_id)
                     break
             else:
+                available_slots = sum(self.fieldstatus_list[self.fstatus_indexerGet(x)]['daygameslots_num']*self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['totalfielddays'] for x in field_id_set)
+                if available_slots < required_slots:
+                    logging.error("Not enough total field slots to cover %d" % (div_id,))
+                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available" % (required_slots,available_slots), div_id)
+                    break
                 continue
             break
         else:
