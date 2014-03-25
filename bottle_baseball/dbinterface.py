@@ -17,7 +17,6 @@ away_CONST = 'AWAY'
 venue_count_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
-round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 age_CONST = 'AGE'

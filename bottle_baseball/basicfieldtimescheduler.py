@@ -24,7 +24,6 @@ away_CONST = 'AWAY'
 venue_count_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
-round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 age_CONST = 'AGE'
@@ -64,7 +63,7 @@ class BasicFieldTimeScheduleGenerator:
         self.cel_indexerGet = None
         self.tel_indexerGet = None
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, totalneeded_slots, submin=0):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, required_roundslots_num, submin=0):
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
         # metric lists, but to take into account cases where field_id with min count is different
@@ -72,7 +71,7 @@ class BasicFieldTimeScheduleGenerator:
         # return field_id(s) - not indices
         #optional parameter submin is used when the submin-th minimum is required, i.e. is submin=1
         #return the 2nd-most minimum count fields
-        requiredslots_perfield = int(ceil(float(totalneeded_slots)/len(gd_fieldcount)))
+        requiredslots_perfield = int(ceil(float(required_roundslots_num)/len(gd_fieldcount)))
         maxedout_field = None
         almostmaxed_field = None
         maxgd = max(gd_fieldcount, key=itemgetter('count'))
@@ -892,7 +891,7 @@ class BasicFieldTimeScheduleGenerator:
                 if submatchrounds > max_submatchrounds:
                     max_submatchrounds = submatchrounds
                 # describe target fair field usage cout
-                numdivfields = len(divfields)
+                divfields_num = len(divfields)
                 # get number of games scheduled for each team in dvision
                 numgames_list = divmatch_dict['numgames_list']
                 logging.debug("divsion=%d numgames_list=%s",div_id,numgames_list)
@@ -900,8 +899,8 @@ class BasicFieldTimeScheduleGenerator:
                 # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
-                numgamesperfield_list = [[n/numdivfields]
-                                         if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1]
+                numgamesperfield_list = [[n/divfields_num]
+                                         if n%divfields_num==0 else [n/divfields_num,n/divfields_num+1]
                                          for n in numgames_list]
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
@@ -969,7 +968,7 @@ class BasicFieldTimeScheduleGenerator:
                 combined_match_list = []
                 for div_dict in submatch_list:
                     divmatch_list = div_dict['match_list']
-                    matchlist_indexer = dict((p[round_id_CONST],i) for i,p in enumerate(divmatch_list))
+                    matchlist_indexer = dict((p['round_id'],i) for i,p in enumerate(divmatch_list))
                     rindex = matchlist_indexer.get(round_id)
                     if rindex is not None:
                         div_id = div_dict['div_id']

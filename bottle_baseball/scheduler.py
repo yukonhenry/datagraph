@@ -11,7 +11,6 @@ away_CONST = 'AWAY'
 venue_count_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
-round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -104,7 +103,7 @@ class ScheduleGenerator:
                 self.metrics_list[CW_team-1][homeaway_CONST][away_index_CONST] += 1
                 round_list.append({home_CONST:CCW_team, away_CONST:CW_team})
             # round id is 1-index based, equivalent to team# at top of circle
-            self.games_by_round_list.append({round_id_CONST:circletop_team,
+            self.games_by_round_list.append({'round_id':circletop_team,
                                              game_team_CONST:round_list})
         #print self.games_by_round_list
 
@@ -130,7 +129,7 @@ class ScheduleGenerator:
         total_game_list = []
         for round_dict in self.games_by_round_list:
             game_list = round_dict[game_team_CONST]
-            round_id = round_dict[round_id_CONST]
+            round_id = round_dict['round_id']
             # initialize dictionary that will contain data on the current game cycle's matches.
             # Game cycle number (week number if there is only one game per week)
             # is the same as the circletop_team number

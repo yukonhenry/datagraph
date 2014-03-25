@@ -8,7 +8,6 @@ home_CONST = 'HOME'
 away_CONST = 'AWAY'
 home_index_CONST = 0
 away_index_CONST = 1
-round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 large_CONST = 1e7
 #import pdb
@@ -122,7 +121,7 @@ class MatchGenerator:
         # for breaking out of double loops
         for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, maxdiff_ind_list, mindiff_ind_list):
             round_list = match_by_round[game_team_CONST]
-            round_id = match_by_round[round_id_CONST]
+            round_id = match_by_round['round_id']
             max_team_id = max_ind + 1
             min_team_id = min_ind + 1
             try:
@@ -199,7 +198,7 @@ class MatchGenerator:
                 else:
                     print 'no path between', max_team_id, min_team_id,' but trying other'
             if foundFlag:
-                gamecount_indexer = dict((p[round_id_CONST],i) for i,p in enumerate(self.match_by_round_list))
+                gamecount_indexer = dict((p['round_id'],i) for i,p in enumerate(self.match_by_round_list))
                 print '@@@@'
                 print 'best path found between', max_team_id, min_team_id, bestorig_list, ' with cost=',bestcost
                 for edgematch in bestorig_list:
@@ -356,7 +355,7 @@ class MatchGenerator:
                 if gamematch_dict:
                     round_list.append(gamematch_dict)
             # round id is 1-index based, equivalent to team# at top of circle
-            self.match_by_round_list.append({round_id_CONST:game_count, game_team_CONST:round_list})
+            self.match_by_round_list.append({'round_id':game_count, game_team_CONST:round_list})
         return game_count
 
     def generateMatchList(self, teamid_map=None):

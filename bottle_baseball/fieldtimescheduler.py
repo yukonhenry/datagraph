@@ -25,7 +25,6 @@ away_CONST = 'AWAY'
 venue_count_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
-round_id_CONST = 'ROUND_ID'
 game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 age_CONST = 'AGE'
@@ -66,7 +65,8 @@ class FieldTimeScheduleGenerator:
         self.cel_indexerGet = None
         self.tel_indexerGet = None
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, totalneeded_slots, submin=0):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, required_roundslots_num, submin=0):
+        # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
         # metric lists, but to take into account cases where field_id with min count is different
@@ -74,9 +74,10 @@ class FieldTimeScheduleGenerator:
         # return field_id(s) - not indices
         #optional parameter submin is used when the submin-th minimum is required, i.e. is submin=1
         #return the 2nd-most minimum count fields
-        requiredslots_perfield = int(ceil(float(totalneeded_slots)/len(gd_fieldcount)))
+        requiredslots_perfield = int(ceil(float(required_roundslots_num)/len(gd_fieldcount)))
         maxedout_field = None
         almostmaxed_field = None
+        # get count/field dict with maximum count
         maxgd = max(gd_fieldcount, key=itemgetter('count'))
         #for gd in gd_fieldcount:
         diff = maxgd['count'] - requiredslots_perfield
@@ -491,7 +492,7 @@ class FieldTimeScheduleGenerator:
         rebalance_count = 0
         for div_id in connected_div_list:
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-            totalgamedays = divinfo['totalgamedays']
+            #div_totalgamedays = divinfo['totalgamedays']
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
             team_id = 1
             for team_metrics in tfmetrics:
@@ -886,6 +887,7 @@ class FieldTimeScheduleGenerator:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 divfields = divinfo['fields']
                 totalteams = divinfo['totalteams']
+                div_totalgamedays = divinfo['totalgamedays']
                 fset.update(divfields)  #incremental union to set of shareable fields
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
@@ -901,7 +903,7 @@ class FieldTimeScheduleGenerator:
                 # amongst connected divisions and add to list
                 matchlist_len_list.append(len(divmatch_dict['match_list']))
                 # describe target fair field usage cout
-                numdivfields = len(divfields)
+                divfields_num = len(divfields)
                 # get number of games scheduled for each team in dvision
                 numgames_list = divmatch_dict['numgames_list']
                 logging.debug("divsion=%d numgames_list=%s",div_id,numgames_list)
@@ -910,8 +912,8 @@ class FieldTimeScheduleGenerator:
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
                 # used for field balancing
-                numgamesperfield_list = [[n/numdivfields]
-                                         if n%numdivfields==0 else [n/numdivfields,n/numdivfields+1]
+                numgamesperfield_list = [[n/divfields_num]
+                                         if n%divfields_num==0 else [n/divfields_num,n/divfields_num+1]
                                          for n in numgames_list]
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
@@ -920,14 +922,13 @@ class FieldTimeScheduleGenerator:
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(totalteams)]
                 fieldmetrics_list.append({'div_id':div_id, 'tfmetrics':tfmetrics_list})
                 # metrics and counters for time balancing:
-                totalgamedays = divinfo['totalgamedays']
                 # expected total fair share of number of early OR late games for each division
                 # eff_edgeweight represents 'fair share' of fields
                 # factor of 2 comes in because each time slots gets credited to two teams
                 # (home and away)
                 ew_list = ew_list_indexer.dict_list
                 ew_indexerGet = ew_list_indexer.indexerGet
-                divtarget_el = 2*totalgamedays*ew_list[ew_indexerGet(div_id)]['prodratio']
+                divtarget_el = 2*div_totalgamedays*ew_list[ew_indexerGet(div_id)]['prodratio']
                 # per team fair share of early or late time slots
                 teamtarget_el = int(ceil(divtarget_el/totalteams))  # float value
                 # calculate each team's target share of early and late games
@@ -962,7 +963,9 @@ class FieldTimeScheduleGenerator:
             # http://www.python.org/dev/peps/pep-0289/
             #required_gameslotsperday = sum(totalmatch_list[totalmatch_indexerGet(d)]['gameslotsperday']
             #    for d in connected_div_list)
-            required_roundgameslots_num = sum(totalmatch_list[totalmatch_indexerGet(d)]['roundgameslots_num']
+            # compute number of required gameslots to cover a single round of
+            # matches generated by the match generator
+            required_roundslots_num = sum(totalmatch_list[totalmatch_indexerGet(d)]['roundgameslots_num']
                 for d in connected_div_list)
             '''
             available_gameslotsperday = sum(self.fieldstatus_list[self.fstatus_indexerGet(f)]['gameslotsperday'] for f in fset)
@@ -983,7 +986,7 @@ class FieldTimeScheduleGenerator:
                 combined_match_list = []
                 for div_dict in submatch_list:
                     divmatch_list = div_dict['match_list']
-                    matchlist_indexerGet = lambda x: dict((p[round_id_CONST],i) for i,p in enumerate(divmatch_list)).get(x)
+                    matchlist_indexerGet = lambda x: dict((p['round_id'],i) for i,p in enumerate(divmatch_list)).get(x)
                     rindex = matchlist_indexerGet(round_id)
                     if rindex is not None:
                         div_id = div_dict['div_id']
@@ -1045,7 +1048,7 @@ class FieldTimeScheduleGenerator:
                         # first find fields based strictly on field balancing criteria
                         fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
                             away_fieldmetrics_list, gameday_fieldcount,
-                            required_roundgameslots_num, submin)
+                            required_roundslots_num, submin)
                         if not fieldcand_list:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
