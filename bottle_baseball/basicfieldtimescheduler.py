@@ -242,13 +242,17 @@ class BasicFieldTimeScheduleGenerator:
                                         # create record that includes all the data
                                         # ********
                                         # including cost function - 'total_cost' below
-                                        min_swapmatch_list.append({'swapmatches':[x for i,x in enumerate(swapmatch_list)
-                                                                                  if i in min_match_index],
-                                                                'min_cost':min_cost, 'gameday_id':gameday_id,
-                                                                'field_id':field_id, 'team_id':team_id,
-                                                                'oppteam_id':oppteam_id, 'oppteam_cost':oppteam_cost,
-                                                                'team_slot':slot_index, 'self_teams':match_teams,
-                                                                'total_cost':oppteam_cost-min_cost})
+                                        min_swapmatch_list.append({'swapmatches':
+                                            [x for i,x in enumerate(swapmatch_list)
+                                            if i in min_match_index],
+                                            'min_cost':min_cost,
+                                            'gameday_id':gameday_id,
+                                            'field_id':field_id, 'team_id':team_id,
+                                            'oppteam_id':oppteam_id,
+                                            'oppteam_cost':oppteam_cost,
+                                            'team_slot':slot_index,
+                                            'self_teams':match_teams,
+                                            'total_cost':oppteam_cost-min_cost})
                                     else:
                                         # only one game scheduled on this field this gameday, move on to next day
                                         continue
@@ -256,8 +260,8 @@ class BasicFieldTimeScheduleGenerator:
                     # if necessary
                     if min_swapmatch_list:
                         sorted_min_swapmatch = sorted(min_swapmatch_list,
-                                                      key=itemgetter('total_cost', 'oppteam_cost', 'min_cost'),
-                                                      reverse=True)
+                            key=itemgetter('total_cost', 'oppteam_cost',
+                                'min_cost'), reverse=True)
                         # note we can choose to use indices other than 0 for subsequent iterations
                         max_min_swapmatch = sorted_min_swapmatch[0]
                         logging.debug("ftscheduler:findswapmatchtb: swap for div=%d team=%d is=%s",

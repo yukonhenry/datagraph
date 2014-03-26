@@ -13,7 +13,7 @@ from copy import deepcopy
 from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, \
      CodeLogicError, SchedulerConfigurationError
 from math import ceil, floor
-from collections import namedtuple, deque
+from collections import namedtuple, deque, Counter
 import networkx as nx
 from random import shuffle
 
@@ -928,6 +928,11 @@ class FieldTimeScheduleGenerator:
                 # (home and away)
                 ew_list = ew_list_indexer.dict_list
                 ew_indexerGet = ew_list_indexer.indexerGet
+                # NOTE: review computation for divtarget_el for cases where
+                # there are multiple gameday availabilities for each round_id
+                # for example, if the matches spill over into the second (or later)
+                # or later gamedays within the same round_id, should there be
+                # credit towards satisfying early/late target counters?
                 divtarget_el = 2*div_totalgamedays*ew_list[ew_indexerGet(div_id)]['prodratio']
                 # per team fair share of early or late time slots
                 teamtarget_el = int(ceil(divtarget_el/totalteams))  # float value
@@ -1058,17 +1063,66 @@ class FieldTimeScheduleGenerator:
                         if len(fieldcand_list) > 1:
                             # see if fieldcand_list needs to be reduced:
                             # for each field, get the True/False list of game scheduled status
+                            '''
                             isgame_list = [(x,
                                             [y['isgame'] for y in self.fieldstatus_list[self.fstatus_indexerGet(x)]
                                              ['slotstatus_list'][round_id-1]])
                                            for x in fieldcand_list if self.fieldstatus_list[self.fstatus_indexerGet(x)]
                                            ['slotstatus_list'][round_id-1]]
+                            '''
+                            isgame_list = []
+                            # isgame_list is a list of 3-tuples, where each 3-tuple
+                            # is deinfed as
+                            # t[0]:field_id
+                            # t[1]: isgame list (list of values corresponding to 'isgame' key)
+                            # t[2]: gameday_id (separate from week_id)
+                            for fieldcand in fieldcand_list:
+                                fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(fieldcand)]
+                                # get the list of fieldstatus list indices that
+                                # match the round_id (can be list as there could)
+                                # be multiple days in the week that match up with
+                                # the round_id
+                                week_index_list = fieldstatus_list['week_indexerMatch'](round_id)
+                                if week_index_list:
+                                    for week_index in week_index_list:
+                                        week_slotstatus_list = fieldstatus_list['slotstatus_list'][week_index]
+                                        isgame_list.append((fieldcand,
+                                            [y['isgame'] for y in week_slotstatus_list['sstatus_list']],
+                                            week_slotstatus_list['gameday_id']))
+                                else:
+                                    continue
                             if not isgame_list:
-                                logging.warning("ftscheduler: fields %s not available on gameday %d", fieldcand_list, round_id)
+                                logging.warning("ftscheduler: fields %s not available on week_id %d", fieldcand_list, round_id)
                                 submin += 1
                                 continue
-                            # recreate the isgame list
-                            isgame_list[:] = [fieldsched for fieldsched in isgame_list if not all(fieldsched[1])]
+                            # recreate the isgame list by filtering out any entry
+                            # where the isgame_list is all True
+                            # isgame_tuple[1] is the one-element of the tuple which
+                            # is the list of 'isgame' values
+                            isgame_list[:] = [isgame_tuple for isgame_tuple in isgame_list if not all(isgame_tuple[1])]
+                            # ref http://stackoverflow.com/questions/2600191/how-can-i-count-the-occurrences-of-a-list-item-in-python
+                            # http://stackoverflow.com/questions/2161752/how-to-count-the-frequency-of-the-elements-in-a-list
+                            # NOTE we are not using counters referenced above for the following code - instead sorting isgame_list:
+                            # next thing to do is reduce the isgame_list by eliminating
+                            # duplicate gameday_id entries - keep only the most recent
+                            # gameday_id for a given field
+                            # first sort the isgame_list, first by field_id, and
+                            # then by gameday_id
+                            # NOTE: filtering isgame_list by keeping only mingameday
+                            # assumes that we want to fill up a day on a field before we go to an alternate day (for the same round_id)
+                            # we will need to change strategy if alternate days should be equally filled up.
+                            sorted_isgame_list = sorted(isgame_list,
+                                key=itemgetter(0,2))
+                            isgame_list = []
+                            field_gameday_dict  = {}
+                            # keep only the first (min gameid) occurrence in
+                            # sorted isgame_list
+                            for isgame_tuple in sorted_isgame_list:
+                                if isgame_tuple[0] not in field_gameday_dict.keys():
+                                    isgame_list.append(isgame_tuple)
+                                    # field_gameday_dict maps
+                                    # field_id:current gameday_id
+                                    field_gameday_dict.update({isgame_tuple[0]:isgame_tuple[2]})
                             if len(isgame_list) < len(fieldcand_list):
                                 logging.info("ftscheduler:schedulegen: dropping candidate field size reduced from %d to %d",
                                              len(fieldcand_list), len(isgame_list))
@@ -1079,9 +1133,8 @@ class FieldTimeScheduleGenerator:
                                 continue
                             else:
                                 # recreate the field candidate list based on remaining fields in isgame_list
+                                # 0-element is the field_id
                                 fieldcand_list[:] = [x[0] for x in isgame_list]
-
-
                         if len(fieldcand_list) > 1:
                             # take care of the case where a field is completely unscheduled - if it is,
                             # assign a game and credit both early and late game counters
@@ -1114,9 +1167,19 @@ class FieldTimeScheduleGenerator:
                                     if set(firstslotscheduled_list) != set(fieldcand_list):
                                         raise FieldConsistencyError(firstslotscheduled_list, fieldcand_list)
                                     # find out div and teams that are already scheduled for slot 0
+                                    # since slot should be scheduled, a 'teams'
+                                    # key/value pair should ahve already been added
                                     match_list = [{'field_id':x,
-                                                   'match':self.fieldstatus_list[self.fstatus_indexerGet(x)]['slotstatus_list'][round_id-1][firstslot_CONST]['teams'],
-                                                   'newslot':firstslot_CONST} for x in firstslotscheduled_list]
+                                        'match':self.fieldstatus_list[self.fstatus_indexerGet(x)]['slotstatus_list'][round_id-1][firstslot_CONST]['teams'],
+                                        'newslot':firstslot_CONST} for x in firstslotscheduled_list]
+                                    match_list = []
+                                    for x in firstslotscheduled_list:
+                                        slotstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(x)]['slotstatus_list']
+                                        wg_indexerMatch = lambda x,y: [i for i,p in enumerate(slotstatus_list) if p['week_id']==x and p['gameday_id']==y]
+                                        wg_index = wg_indexerMatch(round_id,
+                                            field_gameday_dict.get(x))
+                                        match_list.append({'match':slotstatus_list[wg_index]['sstatus_list'][firstslot_CONST]['teams'],
+                                            'newslot':firstslot_CONST})
                                     fieldslot_tuple = self.compareCounterToTarget(match_list, 'early')
                                     if fieldslot_tuple:
                                         # if the current home and away early counts are both greater than
@@ -1169,8 +1232,8 @@ class FieldTimeScheduleGenerator:
                                 # (we have to decrement open slot x[1] by 1 to get the scheduled game)
                                 # new slot is the current open slot
                                 match_list = [{'field_id':x[0],
-                                               'match':self.fieldstatus_list[self.fstatus_indexerGet(x[0])]['slotstatus_list'][round_id-1][x[1]-1]['teams'],
-                                               'newslot':x[1]} for x in openslotfield_list]
+                                    'match':self.fieldstatus_list[self.fstatus_indexerGet(x[0])]['slotstatus_list'][round_id-1][x[1]-1]['teams'],
+                                    'newslot':x[1]} for x in openslotfield_list]
                                 fieldslot_tuple = self.compareCounterToTarget(match_list, 'late')
                                 if fieldslot_tuple:
                                     # if the current home and away late counts are both greater than
@@ -1866,12 +1929,9 @@ class FieldTimeScheduleGenerator:
         # each entry of list is a dictionary with two elemnts - (1)field_id
         # (2) - two dimensional matrix of True/False status (outer dimension is
         # round_id, inner dimenstion is time slot)
-        fieldseason_status_list = []
+        fieldstatus_list = []
         for f in self.fieldinfo_list:
             f_id = f['field_id']
-            # number of days field is open every week
-            f_dayweek_len = len(f['dayweek_list'])
-            div_numgdaysperweek_list = [self.divinfo_list[self.divinfo_indexerGet(p)]['numgdaysperweek'] for p in f['primaryuse_list']]
             #totalgamedays_list = []
             #  if the field has multiple primary divisions, take max of gameinterval and gamesperseason
             max_interval = max(self.divinfo_list[self.divinfo_indexerGet(p)]['gameinterval'] for p in f['primaryuse_list'])
@@ -1889,9 +1949,22 @@ class FieldTimeScheduleGenerator:
                 gamestart += gameinterval
             sstatus_len = len(sstatus_list)
             #slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
-            slotstatus_list = [{'week_id':i,
+            # number of days field is open every week
+            f_dayweek_len = len(f['dayweek_list'])
+            # number of gamedays scheduled for div every week
+            div_numgdaysperweek_list = [self.divinfo_list[self.divinfo_indexerGet(p)]['numgdaysperweek'] for p in f['primaryuse_list']]
+            # add week_id, assumes i is 0-indexed, and week_id is 1-indexed
+            # when assigning fieldslots, round_id from the match generator should
+            # match up with the week_id
+            slotstatus_list = [{'gameday_id':i, 'week_id':(i-1)/f_dayweek_len+1,
                 'sstatus_list':deepcopy(sstatus_list)}
                 for i in range(1,totalfielddays+1)]
+            # create lambda function to return list of indices where week_id matches
+            # note this is different from standard indexerGet as multiple indices
+            # may match.  A failure to match returns and empty list.  A single match
+            # returns a list w single element
+            # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
+            week_indexerMatch = lambda x: [i for i,p in enumerate(slotstatus_list) if p['week_id']==x]
             closed_gameday_list = f.get('closed_gameday_list')
             if closed_gameday_list:
                 # if there are fields that are closed on certain days, then slotstatus
@@ -1899,12 +1972,13 @@ class FieldTimeScheduleGenerator:
                 # applies to the whole season and not individual games.
                 for gameday in closed_gameday_list:
                     slotstatus_list[gameday-1] = None
-            fieldseason_status_list.append({'field_id':f['field_id'],
-                                            'slotstatus_list':slotstatus_list,
-                                            'daygameslots_num':sstatus_len})
-        fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
+            fieldstatus_list.append({'field_id':f['field_id'],
+                'slotstatus_list':slotstatus_list,
+                'week_indexerMatch':week_indexerMatch,
+                'daygameslots_num':sstatus_len})
+        fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldstatus_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
-        return List_Indexer(fieldseason_status_list, fstatus_indexerGet)
+        return List_Indexer(fieldstatus_list, fstatus_indexerGet)
 
     def checkFieldAvailability(self, totalmatch_tuple):
         '''check if there is enough field availability by comparing against what is
@@ -1924,7 +1998,7 @@ class FieldTimeScheduleGenerator:
         # http://stackoverflow.com/questions/653509/breaking-out-of-nested-loops
         for connected_div in self.connected_div_components:
             required_slots = 0
-            field_id_set = {}
+            field_id_set = set()
             for div_id in connected_div:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 field_id_list = divinfo['fields']

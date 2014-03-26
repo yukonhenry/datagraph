@@ -18,6 +18,8 @@
 #b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
 #b elimfieldtimescheduler.py:338
-b schedmaster.py:52
+#b schedmaster.py:52
 #b fielddbinterface.py:41
-#b fieldtimescheduler.py:1341
+b fieldtimescheduler.py:1107
+b fieldtimescheduler.py:1115
+
