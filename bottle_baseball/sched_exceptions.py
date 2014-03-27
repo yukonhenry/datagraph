@@ -40,7 +40,7 @@ class FieldTimeAvailabilityError(Exception):
         self.div_list = div_list
         self.msg = msg
     def __str__(self):
-        return repr(self.msg) + "div_list="+reprr(self.msg)
+        return repr(self.msg) + "div_list="+repr(self.div_list)
 
 class CodeLogicError(Exception):
     ''' Generic Exception if there is a logic error in code '''

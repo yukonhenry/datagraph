@@ -48,6 +48,8 @@ class SchedMaster:
         totalmatch_list = []
         for divinfo in self.divinfo_list:
             totalteams = divinfo['totalteams']
+            # possibly rename below to 'totalrounddays' as totalgamedays may not
+            # match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
             match = MatchGenerator(totalteams, totalgamedays)
             match_list = match.generateMatchList()
