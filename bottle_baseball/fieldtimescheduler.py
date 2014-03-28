@@ -17,8 +17,6 @@ from collections import namedtuple, deque, Counter
 import networkx as nx
 from random import shuffle
 
-start_time_CONST = 'START_TIME'
-gameday_id_CONST = 'GAMEDAY_ID'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
@@ -42,7 +40,7 @@ time_format_CONST = '%H:%M'
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
 class FieldTimeScheduleGenerator:
-    def __init__(self, dbinterface, fdbinterface, divinfo_tuple, fieldinfo_tuple):
+    def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple):
         self.divinfo_list = divinfo_tuple.dict_list
         #self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
         self.divinfo_indexerGet = divinfo_tuple.indexerGet

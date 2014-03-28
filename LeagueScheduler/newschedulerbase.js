@@ -279,7 +279,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			send_generate: function() {
 				var server_key_obj = {div_colname:this.league_select_value,
 					field_colname:this.fg_select_value,
-					db_type:this.current_db_type};
+					db_type:this.current_db_type,
+					sched_colname:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
 					this.server_interface.server_ack, server_key_obj);
 			},

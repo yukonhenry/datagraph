@@ -24,8 +24,8 @@ totalfielddays_CONST = 'TOTALFIELDDAYS'
 
 class FieldDBInterface:
     def __init__(self, mongoClient, newcol_name):
-        self.dbInterface = MongoDBInterface(mongoClient, newcol_name,
-                                            db_col_type=DB_Col_Type.FieldInfo)
+        self.dbInterface = MongoDBInterface(mongoClient,
+            newcol_name, db_col_type=DB_Col_Type.FieldInfo)
 
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)

@@ -35,6 +35,12 @@ class RRDBInterface:
     def readDBraw(self):
         return self.readDB()
 
+    def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
+        document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
+                    start_time_CONST:start_time_str,
+                    venue_CONST:venue, home_CONST:home, away_CONST:away}
+        docID = self.games_col.insert(document))
+
     def readSchedDB(self, age, gender):
         dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
         game_list = []

@@ -13,7 +13,7 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
 class SchedMaster:
-    def __init__(self, mongoClient, db_type, divcol_name, field_colname):
+    def __init__(self, mongoClient, db_type, divcol_name, field_colname, sched_colname):
         # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':
             dbInterface = RRDBInterface(mongoClient, divcol_name)
@@ -41,7 +41,7 @@ class SchedMaster:
         else:
             fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (field_colname,))
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface, fdbinterface=fdbInterface,
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface,
             divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
 
     def generate(self):
