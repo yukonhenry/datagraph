@@ -21,3 +21,9 @@ class SchedDBInterface:
 
     def updatesched_status(self):
         self.dbinterface.setSchedStatus_col()
+
+    def getsched_status(self):
+        return self.dbinterface.getSchedStatus()
+
+    def dropcurrent_collection(self):
+        self.dbinterface.drop_collection()

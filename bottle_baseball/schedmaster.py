@@ -61,7 +61,8 @@ class SchedMaster:
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
-        self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_tuple)
+        status = self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_tuple)
+        return 1 if status else 0
 
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
@@ -78,4 +79,6 @@ class SchedMaster:
                     else:
                         divinfo['fields'] = [field_id]
 
+    def getsched_status(self):
+        return self.sdbInterface.getsched_status()
 

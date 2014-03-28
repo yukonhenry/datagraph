@@ -379,5 +379,5 @@ class MongoDBInterface:
         f_indexerGet = lambda x: dict((p[field_id_CONST],i) for i,p in enumerate(fieldinfo_list)).get(x)
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
-    def dropDB_col(self):
+    def drop_collection(self):
         self.collection.drop()

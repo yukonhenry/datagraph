@@ -240,7 +240,7 @@ def create_newdbcol(newcol_name):
 def delete_dbcol(delcol_name):
     callback_name = request.query.callback
     rdbInterface = RRDBInterface(mongoClient, delcol_name)
-    rdbInterface.dbInterface.dropDB_col()
+    rdbInterface.dbInterface.drop_collection()
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
@@ -250,7 +250,7 @@ def delete_dbcol(delcol_name):
 def delete_tourndbcol(delcol_name):
     callback_name = request.query.callback
     tdbInterface = TournDBInterface(mongoClient, delcol_name)
-    tdbInterface.dbInterface.dropDB_col()
+    tdbInterface.dbInterface.drop_collection()
     a = json.dumps({'test':'adsfer'})
     return callback_name+'('+a+')'
 
@@ -301,7 +301,7 @@ def get_scheddbcol(getcol_name):
 def delete_fieldcol(delcol_name):
     callback_name = request.query.callback
     fdbInterface = FieldDBInterface(mongoClient, delcol_name)
-    fdbInterface.dbInterface.dropDB_col()
+    fdbInterface.dbInterface.drop_collection()
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
@@ -325,7 +325,9 @@ def send_generate():
     schedcol_name = request.query.schedcol_name
     schedMaster = SchedMaster(mongoClient, db_type, divcol_name, fieldcol_name,
         schedcol_name)
-    schedMaster.generate()
+    dbstatus = schedMaster.generate()
+    a = json.dumps({"dbstatus":dbstatus})
+    return callback_name+'('+a+')'
 
 def select_db_interface(db_type, colname):
     if db_type == 'rrdb':

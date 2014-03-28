@@ -292,7 +292,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
-					this.server_interface.server_ack, server_key_obj);
+					this.update_schedstatustxt, server_key_obj,
+					{node:schedstatustxt_node});
+			},
+			update_schedstatustxt: function(adata, options_obj) {
+				dbstatus = adata.dbstatus;
+				if (dbstatus) {
+					var schedstatustxt_node = options_obj.node;
+					schedstatustxt_node.innerHTML = "Schedule is Ready";
+					schedstatustxt_node.style.color = 'green';
+				}
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
