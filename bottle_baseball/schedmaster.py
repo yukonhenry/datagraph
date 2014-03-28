@@ -2,6 +2,7 @@
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
+from scheddbinterface import SchedDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from collections import namedtuple
@@ -13,7 +14,7 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
 class SchedMaster:
-    def __init__(self, mongoClient, db_type, divcol_name, field_colname, sched_colname):
+    def __init__(self, mongoClient, db_type, divcol_name, fieldcol_name, schedcol_name):
         # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':
             dbInterface = RRDBInterface(mongoClient, divcol_name)
@@ -31,7 +32,7 @@ class SchedMaster:
             divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
         # get field information
-        fdbInterface = FieldDBInterface(mongoClient, field_colname)
+        fdbInterface = FieldDBInterface(mongoClient, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
             fieldinfo_list = fdbtuple.list
@@ -40,8 +41,9 @@ class SchedMaster:
             self.divfield_correlate(fieldinfo_list)
         else:
             fieldinfo_tuple = _List_Indexer(None, None)
-            raise CodeLogicError("schemaster:init: field config not complete=%s" % (field_colname,))
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=dbInterface,
+            raise CodeLogicError("schemaster:init: field config not complete=%s" % (fieldcol_name,))
+        sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=sdbInterface,
             divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
 
     def generate(self):

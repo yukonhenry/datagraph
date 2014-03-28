@@ -51,39 +51,43 @@ class DB_Col_Type(Enum):
     RoundRobin = 1
     ElimTourn = 2
     FieldInfo = 3
+    GeneratedSchedule = 4
 
 class MongoDBInterface:
     def __init__(self, mongoClient, collection_name='games',
                  db_col_type=DB_Col_Type.RoundRobin):
         self.schedule_db = mongoClient.schedule_db
-#        self.games_col = self.schedule_db.games
-        self.games_col = self.schedule_db[collection_name]
+#        self.collection = self.schedule_db.games
+        self.collection = self.schedule_db[collection_name]
         self.sched_type = str(db_col_type)
-        if not self.games_col.find_one({sched_status_CONST:{"$exists":True}}):
-            self.games_col.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type})
+        if not self.collection.find_one({sched_status_CONST:{"$exists":True}}):
+            self.collection.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type})
+
+    def insertdoc(self, document):
+        docID = self.collection.insert(document)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
-        docID = self.games_col.insert(document)
+        docID = self.collection.insert(document)
 
     def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id, comment, around):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,
                     venue_CONST:venue, home_CONST:home, away_CONST:away,
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
-        docID = self.games_col.insert(document)
+        docID = self.collection.insert(document)
 
     def updateInfoDocument(self, doc_list, config_status):
-        docID = self.games_col.update({sched_type_CONST:self.sched_type,
+        docID = self.collection.update({sched_type_CONST:self.sched_type,
                                       doc_list_CONST:{"$exists":True}},
                                       {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status}},
                                       upsert=True)
 
     def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
-        docID = self.games_col.update({sched_type_CONST:self.sched_type,
+        docID = self.collection.update({sched_type_CONST:self.sched_type,
                                       doc_list_CONST:{"$exists":True}},
                                       {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status,
@@ -92,7 +96,7 @@ class MongoDBInterface:
                                       upsert=True)
 
     def updateFieldInfo(self, document, field_id):
-        docID = self.games_col.update({field_id_CONST:field_id},
+        docID = self.collection.update({field_id_CONST:field_id},
                                       {"$set": document}, upsert=True, safe=True)
 
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
@@ -100,7 +104,7 @@ class MongoDBInterface:
                  start_time_CONST:old_start_time}
         updatefields = {"$set":{start_time_CONST:new_start_time}}
         logging.debug("dbinterface:updateGameTime: query=%s, update=%s", query, updatefields)
-        docID = self.games_col.update(query, updatefields, safe=True)
+        docID = self.collection.update(query, updatefields, safe=True)
 
 
     def findDivisionSchedule(self,age, gender, min_game_id=None):
@@ -115,9 +119,9 @@ class MongoDBInterface:
         # also see aggregatin 'mongodb definitive guide'
         # col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
         if min_game_id:
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+            result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         else:
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
+            result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
                                                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",
                                                start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
                                                 {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
@@ -136,9 +140,9 @@ class MongoDBInterface:
         # see comments for findDivisionSchedule
         # this db read involves match_id
         if min_game_id:
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT", round_CONST:"$ROUND"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+            result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT", round_CONST:"$ROUND"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         else:
-            result_list = self.games_col.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
+            result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
                 {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT", round_CONST:"$ROUND"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
@@ -153,7 +157,7 @@ class MongoDBInterface:
 
     def findDivisionSchedulePHMSARefFormat(self, min_game_id=1):
         ''' query for all games, but sort according to date, time, division '''
-        game_curs = self.games_col.find({gameday_id_CONST:{"$exists":True}, gameday_id_CONST:{"$gte":min_game_id}},{'_id':0})
+        game_curs = self.collection.find({gameday_id_CONST:{"$exists":True}, gameday_id_CONST:{"$gte":min_game_id}},{'_id':0})
         game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1), (age_CONST,1), (gen_CONST,1), (venue_CONST,1), (match_id_CONST,1), (round_CONST,1)])
         schedule_list = []
         for game in game_curs:
@@ -169,7 +173,7 @@ class MongoDBInterface:
         return schedule_list
 
     def findTeamSchedule(self, age, gender, team_id):
-        team_game_curs = self.games_col.find({age_CONST:age, gen_CONST:gender,
+        team_game_curs = self.collection.find({age_CONST:age, gen_CONST:gender,
                                             "$or":[{home_CONST:team_id},{away_CONST:team_id}]},
                                             {'_id':0, age_CONST:0, gen_CONST:0})
         team_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
@@ -184,10 +188,10 @@ class MongoDBInterface:
 
     def findFieldSchedule(self, venue_id, min_game_id=None, tourntype=None):
         if min_game_id is None:
-            field_game_curs = self.games_col.find({venue_CONST:venue_id},
+            field_game_curs = self.collection.find({venue_CONST:venue_id},
                                                   {'_id':0, venue_CONST:0})
         else:
-            field_game_curs = self.games_col.find({venue_CONST:venue_id, gameday_id_CONST:{"$gte":min_game_id}},{'_id':0, venue_CONST:0})
+            field_game_curs = self.collection.find({venue_CONST:venue_id, gameday_id_CONST:{"$gte":min_game_id}},{'_id':0, venue_CONST:0})
         field_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
         field_game_list = []
         for field_game in field_game_curs:
@@ -225,7 +229,7 @@ class MongoDBInterface:
             # group to consist of teams (home and away), agegroup; sort based on starttime; group sorted results based on field
             # and define group output based on earliest and latest of prev sort operation (but for every field);
             # and carry along latest group operation output with team info, along with time
-            res_list = self.games_col.aggregate([{"$match":{venue_CONST:{"$in":fields},
+            res_list = self.collection.aggregate([{"$match":{venue_CONST:{"$in":fields},
                 gameday_id_CONST:gameday_id}},
                 {"$group":{'_id':{'start_time':"$START_TIME",'venue':"$VENUE"},
                 'data':{"$push":{'home':"$HOME", 'away':"$AWAY", 'gen':"$GEN",
@@ -236,7 +240,7 @@ class MongoDBInterface:
                 'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
                 {"$project":{'_id':0, 'venue':"$_id", 'earliest':1,'latest':1}}])
             '''
-            res_list = self.games_col.aggregate([{"$match":{age_CONST:age, gen_CONST:gender, gameday_id_CONST:gameday_id}},
+            res_list = self.collection.aggregate([{"$match":{age_CONST:age, gen_CONST:gender, gameday_id_CONST:gameday_id}},
                 {"$group":{'_id':"$START_TIME",
                 'hometeam_id_list':{"$push":"$HOME"},
                 'awayteam_id_list':{"$push":"$AWAY"}}},
@@ -287,14 +291,14 @@ class MongoDBInterface:
         latest_counter_dict = ELcounter_tuple.latest
         metrics_list = []
         for team_id in range(1, numTeams+1):
-            numGames = self.games_col.find({age_CONST:age,gen_CONST:gender,
+            numGames = self.collection.find({age_CONST:age,gen_CONST:gender,
                                             "$or":[{home_CONST:team_id},{away_CONST:team_id}]
                                             }).count()
-            numHomeGames = self.games_col.find({age_CONST:age,gen_CONST:gender,home_CONST:team_id}).count()
+            numHomeGames = self.collection.find({age_CONST:age,gen_CONST:gender,home_CONST:team_id}).count()
             homeratio = float(numHomeGames)/float(numGames)
             field_count_list = []
             for venue in fields:
-                venue_count = self.games_col.find({age_CONST:age,gen_CONST:gender,venue_CONST:venue,
+                venue_count = self.collection.find({age_CONST:age,gen_CONST:gender,venue_CONST:venue,
                                                    "$or":[{home_CONST:team_id},{away_CONST:team_id}]
                                                    }).count()
                 field_count_list.append({venue_CONST:venue, venue_count_CONST:venue_count})
@@ -311,23 +315,23 @@ class MongoDBInterface:
         # remove documents only have to do with game data
         if gameday_list:
           for gameday_id in gameday_list:
-            self.games_col.remove({gameday_id_CONST:gameday_id})
+            self.collection.remove({gameday_id_CONST:gameday_id})
         else:
-          self.games_col.remove({gameday_id_CONST:{"$exists":True}})
+          self.collection.remove({gameday_id_CONST:{"$exists":True}})
         self.resetSchedStatus_col()
 
     def resetSchedStatus_col(self):
         # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
-        self.games_col.update({sched_status_CONST:{"$exists":True}},
+        self.collection.update({sched_status_CONST:{"$exists":True}},
                               {"$set":{sched_status_CONST:0, sched_type_CONST:self.sched_type}},
                               upsert=True, safe=True)
 
     def setSchedStatus_col(self):
-        self.games_col.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:1, sched_type_CONST:self.sched_type}}, safe=True)
+        self.collection.update({sched_status_CONST:{"$exists":True}},
+                              {"$set":{sched_status_CONST:1, sched_type_CONST:self.sched_type}})
 
     def getSchedStatus(self):
-        return self.games_col.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
+        return self.collection.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
 
     def getScheduleCollection(self, db_col_type):
         # ref http://api.mongodb.org/python/current/api/pymongo/database.html
@@ -349,7 +353,7 @@ class MongoDBInterface:
         return schedcollect_list
 
     def getInfoDocument(self):
-        result = self.games_col.find_one({sched_type_CONST:self.sched_type,
+        result = self.collection.find_one({sched_type_CONST:self.sched_type,
                                          doc_list_CONST:{"$exists":True}},
                                          {'_id':0})
         info_list = result[doc_list_CONST]
@@ -357,7 +361,7 @@ class MongoDBInterface:
         return _List_Status(info_list, config_status)
 
     def getFieldInfoDocument(self):
-        result = self.games_col.find_one({sched_type_CONST:self.sched_type,
+        result = self.collection.find_one({sched_type_CONST:self.sched_type,
                                          doc_list_CONST:{"$exists":True}},
                                          {'_id':0})
         info_list = result[doc_list_CONST]
@@ -368,7 +372,7 @@ class MongoDBInterface:
                             divstr_db_type)
 
     def getFieldInfo(self):
-        result_list = self.games_col.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)
+        result_list = self.collection.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)
         fieldinfo_list = []
         for field_dict in result_list:
             fieldinfo_list.append(field_dict)
@@ -376,4 +380,4 @@ class MongoDBInterface:
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
     def dropDB_col(self):
-        self.games_col.drop()
+        self.collection.drop()

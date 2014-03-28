@@ -1563,11 +1563,11 @@ class FieldTimeScheduleGenerator:
                             away_id = teams[away_CONST]
                             #div = getAgeGenderDivision(div_id)
                             div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                            self.dbinterface.insertGameData(div.div_age,
-                                div.div_gen, fieldday_id,
+                            self.dbinterface.insertGameData(div['div_age'],
+                                div['div_gen'], fieldday_id,
                                 gametime.strftime(time_format_CONST),
                                 field_id, home_id, away_id)
-        self.dbinterface.setSchedStatus_col()
+        self.dbinterface.updatesched_status()
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()
 

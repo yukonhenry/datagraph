@@ -320,11 +320,11 @@ def update_fieldtimes(col_name):
 def send_generate():
     callback_name = request.query.callback
     db_type = request.query.db_type
-    div_colname = request.query.div_colname
-    field_colname = request.query.field_colname
-    sched_colname = request.query.sched_colname
-    schedMaster = SchedMaster(mongoClient, db_type, div_colname, field_colname,
-        sched_colname)
+    divcol_name = request.query.divcol_name
+    fieldcol_name = request.query.fieldcol_name
+    schedcol_name = request.query.schedcol_name
+    schedMaster = SchedMaster(mongoClient, db_type, divcol_name, fieldcol_name,
+        schedcol_name)
     schedMaster.generate()
 
 def select_db_interface(db_type, colname):
