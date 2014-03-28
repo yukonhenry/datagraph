@@ -222,6 +222,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									}
 								}
 							)
+							put(scinput_dom, "br, br");
+						}
+						var schedstatustxt_node = dom.byId("schedstatustxt_id");
+						if (!schedstatustxt_node) {
+							schedstatustxt_node = put(scinput_dom,
+								"span#schedstatustxt_id",
+								"Configure Schedule Parameters")
 						}
 						// set flag that is used by observable memory update in
 						// storeutl
@@ -277,6 +284,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				return false;
 			},
 			send_generate: function() {
+				var schedstatustxt_node = dom.byId("schedstatustxt_id");
+				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";
+				schedstatustxt_node.style.color = 'red';
 				var server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
 					db_type:this.current_db_type,
