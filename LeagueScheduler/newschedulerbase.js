@@ -4,13 +4,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/NumberSpinner", "dijit/form/DateTextBox",
+	"dijit/layout/ContentPane",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory,registry, Tooltip, ValidationTextBox, Select, Button, NumberSpinner,
-		DateTextBox,
+		DateTextBox, ContentPane,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
@@ -20,6 +21,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			radio1_id:'scradio1_id',
 			radio2_id:'scradio2_id',
 			league_select_id:'scleague_select_id',
+			statustxt_id:'schedstatustxt_id',
+			tabcontainer_id:'tabcontainer_id',
+			newdivcpane_id:'newscheddiv_cpane_id',
 			default_db_type:'rrdb'
 		};
 		var newschedwatch_class = declare([Stateful],{
@@ -224,7 +228,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							)
 							put(scinput_dom, "br, br");
 						}
-						var schedstatustxt_node = dom.byId("schedstatustxt_id");
+						var schedstatustxt_node = dom.byId(constant.statustxt_id);
 						if (!schedstatustxt_node) {
 							schedstatustxt_node = put(scinput_dom,
 								"span#schedstatustxt_id",
@@ -284,7 +288,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				return false;
 			},
 			send_generate: function() {
-				var schedstatustxt_node = dom.byId("schedstatustxt_id");
+				var schedstatustxt_node = dom.byId(constant.statustxt_id);
 				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";
 				schedstatustxt_node.style.color = 'red';
 				var server_key_obj = {divcol_name:this.league_select_value,
@@ -293,7 +297,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
 					this.update_schedstatustxt, server_key_obj,
-					{node:schedstatustxt_node});
+					{node:schedstatustxt_node, schedcol_name:this.newsched_name});
 			},
 			update_schedstatustxt: function(adata, options_obj) {
 				dbstatus = adata.dbstatus;
@@ -302,6 +306,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedstatustxt_node.innerHTML = "Schedule is Ready";
 					schedstatustxt_node.style.color = 'green';
 				}
+				// create new tab to hold table grid for newsched information
+				var tabcontainer_reg = registry.byId(constant.tabcontainer_id);
+				var newdivcpane = new ContentPane({title:options_obj.schedcol_name});
+				tabcontainer_reg.addChild(newdivcpane);
+				/*
+				var newdivcpane_node = dom.byId(constant.newdivcpane_id);
+				if (!newdivcpane_node) {
+					newdivcpane_node = put(lasttab_node,
+						"+div[id=$][title=NewSched]", constant.newdivcpane_id);
+					var cpane = new ContentPane({content:"testtest", style:"height:200px", title:"testate"}, newdivcpane_node);
+					//cpane.startup();
+				} */
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
