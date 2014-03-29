@@ -297,19 +297,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
 					this.update_schedstatustxt, server_key_obj,
-					{node:schedstatustxt_node, schedcol_name:this.newsched_name});
+					{node:schedstatustxt_node, schedcol_name:this.newsched_name,
+						schedutil_obj:this.schedutil_obj});
 			},
 			update_schedstatustxt: function(adata, options_obj) {
 				dbstatus = adata.dbstatus;
-				if (dbstatus) {
-					var schedstatustxt_node = options_obj.node;
-					schedstatustxt_node.innerHTML = "Schedule is Ready";
-					schedstatustxt_node.style.color = 'green';
-				}
+				var schedstatustxt_node = options_obj.node;
+				var schedutil_obj = options_obj.schedutil_obj;
+				schedutil_obj.updateDBstatusnode(dbstatus,
+					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
 				var tabcontainer_reg = registry.byId(constant.tabcontainer_id);
-				var newdivcpane = new ContentPane({title:options_obj.schedcol_name});
+				var newdivcpane = new ContentPane({title:options_obj.schedcol_name,
+					content:"<div id='newdivcpanetxt_div'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down."});
 				tabcontainer_reg.addChild(newdivcpane);
+				schedutil_obj.updateDBstatusnode(dbstatus, dom.byId('newdivcpanetxt_div'))
 				/*
 				var newdivcpane_node = dom.byId(constant.newdivcpane_id);
 				if (!newdivcpane_node) {

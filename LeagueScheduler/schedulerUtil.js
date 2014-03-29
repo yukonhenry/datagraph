@@ -67,6 +67,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 				});
 			},
+			updateDBstatusnode: function(dbstatus, node) {
+				if (dbstatus) {
+					node.innerHTML = "Schedule in database, Ready";
+					node.style.color = 'green';
+				} else {
+					node.innerHTML = "Schedule Not Ready";
+					node.style.color = 'red';
+				}
+			},
 			makeVisible: function(dom_name) {
 				domClass.replace(dom_name, "style_inline", "style_none");
 			},
