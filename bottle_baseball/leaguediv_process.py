@@ -239,13 +239,16 @@ def create_newdbcol(newcol_name):
 @route('/delete_dbcol/<delcol_name>')
 def delete_dbcol(delcol_name):
     callback_name = request.query.callback
-    rdbInterface = RRDBInterface(mongoClient, delcol_name)
-    rdbInterface.dbInterface.drop_collection()
+    db_type = request.query.db_type
+    dbInterface = select_db_interface(db_type, delcol_name)
+    #rdbInterface = RRDBInterface(mongoClient, delcol_name)
+    #rdbInterface.dbInterface.drop_collection()
+    dbInterface.drop_collection();
     #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
-
+'''
 @route('/delete_tourndbcol/<delcol_name>')
 def delete_tourndbcol(delcol_name):
     callback_name = request.query.callback
@@ -253,7 +256,7 @@ def delete_tourndbcol(delcol_name):
     tdbInterface.dbInterface.drop_collection()
     a = json.dumps({'test':'adsfer'})
     return callback_name+'('+a+')'
-
+'''
 @route('/get_dbcol/<getcol_name>')
 def get_dbcol(getcol_name):
     callback_name = request.query.callback
@@ -296,7 +299,7 @@ def get_scheddbcol(getcol_name):
     game_list = tdbInterface.readSchedDB(div.age, div.gender)
     a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'
-
+'''
 @route('/delete_fieldcol/<delcol_name>')
 def delete_fieldcol(delcol_name):
     callback_name = request.query.callback
@@ -306,7 +309,7 @@ def delete_fieldcol(delcol_name):
     #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
-
+'''
 @route('/update_fieldtimes/<col_name>')
 def update_fieldtimes(col_name):
     callback_name = request.query.callback

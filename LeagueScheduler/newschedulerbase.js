@@ -23,8 +23,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			league_select_id:'scleague_select_id',
 			statustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
-			newdivcpane_id:'newscheddiv_cpane_id',
-			default_db_type:'rrdb'
+			newdivcpane_id:'newdivcpane_id',
+			newdivcpanetxt_id:'newdivcpanetxt_id',
+			default_db_type:'rrdb',
+			get_dbcol:'get_dbcol/'
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
@@ -296,30 +298,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
-					this.update_schedstatustxt, server_key_obj,
-					{node:schedstatustxt_node, schedcol_name:this.newsched_name,
-						schedutil_obj:this.schedutil_obj});
+					lang.hitch(this, this.update_schedstatustxt), server_key_obj,
+					{node:schedstatustxt_node});
 			},
 			update_schedstatustxt: function(adata, options_obj) {
 				dbstatus = adata.dbstatus;
 				var schedstatustxt_node = options_obj.node;
-				var schedutil_obj = options_obj.schedutil_obj;
-				schedutil_obj.updateDBstatusnode(dbstatus,
+				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
 				var tabcontainer_reg = registry.byId(constant.tabcontainer_id);
-				var newdivcpane = new ContentPane({title:options_obj.schedcol_name,
-					content:"<div id='newdivcpanetxt_div'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down."});
+				var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down."
+				var newdivcpane = new ContentPane({title:this.newsched_name,
+					content:content_str});
 				tabcontainer_reg.addChild(newdivcpane);
-				schedutil_obj.updateDBstatusnode(dbstatus, dom.byId('newdivcpanetxt_div'))
-				/*
-				var newdivcpane_node = dom.byId(constant.newdivcpane_id);
-				if (!newdivcpane_node) {
-					newdivcpane_node = put(lasttab_node,
-						"+div[id=$][title=NewSched]", constant.newdivcpane_id);
-					var cpane = new ContentPane({content:"testtest", style:"height:200px", title:"testate"}, newdivcpane_node);
-					//cpane.startup();
-				} */
+				this.schedutil_obj.updateDBstatus_node(dbstatus,
+					dom.byId(constant.newdivcpanetxt_id))
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

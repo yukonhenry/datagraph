@@ -66,6 +66,9 @@ class MongoDBInterface:
     def insertdoc(self, document):
         docID = self.collection.insert(document)
 
+    def updatedoc(self, query_obj, update_obj):
+        self.collection.update(query_obj, update_obj)
+
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
                     start_time_CONST:start_time_str,

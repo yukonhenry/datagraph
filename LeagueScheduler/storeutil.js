@@ -12,13 +12,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				{id:'sched_id', db_type:'rrdb', name:"scheddbcollection_submenu"},
 				{id:'newsched_id', db_type:'rrdb', name:""}],
 			delsubmenu_list:[{id:'div_id',
-				db_type:'rrdb', name:"deldbcollection_submenu",
-				server_path:"delete_dbcol/"},
+				db_type:'rrdb', name:"deldbcollection_submenu"},
 				{id:'tourndiv_id',
-				db_type:'tourndb', name:"deltourndbcollection_submenu",
-				server_path:"delete_tourndbcol/"},
-				{id:'field_id', db_type:'fielddb', name:"delfielddb_submenu",
-				server_path:"delete_fieldcol/"}]
+				db_type:'tourndb', name:"deltourndbcollection_submenu"},
+				{id:'field_id', db_type:'fielddb', name:"delfielddb_submenu"}],
+			delserver_path:"delete_dbcol/"
 		};
 		return declare(null, {
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
@@ -144,13 +142,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// set up menus for delete if required
 					submenu_name = match_obj.name;
 					db_type = match_obj.db_type;
-					var server_path = match_obj.server_path;
 					// create respective del db menu
 					var delsmenu_reg = registry.byId(submenu_name);
 					this.schedutil_obj.generateDBCollection_smenu(delsmenu_reg,
 						db_list, this, this.delete_dbcollection,
-						{db_type:db_type, server_path:server_path,
-							storeutil_obj:this});
+						{db_type:db_type, storeutil_obj:this});
 				}
 			},
 			getmatch_obj: function(list, key, value) {
@@ -181,10 +177,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			},
 			delete_dbcollection: function(options_obj) {
 				var item = options_obj.item;
-				var server_path = options_obj.server_path;
-				this.removefromdb_store(item, options_obj.db_type);
-				var match_obj = this.getmatch_obj(constant.delsubmenu_list, 'db_type',
-					options_obj.db_type);
+				var server_path = constant.delserver_path;
+				var db_type = options_obj.db_type
+				this.removefromdb_store(item, db_type);
+				var match_obj = this.getmatch_obj(constant.delsubmenu_list,
+					'db_type', db_type);
 				var idproperty = match_obj.id;
 				this.uistackmgr.reset_cpane(idproperty);
 				/*
@@ -193,7 +190,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					entry_pt:"fromddel"});
 				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
 				this.server_interface.getServerData(server_path+item,
-					this.server_interface.server_ack);
+					this.server_interface.server_ack, {db_type:db_type});
 			},
 		})
 	}

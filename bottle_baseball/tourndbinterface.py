@@ -25,7 +25,7 @@ _List_Status = namedtuple('_List_Status', 'list config_status')
 js object keys and db document keys happen here '''
 class TournDBInterface:
     def __init__(self, mongoClient, newcol_name):
-        self.dbInterface = MongoDBInterface(mongoClient, newcol_name, db_col_type=DB_Col_Type.ElimTourn)
+        self.dbinterface = MongoDBInterface(mongoClient, newcol_name, db_col_type=DB_Col_Type.ElimTourn)
 
     def writeDB(self, divinfo_str, config_status):
         divinfo_list = json.loads(divinfo_str)
@@ -35,10 +35,10 @@ class TournDBInterface:
             del divinfo['field_id_str']  # remove old element
         # convert keys to uppercase
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
-        self.dbInterface.updateInfoDocument(document_list, config_status)
+        self.dbinterface.updateInfoDocument(document_list, config_status)
 
     def readDB(self):
-        liststatus_tuple = self.dbInterface.getInfoDocument()
+        liststatus_tuple = self.dbinterface.getInfoDocument()
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         # update field_id list val as string of comma-separated field_id's
@@ -51,18 +51,21 @@ class TournDBInterface:
     # read from DB, and convert fieldnames to lower case, but don't convert lists
     # back to string representation
     def readDBraw(self):
-        liststatus_tuple = self.dbInterface.getInfoDocument()
+        liststatus_tuple = self.dbinterface.getInfoDocument()
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
         return _List_Status(divinfo_list, config_status)
 
     def readSchedDB(self, age, gender):
-        dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
+        dbgame_list = self.dbinterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
         game_list = []
         for dbgame in dbgame_list:
             print dbgame
             game_list.append({'gameday_id':dbgame[gameday_id_CONST],
                              'start_time':dbgame[start_time_CONST]})
         return dbgame_list
+
+    def drop_collection(self):
+        self.dbinterface.drop_collection()
 

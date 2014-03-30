@@ -67,7 +67,19 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 				});
 			},
-			updateDBstatusnode: function(dbstatus, node) {
+			// following function is robust whether nodelist is a n Array
+			// or a scalar dom node
+			updateDBstatus_nodelist: function(dbstatus, nodelist) {
+				// ref http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
+				if (nodelist instanceof Array) {
+					arrayUtil.forEach(nodelist, function(item) {
+						this.updateDBstatus_node(dbstatus, item);
+					}, this)
+				} else {
+					this.updateDBstatus_node(dbstatus, nodelist);
+				}
+			},
+			updateDBstatus_node: function(dbstatus, node) {
 				if (dbstatus) {
 					node.innerHTML = "Schedule in database, Ready";
 					node.style.color = 'green';

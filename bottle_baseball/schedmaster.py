@@ -38,10 +38,14 @@ class SchedMaster:
             fieldinfo_list = fdbtuple.list
             fieldinfo_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
             fieldinfo_tuple = _List_Indexer(fieldinfo_list, fieldinfo_indexerGet)
-            self.divfield_correlate(fieldinfo_list)
         else:
             fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (fieldcol_name,))
+        # create list of div_ids that do not have a 'fields' key
+        divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'fields' not in x]
+        # if there are div_id's with no 'fields' key, create it
+        if divreqfields_list:
+            self.divfield_correlate(fieldinfo_list, dbInterface, divreqfields_list)
         sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=sdbInterface,
             divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
@@ -66,19 +70,21 @@ class SchedMaster:
 
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
-    def divfield_correlate(self, fieldinfo_list):
+    def divfield_correlate(self, fieldinfo_list, dbInterface, div_list):
         for fieldinfo in fieldinfo_list:
             field_id = fieldinfo['field_id']
             for div_id in fieldinfo['primaryuse_list']:
-                index = self.divinfo_indexerGet(div_id)
-                if index is not None:
-                    divinfo = self.divinfo_list[index]
-                    # check existence of key 'fields' - if it exists, append to list of fields, if not create
-                    if 'fields' in divinfo:
-                        divinfo['fields'].append(field_id)
-                    else:
-                        divinfo['fields'] = [field_id]
-
+                if div_id in div_list:
+                    index = self.divinfo_indexerGet(div_id)
+                    if index is not None:
+                        divinfo = self.divinfo_list[index]
+                        # check existence of key 'fields' - if it exists, append to list of fields, if not create
+                        if 'fields' in divinfo:
+                            divinfo['fields'].append(field_id)
+                        else:
+                            divinfo['fields'] = [field_id]
+                        dbInterface.updateDBDivFields(divinfo)
+'''
     def getsched_status(self):
         return self.sdbInterface.getsched_status()
-
+'''

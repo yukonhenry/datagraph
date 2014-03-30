@@ -14,15 +14,15 @@ _List_Status = namedtuple('_List_Status', 'list config_status')
 js object keys and db document keys happen here '''
 class RRDBInterface:
     def __init__(self, mongoClient, newcol_name):
-        self.dbInterface = MongoDBInterface(mongoClient, collection_name=newcol_name, db_col_type=DB_Col_Type.RoundRobin)
+        self.dbinterface = MongoDBInterface(mongoClient, collection_name=newcol_name, db_col_type=DB_Col_Type.RoundRobin)
 
     def writeDB(self, divinfo_str, config_status):
         divinfo_list = json.loads(divinfo_str)
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
-        self.dbInterface.updateInfoDocument(document_list, config_status)
+        self.dbinterface.updateInfoDocument(document_list, config_status)
 
     def readDB(self):
-        liststatus_tuple = self.dbInterface.getInfoDocument()
+        liststatus_tuple = self.dbinterface.getInfoDocument()
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
@@ -36,11 +36,23 @@ class RRDBInterface:
         return self.readDB()
 
     def readSchedDB(self, age, gender):
-        dbgame_list = self.dbInterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
+        dbgame_list = self.dbinterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
         game_list = []
         for dbgame in dbgame_list:
             print dbgame
             game_list.append({'gameday_id':dbgame[gameday_id_CONST],
                              'start_time':dbgame[start_time_CONST]})
         return dbgame_list
+
+    def updateDBDivFields(self, divinfo):
+        # ref http://stackoverflow.com/questions/5646798/mongodb-updating-subdocument
+        # for updating subdocument
+        div_id = divinfo['div_id']
+        field_list = divinfo['fields']
+        query_obj = {"DOC_LIST.DIV_ID":div_id}
+        update_obj = {"$set":{"DOC_LIST.$.FIELDS":field_list}}
+        self.dbinterface.updatedoc(query_obj, update_obj)
+
+    def drop_collection(self):
+        self.dbinterface.drop_collection()
 

@@ -24,7 +24,7 @@ totalfielddays_CONST = 'TOTALFIELDDAYS'
 
 class FieldDBInterface:
     def __init__(self, mongoClient, newcol_name):
-        self.dbInterface = MongoDBInterface(mongoClient,
+        self.dbinterface = MongoDBInterface(mongoClient,
             newcol_name, db_col_type=DB_Col_Type.FieldInfo)
 
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
@@ -54,10 +54,10 @@ class FieldDBInterface:
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
-        self.dbInterface.updateFieldInfoDocument(document_list, config_status, divstr_colname=divstr_colname, divstr_db_type=divstr_db_type)
+        self.dbinterface.updateFieldInfoDocument(document_list, config_status, divstr_colname=divstr_colname, divstr_db_type=divstr_db_type)
 
     def readDB(self):
-        liststatus_qtuple = self.dbInterface.getFieldInfoDocument()
+        liststatus_qtuple = self.dbinterface.getFieldInfoDocument()
         field_list = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname
@@ -73,7 +73,7 @@ class FieldDBInterface:
 
     # read from DB, but don't covert lists back into string representation
     def readDBraw(self):
-        liststatus_qtuple = self.dbInterface.getFieldInfoDocument()
+        liststatus_qtuple = self.dbinterface.getFieldInfoDocument()
         field_list = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname
@@ -115,3 +115,6 @@ class FieldDBInterface:
             # and weekly game days
             totalfielddays += len(set(lw_list).intersection(dayweek_list))
         return totalfielddays
+
+    def drop_collection(self):
+        self.dbinterface.drop_collection()
