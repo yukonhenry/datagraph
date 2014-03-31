@@ -314,6 +314,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				tabcontainer_reg.addChild(newdivcpane);
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(constant.newdivcpanetxt_id))
+				// now we want to create and populate grids, starting with
+				// divinfo grid.  First check if local store has data
+				// corresponding to current collection
+				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
+				if (divinfo_obj && divinfo_obj.infogrid_store &&
+					divinfo_obj.activegrid_colname == this.league_select_value) {
+					console.log('data in store');
+				} else {
+					console.log('data not in store');
+				}
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
