@@ -25,6 +25,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			tabcontainer_id:'tabcontainer_id',
 			newdivcpane_id:'newdivcpane_id',
 			newdivcpanetxt_id:'newdivcpanetxt_id',
+			newdivcpanegrid_id:'newdivcpanegrid_id',
 			default_db_type:'rrdb',
 			get_dbcol:'get_dbcol/'
 		};
@@ -308,7 +309,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
 				var tabcontainer_reg = registry.byId(constant.tabcontainer_id);
-				var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down."
+				var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpanegrid_id+"'></div>";
 				var newdivcpane = new ContentPane({title:this.newsched_name,
 					content:content_str});
 				tabcontainer_reg.addChild(newdivcpane);
@@ -320,7 +321,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
 				if (divinfo_obj && divinfo_obj.infogrid_store &&
 					divinfo_obj.activegrid_colname == this.league_select_value) {
-					console.log('data in store');
+					var columnsdef_obj = divinfo_obj.getfixedcolumnsdef_obj();
+					var griddata_list = divinfo_obj.infogrid_store.query().map(function(item) {
+						var map_obj = {}
+						// only extra data corresponding to keys specified in
+						// columnsdef_obj.  This may be a subset of all the keys
+						// available in the store.
+						for (var key in columnsdef_obj) {
+							map_obj[key] = item[key];
+						}
+						return map_obj;
+					})
 				} else {
 					console.log('data not in store');
 				}

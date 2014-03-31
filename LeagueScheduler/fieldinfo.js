@@ -354,6 +354,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// after checking end date is later than start time
 					// using the store query+filter call below, attempt to find
 					// time-overlapped events on the same field.
+					// ref https://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
+					// on making complex queries
 					var overlapped_list = this.calendar_store.query(lang.hitch(this, function(object){
 						return date.compare(start_datetime_obj,
 							object.startTime, "date") == 0 &&

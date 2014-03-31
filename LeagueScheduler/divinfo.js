@@ -61,6 +61,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				};
 				return columnsdef_obj;
 			},
+			// column definition for fixed (uneditable) grid used for schedule
+			// result grid
+			getfixedcolumnsdef_obj: function () {
+				var columnsdef_obj = {
+					div_age:"Age Group",
+					div_gen:"Gender (or secondary field)",
+					totalteams:"Total #Teams",
+					totalgamedays:"Total # Games",
+					gameinterval:"Game Interval(min)"
+				};
+				return columnsdef_obj;
+			},
 			initialize: function(newgrid_flag) {
 				var form_name = "newdivinfo_form_id";
 				var form_reg = registry.byId(form_name);
