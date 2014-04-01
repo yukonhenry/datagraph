@@ -25,6 +25,17 @@ from sched_exceptions import CodeLogicError
 
 dbInterface = MongoDBInterface(mongoClient)
 
+class RouteLogic:
+    '''ref http://stackoverflow.com/questions/8725605/bottle-framework-and-oop-using-method-instead-of-function and
+    https://www.artima.com/weblogs/viewpost.jsp?thread=240808
+    http://www.jeffknupp.com/blog/2013/11/29/improve-your-python-decorators-explained/
+    for decorator related tutorials and integrating bottle with methods.
+    '''
+    def __init__(self):
+        pass
+
+_routeLogic = RouteLogic()
+
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
     json_file = open(fname)
@@ -319,6 +330,8 @@ def update_fieldtimes(col_name):
     a = json.dumps({'test':'dfh'})
     return callback_name+'('+a+')'
 
+
+
 @route('/send_generate')
 def send_generate():
     callback_name = request.query.callback
@@ -331,6 +344,10 @@ def send_generate():
     dbstatus = schedMaster.generate()
     a = json.dumps({"dbstatus":dbstatus})
     return callback_name+'('+a+')'
+
+@route('/get_schedule/<sched_name>/<param>')
+def get_schedule(sched_name, param):
+    callback_name = request.query.callback
 
 def select_db_interface(db_type, colname):
     if db_type == 'rrdb':

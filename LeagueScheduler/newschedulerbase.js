@@ -4,14 +4,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/NumberSpinner", "dijit/form/DateTextBox",
-	"dijit/layout/ContentPane",
+	"dijit/layout/ContentPane", "dgrid/Grid",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory,registry, Tooltip, ValidationTextBox, Select, Button, NumberSpinner,
-		DateTextBox, ContentPane,
+		DateTextBox, ContentPane, Grid,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
@@ -26,6 +26,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newdivcpane_id:'newdivcpane_id',
 			newdivcpanetxt_id:'newdivcpanetxt_id',
 			newdivcpanegrid_id:'newdivcpanegrid_id',
+			newdivcpaneschedgrid_id:'newdivcpaneschedgrid_id',
 			default_db_type:'rrdb',
 			get_dbcol:'get_dbcol/'
 		};
@@ -309,7 +310,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
 				var tabcontainer_reg = registry.byId(constant.tabcontainer_id);
-				var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpanegrid_id+"'></div>";
+				var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpanegrid_id+"'></div><div id='"+constant.newdivcpaneschedgrid_id+"'></div>";
 				var newdivcpane = new ContentPane({title:this.newsched_name,
 					content:content_str});
 				tabcontainer_reg.addChild(newdivcpane);
@@ -333,8 +334,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						return map_obj;
 					})
 				} else {
-					console.log('data not in store');
+					console.log('data not in store');;
 				}
+				var StaticGrid = declare([Grid, Keyboard, Selection]);
+				var divinfo_grid = new StaticGrid({
+					columns:columnsdef_obj,
+					selectionMode:"single"
+				}, constant.newdivcpanegrid_id);
+				divinfo_grid.renderArray(griddata_list);
+				divinfo_grid.on("dgrid-select", lang.hitch(this, function(event) {
+					var div_id = event.rows[0].data.div_id;
+					console.log("select div_id="+div_id);
+					this.server_interface.getServerData('get_schedule/'+
+						this.newsched_name+'/'+div_id, this.createsched_grid);
+				}))
+			},
+			createsched_grid: function(adata) {
+
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

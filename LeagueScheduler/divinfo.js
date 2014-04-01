@@ -65,6 +65,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			// result grid
 			getfixedcolumnsdef_obj: function () {
 				var columnsdef_obj = {
+					div_id:"Div ID",
 					div_age:"Age Group",
 					div_gen:"Gender (or secondary field)",
 					totalteams:"Total #Teams",

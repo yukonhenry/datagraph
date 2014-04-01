@@ -98,10 +98,6 @@ class MongoDBInterface:
                                       divstr_db_type_CONST:divstr_db_type}},
                                       upsert=True)
 
-    def updateFieldInfo(self, document, field_id):
-        docID = self.collection.update({field_id_CONST:field_id},
-                                      {"$set": document}, upsert=True, safe=True)
-
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
                  start_time_CONST:old_start_time}
@@ -119,15 +115,15 @@ class MongoDBInterface:
 
         # ref docs.mongodb.org/manual/reference/aggregation/
         # http://stackoverflow.com/questions/14770170/how-to-find-mongo-documents-with-a-same-field
-        # also see aggregatin 'mongodb definitive guide'
+        # also see aggregation 'mongodb definitive guide'
         # col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
         if min_game_id:
             result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender, gameday_id_CONST:{"$gte":min_game_id}}},{"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         else:
             result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
-                                               {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",
-                                               start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
-                                                {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
+                {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",
+                start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
+                {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
             #print 'result',result
