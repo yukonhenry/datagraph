@@ -46,8 +46,8 @@ class SchedMaster:
         # if there are div_id's with no 'fields' key, create it
         if divreqfields_list:
             self.divfield_correlate(fieldinfo_list, dbInterface, divreqfields_list)
-        sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=sdbInterface,
+        self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=self.sdbInterface,
             divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
 
     def generate(self):
@@ -84,6 +84,11 @@ class SchedMaster:
                         else:
                             divinfo['fields'] = [field_id]
                         dbInterface.updateDBDivFields(divinfo)
+
+    def get_schedule(self, schedcol_name, div_id):
+        if self.sdbInterface.schedcol_name == schedcol_name:
+            self.sdbInterface.get_divschedule(div_id)
+
 '''
     def getsched_status(self):
         return self.sdbInterface.getsched_status()

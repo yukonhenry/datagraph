@@ -344,7 +344,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				divinfo_grid.renderArray(griddata_list);
 				divinfo_grid.on("dgrid-select", lang.hitch(this, function(event) {
 					var div_id = event.rows[0].data.div_id;
-					console.log("select div_id="+div_id);
 					this.server_interface.getServerData('get_schedule/'+
 						this.newsched_name+'/'+div_id, this.createsched_grid);
 				}))

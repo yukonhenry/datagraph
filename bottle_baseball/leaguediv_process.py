@@ -34,7 +34,7 @@ class RouteLogic:
     def __init__(self):
         pass
 
-_routeLogic = RouteLogic()
+_routelogic_obj = RouteLogic()
 
 def get_leaguedata():
     fname = 'leaguediv_json.txt'
@@ -341,13 +341,17 @@ def send_generate():
     schedcol_name = request.query.schedcol_name
     schedMaster = SchedMaster(mongoClient, db_type, divcol_name, fieldcol_name,
         schedcol_name)
+    # save schedMaster to global obj to reuse on get_schedule
+    _routelogic_obj.schedmaster_obj = schedMaster
     dbstatus = schedMaster.generate()
     a = json.dumps({"dbstatus":dbstatus})
     return callback_name+'('+a+')'
 
-@route('/get_schedule/<sched_name>/<param>')
-def get_schedule(sched_name, param):
+@route('/get_schedule/<schedcol_name>/<div_id:int>')
+def get_schedule(schedcol_name, div_id):
     callback_name = request.query.callback
+    schedmaster_obj = _routelogic_obj.schedmaster_obj
+    schedmaster_obj.get_schedule(schedcol_name, div_id)
 
 def select_db_interface(db_type, colname):
     if db_type == 'rrdb':
