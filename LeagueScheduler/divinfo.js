@@ -29,8 +29,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
 					div_id: "Div ID",
-					div_age: editor({label:"Age", field:"div_age", autoSave:true},"text","dblclick"),
-					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true}, "text", "dblclick"),
+					div_age: editor({label:"Age", field:"div_age", autoSave:true,
+						set:function(item) {
+							// trim any leading or trailing whitespace characters
+							return item.div_age.trim();
+						}},"text","dblclick"),
+					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true,
+						set:function(item) {
+							return item.div_gen.trim();
+						}}, "text", "dblclick"),
 					totalteams: editor({label:"Total Teams", autoSave:true,
 						set:function(item) {
 							return parseInt(item.totalteams)

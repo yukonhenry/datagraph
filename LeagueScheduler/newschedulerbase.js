@@ -349,7 +349,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}))
 			},
 			createsched_grid: function(adata) {
+				var fieldname_dict = adata.fieldname_dict;
+				var game_list = adata.game_list;
+				var columnsdef_obj = {
+					'date':'Game Day', 'time':'Game Time'
+				}
+				for (var key in fieldname_dict) {
+					columnsdef_obj[key] = fieldname_dict[key]
+				}
+				var grid_list = new Array();
+				arrayUtil.forEach(game_list, function(item, index) {
 
+				})
+				var StaticGrid = declare([Grid, Keyboard, Selection]);
+				var sched_grid = new StaticGrid({
+					columns:columnsdef_obj
+				}, constant.newdivcpaneschedgrid_id);
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

@@ -41,6 +41,9 @@ doc_list_CONST = 'DOC_LIST'
 config_status_CONST = 'CONFIG_STATUS'
 divstr_colname_CONST = 'DIVSTR_COLNAME'
 divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
+fieldday_id_CONST = 'FIELDDAY_ID'
+div_age_CONST = 'DIV_AGE'
+div_gen_CONST = 'DIV_GEN'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
@@ -105,8 +108,25 @@ class MongoDBInterface:
         logging.debug("dbinterface:updateGameTime: query=%s, update=%s", query, updatefields)
         docID = self.collection.update(query, updatefields, safe=True)
 
+    def getdiv_schedule(self, age, gender):
+        result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
+            div_gen_CONST:gender}},
+            {"$group":{'_id':{fieldday_id_CONST:"$FIELDDAY_ID",
+            start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
+            {"$sort":{'_id.FIELDDAY_ID':1, '_id.START_TIME':1}}])
+        game_list = []
+        for result in result_list['result']:
+            #print 'result',result
+            sortkeys = result['_id']
+            fieldday_id = sortkeys[fieldday_id_CONST]
+            start_time = sortkeys[start_time_CONST]
+            gameday_data = result[gameday_data_CONST]
+            game_list.append({fieldday_id_CONST:fieldday_id,
+                start_time_CONST:start_time,
+                gameday_data_CONST:gameday_data})
+        return game_list
 
-    def findDivisionSchedule(self,age, gender, min_game_id=None):
+    def findDivisionSchedule(self, age, gender, min_game_id=None):
         # use mongodb aggregation framework to group results by shared gametime.
         # query for all rounds at once - alternate way is to loop query based
         # on round id/gameday id (knowing total number of games in season)

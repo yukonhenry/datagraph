@@ -35,9 +35,10 @@ class SchedMaster:
         fdbInterface = FieldDBInterface(mongoClient, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
-            fieldinfo_list = fdbtuple.list
-            fieldinfo_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldinfo_list)).get(x)
-            fieldinfo_tuple = _List_Indexer(fieldinfo_list, fieldinfo_indexerGet)
+            self.fieldinfo_list = fdbtuple.list
+            self.fieldinfo_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(self.fieldinfo_list)).get(x)
+            fieldinfo_tuple = _List_Indexer(self.fieldinfo_list,
+                self.fieldinfo_indexerGet)
         else:
             fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (fieldcol_name,))
@@ -45,10 +46,12 @@ class SchedMaster:
         divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'fields' not in x]
         # if there are div_id's with no 'fields' key, create it
         if divreqfields_list:
-            self.divfield_correlate(fieldinfo_list, dbInterface, divreqfields_list)
+            self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
         self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(dbinterface=self.sdbInterface,
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
+            dbinterface=self.sdbInterface,
             divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
+        self.schedcol_name = schedcol_name
 
     def generate(self):
         totalmatch_list = []
@@ -85,9 +88,13 @@ class SchedMaster:
                             divinfo['fields'] = [field_id]
                         dbInterface.updateDBDivFields(divinfo)
 
-    def get_schedule(self, schedcol_name, div_id):
-        if self.sdbInterface.schedcol_name == schedcol_name:
-            self.sdbInterface.get_divschedule(div_id)
+    def get_schedule(self, idproperty, div_id):
+        divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+        game_list = self.sdbInterface.get_schedule(idproperty, divinfo['div_age'],
+            divinfo['div_gen'])
+        # also get fields info tied to div
+        fieldname_dict= {x:self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name'] for x in divinfo['fields']}
+        return {'game_list':game_list, 'fieldname_dict':fieldname_dict}
 
 '''
     def getsched_status(self):
