@@ -151,7 +151,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
 					detaileddates: {label:"Detail Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
-					totalfielddays: '# Open Field Days'
+					totalfielddays: "# Open Field Days"
 				};
 				return columnsdef_obj;
 			},

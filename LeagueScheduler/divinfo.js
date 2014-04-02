@@ -55,10 +55,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							return parseInt(item.numgdaysperweek) *
 								parseInt(item.numweeks);
 						}
-					/*
-						get:function(item) {
-							return item.numweeks*item.numgdaysperweek;
-						}, */
 					},
 					gameinterval: editor({label:"Inter-Game Interval (min)",
 						autoSave:true,

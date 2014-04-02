@@ -330,8 +330,6 @@ def update_fieldtimes(col_name):
     a = json.dumps({'test':'dfh'})
     return callback_name+'('+a+')'
 
-
-
 @route('/send_generate')
 def send_generate():
     callback_name = request.query.callback
