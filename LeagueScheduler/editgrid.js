@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			error_node:null,
 			errorHandle:null, datachangeHandle:null, header_handle:null,
 			idproperty:null,
-			tbutton_reg:null, cellselect_flag:false, cellselect_handle:null,
+			cellselect_flag:false, cellselect_handle:null,
 			server_path:"", server_key:"",
 			info_obj:null, uistackmgr:null, storeutil_obj:null, db_type:null,
 			constructor: function(args) {
@@ -246,8 +246,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.rowSelectHandle.remove();
 				if (this.cellselect_handle)
 					this.cellselect_handle.remove();
+				/*
 				if (this.tbutton_reg)
-					domStyle.set(this.tbutton_reg.domNode, 'display', 'none');
+					domStyle.set(this.tbutton_reg.domNode, 'display', 'none'); */
 			}
 		});
 	})
