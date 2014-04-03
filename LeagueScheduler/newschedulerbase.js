@@ -1,6 +1,6 @@
 define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/Stateful",
-	"dojo/_base/array", "dojo/keys", "dojo/store/Memory",
+	"dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dojo/store/Observable",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/NumberSpinner", "dijit/form/DateTextBox",
@@ -10,8 +10,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"LeagueScheduler/widgetgen",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
-		Memory,registry, Tooltip, ValidationTextBox, Select, Button, NumberSpinner,
-		DateTextBox, ContentPane, Grid,
+		Memory, Observable, registry, Tooltip, ValidationTextBox, Select, Button,
+		NumberSpinner, DateTextBox, ContentPane, Grid,
 		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
@@ -48,6 +48,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			selectexists_flag:false,
 			league_select_value:"", fg_select_value:"", widgetgen:null,
 			current_db_type:constant.default_db_type,
+			sched_store:null, sched_grid:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -358,8 +359,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					columnsdef_obj[key] = fieldname_dict[key]
 				}
 				var grid_list = new Array();
+				var counter = 1;
 				arrayUtil.forEach(game_list, function(item, index) {
 					var grid_row = new Object();
+					grid_row.game_id = counter++;
 					grid_row.date = item.fieldday_id;
 					grid_row.time = item.start_time;
 					arrayUtil.forEach(item.gameday_data, function(item2) {
@@ -367,11 +370,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					})
 					grid_list.push(grid_row);
 				})
-				var StaticGrid = declare([Grid, Keyboard, Selection]);
-				var sched_grid = new StaticGrid({
-					columns:columnsdef_obj
+				this.sched_store = new Observable(new Memory({data:grid_list, idProperty:'game_id'}));
+				var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
+				this.sched_grid = new StaticGrid({
+					columns:columnsdef_obj,
+					store:this.sched_store
 				}, constant.newdivcpaneschedgrid_id);
-				sched_grid.renderArray(grid_list);
+				this.sched_grid.startup();
+				this.sched_grid.resize();
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
