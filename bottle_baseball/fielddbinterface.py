@@ -30,6 +30,7 @@ class FieldDBInterface:
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
         for fieldinfo in fieldinfo_list:
+            '''
             start_date_str = fieldinfo['start_date']
             end_date_str = fieldinfo['end_date']
             # make sure fieldinfo['dayweek_str'] is nonempty as split() will fail if
@@ -44,7 +45,11 @@ class FieldDBInterface:
                 totalfielddays = self.calc_totalfielddays(start_date_str, end_date_str,
                                                    dayweek_list)
             fieldinfo['totalfielddays'] = totalfielddays
-            fieldinfo['dayweek_list'] = dayweek_list
+            '''
+            if fieldinfo['dayweek_str']:
+                fieldinfo['dayweek_list'] = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
+            else:
+                fieldinfo['dayweek_list'] = []
             # check if primary use is not empty
             if fieldinfo['primaryuse_str']:
                 fieldinfo['primaryuse_list'] = [int(x)

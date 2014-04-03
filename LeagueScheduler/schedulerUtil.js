@@ -249,6 +249,51 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 				}
 				return results;
+			},
+			range: function(start, stop, step){
+				// reference http://stackoverflow.com/questions/8273047/javascript-function-similar-to-python-range
+				// similar to python range function
+			    if (typeof stop=='undefined'){
+			        // one param defined
+			        stop = start;
+			        start = 0;
+			    };
+			    if (typeof step=='undefined'){
+			        step = 1;
+			    };
+			    if ((step>0 && start>=stop) || (step<0 && start<=stop)){
+			        return [];
+			    };
+			    var result = [];
+			    for (var i=start; step>0 ? i<stop : i>stop; i+=step){
+			        result.push(i);
+			    };
+			    return result;
+			},
+			intersect: function(array1, array2) {
+				//Intersection of two arrays to find common eleemnts
+				//http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+				var result = [];
+				// Don't destroy the original arrays
+				var a = array1.slice(0);
+				var b = array2.slice(0);
+				var aLast = a.length - 1;
+				var bLast = b.length - 1;
+				while (aLast >= 0 && bLast >= 0) {
+					if (a[aLast] > b[bLast] ) {
+						a.pop();
+						aLast--;
+					} else if (a[aLast] < b[bLast] ){
+						b.pop();
+						bLast--;
+					} else /* they're equal */ {
+						result.push(a.pop());
+						b.pop();
+						aLast--;
+						bLast--;
+					}
+				}
+				return result;
 			}
 		})
 	}

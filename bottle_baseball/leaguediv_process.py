@@ -351,7 +351,8 @@ def get_schedule(schedcol_name, div_id):
     schedMaster = _routelogic_obj.schedmaster_obj
     if schedMaster.schedcol_name == schedcol_name:
         return_dict = schedMaster.get_schedule('div_id', div_id)
-        print 'returndict', return_dict
+    else:
+        return_dict = {}
     a = json.dumps(return_dict)
     return callback_name+'('+a+')'
 

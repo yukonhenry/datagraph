@@ -359,12 +359,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				var grid_list = new Array();
 				arrayUtil.forEach(game_list, function(item, index) {
-
+					var grid_row = new Object();
+					grid_row.date = item.fieldday_id;
+					grid_row.time = item.start_time;
+					arrayUtil.forEach(item.gameday_data, function(item2) {
+						grid_row[item2.venue] = item2.home+'v'+item2.away;
+					})
+					grid_list.push(grid_row);
 				})
 				var StaticGrid = declare([Grid, Keyboard, Selection]);
 				var sched_grid = new StaticGrid({
 					columns:columnsdef_obj
 				}, constant.newdivcpaneschedgrid_id);
+				sched_grid.renderArray(grid_list);
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

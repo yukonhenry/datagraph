@@ -52,32 +52,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						editorArgs:{
 							style:'width:120px',
 						},
-						/*
-						renderCell: function(object, value) {
-							if (typeof value == "string")
-								return put("div", value);
-							else {
-								// if the type if a Date object (only type of obj) possible
-								// here, extract (local) timestring
-								return put("div", value?value.toLocaleDateString():"");
-							}
-						} */
 					}, DateTextBox),
 					end_date: editor({label:"End Date", autoSave:true,
 						columntype:false,
 						editorArgs:{
 							style:'width:120px',
 						},
-						/*
-						renderCell: function(object, value) {
-							if (typeof value == "string")
-								return put("div", value);
-							else {
-								// if the type if a Date object (only type of obj) possible
-								// here, extract (local) timestring
-								return put("div", value?value.toLocaleDateString():"");
-							}
-						} */
 					}, DateTextBox),
 					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
 						// note adding editorArgs w constraints timePattern
@@ -151,7 +131,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
 					detaileddates: {label:"Detail Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
-					totalfielddays: "# Open Field Days"
+					totalfielddays: {label:"# Open Field Days",
+						set:lang.hitch(this, this.calc_totalfielddays)
+					}
 				};
 				return columnsdef_obj;
 			},
@@ -663,6 +645,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (this.editgrid) {
 					var store_elem = this.editgrid.schedInfoStore.get(field_id);
 					store_elem.dayweek_str = value_str;
+					var totalfielddays = this.calc_totalfielddays(store_elem);
+					store_elem.totalfielddays = totalfielddays;
 					//store_elem.dayweek_num = numdays;
 					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
@@ -817,10 +801,71 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
                 }
 				return data_list;
 			},
+			modify_toserver_data: function(raw_result) {
+				// modify store data before sending data to server
+				var newlist = new Array();
+				// for the field grid data convert Data objects to str
+				// note we want to keep it as data objects inside of store to
+				// maintain direct compatibility with Date and TimeTextBox's
+				// and associated picker widgets.
+				raw_result.map(function(item) {
+					var newobj = lang.clone(item);
+					newobj.start_date = newobj.start_date.toLocaleDateString();
+					newobj.end_date = newobj.end_date.toLocaleDateString();
+					newobj.start_time = newobj.start_time.toLocaleTimeString();
+					newobj.end_time = newobj.end_time.toLocaleTimeString();
+					return newobj;
+				}).forEach(function(obj) {
+					newlist.push(obj);
+				});
+				return newlist;
+			},
 			initabovegrid_UI: function() {
 				this.create_dbselect_radiobtnselect(
 					constant.radiobtn1_id, constant.radiobtn2_id,
 					constant.league_select_id);
+			},
+			calc_totalfielddays: function(item) {
+				// calculate # of totalfielddays based on current grid
+				// cell values
+				var start_date = item.start_date;
+				// get day of week
+				var start_day = start_date.getDay();
+				var end_date = item.end_date;
+				var end_day = end_date.getDay();
+        		// create list of available dates during last week
+        		//calc # days between start and end dates
+        		// http://dojotoolkit.org/reference-guide/1.9/dojo/date.html
+        		var diffdays_num = date.difference(start_date, end_date);
+        		var diffweeks_num = date.difference(start_date, end_date,
+        			'week');
+        		// get current configuration for days-of-week and it's length
+        		// i.e. number of days in week
+        		var dayweek_list = item.dayweek_str.split(',')
+        		var dayweekint_list = arrayUtil.map(dayweek_list, function(item){
+        			return parseInt(item);
+        		})
+        		var dayweek_len = dayweek_list.length;
+        		// calc baseline # of fielddays based on full weeks
+        		var totalfielddays = dayweek_len * diffweeks_num;
+        		// calc num days in last week (can be partial week)
+        		var lastwkdays_num = diffdays_num % diffweeks_num;
+        		var lw_list = 0;
+        		if (lastwkdays_num > 0) {
+        			if (end_day >= start_day) {
+        				lw_list = this.schedutil_obj.range(start_day,
+        					end_day+1);
+        			} else {
+                		//days of week are numbered as a circular list so take care
+                		//of case where start day is later than end day wrt day num
+                		//i.e. start = Fri and end = Mon
+                		lw_list = this.schedutil_obj.range(start_day, 7).concat(
+                			this.schedutil_obj.range(end_day+1));
+        			}
+        			totalfielddays += this.schedutil_obj.intersect(
+        				lw_list, dayweekint_list).length;
+        		}
+        		return totalfielddays;
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

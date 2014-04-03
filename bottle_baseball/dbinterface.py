@@ -109,10 +109,19 @@ class MongoDBInterface:
         docID = self.collection.update(query, updatefields, safe=True)
 
     def getdiv_schedule(self, age, gender):
+        # review case (lower/upper) strategy
+        # as a general rule, we are storing it in the db using uppercase keys, but
+        # converting them back to lower case when reading and especially
+        # transmitting it back to client.  Usually the conversion to lower case was
+        # happening at the type-specific db interface class (like scheddb.py),
+        # but sometimes that can be a hassle, especially with documents that are
+        # nested.
+        # Here you will notice that some of the keys used to save the read documents
+        # are already being changed to lowercase
         result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
             div_gen_CONST:gender}},
             {"$group":{'_id':{fieldday_id_CONST:"$FIELDDAY_ID",
-            start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
+            start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE"}}}},
             {"$sort":{'_id.FIELDDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
@@ -121,9 +130,9 @@ class MongoDBInterface:
             fieldday_id = sortkeys[fieldday_id_CONST]
             start_time = sortkeys[start_time_CONST]
             gameday_data = result[gameday_data_CONST]
-            game_list.append({fieldday_id_CONST:fieldday_id,
-                start_time_CONST:start_time,
-                gameday_data_CONST:gameday_data})
+            game_list.append({'fieldday_id':fieldday_id,
+                'start_time':start_time,
+                'gameday_data':gameday_data})
         return game_list
 
     def findDivisionSchedule(self, age, gender, min_game_id=None):

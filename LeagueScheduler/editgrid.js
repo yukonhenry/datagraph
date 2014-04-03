@@ -193,21 +193,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var server_key = this.server_key || "";
 				var server_key_obj = {};
 				if (this.idproperty == "field_id") {
-					var newlist = new Array();
-					// for the field grid data convert Data objects to str
-					// note we want to keep it as data objects inside of store to
-					// maintain direct compatibility with Date and TimeTextBox's
-					// and associated picker widgets.
-					raw_result.map(function(item) {
-						var newobj = lang.clone(item);
-						newobj.start_date = newobj.start_date.toLocaleDateString();
-						newobj.end_date = newobj.end_date.toLocaleDateString();
-						newobj.start_time = newobj.start_time.toLocaleTimeString();
-						newobj.end_time = newobj.end_time.toLocaleTimeString();
-						return newobj;
-					}).forEach(function(obj) {
-						newlist.push(obj);
-					});
+					var newlist = this.info_obj.modify_toserver_data(raw_result);
 					storedata_json = JSON.stringify(newlist);
 					divstr_obj = this.info_obj.getdivstr_obj();
 					// get colname and db_type for the divinfo obj attached to the

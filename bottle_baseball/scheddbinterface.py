@@ -33,8 +33,8 @@ class SchedDBInterface:
         if idproperty == 'div_id':
             game_list = self.dbinterface.getdiv_schedule(age, gender)
             # switch key to lower case for transfer to client
-            game_list = [{k.lower():v for k,v in x.items()}
-                for x in game_list]
+            #game_list = [{k.lower():v for k,v in x.items()}
+            #for x in game_list]
             return game_list
         else:
             return None
