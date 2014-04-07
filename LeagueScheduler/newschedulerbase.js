@@ -23,7 +23,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			league_select_id:'scleague_select_id',
 			statustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
-			newdivcpane_id:'newdivcpane_id',
 			newdivcpanetxt_id:'newdivcpanetxt_id',
 			newdivcpanegrid_id:'newdivcpanegrid_id',
 			newdivcpaneschedgrid_id:'newdivcpaneschedgrid_id',
@@ -49,6 +48,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			league_select_value:"", fg_select_value:"", widgetgen:null,
 			current_db_type:constant.default_db_type,
 			sched_store:null, sched_grid:null,
+			divinfo_handle:null, divinfo_grid:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -311,10 +311,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
 				var tabcontainer_reg = registry.byId(constant.tabcontainer_id);
-				var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpanegrid_id+"'></div><div id='"+constant.newdivcpaneschedgrid_id+"'></div>";
-				var newdivcpane = new ContentPane({title:this.newsched_name,
-					content:content_str});
-				tabcontainer_reg.addChild(newdivcpane);
+				var newdivcpane_id = this.newsched_name+'newdivcpane_id';
+				var newdivcpane = registry.byId(newdivcpane_id);
+				if (!newdivcpane) {
+					var content_str = "<div id='"+constant.newdivcpanetxt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpanegrid_id+"'></div><div id='"+constant.newdivcpaneschedgrid_id+"'></div>";
+					var title_str = this.newsched_name + ' by Div';
+					newdivcpane = new ContentPane({title:title_str,
+						content:content_str, id:newdivcpane_id});
+					tabcontainer_reg.addChild(newdivcpane);
+				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(constant.newdivcpanetxt_id))
 				// now we want to create and populate grids, starting with
@@ -334,16 +339,38 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}
 						return map_obj;
 					})
+					this.creatediv_grid(columnsdef_obj, griddata_list);
 				} else {
-					console.log('data not in store');;
+					// if divinfo is not available in the store, get it from
+					// the server.
+					this.server_interface.getServerData(
+						"get_dbcol/"+this.league_select_value,
+						lang.hitch(this, this.getdivgrid_data),
+						{db_type:this.current_db_type},
+						{divinfo_obj:divinfo_obj});
 				}
-				var StaticGrid = declare([Grid, Keyboard, Selection]);
-				var divinfo_grid = new StaticGrid({
-					columns:columnsdef_obj,
-					selectionMode:"single"
-				}, constant.newdivcpanegrid_id);
-				divinfo_grid.renderArray(griddata_list);
-				divinfo_grid.on("dgrid-select", lang.hitch(this, function(event) {
+			},
+			getdivgrid_data: function(adata, options_obj) {
+				var griddata_list = adata.info_list;
+				var columnsdef_obj = options_obj.divinfo_obj.getfixedcolumnsdef_obj();
+				this.creatediv_grid(columnsdef_obj, griddata_list);
+			},
+			creatediv_grid: function(columnsdef_obj, griddata_list) {
+				if (!this.divinfo_grid) {
+					var StaticGrid = declare([Grid, Keyboard, Selection]);
+					this.divinfo_grid = new StaticGrid({
+						columns:columnsdef_obj,
+						selectionMode:"single"
+					}, constant.newdivcpanegrid_id);
+				} else {
+					// https://github.com/SitePen/dgrid/issues/170
+					// call refresh() to clear array
+					this.divinfo_grid.refresh();
+				}
+				this.divinfo_grid.renderArray(griddata_list);
+				if (this.divinfo_handle)
+					this.divinfo_handle.remove();
+				this.divinfo_handle = this.divinfo_grid.on("dgrid-select", lang.hitch(this, function(event) {
 					var div_id = event.rows[0].data.div_id;
 					this.server_interface.getServerData('get_schedule/'+
 						this.newsched_name+'/'+div_id, this.createsched_grid);
@@ -370,14 +397,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					})
 					grid_list.push(grid_row);
 				})
-				this.sched_store = new Observable(new Memory({data:grid_list, idProperty:'game_id'}));
-				var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
-				this.sched_grid = new StaticGrid({
-					columns:columnsdef_obj,
-					store:this.sched_store
-				}, constant.newdivcpaneschedgrid_id);
-				this.sched_grid.startup();
-				this.sched_grid.resize();
+				if (this.sched_store) {
+					// if store already exists, repopulate store with new data
+					// and refresh grid
+					this.sched_store.setData(grid_list);
+					this.sched_grid.refresh();
+				} else {
+					this.sched_store = new Observable(new Memory({data:grid_list, idProperty:'game_id'}));
+					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
+					this.sched_grid = new StaticGrid({
+						columns:columnsdef_obj,
+						store:this.sched_store
+					}, constant.newdivcpaneschedgrid_id);
+					this.sched_grid.startup();
+					this.sched_grid.resize();
+				}
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)
@@ -390,6 +424,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.tooltip.destroyRecursive();
 				if (this.dbname_reg)
 					this.dbname_reg.destroyRecursive();
+				if (this.divinfo_handle)
+					this.divinfo_handle.remove();
 			}
 		});
 	})

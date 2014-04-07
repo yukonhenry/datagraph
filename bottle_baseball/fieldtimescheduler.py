@@ -1280,7 +1280,7 @@ class FieldTimeScheduleGenerator:
                                     fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
                                     slotstatus_list = fieldstatus_list['slotstatus_list']
                                     #rg_index = fieldstatus_list['rg_indexerMatch'](round_id, field_gameday_dict.get(field_id))[0]
-                                    rg_index = field_gameday_dict.get(f)-1
+                                    rg_index = field_gameday_dict.get(field_id)-1
                                     match_list.append({'field_id':field_id,
                                         'match':slotstatus_list[rg_index]['sstatus_list'][firstopen_index-1]['teams'],
                                         'newslot':firstopen_index})

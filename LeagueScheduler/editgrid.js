@@ -216,6 +216,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.colname = colname;
 				this.schedInfoStore.setData(griddata_list);
 				this.schedInfoGrid.refresh();
+				this.schedInfoGrid.resize();
 				// we might not always need to switch the gstack, but do it
 				// by default right now
 				this.uistackmgr.switch_gstackcpane(this.idproperty, false, this.schedInfoGrid);
