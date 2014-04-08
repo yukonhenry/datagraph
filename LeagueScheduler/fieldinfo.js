@@ -32,6 +32,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"",
+			infogrid_store:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
