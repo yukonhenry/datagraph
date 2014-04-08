@@ -138,6 +138,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				};
 				return columnsdef_obj;
 			},
+			getfixedcolumnsdef_obj: function () {
+				var columnsdef_obj = {
+					field_id:"Field ID",
+					field_name:"Field Name"
+				};
+				return columnsdef_obj;
+			},
 			initialize: function(newgrid_flag) {
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);

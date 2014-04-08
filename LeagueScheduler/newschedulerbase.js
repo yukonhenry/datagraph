@@ -57,7 +57,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			sched_store:null, sched_grid:null,
 			divinfo_handle:null, divinfo_grid:null,
 			tabcontainer_reg:null,
-			info_grid_list:null, info_handle_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -72,15 +71,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.newschedwatch_obj.set('league_fg_flag',
 							this.newschedwatch_obj.get('leagueselect_flag') && value);
 					}));
-				// info_grid_list and info_handle_list are lists of dictionaries,
+				// create dictionaries/objects that map idproperty to idproperty-specific
+				// id's or objects
 				// w each dict mapping idproperty to either a schedule grid or the
 				// corresponding .on handler
-				this.info_grid_list = new Array();
-				this.info_grid_list.push({div_id:null});
-				this.info_grid_list.push({field_id:null});
-				this.info_handle_list = new Array();
-				this.info_handle_list.push({div_id:null});
-				this.info_handle_list.push({field_id:null});
+				this.cpanegrid_id_mapobj = {div_id:constant.newdivcpanegrid_id,
+					field_id:constant.newfieldcpanegrid_id}
+				this.info_grid_mapobj = {div_id:null, field_id:null};
+				this.info_handle_mapobj = {div_id:null, field_id:null};
 			},
 			initialize: function(arg_obj) {
 				this.form_reg = registry.byId(constant.form_name);
@@ -335,21 +333,36 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Div'
 				}
 				this.createnewsched_pane(args_obj);
+				this.getgrid_data('div_id');
 				args_obj = {
 					suffix_id:constant.newfieldcpane_id,
 					content_str:"<div id='"+constant.newfieldcpanetxt_id+"'></div> <b>Click on Field row</b> to see field-specific schedule - scroll down. <div id='"+constant.newfieldcpanegrid_id+"'></div><div id='"+constant.newfieldcpaneschedheader_id+"'></div><div id='"+constant.newfieldcpaneschedgrid_id+"'></div>",
 					title_suffix:' by Field'
 				}
 				this.createnewsched_pane(args_obj);
-
+				this.getgrid_data('field_id');
+			},
+			getgrid_data: function(idproperty) {
+				var statusnode_id = null;
+				var select_value = null;
+				var db_type = null;
+				if (idproperty == 'div_id') {
+					statusnode_id = constant.newdivcpanetxt_id;
+					select_value = this.league_select_value;
+					db_type = this.current_db_type;
+				} else if (idproperty == 'field_id') {
+					statusnode_id = constant.newfieldcpanetxt_id;
+					select_value = this.fg_select_value;
+					db_type = 'fielddb';
+				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
-					dom.byId(constant.newdivcpanetxt_id))
+					dom.byId(statusnode_id))
 				// now we want to create and populate grids, starting with
 				// divinfo grid.  First check if local store has data
 				// corresponding to current collection
-				var info_obj = baseinfoSingleton.get_obj('div_id');
+				var info_obj = baseinfoSingleton.get_obj(idproperty);
 				if (info_obj && info_obj.infogrid_store &&
-					info_obj.activegrid_colname == this.league_select_value) {
+					info_obj.activegrid_colname == select_value) {
 					var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
 					var griddata_list = info_obj.infogrid_store.query().map(function(item) {
 						var map_obj = {}
@@ -361,42 +374,49 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}
 						return map_obj;
 					})
-					this.createinfo_grid(columnsdef_obj, griddata_list);
+					this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
 				} else {
 					// if info is not available in the store, get it from
 					// the server.
 					this.server_interface.getServerData(
-						"get_dbcol/"+this.league_select_value,
-						lang.hitch(this, this.getgrid_data),
-						{db_type:this.current_db_type},
-						{info_obj:info_obj});
+						"get_dbcol/"+select_value,
+						lang.hitch(this, this.pipegrid_data),
+						{db_type:db_type},
+						{info_obj:info_obj, idproperty:idproperty});
 				}
 			},
-			getgrid_data: function(adata, options_obj) {
+			pipegrid_data: function(adata, options_obj) {
 				var griddata_list = adata.info_list;
 				var columnsdef_obj = options_obj.info_obj.getfixedcolumnsdef_obj();
-				this.createinfo_grid(columnsdef_obj, griddata_list);
+				this.createinfo_grid(options_obj.idproperty, columnsdef_obj,
+					griddata_list);
 			},
-			createinfo_grid: function(columnsdef_obj, griddata_list) {
-				if (!this.divinfo_grid) {
+			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list) {
+				var info_grid = this.info_grid_mapobj[idproperty];
+				if (!info_grid) {
+					var cpanegrid_id = this.cpanegrid_id_mapobj[idproperty];
 					var StaticGrid = declare([Grid, Keyboard, Selection]);
-					this.divinfo_grid = new StaticGrid({
+					info_grid = new StaticGrid({
 						columns:columnsdef_obj,
 						selectionMode:"single"
-					}, constant.newdivcpanegrid_id);
+					}, cpanegrid_id);
+					this.info_grid_mapobj[idproperty] = info_grid;
 				} else {
 					// https://github.com/SitePen/dgrid/issues/170
 					// call refresh() to clear array
-					this.info_grid.refresh();
+					info_grid.refresh();
 				}
-				this.divinfo_grid.renderArray(griddata_list);
-				if (this.divinfo_handle)
-					this.divinfo_handle.remove();
-				this.divinfo_handle = this.divinfo_grid.on("dgrid-select", lang.hitch(this, function(event) {
-					var div_id = event.rows[0].data.div_id;
+				info_grid.renderArray(griddata_list);
+				var info_handle = this.info_handle_mapobj[idproperty];
+				if (info_handle)
+					info_handle.remove();
+				info_handle = info_grid.on("dgrid-select",
+					lang.hitch(this, function(event) {
+					var id = event.rows[0].data[idproperty];
 					this.server_interface.getServerData('get_schedule/'+
-						this.newsched_name+'/'+div_id, this.createsched_grid);
+						this.newsched_name+'/'+idproperty+'/'+id, this.createsched_grid);
 				}))
+				this.info_handle_mapobj[idproperty] = info_handle;
 			},
 			createsched_grid: function(adata) {
 				var fieldname_dict = adata.fieldname_dict;

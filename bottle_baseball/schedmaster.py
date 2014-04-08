@@ -88,13 +88,16 @@ class SchedMaster:
                             divinfo['fields'] = [field_id]
                         dbInterface.updateDBDivFields(divinfo)
 
-    def get_schedule(self, idproperty, div_id):
-        divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-        game_list = self.sdbInterface.get_schedule(idproperty, divinfo['div_age'],
-            divinfo['div_gen'])
-        # also get fields info tied to div
-        fieldname_dict= {x:self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name'] for x in divinfo['fields']}
-        return {'game_list':game_list, 'fieldname_dict':fieldname_dict}
+    def get_schedule(self, idproperty, propid):
+        if idproperty == 'div_id':
+            divinfo = self.divinfo_list[self.divinfo_indexerGet(propid)]
+            game_list = self.sdbInterface.get_schedule(idproperty,
+                age=divinfo['div_age'], gender=divinfo['div_gen'])
+            # also get fields info tied to div
+            fieldname_dict= {x:self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name'] for x in divinfo['fields']}
+            return {'game_list':game_list, 'fieldname_dict':fieldname_dict}
+        elif idproperty == 'field_id':
+            fieldinfo = self.fieldinfo_list[self.fieldinfo_indexerGet(propid)]
 
 '''
     def getsched_status(self):

@@ -345,12 +345,12 @@ def send_generate():
     a = json.dumps({"dbstatus":dbstatus})
     return callback_name+'('+a+')'
 
-@route('/get_schedule/<schedcol_name>/<div_id:int>')
-def get_schedule(schedcol_name, div_id):
+@route('/get_schedule/<schedcol_name>/<idproperty>/<propid:int>')
+def get_schedule(schedcol_name, idproperty, propid):
     callback_name = request.query.callback
     schedMaster = _routelogic_obj.schedmaster_obj
     if schedMaster.schedcol_name == schedcol_name:
-        return_dict = schedMaster.get_schedule('div_id', div_id)
+        return_dict = schedMaster.get_schedule(idproperty, propid)
     else:
         return_dict = {}
     a = json.dumps(return_dict)
