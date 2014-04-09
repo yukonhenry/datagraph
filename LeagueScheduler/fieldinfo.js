@@ -853,6 +853,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
         		var dayweekint_list = arrayUtil.map(dayweek_list, function(item){
         			return parseInt(item);
         		})
+        		var firststart_day = -1;
+        		// find first actual start day by finding the first day from
+        		// the dayweek_list that is past the start_date which is
+        		// selected from the calendar drop-down.
+        		if !(arrayUtil.some(dayweek_list, function(item, index) {
+        			// for every iteration tentatively assign the first start
+        			// date to the current iteration day of the dayweek_list
+        			// if the iteration day is greater than start_day, .some
+        			// loop will exit
+        			firststart_day = item;
+        			return item >= start_day;
+        		})) {
+        			// if the .some exited with a false value, then the first
+        			// start day is the first element in the dayweek_list
+        			firststart_day = dayweek_list[0]
+        		}
         		var dayweek_len = dayweek_list.length;
         		// calc baseline # of fielddays based on full weeks
         		var totalfielddays = dayweek_len * diffweeks_num;
