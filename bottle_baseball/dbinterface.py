@@ -214,6 +214,20 @@ class MongoDBInterface:
                                    away_CONST:team_game[away_CONST]})
         return team_game_list
 
+    def getfield_schedule(self, venue_id):
+        field_game_curs = self.collection.find({venue_CONST:venue_id},
+            {'_id':0, venue_CONST:0})
+        field_game_curs.sort([(fieldday_id_CONST,1),(start_time_CONST,1)])
+        field_game_list = []
+        for field_game in field_game_curs:
+            field_game_list.append({fieldday_id_CONST:field_game[fieldday_id_CONST],
+                start_time_CONST:field_game[start_time_CONST],
+                div_age_CONST:field_game[div_age_CONST],
+                div_gen_CONST:field_game[div_gen_CONST],
+                home_CONST:field_game[home_CONST],
+                away_CONST:field_game[away_CONST]})
+        return field_game_list
+
     def findFieldSchedule(self, venue_id, min_game_id=None, tourntype=None):
         if min_game_id is None:
             field_game_curs = self.collection.find({venue_CONST:venue_id},

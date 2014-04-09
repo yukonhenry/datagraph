@@ -8,7 +8,7 @@ function(dom, declare, lang, script) {
 		getServerData: function(rest_path, then_function, query_obj, options_obj) {
 			// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
 			// also look at http://www.markhansen.co.nz/javascript-optional-parameters/
-			var query_obj = (typeof query_obj === "undefined") ? "" : query_obj;
+			var query_obj = (typeof query_obj === "undefined" || query_obj === null) ? "" : query_obj;
 			var options_obj = options_obj || {};
 			//other_param = (typeof other_param === "undefined") ? "" : other_param;
 			var data = null;

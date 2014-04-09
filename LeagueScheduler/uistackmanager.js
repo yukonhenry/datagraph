@@ -29,7 +29,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
-				// define param stack mapping that maps tuple (id_property, config stage)->
+				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();
 				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',

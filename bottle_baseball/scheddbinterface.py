@@ -38,6 +38,9 @@ class SchedDBInterface:
             return game_list
         elif idproperty == 'field_id':
             game_list = self.dbinterface.getfield_schedule(field_id)
+            # switch key to lower case for transfer to client
+            game_list = [{k.lower():v for k,v in x.items()} for x in game_list]
+            return game_list
         else:
             return None
 

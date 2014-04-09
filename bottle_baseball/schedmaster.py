@@ -98,6 +98,9 @@ class SchedMaster:
             return {'game_list':game_list, 'fieldname_dict':fieldname_dict}
         elif idproperty == 'field_id':
             fieldinfo = self.fieldinfo_list[self.fieldinfo_indexerGet(propid)]
+            game_list = self.sdbInterface.get_schedule(idproperty,
+                field_id=fieldinfo['field_id'])
+            return {'game_list':game_list}
 
 '''
     def getsched_status(self):
