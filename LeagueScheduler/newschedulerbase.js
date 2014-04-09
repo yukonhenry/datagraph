@@ -441,6 +441,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var idproperty = options_obj.idproperty;
 				var fieldname_dict = adata.fieldname_dict;
 				var game_list = adata.game_list;
+				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
+				var fielddaymapdate_obj = fieldinfo_obj.fielddaymapdate_obj;
 				var columnsdef_obj = {
 					date:'Game Day', time:'Game Time'
 				}
@@ -451,7 +453,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(game_list, function(item, index) {
 					var grid_row = new Object();
 					grid_row.game_id = index+1;
-					grid_row.date = item.fieldday_id;
+					grid_row.date = fielddaymapdate_obj[item.fieldday_id];
 					grid_row.time = item.start_time;
 					arrayUtil.forEach(item.gameday_data, function(item2) {
 						grid_row[item2.venue] = item2.home+'v'+item2.away;
@@ -483,6 +485,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// create schedule grid defined by selected field_id
 				var idproperty = options_obj.idproperty;
 				var game_list = adata.game_list;
+				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
+				var fielddaymapdate_obj = fieldinfo_obj.fielddaymapdate_obj;
 				var columnsdef_obj = {
     				fieldday_id:'Game Date',
     				start_time:'Start Time',
@@ -493,6 +497,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
+					item.fieldday_id = fielddaymapdate_obj[item.fieldday_id];
 				})
 				// get store and grid for this idproperty
 				var sched_store = this.sched_store_mapobj[idproperty];

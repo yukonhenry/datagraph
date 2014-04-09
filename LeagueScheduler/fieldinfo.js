@@ -33,6 +33,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"",
 			infogrid_store:null,
+			fielddaymapdate_obj:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -40,6 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				lang.mixin(this, args);
 				this.today = new Date();
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
+        		this.fielddaymapdate_obj = new Object();
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -862,11 +864,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
         			// if the iteration day is greater than start_day, .some
         			// loop will exit
         			firststart_day = item;
+        			// firststart_index corresponds to index in dayweek_list that
+        			// maps to first_date
+        			firststart_dwindex = index;
         			return item >= start_day;
         		})) {
         			// if the .some exited with a false value, then the first
         			// start day is the first element in the dayweek_list
         			firststart_day = dayweek_list[0]
+        			firststart_dwindex = 0;
         		}
         		var firststart_diff = firststart_day - start_day;
         		if (firststart_diff < 0) {
@@ -896,6 +902,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
         			}
         			totalfielddays += this.schedutil_obj.intersect(
         				lw_list, dayweekint_list).length;
+        		}
+        		// create list that maps fieldday to actual calendar date
+        		// Represented with list, with position in list corresponding to
+        		// fieldday_id
+        		// first create list whose elements are the # days gap with the
+        		// previous dayweek element
+        		var dwgap_list = new Array();
+        		// get the last element, but offset it by 7 (length of week)
+        		// do this as the gap calculation for the first element should
+        		// be first_gap = first_elem +7 - last_elem
+        		//              = first_elem - (last_elem - 7)
+        		var prev_elem = dayweek_list[dayweek_len-1]-7;
+        		arrayUtil.forEach(dayweek_list, function(item, index) {
+        			dwgap_list[index] = item - prev_elem;
+        			prev_elem = item;
+        		})
+        		var next_date = first_date;
+        		var next_dwindex = firststart_dwindex;
+        		// generate list that maps fieldday_id (represented as position in
+        		// list) to calendar date string
+        		for (var id = 1; id < totalfielddays+1; id++) {
+        			this.fielddaymapdate_obj[id] = next_date.toLocaleDateString();
+        			// get the next index into the gap list
+        			// if index is length of list, then roll over to 0
+        			if (++next_dwindex == dayweek_len)
+        				next_dwindex = 0
+        			next_date = date.add(next_date, 'day',
+        				dwgap_list[next_dwindex]);
         		}
         		return totalfielddays;
 			},
