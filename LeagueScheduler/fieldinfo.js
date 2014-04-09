@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
 			db_type:'fielddb',
-			day_list:['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
 			league_select_id:"league_select_id"
 		};
@@ -572,7 +572,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					var field_id = object.field_id;
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
-					//var day_list = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 					var checkboxid_list = new Array();
 					arrayUtil.forEach(constant.day_list, function(day, index) {
 						var idstr = day+field_id+"_id";
@@ -857,7 +856,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
         		// find first actual start day by finding the first day from
         		// the dayweek_list that is past the start_date which is
         		// selected from the calendar drop-down.
-        		if !(arrayUtil.some(dayweek_list, function(item, index) {
+        		if (!arrayUtil.some(dayweek_list, function(item, index) {
         			// for every iteration tentatively assign the first start
         			// date to the current iteration day of the dayweek_list
         			// if the iteration day is greater than start_day, .some
@@ -869,6 +868,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
         			// start day is the first element in the dayweek_list
         			firststart_day = dayweek_list[0]
         		}
+        		var firststart_diff = firststart_day - start_day;
+        		if (firststart_diff < 0) {
+        			// do modulo addition if start_day (0-6 range) is larger than
+        			// firststart_day
+        			firststart_diff += 7;
+        		}
+        		var first_date = date.add(start_date, 'day', firststart_diff);
+        		console.log("start date="+start_date.toLocaleDateString() +
+        			" first start date="+first_date.toLocaleDateString());
         		var dayweek_len = dayweek_list.length;
         		// calc baseline # of fielddays based on full weeks
         		var totalfielddays = dayweek_len * diffweeks_num;
