@@ -109,6 +109,16 @@ class MongoDBInterface:
         docID = self.collection.update(query, updatefields, safe=True)
 
     def getdiv_schedule(self, age, gender):
+        # use mongodb aggregation framework to group results by shared gametime.
+        # query for all rounds at once - alternate way is to loop query based
+        # on round id/gameday id (knowing total number of games in season)
+        # but that potentially does not work if a division ends up not having
+        # any games on a particular game day.
+
+        # ref docs.mongodb.org/manual/reference/aggregation/
+        # http://stackoverflow.com/questions/14770170/how-to-find-mongo-documents-with-a-same-field
+        # also see aggregation 'mongodb definitive guide'
+        # col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
         # review case (lower/upper) strategy
         # as a general rule, we are storing it in the db using uppercase keys, but
         # converting them back to lower case when reading and especially
@@ -118,6 +128,7 @@ class MongoDBInterface:
         # nested.
         # Here you will notice that some of the keys used to save the read documents
         # are already being changed to lowercase
+        # Note there are alternative syntax for $push - see http://docs.mongodb.org/manual/reference/operator/update/push/
         result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
             div_gen_CONST:gender}},
             {"$group":{'_id':{fieldday_id_CONST:"$FIELDDAY_ID",
