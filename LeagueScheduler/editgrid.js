@@ -215,7 +215,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			replace_store: function(colname, griddata_list) {
 				this.colname = colname;
 				this.schedInfoStore.setData(griddata_list);
-				//this.schedInfoGrid.refresh();
+				this.schedInfoGrid.refresh();
 				this.schedInfoGrid.resize();
 				// we might not always need to switch the gstack, but do it
 				// by default right now

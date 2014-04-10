@@ -34,7 +34,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newfieldcpane_schedheader_id:'newfieldcpane_schedheader_id',
 			newfieldcpane_schedgrid_id:'newfieldcpane_schedgrid_id',
 			default_db_type:'rrdb',
-			get_dbcol:'get_dbcol/'
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
@@ -58,6 +57,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
+			calendarmap_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -378,6 +378,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (info_obj && info_obj.infogrid_store &&
 					info_obj.activegrid_colname == select_value) {
 					var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
+					/*
 					var griddata_list = info_obj.infogrid_store.query().map(function(item) {
 						var map_obj = {}
 						// only extra data corresponding to keys specified in
@@ -387,7 +388,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							map_obj[key] = item[key];
 						}
 						return map_obj;
-					})
+					}) */
+					var griddata_list = info_obj.infogrid_store.query();
 					this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
 				} else {
 					// if info is not available in the store, get it from
@@ -406,10 +408,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					griddata_list);
 			},
 			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list) {
+				if (idproperty == 'field_id') {
+					this.calendarmap_list = new Array();
+					arrayUtil.forEach(griddata_list, function(item, index) {
+						var start_date = new Date(item.start_date);
+						var args_obj = {dayweek_list:item.dayweek_str.split(','),
+							start_date:start_date,
+							totalfielddays:item.totalfielddays};
+						var calendarmap_obj = this.schedutil_obj.getcalendarmap_obj(args_obj);
+						this.calendarmap_list.push({field_id:item.field_id,
+							calendarmap_obj:calendarmap_obj})
+					}, this)
+				}
 				var info_grid = this.info_grid_mapobj[idproperty];
 				if (!info_grid) {
 					var cpane_grid_id = this.cpane_grid_id_mapobj[idproperty];
-					var StaticGrid = declare([Grid, Keyboard, Selection]);
+					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
 					info_grid = new StaticGrid({
 						columns:columnsdef_obj,
 						selectionMode:"single"
@@ -441,8 +455,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var idproperty = options_obj.idproperty;
 				var fieldname_dict = adata.fieldname_dict;
 				var game_list = adata.game_list;
-				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
-				var fielddaymapdate_obj = fieldinfo_obj.fielddaymapdate_obj;
 				var columnsdef_obj = {
 					date:'Game Day', time:'Game Time'
 				}
@@ -453,7 +465,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(game_list, function(item, index) {
 					var grid_row = new Object();
 					grid_row.game_id = index+1;
-					grid_row.date = fielddaymapdate_obj[item.fieldday_id];
+					grid_row.date = item.fieldday_id;
 					grid_row.time = item.start_time;
 					arrayUtil.forEach(item.gameday_data, function(item2) {
 						grid_row[item2.venue] = item2.home+'v'+item2.away;
@@ -467,6 +479,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// and refresh grid
 					sched_store.setData(grid_list);
 					sched_grid.refresh();
+					sched_grid.resize();
 				} else {
 					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
 					sched_store = new Observable(new Memory({data:grid_list, idProperty:'game_id'}));
@@ -485,8 +498,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// create schedule grid defined by selected field_id
 				var idproperty = options_obj.idproperty;
 				var game_list = adata.game_list;
-				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
-				var fielddaymapdate_obj = fieldinfo_obj.fielddaymapdate_obj;
 				var columnsdef_obj = {
     				fieldday_id:'Game Date',
     				start_time:'Start Time',
@@ -497,7 +508,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
-					item.fieldday_id = fielddaymapdate_obj[item.fieldday_id];
+					//item.fieldday_id = fielddaymapdate_obj[item.fieldday_id];
 				})
 				// get store and grid for this idproperty
 				var sched_store = this.sched_store_mapobj[idproperty];

@@ -3,11 +3,13 @@ for loadable module design and syntax  also ref
 http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
 http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
-define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "dojo/_base/lang", "dojo/dom-class",
-	"dojo/_base/array","dijit/registry", "dijit/MenuItem", "dijit/form/Button",
-	"LeagueScheduler/editgrid","LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, declare, lang, domClass, arrayUtil,
-		registry, MenuItem, Button, EditGrid, DivInfo, FieldInfo){
+define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
+	"dojo/_base/lang", "dojo/dom-class", "dojo/date",
+	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
+	"LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
+	function(dbootstrap, dom, domConstruct, declare, lang, domClass, date,
+		arrayUtil,
+		registry, MenuItem, DivInfo, FieldInfo){
 		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
 			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};
@@ -24,7 +26,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 		var status_dom = dom.byId("dbstatus_txt");
 		var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
-			leaguedata: null, server_interface:null, editGrid:null,
+			leaguedata: null, server_interface:null,
 			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
@@ -88,12 +90,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					node.style.color = 'red';
 				}
 			},
-			makeVisible: function(dom_name) {
-				domClass.replace(dom_name, "style_inline", "style_none");
-			},
-			makeInvisible: function(dom_name) {
-				domClass.replace(dom_name, "style_none", "style_inline");
-			},
 			generateDivSelectDropDown: function(select_reg, info_list) {
 				// ref http://stackoverflow.com/questions/13932225/dojo-and-dynamically-added-options-to-dijit-form-select
 				// for closure http://stackoverflow.com/questions/4726611/function-used-from-within-javascript-dojo-closure-using-this-notation-is-undef
@@ -107,13 +103,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					option_list.push({label:divstr, value:index+1, selected:false});
 				});
 				select_reg.addOption(option_list);
-			},
-			getNumberTeams: function(div_id) {
-				// ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/array.html#dojo-base-array
-				var result_array = arrayUtil.filter(this.leaguedata, function(item) {
-					return item.div_id == div_id;
-				});
-				return result_array[0].totalteams;
 			},
 			createSchedLinks: function(ldata_array, dom_name) {
 				var target_dom = dom.byId(dom_name);
@@ -294,6 +283,72 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare", "d
 					}
 				}
 				return result;
+			},
+			getcalendarmap_obj: function(args_obj) {
+				// get object that maps fieldday_id to calendar date
+				var dayweek_list = args_obj.dayweek_list;
+				var start_date = args_obj.start_date;
+				var totalfielddays = args_obj.totalfielddays;
+				var start_day = start_date.getDay();
+				var fielddaymapdate_obj = new Object();
+				var dayweek_len = dayweek_list.length;
+        		var firststart_day = -1;
+        		var firststart_dwindex = -1;
+        		// find first actual start day by finding the first day from
+        		// the dayweek_list that is past the start_date which is
+        		// selected from the calendar drop-down.
+        		if (!arrayUtil.some(dayweek_list, function(item, index) {
+        			// for every iteration tentatively assign the first start
+        			// date to the current iteration day of the dayweek_list
+        			// if the iteration day is greater than start_day, .some
+        			// loop will exit
+        			firststart_day = item;
+        			// firststart_index corresponds to index in dayweek_list that
+        			// maps to first_date
+        			firststart_dwindex = index;
+        			return item >= start_day;
+        		})) {
+        			// if the .some exited with a false value, then the first
+        			// start day is the first element in the dayweek_list
+        			firststart_day = dayweek_list[0]
+        			firststart_dwindex = 0;
+        		}
+        		var firststart_diff = firststart_day - start_day;
+        		if (firststart_diff < 0) {
+        			// do modulo addition if start_day (0-6 range) is larger than
+        			// firststart_day
+        			firststart_diff += 7;
+        		}
+        		var first_date = date.add(start_date, 'day', firststart_diff);
+        		// create list that maps fieldday to actual calendar date
+        		// Represented with list, with position in list corresponding to
+        		// fieldday_id
+        		// first create list whose elements are the # days gap with the
+        		// previous dayweek element
+        		var dwgap_list = new Array();
+        		// get the last element, but offset it by 7 (length of week)
+        		// do this as the gap calculation for the first element should
+        		// be first_gap = first_elem +7 - last_elem
+        		//              = first_elem - (last_elem - 7)
+        		var prev_elem = dayweek_list[dayweek_len-1]-7;
+        		arrayUtil.forEach(dayweek_list, function(item, index) {
+        			dwgap_list[index] = item - prev_elem;
+        			prev_elem = item;
+        		})
+        		var next_date = first_date;
+        		var next_dwindex = firststart_dwindex;
+        		// generate list that maps fieldday_id (represented as position in
+        		// list) to calendar date string
+        		for (var id = 1; id < totalfielddays+1; id++) {
+        			fielddaymapdate_obj[id] = next_date.toLocaleDateString();
+        			// get the next index into the gap list
+        			// if index is length of list, then roll over to 0
+        			if (++next_dwindex == dayweek_len)
+        				next_dwindex = 0
+        			next_date = date.add(next_date, 'day',
+        				dwgap_list[next_dwindex]);
+        		}
+        		return fielddaymapdate_obj;
 			}
 		})
 	}
