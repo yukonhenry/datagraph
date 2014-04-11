@@ -57,7 +57,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
-			calendarmap_list:null, common_calendardate_list:null,
+			calendarmap_obj:null, common_calendardate_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -91,6 +91,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					field_id:lang.hitch(this, this.createfieldsched_grid)};
 				this.sched_store_mapobj = {div_id:null, field_id:null};
 				this.sched_grid_mapobj = {div_id:null, field_id:null};
+				this.calendarmap_obj = new Object();
 			},
 			initialize: function(arg_obj) {
 				this.form_reg = registry.byId(constant.form_name);
@@ -409,7 +410,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list) {
 				if (idproperty == 'field_id') {
-					this.calendarmap_list = new Array();
 					var simple_calendarmap_list = new Array();
 					arrayUtil.forEach(griddata_list, function(item, index) {
 						var start_date = new Date(item.start_date);
@@ -419,8 +419,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// get calendarmap list that maps fieldday_id to calendar
 						// date, for each field
 						var one_calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
-						this.calendarmap_list.push({field_id:item.field_id,
-							calendarmap_list:one_calendarmap_list})
+						//this.calendarmap_list.push({field_id:item.field_id,
+						//	calendarmap_list:one_calendarmap_list})
+						this.calendarmap_obj[item.field_id] = one_calendarmap_list;
 						simple_calendarmap_list.push(one_calendarmap_list);
 					}, this)
 					//ref http://stackoverflow.com/questions/1316371/converting-a-javascript-array-to-a-function-arguments-list
@@ -472,14 +473,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var grid_list = new Array();
 				arrayUtil.forEach(game_list, function(item, index) {
 					var grid_row = new Object();
+					// slot_id is the idProperty for the store also
+					// Use slot_id as the idProp instead of game_id as a single
+					// slot_id row can have multiple games.
 					grid_row.game_id = index+1;
-					grid_row.date = item.fieldday_id;
+					var venue = item.venue;
+					var calendarmap_list = this.calendarmap_obj[venue];
+					grid_row.date = calendarmap_list[item.fieldday_id-1];
 					grid_row.time = item.start_time;
+					grid_row[venue] = item.home+'v'+item.away;
+					/*
 					arrayUtil.forEach(item.gameday_data, function(item2) {
 						grid_row[item2.venue] = item2.home+'v'+item2.away;
-					})
+					}) */
 					grid_list.push(grid_row);
-				})
+				}, this)
 				var sched_store = this.sched_store_mapobj[idproperty];
 				var sched_grid = this.sched_grid_mapobj[idproperty];
 				if (sched_store) {
@@ -490,7 +498,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					sched_grid.resize();
 				} else {
 					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
-					sched_store = new Observable(new Memory({data:grid_list, idProperty:'game_id'}));
+					sched_store = new Observable(new Memory({data:grid_list, idProperty:'slot_id'}));
 					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
 					sched_grid = new StaticGrid({
 						columns:columnsdef_obj,
@@ -519,9 +527,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// get calendar map list for field_id
 				// .filter creates single element list - get single elem/obj and
 				// grab mapping list
+				/*
 				var calendarmap_list = arrayUtil.filter(this.calendarmap_list, function(item) {
 					return item.field_id == field_id;
-				})[0].calendarmap_list;
+				})[0].calendarmap_list; */
+				var calendarmap_list = this.calendarmap_obj[field_id];
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
 					// map to calendar date str.  subtract index by one to get date
@@ -545,10 +555,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						store:sched_store
 					}, cpane_schedgrid_id);
 					sched_grid.startup();
-					sched_grid.resize();
 					this.sched_store_mapobj[idproperty] = sched_store;
 					this.sched_grid_mapobj[idproperty] = sched_grid;
 				}
+				sched_grid.resize();
 			},
 			createnewsched_pane: function(args_obj) {
 				var suffix_id = args_obj.suffix_id;

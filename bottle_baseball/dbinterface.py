@@ -129,6 +129,7 @@ class MongoDBInterface:
         # Here you will notice that some of the keys used to save the read documents
         # are already being changed to lowercase
         # Note there are alternative syntax for $push - see http://docs.mongodb.org/manual/reference/operator/update/push/
+        '''
         result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
             div_gen_CONST:gender}},
             {"$group":{'_id':{fieldday_id_CONST:"$FIELDDAY_ID",
@@ -144,6 +145,18 @@ class MongoDBInterface:
             game_list.append({'fieldday_id':fieldday_id,
                 'start_time':start_time,
                 'gameday_data':gameday_data})
+        '''
+        game_curs = self.collection.find({div_age_CONST:age,
+            div_gen_CONST:gender},
+            {'_id':0, div_age_CONST:0, div_gen_CONST:0})
+        game_curs.sort([(fieldday_id_CONST,1),(start_time_CONST,1)])
+        game_list = []
+        for game in game_curs:
+            game_list.append({'fieldday_id':game[fieldday_id_CONST],
+                'start_time':game[start_time_CONST],
+                'venue':game[venue_CONST],
+                'home':game[home_CONST],
+                'away':game[away_CONST]})
         return game_list
 
     def findDivisionSchedule(self, age, gender, min_game_id=None):
