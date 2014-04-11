@@ -6,6 +6,7 @@ from networkx.algorithms import bipartite
 from collections import Iterable, namedtuple
 from operator import itemgetter
 from dateutil import parser
+from datetime import timedelta
 from bisect import bisect_right
 import logging
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
@@ -248,7 +249,8 @@ def find_le(a, x):
     ref https://docs.python.org/2/library/bisect.html'''
     i = bisect_right(a, x)
     if i:
-        return a[i-1]
+        return_index = i-1
+        return (return_index, a[return_index])
     raise ValueError
 
 def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
@@ -261,56 +263,37 @@ def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     dayweek_len = len(dayweek_list)
     #find first actual start day by finding the first day from the dayweek_list
     # that is past the start_date which is selected from the UI calendar.
-    for index, dayweek in enumerate(dayweek_list):
-        #if (!arrayUtil.some(dayweek_list, function(item, index) {
-        #for every iteration tentatively assign the first start date to the
-        #current iteration day of the dayweek_list; if the iteration day is
-        # greater than start_day, exit
-                    firststart_day = item;
-                    // firststart_index corresponds to index in dayweek_list that
-                    // maps to first_date
-                    firststart_dwindex = index;
-                    return item >= start_day;
-                })) {
-                    // if the .some exited with a false value, then the first
-                    // start day is the first element in the dayweek_list
-                    firststart_day = dayweek_list[0]
-                    firststart_dwindex = 0;
-                }
-                var firststart_diff = firststart_day - start_day;
-                if (firststart_diff < 0) {
-                    // do modulo addition if start_day (0-6 range) is larger than
-                    // firststart_day
-                    firststart_diff += 7;
-                }
-                var first_date = date.add(start_date, 'day', firststart_diff);
-                // create list that maps fieldday to actual calendar date
-                // Represented with list, with position in list corresponding to
-                // fieldday_id
-                // first create list whose elements are the # days gap with the
-                // previous dayweek element
-                var dwgap_list = new Array();
-                // get the last element, but offset it by 7 (length of week)
-                // do this as the gap calculation for the first element should
-                // be first_gap = first_elem +7 - last_elem
-                //              = first_elem - (last_elem - 7)
-                var prev_elem = dayweek_list[dayweek_len-1]-7;
-                arrayUtil.forEach(dayweek_list, function(item, index) {
-                    dwgap_list[index] = item - prev_elem;
-                    prev_elem = item;
-                })
-                var next_date = first_date;
-                var next_dwindex = firststart_dwindex;
-                // generate list that maps fieldday_id (represented as position in
-                // list) to calendar date string
-                for (var id = 1; id < totalfielddays+1; id++) {
-                    fielddaymapdate_list.push(next_date.toLocaleDateString());
-                    // get the next index into the gap list
-                    // if index is length of list, then roll over to 0
-                    if (++next_dwindex == dayweek_len)
-                        next_dwindex = 0
-                    next_date = date.add(next_date, 'day',
-                        dwgap_list[next_dwindex]);
-                }
-                return fielddaymapdate_list
-            }
+    try:
+        firststart_index, firststart_day = find_le(dayweek_list, start_day)
+    except ValueError:
+        # case where the firststart_day is the first day in the list
+        firststart_index, firststart_day = (0, dayweek_list[0])
+    # calculate how many days the firststart_day is past the start_day
+    # take care of case where firststart_day weekday id is lower value than the
+    # weekday identifier for the start_day
+    diff = firststart_day - start_day
+    firststart_diff = diff if diff >= 0 else diff+7
+    first_date = start_date + timedelta(firststart_diff)
+    #create list that maps fieldday to actual calendar date, with position in
+    # list corresponding to fieldday_id
+    # First create list whose elements are num days gap with the previous dayweek element
+    #get the last element, but offset it by 7 (length of week); do this as the gap
+    #calculation for the first element should be
+    #first_gap  = first_elem +7 - last_elem
+    #           = first_elem - (last_elem - 7)
+    gap_list = [];
+    prev_elem = dayweek_list[dayweek_len-1]-7;
+    for dayweek in dayweek_list:
+        gap_list.append(timedelta(dayweek-prev_elem))
+        prev_elem = dayweek
+    next_index, next_date = (firststart_index, first_date)
+    #generate list that maps fieldday_id (represented as position in list) to
+    #calendar date string
+    mapdate_list = []
+    for fieldday_id in range(1, totalfielddays+1):
+        mapdate_list.append(next_date)
+        #get the next index into the gap list
+        #if index is length of list, then roll over to 0
+        next_index = (next_index+1) % dayweek_len
+        next_date += gap_list[next_index];
+    return mapdate_list
