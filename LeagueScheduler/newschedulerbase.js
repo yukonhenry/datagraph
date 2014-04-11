@@ -5,14 +5,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/NumberSpinner", "dijit/form/DateTextBox",
 	"dijit/layout/ContentPane", "dgrid/Grid",
-	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
+	"dgrid/OnDemandGrid", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen",
-	"put-selector/put", "dojo/domReady!"],
+	"put-selector/put", "underscore-min", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory, Observable, registry, Tooltip, ValidationTextBox, Select, Button,
 		NumberSpinner, DateTextBox, ContentPane, Grid,
-		OnDemandGrid, editor, Keyboard, Selection, EditGrid,
+		OnDemandGrid, Keyboard, Selection, EditGrid,
 		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
@@ -57,7 +57,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
-			calendarmap_list:null,
+			calendarmap_list:null, common_calendardate_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -410,15 +410,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list) {
 				if (idproperty == 'field_id') {
 					this.calendarmap_list = new Array();
+					var simple_calendarmap_list = new Array();
 					arrayUtil.forEach(griddata_list, function(item, index) {
 						var start_date = new Date(item.start_date);
 						var args_obj = {dayweek_list:item.dayweek_str.split(','),
 							start_date:start_date,
 							totalfielddays:item.totalfielddays};
-						var calendarmap_obj = this.schedutil_obj.getcalendarmap_obj(args_obj);
+						// get calendarmap list that maps fieldday_id to calendar
+						// date, for each field
+						var one_calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
 						this.calendarmap_list.push({field_id:item.field_id,
-							calendarmap_obj:calendarmap_obj})
+							calendarmap_list:one_calendarmap_list})
+						simple_calendarmap_list.push(one_calendarmap_list);
 					}, this)
+					//ref http://stackoverflow.com/questions/1316371/converting-a-javascript-array-to-a-function-arguments-list
+					// for converting array to variable arguments for a function
+					this.common_calendardate_list = _.intersection.apply(null,
+						simple_calendarmap_list);
 				}
 				var info_grid = this.info_grid_mapobj[idproperty];
 				if (!info_grid) {
@@ -447,8 +455,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.server_interface.getServerData('get_schedule/'+
 						this.newsched_name+'/'+idproperty+'/'+id,
 						callback_method,
-						null, {idproperty:idproperty});
-				}))
+						null, {idproperty:idproperty, event_data:event_data})
+					}));
 				this.info_handle_mapobj[idproperty] = info_handle;
 			},
 			createsched_grid: function(adata, options_obj) {
@@ -497,6 +505,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			createfieldsched_grid: function(adata, options_obj) {
 				// create schedule grid defined by selected field_id
 				var idproperty = options_obj.idproperty;
+				var event_data = options_obj.event_data;
 				var game_list = adata.game_list;
 				var columnsdef_obj = {
     				fieldday_id:'Game Date',
@@ -506,9 +515,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
     				home:'Home Team#',
     				away:'Away Team#'
 				}
+				var field_id = event_data.field_id; // selected field_id
+				// get calendar map list for field_id
+				// .filter creates single element list - get single elem/obj and
+				// grab mapping list
+				var calendarmap_list = arrayUtil.filter(this.calendarmap_list, function(item) {
+					return item.field_id == field_id;
+				})[0].calendarmap_list;
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
-					//item.fieldday_id = fielddaymapdate_obj[item.fieldday_id];
+					// map to calendar date str.  subtract index by one to get date
+					// str mapped from fieldday_id
+					item.fieldday_id = calendarmap_list[item.fieldday_id-1];
 				})
 				// get store and grid for this idproperty
 				var sched_store = this.sched_store_mapobj[idproperty];

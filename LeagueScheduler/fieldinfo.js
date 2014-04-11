@@ -33,7 +33,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"",
 			infogrid_store:null,
-			fielddayparam_obj:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -873,10 +872,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
         			totalfielddays += this.schedutil_obj.intersect(
         				lw_list, dayweekint_list).length;
         		}
-        		if (!this.fielddayparam_obj)
-        			this.fielddayparam_obj = new Object();
-        		this.fielddayparam_obj[item.field_id] = {dayweek_list:dayweek_list,
-        			start_date:start_date, totalfielddays:totalfielddays};
         		return totalfielddays;
 			},
 			cleanup: function() {
