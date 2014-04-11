@@ -1,6 +1,7 @@
 #!/usr/bin/python
 ''' Copyright YukonTR 2013 '''
 from dbinterface import MongoDBInterface, DB_Col_Type
+from schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist
 import simplejson as json
 from collections import namedtuple
 from dateutil import parser
@@ -30,24 +31,9 @@ class FieldDBInterface:
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
         for fieldinfo in fieldinfo_list:
-            '''
-            start_date_str = fieldinfo['start_date']
-            end_date_str = fieldinfo['end_date']
-            # make sure fieldinfo['dayweek_str'] is nonempty as split() will fail if
-            # it is
             if fieldinfo['dayweek_str']:
-                dayweek_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
-            else:
-                dayweek_list = []
-            if not len(dayweek_list):
-                totalfielddays = 0
-            else:
-                totalfielddays = self.calc_totalfielddays(start_date_str, end_date_str,
-                                                   dayweek_list)
-            fieldinfo['totalfielddays'] = totalfielddays
-            '''
-            if fieldinfo['dayweek_str']:
-                fieldinfo['dayweek_list'] = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
+                temp_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
+                fieldinfo['dayweek_list'] = convertJStoPY_daylist(temp_list)
             else:
                 fieldinfo['dayweek_list'] = []
             # check if primary use is not empty
@@ -70,13 +56,15 @@ class FieldDBInterface:
         for field in field_list:
             field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
-            field['dayweek_str'] = ','.join(str(f) for f in field[dayweek_list_CONST])
+            temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
+            field['dayweek_str'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
 
     # read from DB, but don't covert lists back into string representation
+    # also don't covert the dayweek_list elements back to JS format
     def readDBraw(self):
         liststatus_qtuple = self.dbinterface.getFieldInfoDocument()
         field_list = liststatus_qtuple.list

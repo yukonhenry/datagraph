@@ -652,8 +652,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				if (this.editgrid) {
 					var store_elem = this.editgrid.schedInfoStore.get(field_id);
 					store_elem.dayweek_str = value_str;
-					var totalfielddays = this.calc_totalfielddays(store_elem);
-					store_elem.totalfielddays = totalfielddays;
+					store_elem.totalfielddays = this.calc_totalfielddays(store_elem);
 					//store_elem.dayweek_num = numdays;
 					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
