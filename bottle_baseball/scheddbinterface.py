@@ -14,9 +14,9 @@ class SchedDBInterface:
         self.dbinterface = MongoDBInterface(mongoClient, collection_name=schedcol_name, db_col_type=DB_Col_Type.GeneratedSchedule)
         self.schedcol_name = schedcol_name
 
-    def insertGameData(self, age, gen, fieldday_id, start_time_str, venue, home, away):
+    def insertGameData(self, age, gen, fieldday_id, game_date_str, start_time_str, venue, home, away):
         document = {'DIV_AGE':age, 'DIV_GEN':gen, 'FIELDDAY_ID':fieldday_id,
-                    'START_TIME':start_time_str,
+                    'GAME_DATE':game_date_str, 'START_TIME':start_time_str,
                     'VENUE':venue, 'HOME':home, 'AWAY':away}
         docID = self.dbinterface.insertdoc(document)
 

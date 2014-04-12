@@ -35,6 +35,9 @@ time_iteration_max_CONST = 18
 field_iteration_max_CONST = 10
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
+# http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
+# http://stackoverflow.com/questions/10624937/convert-datetime-object-to-a-string-of-date-only-in-python
+date_format_CONST = '%m/%d/%Y'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
@@ -517,7 +520,6 @@ class FieldTimeScheduleGenerator:
                     #print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
                     max_ftstatus = self.fieldstatus_list[self.fstatus_indexerGet(maxfield)]['slotstatus_list']
                     min_ftstatus = self.fieldstatus_list[self.fstatus_indexerGet(minfield)]['slotstatus_list']
-                    #fieldday_id = 1
                     maxfteam_metrics_list = []
                     minfteam_metrics_list = []
                     gameday_totalcost_list = []
@@ -530,7 +532,6 @@ class FieldTimeScheduleGenerator:
                             # if max count field is not being used on a particular gameday, skip and go to the next
                             logging.debug("ftscheduler:refieldbalance: either max or min on gameday=%d is None",
                                 fieldday_id)
-                            #fieldday_id += 1
                             continue
                         else:
                             logging.debug("continuing on gameday=%d", fieldday_id)
@@ -1553,6 +1554,7 @@ class FieldTimeScheduleGenerator:
             for field_id in fset:
                 fieldday_id = 1
                 for fieldday_id, slotstatus_list in enumerate(self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'], start=1):
+                    game_date = slotstatus_list['game_date']
                     for match in slotstatus_list['sstatus_list']:
                         if match['isgame']:
                             gametime = match['start_time']
@@ -1562,10 +1564,11 @@ class FieldTimeScheduleGenerator:
                             away_id = teams[away_CONST]
                             #div = getAgeGenderDivision(div_id)
                             div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                            self.dbinterface.insertGameData(div['div_age'],
-                                div['div_gen'], fieldday_id,
-                                gametime.strftime(time_format_CONST),
-                                field_id, home_id, away_id)
+                            self.dbinterface.insertGameData(age=div['div_age'],
+                                gen=div['div_gen'], fieldday_id=fieldday_id,
+                                game_date_str=game_date.strftime(date_format_CONST),
+                                start_time_str=gametime.strftime(time_format_CONST),
+                                venue=field_id, home=home_id, away=away_id)
         self.dbinterface.updatesched_status()
         return True  # for dbstatus to be returned to client
         # executes after entire schedule for all divisions is generated
@@ -2075,6 +2078,8 @@ class FieldTimeScheduleGenerator:
             totalgamedays = max(totalgamedays_list)
             # number of days field is open every week
             totalfielddays = f['totalfielddays']
+            # get calendarmap_list for field
+            calendarmap_list = f['calendarmap_list']
             # note the below is a duplicate check to one of the tests in
             # fieldcheckavailability
             # If checks do not produce consistent results look at test logic.
@@ -2097,7 +2102,8 @@ class FieldTimeScheduleGenerator:
             # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
             # when assigning fieldslots, round_id from the match generator should
             # match up with the round_id
-            slotstatus_list = [{'fieldday_id':i, 'round_id':(i-1)/ratio+1,
+            slotstatus_list = [{'fieldday_id':i, 'game_date':calendarmap_list[i-1],
+                'round_id':(i-1)/ratio+1,
                 'sstatus_list':deepcopy(sstatus_list)}
                 for i in range(1,totalfielddays+1)]
             # create lambda function to return list of indices where round_id matches

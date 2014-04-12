@@ -10,6 +10,7 @@ import socket
 from flufl.enum import Enum
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
+game_date_CONST = 'GAME_DATE'
 gameday_data_CONST = 'GAMEDAY_DATA'
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
@@ -44,6 +45,7 @@ divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
 fieldday_id_CONST = 'FIELDDAY_ID'
 div_age_CONST = 'DIV_AGE'
 div_gen_CONST = 'DIV_GEN'
+
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
@@ -129,34 +131,20 @@ class MongoDBInterface:
         # Here you will notice that some of the keys used to save the read documents
         # are already being changed to lowercase
         # Note there are alternative syntax for $push - see http://docs.mongodb.org/manual/reference/operator/update/push/
-        '''
         result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
             div_gen_CONST:gender}},
-            {"$group":{'_id':{fieldday_id_CONST:"$FIELDDAY_ID",
+            {"$group":{'_id':{game_date_CONST:"$GAME_DATE",
             start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE"}}}},
-            {"$sort":{'_id.FIELDDAY_ID':1, '_id.START_TIME':1}}])
+            {"$sort":{'_id.GAME_DATE':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
             #print 'result',result
             sortkeys = result['_id']
-            fieldday_id = sortkeys[fieldday_id_CONST]
+            game_date = sortkeys[game_date_CONST]
             start_time = sortkeys[start_time_CONST]
             gameday_data = result[gameday_data_CONST]
-            game_list.append({'fieldday_id':fieldday_id,
-                'start_time':start_time,
+            game_list.append({'game_date':game_date, 'start_time':start_time,
                 'gameday_data':gameday_data})
-        '''
-        game_curs = self.collection.find({div_age_CONST:age,
-            div_gen_CONST:gender},
-            {'_id':0, div_age_CONST:0, div_gen_CONST:0})
-        game_curs.sort([(fieldday_id_CONST,1),(start_time_CONST,1)])
-        game_list = []
-        for game in game_curs:
-            game_list.append({'fieldday_id':game[fieldday_id_CONST],
-                'start_time':game[start_time_CONST],
-                'venue':game[venue_CONST],
-                'home':game[home_CONST],
-                'away':game[away_CONST]})
         return game_list
 
     def findDivisionSchedule(self, age, gender, min_game_id=None):

@@ -476,16 +476,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// slot_id is the idProperty for the store also
 					// Use slot_id as the idProp instead of game_id as a single
 					// slot_id row can have multiple games.
-					grid_row.game_id = index+1;
-					var venue = item.venue;
-					var calendarmap_list = this.calendarmap_obj[venue];
-					grid_row.date = calendarmap_list[item.fieldday_id-1];
+					grid_row.slot_id = index+1;
+					grid_row.date = item.game_date;
 					grid_row.time = item.start_time;
-					grid_row[venue] = item.home+'v'+item.away;
-					/*
 					arrayUtil.forEach(item.gameday_data, function(item2) {
 						grid_row[item2.venue] = item2.home+'v'+item2.away;
-					}) */
+					})
 					grid_list.push(grid_row);
 				}, this)
 				var sched_store = this.sched_store_mapobj[idproperty];
