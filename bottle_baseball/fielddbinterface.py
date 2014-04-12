@@ -1,11 +1,11 @@
 #!/usr/bin/python
 ''' Copyright YukonTR 2013 '''
 from dbinterface import MongoDBInterface, DB_Col_Type
-from schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist
+from schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist, \
+    getcalendarmap_list
 import simplejson as json
 from collections import namedtuple
 from dateutil import parser
-from datetime import date
 import logging
 
 # global for namedtuple
@@ -42,6 +42,8 @@ class FieldDBInterface:
                     for x in fieldinfo['primaryuse_str'].split(',')]
             else:
                 fieldinfo['primaryuse_list'] = []
+            getcalendarmap_list(fieldinfo[dayweek_list],
+                fieldinfo['start_date'], fieldinfo['totalfielddays'])
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
