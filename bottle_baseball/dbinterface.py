@@ -8,6 +8,7 @@ from leaguedivprep import getDivID
 import logging
 import socket
 from flufl.enum import Enum
+from datetime import date
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 game_date_CONST = 'GAME_DATE'
@@ -45,6 +46,11 @@ divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
 fieldday_id_CONST = 'FIELDDAY_ID'
 div_age_CONST = 'DIV_AGE'
 div_gen_CONST = 'DIV_GEN'
+
+# http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
+time_format_CONST = '%H:%M'
+# http://stackoverflow.com/questions/10624937/convert-datetime-object-to-a-string-of-date-only-in-python
+date_format_CONST = '%m/%d/%Y'
 
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
@@ -111,37 +117,65 @@ class MongoDBInterface:
         docID = self.collection.update(query, updatefields, safe=True)
 
     def getdiv_schedule(self, age, gender):
-        # use mongodb aggregation framework to group results by shared gametime.
-        # query for all rounds at once - alternate way is to loop query based
-        # on round id/gameday id (knowing total number of games in season)
-        # but that potentially does not work if a division ends up not having
-        # any games on a particular game day.
-
-        # ref docs.mongodb.org/manual/reference/aggregation/
-        # http://stackoverflow.com/questions/14770170/how-to-find-mongo-documents-with-a-same-field
-        # also see aggregation 'mongodb definitive guide'
-        # col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
-        # review case (lower/upper) strategy
-        # as a general rule, we are storing it in the db using uppercase keys, but
-        # converting them back to lower case when reading and especially
-        # transmitting it back to client.  Usually the conversion to lower case was
-        # happening at the type-specific db interface class (like scheddb.py),
-        # but sometimes that can be a hassle, especially with documents that are
-        # nested.
-        # Here you will notice that some of the keys used to save the read documents
-        # are already being changed to lowercase
-        # Note there are alternative syntax for $push - see http://docs.mongodb.org/manual/reference/operator/update/push/
+        '''use mongodb aggregation framework to group results by shared gametime.
+        query for all rounds at once - alternate way is to loop query based
+        on round id/gameday id (knowing total number of games in season)
+        but that potentially does not work if a division ends up not having
+        any games on a particular game day.
+        ref docs.mongodb.org/manual/reference/aggregation/
+        http://stackoverflow.com/questions/14770170/how-to-find-mongo-documents-with-a-same-field
+        also see aggregation 'mongodb definitive guide'
+        col.aggregate({$match:{AGE:'U12',GEN:'B'}}, {$group:{_id:{GAMEDAY_ID:'$GAMEDAY_ID',START_TIME:"$START_TIME"},count:{$sum:1},docs:{$push:{HOME:'$HOME',AWAY:'$AWAY',VENUE:'$VENUE'}}}},{$sort:{'_id.GAMEDAY_ID':1,'_id.START_TIME':1}})
+        -----
+        review case (lower/upper) strategy
+        as a general rule, we are storing it in the db using uppercase keys, but
+        converting them back to lower case when reading and especially
+        transmitting it back to client.  Usually the conversion to lower case was
+        happening at the type-specific db interface class (like scheddb.py),
+        but sometimes that can be a hassle, especially with documents that are
+        nested.
+        Here you will notice that some of the keys used to save the read documents
+        are already being changed to lowercase
+        ---
+        Note there are alternative syntax for $push - see http://docs.mongodb.org/manual/reference/operator/update/push/
+        ---
+        Update - sort order problem w pymongo - sorting w game_date and start_time -
+        with game_date first and start_time second, does not work, as the result
+        always to seem to sort on start_time first and game_date second, reversing
+        the order between the two sort variables.
+        NOTE this problem does NOT occur when using straight Mongo commands from the
+        Mongo shell.
+        Tried using both string representations of game_date and start_time - same
+        erroneous results.
+        Note that using start_time as time objects presents two problems - timedelta
+        additions/subtractions are not supported with time objects, and time objects
+        are not supported with mongodb, though datetime and date objects are.
+        Workaround is to use a scalar value - use toordinal()/fromordinal() on
+        dt/date object go get an integer mapping of the date - use this just for the
+        date object.  DT rep of the time object can remain the same for the sort
+        order to occur correctly.
+        '''
+        '''
         result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
             div_gen_CONST:gender}},
             {"$group":{'_id':{game_date_CONST:"$GAME_DATE",
             start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE"}}}},
             {"$sort":{'_id.GAME_DATE':1, '_id.START_TIME':1}}])
+        '''
+        result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
+            div_gen_CONST:gender}},
+            {"$group":{'_id':{'GAME_DATE_ORD':"$GAME_DATE_ORD",
+            'START_TIME':"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE"}}}},
+            {"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
             #print 'result',result
             sortkeys = result['_id']
-            game_date = sortkeys[game_date_CONST]
-            start_time = sortkeys[start_time_CONST]
+            #game_date = sortkeys['GAME_DATE']
+            #game_date = sortkeys[game_date_CONST].strftime(date_format_CONST)
+            game_date = date.fromordinal(sortkeys['GAME_DATE_ORD']).strftime(date_format_CONST)
+            start_time = sortkeys[start_time_CONST].strftime(time_format_CONST)
+            #start_time = sortkeys['START_TIME']
             gameday_data = result[gameday_data_CONST]
             game_list.append({'game_date':game_date, 'start_time':start_time,
                 'gameday_data':gameday_data})
@@ -229,15 +263,16 @@ class MongoDBInterface:
     def getfield_schedule(self, venue_id):
         field_game_curs = self.collection.find({venue_CONST:venue_id},
             {'_id':0, venue_CONST:0})
-        field_game_curs.sort([(fieldday_id_CONST,1),(start_time_CONST,1)])
+        field_game_curs.sort([('GAME_DATE_ORD',1),(start_time_CONST,1)])
         field_game_list = []
         for field_game in field_game_curs:
-            field_game_list.append({fieldday_id_CONST:field_game[fieldday_id_CONST],
-                start_time_CONST:field_game[start_time_CONST],
-                div_age_CONST:field_game[div_age_CONST],
-                div_gen_CONST:field_game[div_gen_CONST],
-                home_CONST:field_game[home_CONST],
-                away_CONST:field_game[away_CONST]})
+            field_game_list.append({
+                'game_date':date.fromordinal(field_game['GAME_DATE_ORD']).strftime(date_format_CONST),
+                'start_time':field_game[start_time_CONST].strftime(time_format_CONST),
+                'div_age':field_game[div_age_CONST],
+                'div_gen':field_game[div_gen_CONST],
+                'home':field_game[home_CONST],
+                'away':field_game[away_CONST]})
         return field_game_list
 
     def findFieldSchedule(self, venue_id, min_game_id=None, tourntype=None):

@@ -1557,7 +1557,7 @@ class FieldTimeScheduleGenerator:
                     game_date = slotstatus_list['game_date']
                     for match in slotstatus_list['sstatus_list']:
                         if match['isgame']:
-                            gametime = match['start_time']
+                            start_time = match['start_time']
                             teams = match['teams']
                             div_id = teams['div_id']
                             home_id = teams[home_CONST]
@@ -1566,8 +1566,9 @@ class FieldTimeScheduleGenerator:
                             div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                             self.dbinterface.insertGameData(age=div['div_age'],
                                 gen=div['div_gen'], fieldday_id=fieldday_id,
-                                game_date_str=game_date.strftime(date_format_CONST),
-                                start_time_str=gametime.strftime(time_format_CONST),
+                                #game_date_str=game_date.strftime(date_format_CONST),
+                                #start_time_str=gametime.strftime(time_format_CONST),
+                                game_date=game_date, start_time=start_time,
                                 venue=field_id, home=home_id, away=away_id)
         self.dbinterface.updatesched_status()
         return True  # for dbstatus to be returned to client
@@ -2087,14 +2088,16 @@ class FieldTimeScheduleGenerator:
                 raise FieldTimeAvailabilityError("Note enough total fielddays %d to cover required totalgamedays" % (totalfielddays,),
                     totalgamedays_list)
                 return None
-            gamestart = parser.parse(f['start_time'])
-            end_time = parser.parse(f['end_time'])
+            # leave gamestart and end_time as datetime objects as time objects do
+            # not support addition/subtraction with timedelta objects
+            game_start_dt = parser.parse(f['start_time'])
+            end_dt = parser.parse(f['end_time'])
             # slotstatus_list has a list of statuses, one for each gameslot
             sstatus_list = []
-            while gamestart + gameinterval <= end_time:
+            while game_start_dt + gameinterval <= end_dt:
                 # for above, correct statement should be adding pure gametime only
-                sstatus_list.append({'start_time':gamestart, 'isgame':False})
-                gamestart += gameinterval
+                sstatus_list.append({'start_time':game_start_dt, 'isgame':False})
+                game_start_dt += gameinterval
             sstatus_len = len(sstatus_list)
             #slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
             ratio = totalfielddays/totalgamedays

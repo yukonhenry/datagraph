@@ -512,7 +512,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var event_data = options_obj.event_data;
 				var game_list = adata.game_list;
 				var columnsdef_obj = {
-    				fieldday_id:'Game Date',
+    				game_date:'Game Date',
     				start_time:'Start Time',
     				div_age:'Age Group/Primary ID',
     				div_gen:'Gender/Secondary ID',
@@ -523,16 +523,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// get calendar map list for field_id
 				// .filter creates single element list - get single elem/obj and
 				// grab mapping list
-				/*
-				var calendarmap_list = arrayUtil.filter(this.calendarmap_list, function(item) {
-					return item.field_id == field_id;
-				})[0].calendarmap_list; */
-				var calendarmap_list = this.calendarmap_obj[field_id];
+				//var calendarmap_list = this.calendarmap_obj[field_id];
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
-					// map to calendar date str.  subtract index by one to get date
-					// str mapped from fieldday_id
-					item.fieldday_id = calendarmap_list[item.fieldday_id-1];
 				})
 				// get store and grid for this idproperty
 				var sched_store = this.sched_store_mapobj[idproperty];
