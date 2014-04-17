@@ -169,6 +169,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						});
 					select_pane = idmatch_list[0].pane_id;
 					this.current_grid = current_grid;
+					this.current_grid.resize();
 				}
 				this.gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state

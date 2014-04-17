@@ -257,8 +257,10 @@ def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     '''Get list that maps fieldday_id to calendar date; field_id is index+1 of list
     Returning a list is more convenient than returing a dictionary/obj
     as a list is more convenient for use in an intersection function.
-    Make sure start_date is a date class object (not datetime) '''
-    start_date = parser.parse(start_date_str).date()
+    Start Date is a datetime object as Date objects cannot be serialized
+    to be written in as a doc for mongodb '''
+    #start_date = parser.parse(start_date_str).date()
+    start_date = parser.parse(start_date_str)
     start_day = start_date.weekday()
     fielddaymapdate_list = []
     dayweek_len = len(dayweek_list)

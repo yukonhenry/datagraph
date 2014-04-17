@@ -33,6 +33,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newfieldcpane_grid_id:'newfieldcpane_grid_id',
 			newfieldcpane_schedheader_id:'newfieldcpane_schedheader_id',
 			newfieldcpane_schedgrid_id:'newfieldcpane_schedgrid_id',
+			newteamcpane_id:'newteamcpane_id',
+			newteamcpane_txt_id:'newteamcpane_txt_id',
+			newteamcpane_grid_id:'newteamcpane_grid_id',
+			newteamcpane_schedheader_id:'newteamcpane_schedheader_id',
+			newteamcpane_schedgrid_id:'newteamcpane_schedgrid_id',
 			default_db_type:'rrdb',
 		};
 		var newschedwatch_class = declare([Stateful],{
@@ -356,6 +361,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.createnewsched_pane(args_obj);
 				this.getgrid_data('field_id');
+				// add by-team sched grid
+				var args_obj = {
+					suffix_id:constant.newteamcpane_id,
+					title_suffix:' by Team'
+				}
 			},
 			getgrid_data: function(idproperty) {
 				var statusnode_id = null;

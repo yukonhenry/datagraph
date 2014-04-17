@@ -61,6 +61,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				//scontainer_reg.selectChild(this.cpane_id);
 				// the resize on grid is required; another option is to
 				// have a callback on scontainer_reg.on('show')
+				// HOWEVER, comment out resize as we moved the resize function
+				//into the switCH_gstackcpane function
+				// CORRECTION: resize needed for initial grid
 				this.schedInfoGrid.resize();
 				// track which grid content panes have grids in them
 				// looks like editgrid_obj is servering same purpose
