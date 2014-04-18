@@ -38,6 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newteamcpane_grid_id:'newteamcpane_grid_id',
 			newteamcpane_schedheader_id:'newteamcpane_schedheader_id',
 			newteamcpane_schedgrid_id:'newteamcpane_schedgrid_id',
+			newteamcpane_select_id:'newteamcpane_select_id',
 			default_db_type:'rrdb',
 		};
 		var newschedwatch_class = declare([Stateful],{
@@ -63,6 +64,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
 			calendarmap_obj:null, common_calendardate_list:null,
+			divselect_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -339,7 +341,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					{node:schedstatustxt_node});
 			},
 			update_schedstatustxt: function(adata, options_obj) {
-				dbstatus = adata.dbstatus;
+				var dbstatus = adata.dbstatus;
 				var schedstatustxt_node = options_obj.node;
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					schedstatustxt_node);
@@ -364,8 +366,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// add by-team sched grid
 				var args_obj = {
 					suffix_id:constant.newteamcpane_id,
+					content_str:"<div id='"+constant.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID from grid to see team-specific schedule - scroll down <label for='"+constant.newteamcpane_select_id+"'>Select Division</label><select id='"+constant.newteamcpane_select_id+"' data-dojo-type='dijit/from/Select' name='"+constant.newteamcpane_select_id+"'></select><div id='"+constant.newteamcpane_grid_id+"'></div><div id='"+constant.newteamcpane_schedheader_id+"'></div><div id='"+constant.newteamcpane_schedgrid_id+"'></div>",
 					title_suffix:' by Team'
 				}
+				this.createnewsched_pane(args_obj);
+				ths.getgrid_data('team_id')
 			},
 			getgrid_data: function(idproperty) {
 				var statusnode_id = null;
@@ -379,11 +384,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					statusnode_id = constant.newfieldcpane_txt_id;
 					select_value = this.fg_select_value;
 					db_type = 'fielddb';
+				} else if (idproperty == 'team_id') {
+					statusnode_id = constant.newteamcpane_txt_id;
+					// first get the div information selected by
+					// league_select_value and current_db_type
+					select_value = this.league_select_value;
+					db_type = this.current_db_type;
+					// check if the divselect_reg divsion select drop-down
+					// for team id selection has been created; if it has not
+					// create the dropdown.
+					// first see if divinfo information is in current store
+					var divinfo_obj = baseinfoSingleton.get_obj('div_id');
+					if (divinfo_obj && divinfo_obj.infogrid_store &&
+						divinfo_obj.activegrid_colname == select_value) {
+						// if in store, get data and create dropdown
+						var data_list = divinfo_obj.infogrid_store.query();
+						this.createdivselect_dropdown(data_list);
+					} else {
+						// if not in store get from server
+						this.server_interface.getServerData(
+							"get_dbcol/"+select_value,
+							lang.hitch(this, this.createdivselect_dropdown),
+							{db_type:db_type})
+					}
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
 				// now we want to create and populate grids, starting with
-				// divinfo grid.  First check if local store has data
+				// divinfo/fieldinfo grid.  First check if local store has data
 				// corresponding to current collection
 				var info_obj = baseinfoSingleton.get_obj(idproperty);
 				if (info_obj && info_obj.infogrid_store &&
@@ -411,6 +439,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						{db_type:db_type},
 						{info_obj:info_obj, idproperty:idproperty});
 				}
+			},
+			createdivselect_dropdown:function(data_list) {
+				// compare against div dropdown function in schedutil
+				var option_list = [{label:"Select Division", value:"", selected:true}];
+				arrayUtil.forEach(info_list, function(item, index) {
+					var divstr = item.div_age + item.div_gen;
+					// division code is 1-index based so increment by 1
+					option_list.push({label:divstr, value:index+1, selected:false});
+				});
+				// set("options",) replaces options list if there was
+				// a prior options list loaded onto the select widget
+				// of course works for initial options list load also.
+				var select_reg = registry.byId(constant.newteamcpane_select_id);
+				select_reg.set("options", option_list);
+				if (this.divselect_handle)
+					this.divselect_handle.remove();
+				this.divselect_handle.set("onChange", function(event) {
+
+				})
+				select_reg.startup();
 			},
 			pipegrid_data: function(adata, options_obj) {
 				var griddata_list = adata.info_list;
@@ -601,6 +649,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					if (handle)
 						handle.remove();
 				}
+				if (this.divselect_handle)
+					this.divselect_handle.remove();
 			}
 		});
 	})
