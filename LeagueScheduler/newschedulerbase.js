@@ -351,28 +351,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					suffix_id:constant.newdivcpane_id,
 					// define contents of div pane
 					content_str:"<div id='"+constant.newdivcpane_txt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpane_grid_id+"'></div><div id='"+constant.newdivcpane_schedheader_id+"'></div><div id='"+constant.newdivcpane_schedgrid_id+"'></div>",
-					title_suffix:' by Div'
+					title_suffix:' by Div',
 				}
 				this.createnewsched_pane(args_obj);
-				this.getgrid_data('div_id');
+				this.getgrid_data('div_id', dbstatus);
 				args_obj = {
 					suffix_id:constant.newfieldcpane_id,
 					// define contents of select-by-field pane
 					content_str:"<div id='"+constant.newfieldcpane_txt_id+"'></div> <b>Click on Field row</b> to see field-specific schedule - scroll down. <div id='"+constant.newfieldcpane_grid_id+"'></div><div id='"+constant.newfieldcpane_schedheader_id+"'></div><div id='"+constant.newfieldcpane_schedgrid_id+"'></div>",
-					title_suffix:' by Field'
+					title_suffix:' by Field',
 				}
 				this.createnewsched_pane(args_obj);
-				this.getgrid_data('field_id');
+				this.getgrid_data('field_id', dbstatus);
 				// add by-team sched grid
 				var args_obj = {
 					suffix_id:constant.newteamcpane_id,
-					content_str:"<div id='"+constant.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID from grid to see team-specific schedule - scroll down <label for='"+constant.newteamcpane_select_id+"'>Select Division</label><select id='"+constant.newteamcpane_select_id+"' data-dojo-type='dijit/from/Select' name='"+constant.newteamcpane_select_id+"'></select><div id='"+constant.newteamcpane_grid_id+"'></div><div id='"+constant.newteamcpane_schedheader_id+"'></div><div id='"+constant.newteamcpane_schedgrid_id+"'></div>",
-					title_suffix:' by Team'
+					content_str:"<div id='"+constant.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID from grid to see team-specific schedule - scroll down<br><label for='"+constant.newteamcpane_select_id+"'>Select Division</label><select id='"+constant.newteamcpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newteamcpane_select_id+"'></select><div id='"+constant.newteamcpane_grid_id+"'></div><div id='"+constant.newteamcpane_schedheader_id+"'></div><div id='"+constant.newteamcpane_schedgrid_id+"'></div>",
+					title_suffix:' by Team',
 				}
 				this.createnewsched_pane(args_obj);
-				ths.getgrid_data('team_id')
+				this.getgrid_data('team_id', dbstatus)
 			},
-			getgrid_data: function(idproperty) {
+			getgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
 				var select_value = null;
 				var db_type = null;
@@ -441,24 +441,31 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 			},
 			createdivselect_dropdown:function(data_list) {
-				// compare against div dropdown function in schedutil
-				var option_list = [{label:"Select Division", value:"", selected:true}];
-				arrayUtil.forEach(info_list, function(item, index) {
-					var divstr = item.div_age + item.div_gen;
-					// division code is 1-index based so increment by 1
-					option_list.push({label:divstr, value:index+1, selected:false});
-				});
-				// set("options",) replaces options list if there was
-				// a prior options list loaded onto the select widget
-				// of course works for initial options list load also.
-				var select_reg = registry.byId(constant.newteamcpane_select_id);
-				select_reg.set("options", option_list);
-				if (this.divselect_handle)
-					this.divselect_handle.remove();
-				this.divselect_handle.set("onChange", function(event) {
+				if (data_list.config_status == 1) {
+					var info_list = data_list.info_list;
+					// compare against div dropdown function in schedutil
+					var option_list = [{label:"Select Division", value:"", selected:true}];
+					arrayUtil.forEach(info_list, function(item, index) {
+						var divstr = item.div_age + item.div_gen;
+						// division code is 1-index based so increment by 1
+						option_list.push({label:divstr, value:item.div_id, selected:false});
+					});
+					// set("options",) replaces options list if there was
+					// a prior options list loaded onto the select widget
+					// of course works for initial options list load also.
+					var select_reg = registry.byId(constant.newteamcpane_select_id);
+					select_reg.set("options", option_list);
+					if (this.divselect_handle)
+						this.divselect_handle.remove();
+					this.divselect_handle = select_reg.set("onChange",
+						function(event) {
+						console.log('divselect='+event);
+					})
+					select_reg.startup();
+				} else {
+					console.log("Warning: Div Configuration Not Complete");
+				}
 
-				})
-				select_reg.startup();
 			},
 			pipegrid_data: function(adata, options_obj) {
 				var griddata_list = adata.info_list;
