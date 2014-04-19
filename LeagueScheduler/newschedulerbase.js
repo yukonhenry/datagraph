@@ -84,20 +84,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// w each dict mapping idproperty to either a schedule grid or the
 				// corresponding .on handler
 				this.cpane_grid_id_mapobj = {div_id:constant.newdivcpane_grid_id,
-					field_id:constant.newfieldcpane_grid_id}
+					field_id:constant.newfieldcpane_grid_id,
+					team_id:constant.newteamcpane_grid_id}
 				this.cpane_schedgrid_id_mapobj = {
 					div_id:constant.newdivcpane_schedgrid_id,
-					field_id:constant.newfieldcpane_schedgrid_id}
+					field_id:constant.newfieldcpane_schedgrid_id,
+					team_id:constant.newteamcpane_schedgrid_id}
 				this.cpane_schedheader_id_mapobj = {
 					div_id:constant.newdivcpane_schedheader_id,
-					field_id:constant.newfieldcpane_schedheader_id}
-				this.info_grid_mapobj = {div_id:null, field_id:null};
-				this.info_handle_mapobj = {div_id:null, field_id:null};
+					field_id:constant.newfieldcpane_schedheader_id,
+					team_id:constant.newteamcpane_schedheader_id}
+				this.info_grid_mapobj = {div_id:null, field_id:null, team_id:null};
+				this.info_handle_mapobj = {div_id:null, field_id:null,
+					team_id:null};
 				this.gridmethod_mapobj = {
 					div_id:lang.hitch(this, this.createsched_grid),
-					field_id:lang.hitch(this, this.createfieldsched_grid)};
-				this.sched_store_mapobj = {div_id:null, field_id:null};
-				this.sched_grid_mapobj = {div_id:null, field_id:null};
+					field_id:lang.hitch(this, this.createfieldsched_grid),
+					team_id:lang.hitch(this, this.createteamsched_grid)};
+				this.sched_store_mapobj = {div_id:null, field_id:null,
+					team_id:null};
+				this.sched_grid_mapobj = {div_id:null, field_id:null, team_id:null};
 				this.calendarmap_obj = new Object();
 			},
 			initialize: function(arg_obj) {
@@ -354,7 +360,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Div',
 				}
 				this.createnewsched_pane(args_obj);
-				this.getgrid_data('div_id', dbstatus);
+				this.prepgrid_data('div_id', dbstatus);
 				args_obj = {
 					suffix_id:constant.newfieldcpane_id,
 					// define contents of select-by-field pane
@@ -362,7 +368,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Field',
 				}
 				this.createnewsched_pane(args_obj);
-				this.getgrid_data('field_id', dbstatus);
+				this.prepgrid_data('field_id', dbstatus);
 				// add by-team sched grid
 				var args_obj = {
 					suffix_id:constant.newteamcpane_id,
@@ -370,9 +376,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Team',
 				}
 				this.createnewsched_pane(args_obj);
-				this.getgrid_data('team_id', dbstatus)
+				this.prepgrid_data('team_id', dbstatus)
 			},
-			getgrid_data: function(idproperty, dbstatus) {
+			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
 				var select_value = null;
 				var db_type = null;
@@ -380,10 +386,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					statusnode_id = constant.newdivcpane_txt_id;
 					select_value = this.league_select_value;
 					db_type = this.current_db_type;
+					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'field_id') {
 					statusnode_id = constant.newfieldcpane_txt_id;
 					select_value = this.fg_select_value;
 					db_type = 'fielddb';
+					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'team_id') {
 					statusnode_id = constant.newteamcpane_txt_id;
 					// first get the div information selected by
@@ -410,45 +418,51 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
+			},
+			getgrid_data:function(idproperty, select_value, db_type) {
 				// now we want to create and populate grids, starting with
 				// divinfo/fieldinfo grid.  First check if local store has data
 				// corresponding to current collection
 				var info_obj = baseinfoSingleton.get_obj(idproperty);
-				if (info_obj && info_obj.infogrid_store &&
-					info_obj.activegrid_colname == select_value) {
-					var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
-					/*
-					var griddata_list = info_obj.infogrid_store.query().map(function(item) {
-						var map_obj = {}
-						// only extra data corresponding to keys specified in
-						// columnsdef_obj.  This may be a subset of all the keys
-						// available in the store.
-						for (var key in columnsdef_obj) {
-							map_obj[key] = item[key];
-						}
-						return map_obj;
-					}) */
-					var griddata_list = info_obj.infogrid_store.query();
-					this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
+				if (info_obj) {
+					if (info_obj.infogrid_store &&
+						info_obj.activegrid_colname == select_value) {
+						var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
+						/*
+						var griddata_list = info_obj.infogrid_store.query().map(function(item) {
+							var map_obj = {}
+							// only extra data corresponding to keys specified in
+							// columnsdef_obj.  This may be a subset of all the keys
+							// available in the store.
+							for (var key in columnsdef_obj) {
+								map_obj[key] = item[key];
+							}
+							return map_obj;
+						}) */
+						var griddata_list = info_obj.infogrid_store.query();
+						this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
+					} else {
+						// if info is not available in the store, get it from
+						// the server.
+						this.server_interface.getServerData(
+							"get_dbcol/"+select_value,
+							lang.hitch(this, this.pipegrid_data),
+							{db_type:db_type},
+							{info_obj:info_obj, idproperty:idproperty});
+					}
 				} else {
-					// if info is not available in the store, get it from
-					// the server.
-					this.server_interface.getServerData(
-						"get_dbcol/"+select_value,
-						lang.hitch(this, this.pipegrid_data),
-						{db_type:db_type},
-						{info_obj:info_obj, idproperty:idproperty});
+					console.log("Error: No info_obj object");
 				}
 			},
 			createdivselect_dropdown:function(data_list) {
 				if (data_list.config_status == 1) {
 					var info_list = data_list.info_list;
 					// compare against div dropdown function in schedutil
-					var option_list = [{label:"Select Division", value:"", selected:true}];
+					var option_list = [{label:"Select Division", value:"", selected:true, totalteams:0}];
 					arrayUtil.forEach(info_list, function(item, index) {
 						var divstr = item.div_age + item.div_gen;
 						// division code is 1-index based so increment by 1
-						option_list.push({label:divstr, value:item.div_id, selected:false});
+						option_list.push({label:divstr, value:item.div_id, selected:false, totalteams:item.totalteams});
 					});
 					// set("options",) replaces options list if there was
 					// a prior options list loaded onto the select widget
@@ -458,9 +472,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					if (this.divselect_handle)
 						this.divselect_handle.remove();
 					this.divselect_handle = select_reg.set("onChange",
-						function(event) {
-						console.log('divselect='+event);
-					})
+						lang.hitch(this, function(event) {
+							// option_list is in the execution context of the
+							// event handler (verify this is always true however)
+							var match_option = arrayUtil.filter(option_list,
+								function(item) {
+									return item.value == event;
+								})
+							var totalteams = match_option[0].totalteams;
+							var columnsdef_obj = {team_id:"Team ID"}
+							var griddata_list = new Array();
+							for (var i=1; i<totalteams+1; i++) {
+								griddata_list.push({team_id:i})
+							}
+							this.createinfo_grid('team_id', columnsdef_obj,
+								griddata_list);
+					}))
 					select_reg.startup();
 				} else {
 					console.log("Warning: Div Configuration Not Complete");
@@ -613,6 +640,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.sched_grid_mapobj[idproperty] = sched_grid;
 				}
 				sched_grid.resize();
+			},
+			createteamsched_grid: function(adata, options_obj) {
 			},
 			createnewsched_pane: function(args_obj) {
 				var suffix_id = args_obj.suffix_id;
