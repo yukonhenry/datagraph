@@ -34,18 +34,20 @@ class SchedDBInterface:
     def dropcurrent_collection(self):
         self.dbinterface.drop_collection()
 
-    def get_schedule(self, idproperty, age='', gender='', field_id=0):
+    def get_schedule(self, idproperty, div_age='', div_gen='', field_id=0,
+        team_id=0):
         if idproperty == 'div_id':
-            game_list = self.dbinterface.getdiv_schedule(age, gender)
+            game_list = self.dbinterface.getdiv_schedule(div_age, div_gen)
             # switch key to lower case for transfer to client
             #game_list = [{k.lower():v for k,v in x.items()}
             #for x in game_list]
-            return game_list
         elif idproperty == 'field_id':
             game_list = self.dbinterface.getfield_schedule(field_id)
             # switch key to lower case for transfer to client
             #game_list = [{k.lower():v for k,v in x.items()} for x in game_list]
-            return game_list
+        elif idproperty == 'team_id':
+            game_list = self.dbinterface.getteam_schedule(team_id, div_age, div_gen)
         else:
-            return None
+            game_list = None
+        return game_list
 

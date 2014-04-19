@@ -350,7 +350,14 @@ def get_schedule(schedcol_name, idproperty, propid):
     callback_name = request.query.callback
     schedMaster = _routelogic_obj.schedmaster_obj
     if schedMaster.schedcol_name == schedcol_name:
-        return_dict = schedMaster.get_schedule(idproperty, propid)
+        if idproperty == 'team_id':
+            # read query parameters if idprop is team_id - div_age and div_gen
+            div_age = request.query.div_age
+            div_gen = request.query.div_gen
+            return_dict = schedMaster.get_schedule(idproperty, propid,
+                div_age=div_age, div_gen=div_gen)
+        else:
+            return_dict = schedMaster.get_schedule(idproperty, propid)
     else:
         return_dict = {}
     a = json.dumps(return_dict)

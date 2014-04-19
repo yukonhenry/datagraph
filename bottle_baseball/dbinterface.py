@@ -246,6 +246,20 @@ class MongoDBInterface:
                                   round_CONST:game[round_CONST]})
         return schedule_list
 
+    def getteam_schedule(self, team_id, div_age, div_gen):
+        team_game_curs = self.collection.find({age_CONST:div_age, gen_CONST:div_gen,
+            "$or":[{home_CONST:team_id},{away_CONST:team_id}]},
+            {'_id':0, age_CONST:0, gen_CONST:0})
+        team_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
+        team_game_list = []
+        for team_game in team_game_curs:
+            team_game_list.append({'gameday_id':team_game[gameday_id_CONST],
+                                   'start_time':team_game[start_time_CONST],
+                                   'venue':team_game[venue_CONST],
+                                   'home':team_game[home_CONST],
+                                   'away':team_game[away_CONST]})
+        return team_game_list
+
     def findTeamSchedule(self, age, gender, team_id):
         team_game_curs = self.collection.find({age_CONST:age, gen_CONST:gender,
                                             "$or":[{home_CONST:team_id},{away_CONST:team_id}]},

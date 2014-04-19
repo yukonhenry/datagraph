@@ -458,11 +458,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (data_list.config_status == 1) {
 					var info_list = data_list.info_list;
 					// compare against div dropdown function in schedutil
-					var option_list = [{label:"Select Division", value:"", selected:true, totalteams:0}];
+					var option_list = [{label:"Select Division", value:"", selected:true, totalteams:0, div_age:"", div_gen:""}];
 					arrayUtil.forEach(info_list, function(item, index) {
 						var divstr = item.div_age + item.div_gen;
 						// division code is 1-index based so increment by 1
-						option_list.push({label:divstr, value:item.div_id, selected:false, totalteams:item.totalteams});
+						option_list.push({label:divstr, value:item.div_id,
+							selected:false, totalteams:item.totalteams,
+							div_age:item.div_age, div_gen:item.div_gen});
 					});
 					// set("options",) replaces options list if there was
 					// a prior options list loaded onto the select widget
@@ -479,14 +481,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								function(item) {
 									return item.value == event;
 								})
-							var totalteams = match_option[0].totalteams;
+							var match = match_option[0];
+							var totalteams = match.totalteams;
+							var query_obj = {div_age:match.div_age,
+								div_gen:match.div_gen};
 							var columnsdef_obj = {team_id:"Team ID"}
 							var griddata_list = new Array();
 							for (var i=1; i<totalteams+1; i++) {
 								griddata_list.push({team_id:i})
 							}
 							this.createinfo_grid('team_id', columnsdef_obj,
-								griddata_list);
+								griddata_list, options_obj);
 					}))
 					select_reg.startup();
 				} else {
@@ -500,7 +505,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.createinfo_grid(options_obj.idproperty, columnsdef_obj,
 					griddata_list);
 			},
-			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list) {
+			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list, query_obj) {
+				var query_obj = (typeof query_obj === "undefined" || query_obj === null) ? "" : query_obj;
 				if (idproperty == 'field_id') {
 					var simple_calendarmap_list = new Array();
 					arrayUtil.forEach(griddata_list, function(item, index) {
@@ -548,7 +554,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.server_interface.getServerData('get_schedule/'+
 						this.newsched_name+'/'+idproperty+'/'+id,
 						callback_method,
-						null, {idproperty:idproperty, event_data:event_data})
+						query_obj, {idproperty:idproperty, event_data:event_data})
 					}));
 				this.info_handle_mapobj[idproperty] = info_handle;
 			},
