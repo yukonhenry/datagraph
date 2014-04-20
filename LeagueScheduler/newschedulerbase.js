@@ -648,6 +648,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				sched_grid.resize();
 			},
 			createteamsched_grid: function(adata, options_obj) {
+				var idproperty = options_obj.idproperty;
+				var game_list = adata.game_list;
 			},
 			createnewsched_pane: function(args_obj) {
 				var suffix_id = args_obj.suffix_id;
