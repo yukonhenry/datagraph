@@ -48,6 +48,7 @@ class SchedMaster:
         if divreqfields_list:
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
         self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
+        self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
             dbinterface=self.sdbInterface,
             divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)

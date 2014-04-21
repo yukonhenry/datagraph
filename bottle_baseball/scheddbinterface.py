@@ -17,6 +17,18 @@ class SchedDBInterface:
         self.dbinterface = MongoDBInterface(mongoClient, collection_name=schedcol_name, db_col_type=DB_Col_Type.GeneratedSchedule)
         self.schedcol_name = schedcol_name
 
+    def setschedule_param(self,db_type, divcol_name, fieldcol_name):
+        query_obj = {'divdb_type':{"$exists":True}}
+        document = {'divdb_type':db_type, 'divcol_name':divcol_name,
+            'fieldcol_name':fieldcol_name}
+        docID = self.dbinterface.updatedoc(query_obj, document, upsert=True)
+
+    def getschedule_param(self):
+        query_obj = {'divdb_type':{"$exists":True}}
+        document = self.dbinterface.getdoc(query_obj, findone_flag=True)
+        #game_list = [{k.lower():v for k,v in x.items()} for x in game_list]
+        #return self.dbinterface.getdoc(query_obj, findone_flag=True)
+
     def insertGameData(self, age, gen, fieldday_id, game_date, start_time, venue, home, away):
         document = {'DIV_AGE':age, 'DIV_GEN':gen, 'FIELDDAY_ID':fieldday_id,
                     'GAME_DATE':game_date,

@@ -76,9 +76,19 @@ class MongoDBInterface:
 
     def insertdoc(self, document):
         docID = self.collection.insert(document)
+        return docID
 
-    def updatedoc(self, query_obj, update_obj):
-        self.collection.update(query_obj, update_obj)
+    def updatedoc(self, query_obj, update_obj, upsert=False):
+        if upsert:
+            self.collection.update(query_obj, update_obj, upsert=True)
+        else:
+            self.collection.update(query_obj, update_obj)
+
+    def getdoc(self, query_obj, findone_flag=False):
+        if findone_flag:
+            return self.collection.find_one(query_obj)
+        else:
+            return self.collection.find(query_obj)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
