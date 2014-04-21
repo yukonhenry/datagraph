@@ -251,11 +251,11 @@ class MongoDBInterface:
             {div_age_CONST:div_age, div_gen_CONST:div_gen,
             "$or":[{home_CONST:team_id},{away_CONST:team_id}]},
             {'_id':0, div_age_CONST:0, div_gen_CONST:0})
-        team_game_curs.sort([(gameday_id_CONST,1),(start_time_CONST,1)])
+        team_game_curs.sort([('GAME_DATE_ORD',1),(start_time_CONST,1)])
         team_game_list = []
         for team_game in team_game_curs:
             team_game_list.append({
-                'game_date':team_game[gate_date_CONST].strftime(date_format_CONST),
+                'game_date':team_game[game_date_CONST].strftime(date_format_CONST),
                 'start_time':team_game[start_time_CONST].strftime(time_format_CONST),
                 'venue':team_game[venue_CONST],
                 'home':team_game[home_CONST],

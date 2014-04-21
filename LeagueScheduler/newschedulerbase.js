@@ -98,7 +98,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.info_handle_mapobj = {div_id:null, field_id:null,
 					team_id:null};
 				this.gridmethod_mapobj = {
-					div_id:lang.hitch(this, this.createsched_grid),
+					div_id:lang.hitch(this, this.createdivsched_grid),
 					field_id:lang.hitch(this, this.createfieldsched_grid),
 					team_id:lang.hitch(this, this.createteamsched_grid)};
 				this.sched_store_mapobj = {div_id:null, field_id:null,
@@ -491,7 +491,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								griddata_list.push({team_id:i})
 							}
 							this.createinfo_grid('team_id', columnsdef_obj,
-								griddata_list, options_obj);
+								griddata_list, query_obj);
 					}))
 					select_reg.startup();
 				} else {
@@ -558,7 +558,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}));
 				this.info_handle_mapobj[idproperty] = info_handle;
 			},
-			createsched_grid: function(adata, options_obj) {
+			createdivsched_grid: function(adata, options_obj) {
 				var idproperty = options_obj.idproperty;
 				var fieldname_dict = adata.fieldname_dict;
 				var game_list = adata.game_list;
@@ -582,32 +582,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					})
 					grid_list.push(grid_row);
 				}, this)
-				var sched_store = this.sched_store_mapobj[idproperty];
-				var sched_grid = this.sched_grid_mapobj[idproperty];
-				if (sched_store) {
-					// if store already exists, repopulate store with new data
-					// and refresh grid
-					sched_store.setData(grid_list);
-					sched_grid.refresh();
-					sched_grid.resize();
-				} else {
-					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
-					sched_store = new Observable(new Memory({data:grid_list, idProperty:'slot_id'}));
-					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
-					sched_grid = new StaticGrid({
-						columns:columnsdef_obj,
-						store:sched_store
-					}, cpane_schedgrid_id);
-					sched_grid.startup();
-					sched_grid.resize();
-					this.sched_store_mapobj[idproperty] = sched_store;
-					this.sched_grid_mapobj[idproperty] = sched_grid;
-				}
+				this.createsched_grid(idproperty, grid_list, columnsdef_obj,
+					'slot_id');
 			},
 			createfieldsched_grid: function(adata, options_obj) {
 				// create schedule grid defined by selected field_id
 				var idproperty = options_obj.idproperty;
-				var event_data = options_obj.event_data;
 				var game_list = adata.game_list;
 				var columnsdef_obj = {
     				game_date:'Game Date',
@@ -617,7 +597,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
     				home:'Home Team#',
     				away:'Away Team#'
 				}
-				var field_id = event_data.field_id; // selected field_id
+				// var field_id = event_data.field_id; // selected field_id
 				// get calendar map list for field_id
 				// .filter creates single element list - get single elem/obj and
 				// grab mapping list
@@ -625,6 +605,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
 				})
+				this.createsched_grid(idproperty, game_list, columnsdef_obj,
+					'game_id');
+			},
+			createteamsched_grid: function(adata, options_obj) {
+				var idproperty = options_obj.idproperty;
+				var game_list = adata.game_list;
+				var columnsdef_obj = {
+   					game_date:'Game Date',
+    				start_time:'Start Time',
+    				venue:'Venue',
+    				home:'Home Team#',
+    				away:'Away Team#'
+				}
+				arrayUtil.forEach(game_list, function(item, index) {
+					item.game_id = index+1; //to be used as idprop for store
+				})
+				this.createsched_grid(idproperty, game_list, columnsdef_obj,
+					'game_id');
+			},
+			createsched_grid: function(idproperty, game_list, columnsdef_obj, store_idProperty) {
 				// get store and grid for this idproperty
 				var sched_store = this.sched_store_mapobj[idproperty];
 				var sched_grid = this.sched_grid_mapobj[idproperty];
@@ -635,7 +635,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					sched_grid.refresh();
 				} else {
 					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
-					sched_store = new Observable(new Memory({data:game_list, idProperty:'game_id'}));
+					sched_store = new Observable(new Memory({data:game_list, idProperty:store_idProperty}));
 					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
 					sched_grid = new StaticGrid({
 						columns:columnsdef_obj,
@@ -646,10 +646,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.sched_grid_mapobj[idproperty] = sched_grid;
 				}
 				sched_grid.resize();
-			},
-			createteamsched_grid: function(adata, options_obj) {
-				var idproperty = options_obj.idproperty;
-				var game_list = adata.game_list;
 			},
 			createnewsched_pane: function(args_obj) {
 				var suffix_id = args_obj.suffix_id;
