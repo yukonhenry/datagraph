@@ -25,9 +25,9 @@ class SchedDBInterface:
 
     def getschedule_param(self):
         query_obj = {'divdb_type':{"$exists":True}}
-        document = self.dbinterface.getdoc(query_obj, findone_flag=True)
-        #game_list = [{k.lower():v for k,v in x.items()} for x in game_list]
-        #return self.dbinterface.getdoc(query_obj, findone_flag=True)
+        doc = self.dbinterface.getdoc(query_obj, findone_flag=True)
+        lc_doc = {k.lower():v for k,v in doc.items()}
+        return lc_doc
 
     def insertGameData(self, age, gen, fieldday_id, game_date, start_time, venue, home, away):
         document = {'DIV_AGE':age, 'DIV_GEN':gen, 'FIELDDAY_ID':fieldday_id,
