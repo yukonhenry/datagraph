@@ -104,10 +104,18 @@ class MongoDBInterface:
         docID = self.collection.insert(document)
 
     def updateInfoDocument(self, doc_list, config_status):
+        # note $set operator only updates specified fields, not the entire document
+        # Also the query object includes doc_list_CONST in addition to sched_type_CONST
+        # because there are multiple types of documents that include sched_type_CONST
         docID = self.collection.update({sched_type_CONST:self.sched_type,
                                       doc_list_CONST:{"$exists":True}},
                                       {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status}},
+                                      upsert=True)
+
+    def updateSchedType_doc(self, updatedoc):
+        docID = self.collection.update({sched_type_CONST:self.sched_type},
+                                      {"$set": updatedoc},
                                       upsert=True)
 
     def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
@@ -489,6 +497,11 @@ class MongoDBInterface:
         divstr_db_type = result[divstr_db_type_CONST]
         return _FieldList_Status(info_list, config_status, divstr_colname,
                             divstr_db_type)
+
+    def getSchedType_doc(self):
+        result = self.collection.find_one({sched_type_CONST:self.sched_type},
+            {'_id':0, sched_type_CONST:0})
+        return result
 
     def getFieldInfo(self):
         result_list = self.collection.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)

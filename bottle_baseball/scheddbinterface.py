@@ -8,6 +8,10 @@ import logging
 time_format_CONST = '%H:%M'
 # http://stackoverflow.com/questions/10624937/convert-datetime-object-to-a-string-of-date-only-in-python
 date_format_CONST = '%m/%d/%Y'
+divdb_type_CONST = 'DIVDB_TYPE'
+divcol_name_CONST = 'DIVCOL_NAME'
+fieldcol_name_CONST = 'FIELDCOL_NAME'
+config_status_CONST = 'CONFIG_STATUS'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
@@ -18,14 +22,14 @@ class SchedDBInterface:
         self.schedcol_name = schedcol_name
 
     def setschedule_param(self,db_type, divcol_name, fieldcol_name):
-        query_obj = {'divdb_type':{"$exists":True}}
-        document = {'divdb_type':db_type, 'divcol_name':divcol_name,
-            'fieldcol_name':fieldcol_name}
-        docID = self.dbinterface.updatedoc(query_obj, document, upsert=True)
+        # note config status is always 1 (complete) for newsched because of how
+        # UI frontend works (NOT included for now)
+        doc = {divdb_type_CONST:db_type, divcol_name_CONST:divcol_name,
+            fieldcol_name_CONST:fieldcol_name}
+        docID = self.dbinterface.updateSchedType_doc(doc)
 
     def getschedule_param(self):
-        query_obj = {'divdb_type':{"$exists":True}}
-        doc = self.dbinterface.getdoc(query_obj, findone_flag=True)
+        doc = self.dbinterface.getSchedType_doc()
         lc_doc = {k.lower():v for k,v in doc.items()}
         return lc_doc
 
