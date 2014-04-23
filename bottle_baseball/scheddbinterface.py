@@ -23,9 +23,11 @@ class SchedDBInterface:
 
     def setschedule_param(self,db_type, divcol_name, fieldcol_name):
         # note config status is always 1 (complete) for newsched because of how
-        # UI frontend works (NOT included for now)
+        # UI frontend works
+        # config_status is included as dbinterface.getScheduleCollections
+        # requires it
         doc = {divdb_type_CONST:db_type, divcol_name_CONST:divcol_name,
-            fieldcol_name_CONST:fieldcol_name}
+            fieldcol_name_CONST:fieldcol_name, config_status_CONST:1}
         docID = self.dbinterface.updateSchedType_doc(doc)
 
     def getschedule_param(self):
@@ -41,13 +43,18 @@ class SchedDBInterface:
                     'VENUE':venue, 'HOME':home, 'AWAY':away}
         docID = self.dbinterface.insertdoc(document)
 
-    def updatesched_status(self):
+    def setsched_status(self):
         self.dbinterface.setSchedStatus_col()
 
     def getsched_status(self):
         return self.dbinterface.getSchedStatus()
 
-    def dropcurrent_collection(self):
+    def dropgame_docs(self):
+        # drop only the game match docs
+        self.dbinterface.dropgame_docs()
+
+    def drop_collection(self):
+        # drop the whole collection
         self.dbinterface.drop_collection()
 
     def get_schedule(self, idproperty, div_age='', div_gen='', field_id=0,

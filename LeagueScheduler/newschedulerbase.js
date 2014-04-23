@@ -345,6 +345,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.server_interface.getServerData("send_generate",
 					lang.hitch(this, this.update_schedstatustxt), server_key_obj,
 					{node:schedstatustxt_node});
+				// add metadata to local store
+				// third parameter 1 is the config_status, which is always complete
+				// for the newsched_id idprop as send_generate will not be called
+				// until newsched config is complete
+				this.storeutil_obj.addtodb_store(this.newsched_name,
+					this.idproperty, 1);
 			},
 			update_schedstatustxt: function(adata, options_obj) {
 				var dbstatus = adata.dbstatus;

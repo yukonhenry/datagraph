@@ -28,14 +28,20 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 		return declare(null, {
 			leaguedata: null, server_interface:null,
 			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
+			nsdbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
 				// than declare.safeMixin
 				lang.mixin(this, args);
+				// round robin menu register list
 				this.rrdbmenureg_list = new Array();
+				// tournament menu register list
 				this.tdbmenureg_list = new Array();
+				// field menu register list
 				this.fielddbmenureg_list = new Array();
+				// new sched/generate menu list
+				this.nsdbmenureg_list = new Array();
 			},
 			getCalendarMap: function(gameday_id) {
 				return calendarMapObj[gameday_id];
@@ -145,8 +151,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function, options_obj) {
 				var options_obj = options_obj || {};
 				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
-				var columnsdef_obj = options_obj.info_obj.getcolumnsdef_obj();
-				options_obj.columnsdef_obj = columnsdef_obj;
+				// for checkinf if property exists in obj
+				// http://www.nczonline.net/blog/2010/07/27/determining-if-an-object-property-exists/
+				// http://stackoverflow.com/questions/135448/how-do-i-check-to-see-if-an-object-has-a-property-in-javascript
+				// Need to test if it works when properties are methods
+				if ('info_obj' in options_obj &&
+					'getcolumnsdef_obj' in options_obj.info_obj) {
+					var columnsdef_obj = options_obj.info_obj.getcolumnsdef_obj();
+					options_obj.columnsdef_obj = columnsdef_obj;
+				}
 				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, sched_context, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers
@@ -177,6 +190,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 						this.fielddbmenureg_list.push({reg:submenu_reg,
 							context:onclick_context, func:onclick_func,
 							options_obj:options_obj});
+					} else if (db_type == 'newscheddb') {
+						this.nsdbmenureg_list.push({reg:submenu_reg,
+							context:onclick_context, func:onclick_func,
+							options_obj:options_obj});
 					}
 				}
 			},
@@ -190,8 +207,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					dbmenureg_list = this.rrdbmenureg_list;
 				else if (db_type == 'tourndb')
 					dbmenureg_list = this.tdbmenureg_list;
-				else
+				else if (db_type == 'fielddb')
 					dbmenureg_list = this.fielddbmenureg_list;
+				else if (db_type == 'newscheddb')
+					dbmenureg_list = this.nsdbmenureg_list;
+				else {
+					dbmenureg_list = [];
+					console.log("Error regenDelDBCollection: Invalid db_type");
+				}
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					dbmenureg.removeChild(delindex);
@@ -204,8 +227,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					dbmenureg_list = this.rrdbmenureg_list;
 				else if (db_type == 'tourndb')
 					dbmenureg_list = this.tdbmenureg_list;
-				else
+				else if (db_type == 'fielddb')
 					dbmenureg_list = this.fielddbmenureg_list;
+				else if (db_type == 'newscheddb')
+					dbmenureg_list = this.nsdbmenureg_list;
+				else {
+					dbmenureg_list = [];
+					console.log("Error regenAddDBCollection: Invalid db_type");
+				}
 				var item_name = object.name;
 				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {

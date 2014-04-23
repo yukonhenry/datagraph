@@ -447,6 +447,11 @@ class MongoDBInterface:
           self.collection.remove({gameday_id_CONST:{"$exists":True}})
         self.resetSchedStatus_col()
 
+    def dropgame_docs(self):
+        # new version - remove documents only have to do with game data
+        self.collection.remove({game_date_CONST:{"$exists":True}})
+        self.resetSchedStatus_col()
+
     def resetSchedStatus_col(self):
         # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
         self.collection.update({sched_status_CONST:{"$exists":True}},

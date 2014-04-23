@@ -883,7 +883,9 @@ class FieldTimeScheduleGenerator:
         # indexer below is used to protect against list of dictionaries that are not ordered according to id,
         # though it is a protective measure, as the list should be ordered with the id.
         #REDO below - we may have to delete current game schedule collection, once we get the name
-        self.dbinterface.dropcurrent_collection()  # drop current schedule collection
+        # drop only the game schedule documents in the collection - NOT the
+        # sched_type and other metadata parameters stored in the collection
+        self.dbinterface.dropgame_docs()  # drop current schedule collection
         # used for calaculating time balancing metrics
         ew_list_indexer = getDivFieldEdgeWeight_list(self.divinfo_tuple,
             self.fieldinfo_list)
@@ -1570,7 +1572,7 @@ class FieldTimeScheduleGenerator:
                                 #start_time_str=gametime.strftime(time_format_CONST),
                                 game_date=game_date, start_time=start_time,
                                 venue=field_id, home=home_id, away=away_id)
-        self.dbinterface.updatesched_status()
+        self.dbinterface.setsched_status()
         return True  # for dbstatus to be returned to client
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()

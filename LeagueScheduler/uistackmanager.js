@@ -55,6 +55,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// define mapping object for the grid content pane
 				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
+				// note idprop newsched_id has no grid the cpane is blank.
 				this.gstackmap_list = [{id:'newsched_id', pane_id:constant.blankcpane_id},
 					{id:'div_id', pane_id:constant.divcpane_id},
 					{id:'tourndiv_id', pane_id:constant.tourndivcpane_id},

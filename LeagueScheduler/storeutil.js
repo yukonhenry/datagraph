@@ -18,7 +18,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				db_type:'tourndb', name:"deltourndbcollection_submenu"},
 				{id:'field_id', db_type:'fielddb', name:"delfielddb_submenu"},
 				{id:'newsched_id', db_type:'newscheddb',
-				name:"delnewschedcollection_submenu"}],
+				name:"delnewscheddbcollection_submenu"}],
 			delserver_path:"delete_dbcol/"
 		};
 		return declare(null, {

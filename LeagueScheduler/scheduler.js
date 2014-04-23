@@ -34,7 +34,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var ldata_array = null;
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
-		var newSchedulerBase = new NewSchedulerBase({server_interface:serverInterface});
+		var newschedbase_obj = new NewSchedulerBase({server_interface:serverInterface});
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface});
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface});
@@ -70,7 +70,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var dbstatus = ldata.dbstatus;
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
 			var storeutil_obj = new storeUtil({schedutil_obj:schedUtil, uistackmgr:uiStackManager, server_interface:serverInterface});
-			newSchedulerBase.set_obj(schedUtil, storeutil_obj);
+			newschedbase_obj.set_obj(schedUtil, storeutil_obj);
 			fieldinfo_obj.set_obj(schedUtil, storeutil_obj);
 			divinfo_obj.set_obj(schedUtil, storeutil_obj);
 			tourndivinfo_obj.set_obj(schedUtil, storeutil_obj);
@@ -107,6 +107,11 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var fielddb_list = ldata.fielddb_list;
 			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
 			storeutil_obj.create_menu('field_id', fieldinfo_obj, true);
+			// load initial schedule db's for display under new schedule/generation
+			// submenu
+			var newscheddb_list = ldata.newscheddb_list;
+			storeutil_obj.createdb_store(newscheddb_list, 'newscheddb');
+			storeutil_obj.create_menu('newsched_id', newschedbase_obj, true);
 			console.log("load basic info complete");
 		}
 		//});
@@ -447,7 +452,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			tourndivinfo_obj.uistackmgr = uiStackManager;
 			fieldinfo_obj.uistackmgr = uiStackManager;
 			schedinfo_obj.uistackmgr = uiStackManager;
-			newSchedulerBase.uistackmgr = uiStackManager;
+			newschedbase_obj.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			on(registry.byId("export_btn"), "click", exportSchedule);
@@ -470,7 +475,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, fieldinfo_obj));
 			on(registry.byId("newsched_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize,
-					newSchedulerBase));
+					newschedbase_obj));
 			on(registry.byId("elimination2013"), "click", elimination2013);
 			on(registry.byId("export_elimination2013"), "click", export_elim2013);
 			//on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);

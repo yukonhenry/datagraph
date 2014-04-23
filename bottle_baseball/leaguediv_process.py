@@ -21,6 +21,7 @@ from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from schedmaster import SchedMaster
+from scheddbinterface import SchedDBInterface
 from sched_exceptions import CodeLogicError
 
 dbInterface = MongoDBInterface(mongoClient)
@@ -61,6 +62,7 @@ def leaguedivinfo_all():
     tourndbcol_list = dbInterface.getScheduleCollection(DB_Col_Type.ElimTourn)
     #cupschedcol_list = dbInterface.getCupScheduleCollections()
     fielddb_list = dbInterface.getScheduleCollection(DB_Col_Type.FieldInfo)
+    newscheddb_list = dbInterface.getScheduleCollection(DB_Col_Type.GeneratedSchedule)
     logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
@@ -68,7 +70,8 @@ def leaguedivinfo_all():
                     "dbstatus":dbstatus,
                     "rrdbcollection_list":rrdbcol_list,
                     "fielddb_list": fielddb_list,
-                    "tourndbcollection_list":tourndbcol_list})
+                    "tourndbcollection_list":tourndbcol_list,
+                    "newscheddb_list":newscheddb_list})
     return callback_name+'('+a+')'
 
 # Get per-division schedule
@@ -352,6 +355,8 @@ def select_db_interface(db_type, colname):
         dbInterface = TournDBInterface(mongoClient, colname)
     elif db_type == 'fielddb':
         dbInterface = FieldDBInterface(mongoClient, colname)
+    elif db_type == 'newscheddb':
+        dbInterface = SchedDBInterface(mongoClient, colname)
     else:
         raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
         dbInterface = None
