@@ -136,8 +136,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // we want to pass the colname back to the callback so that the colname
                 // can be attached to the fieldinfo data when it is saved to the
                 // local store and also sent back to the server
-                var options_obj = {colname:colname, db_type:db_type, info_obj:info_obj};
-                this.server_interface.getServerData('get_dbcol/'+colname,
+                var options_obj = {colname:colname, info_obj:info_obj};
+                this.server_interface.getServerData(
+                    'get_dbcol/'+db_type+'/'+colname,
                     lang.hitch(this, this.create_divstr_list), query_obj,
                     options_obj);
             },

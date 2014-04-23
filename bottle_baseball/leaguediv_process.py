@@ -223,14 +223,14 @@ def schedulemetrics(div_id):
     return callback_name+'('+a+')'
 
 # create new db collection based on new schedule parameters (currently for tournament format)
-@route('/create_newdbcol/<newcol_name>')
-def create_newdbcol(newcol_name):
+@route('/create_newdbcol/<db_type>/<newcol_name>')
+def create_newdbcol(db_type, newcol_name):
     callback_name = request.query.callback
     info_data = request.query.info_data
     # variables intended to be scalar ints should be converted from
     # ints that come across as strings over the wire back to int
     config_status = int(request.query.config_status)
-    db_type = request.query.db_type
+    #db_type = request.query.db_type
     if db_type == 'rrdb':
         dbInterface = RRDBInterface(mongoClient, newcol_name)
         dbInterface.writeDB(info_data, config_status)
@@ -250,10 +250,10 @@ def create_newdbcol(newcol_name):
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
-@route('/delete_dbcol/<delcol_name>')
-def delete_dbcol(delcol_name):
+@route('/delete_dbcol/<db_type>/<delcol_name>')
+def delete_dbcol(db_type, delcol_name):
     callback_name = request.query.callback
-    db_type = request.query.db_type
+    #db_type = request.query.db_type
     dbInterface = select_db_interface(db_type, delcol_name)
     #rdbInterface = RRDBInterface(mongoClient, delcol_name)
     #rdbInterface.dbInterface.drop_collection()
@@ -263,10 +263,10 @@ def delete_dbcol(delcol_name):
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
 
-@route('/get_dbcol/<getcol_name>')
-def get_dbcol(getcol_name):
+@route('/get_dbcol/<db_type>/<getcol_name>')
+def get_dbcol(db_type, getcol_name):
     callback_name = request.query.callback
-    db_type = request.query.db_type
+    #db_type = request.query.db_type
     dbInterface = select_db_interface(db_type, getcol_name)
     dbtuple = dbInterface.readDB();
     info_list = dbtuple.list

@@ -192,8 +192,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					{idproperty:idproperty, p_stage:"preconfig",
 					entry_pt:"fromddel"});
 				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
-				this.server_interface.getServerData(server_path+item,
-					this.server_interface.server_ack, {db_type:db_type});
+				this.server_interface.getServerData(server_path+db_type+'/'+item,
+					this.server_interface.server_ack);
 			},
 		})
 	}

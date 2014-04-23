@@ -416,9 +416,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					} else {
 						// if not in store get from server
 						this.server_interface.getServerData(
-							"get_dbcol/"+select_value,
-							lang.hitch(this, this.createdivselect_dropdown),
-							{db_type:db_type})
+							'get_dbcol/'+db_type+'/'+select_value,
+							lang.hitch(this, this.createdivselect_dropdown));
 					}
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
@@ -450,9 +449,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if info is not available in the store, get it from
 						// the server.
 						this.server_interface.getServerData(
-							"get_dbcol/"+select_value,
-							lang.hitch(this, this.pipegrid_data),
-							{db_type:db_type},
+							'get_dbcol/'+db_type+'/'+select_value,
+							lang.hitch(this, this.pipegrid_data), null,
 							{info_obj:info_obj, idproperty:idproperty});
 					}
 				} else {

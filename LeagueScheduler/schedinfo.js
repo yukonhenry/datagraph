@@ -30,7 +30,8 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 				if (this.select_reg_handle)
 					this.select_reg_handle.remove();
 				// we don't necessariy need to call get_dbcol again if select_reg already exists (we don't need to recreate the drop down)
-				this.server_interface.getServerData("get_dbcol/"+item, lang.hitch(this, function(data) {
+				// TODO: 'rrdb' is a simple hack right now - revisit
+				this.server_interface.getServerData('get_dbcol/rrdb/'+item, lang.hitch(this, function(data) {
 					this.info_list = data.info_list;
 					if (!this.select_reg) {
 						this.select_reg = registry.byId("schedDBDivisionSelect");

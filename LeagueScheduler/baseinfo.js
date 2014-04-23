@@ -124,19 +124,21 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the
 				// parameter instead of null might be a better choice as the query
-				// object will be emitted in Fthe jsonp request (though not consumed
+				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
 				//options_obj.storeutil_obj = this.storeutil_obj;
 				// define key for object returned from server to get
 				// status of configuration - config_status
 				options_obj.serverstatus_key = 'config_status'
+				/*
 				var query_obj = null;
 				if ('db_type' in options_obj) {
 					query_obj = {db_type:options_obj.db_type};
-				}
-				this.server_interface.getServerData(options_obj.getserver_path+item,
-					lang.hitch(this, this.createEditGrid), query_obj, options_obj);
+				} */
+				this.server_interface.getServerData(
+					options_obj.getserver_path+options_obj.db_type+'/'+item,
+					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			createEditGrid: function(server_data, options_obj) {
 				// don't create grid if a grid already exists and it points to the same schedule db col

@@ -208,9 +208,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 				server_key_obj[server_key] = storedata_json;
 				server_key_obj.config_status = config_status;
-				server_key_obj.db_type = this.db_type;
+				//server_key_obj.db_type = this.db_type;
 				//var options_obj = {item:this.colname};  // is this needed?
-				this.server_interface.getServerData(server_path+this.colname,
+				this.server_interface.getServerData(
+					server_path+this.db_type+'/'+this.colname,
 					this.server_interface.server_ack, server_key_obj);
 				// add to select db store (for dropdowns)
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);
