@@ -338,17 +338,19 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						if (info_obj.is_serverdata_required(options_obj)) {
 							info_obj.getServerDBInfo(options_obj);
 						} else {
-							var args_obj = {
-								colname:options_obj.item,
-								text_node_str:options_obj.text_node_str,
-								text_node:options_obj.text_node,
-								updatebtn_str:options_obj.updatebtn_str,
-								idproperty:new_idproperty,
-								swapcpane_flag:true,
-								newgrid_flag:false,
-								entry_pt:constant.fromdb
+							if (new_idproperty != 'newsched_id') {
+								var args_obj = {
+									colname:options_obj.item,
+									text_node_str:options_obj.text_node_str,
+									text_node:options_obj.text_node,
+									updatebtn_str:options_obj.updatebtn_str,
+									idproperty:new_idproperty,
+									swapcpane_flag:true,
+									newgrid_flag:false,
+									entry_pt:constant.fromdb
+								}
+								info_obj.reconfig_infobtn(args_obj);
 							}
-							info_obj.reconfig_infobtn(args_obj);
 						}
 					}
 				}
