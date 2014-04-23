@@ -270,6 +270,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 							// we need to swap cpane from preconfig to config
 							// even though we are in the same idprop
 							// scenarios b,c,h
+							// Note if we are in the same idprop we are always going to a config state in this scenario (only one preconfig state per idprop)
 							options_obj.swapcpane_flag = true;
 							// find if idprop-specific logic requires a new grid to be generated.
 							options_obj.newgrid_flag = newgrid_flag;
@@ -283,19 +284,22 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 									// scenario h
 									info_obj.getServerDBInfo(options_obj);
 								} else {
-									/* scenario b, but see if there is an exception
-									situation to regenerate grid (i.e. for fieldinfo when there is a divinfo colname) */
-									var args_obj = {
-										colname:options_obj.item,
-										text_node_str:options_obj.text_node_str,
-										text_node:options_obj.text_node,
-										updatebtn_str:options_obj.updatebtn_str,
-										idproperty:new_idproperty,
-										swapcpane_flag:true,
-										newgrid_flag:false,
-										entry_pt:constant.fromdb
+									if (new_idproperty != 'newsched_id') {
+										/* Not relevant for newsched_id which doesn't have an infobtn.
+										Otherwise, scenario b, but see if there is an exception
+										situation to regenerate grid (i.e. for fieldinfo when there is a divinfo colname) */
+										var args_obj = {
+											colname:options_obj.item,
+											text_node_str:options_obj.text_node_str,
+											text_node:options_obj.text_node,
+											updatebtn_str:options_obj.updatebtn_str,
+											idproperty:new_idproperty,
+											swapcpane_flag:true,
+											newgrid_flag:false,
+											entry_pt:constant.fromdb
+										}
+										info_obj.reconfig_infobtn(args_obj);
 									}
-									info_obj.reconfig_infobtn(args_obj);
 								}
 							}
 						} else {
