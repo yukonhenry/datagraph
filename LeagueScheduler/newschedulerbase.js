@@ -169,7 +169,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.keyup_handle.remove();
 						this.newsched_dom = dom.byId("newsched_text");
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
-						//this.create_widgets(constant.defaultselect_db_type);
+						this.create_widgets(constant.defaultselect_db_type);
+						/*
 						var scinput_dom = dom.byId(constant.scinput_div);
 						// get or create handle to widgetgen obj
 						if (!this.widgetgen) {
@@ -199,40 +200,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							put_trail_spacing:"br, br"
 						}
 						this.league_select = this.widgetgen.create_select(args_obj);
-						/*
-						var select_node = dom.byId(constant.league_select_id);
-						if (!select_node) {
-							// get parent dom and generate dropdown selects
-							put(scinput_dom,
-								"label.label_box[for=$]", constant.league_select_id,
-								"Select League");
-							select_node = put(scinput_dom,
-								"select[id=$][name=league_select]",
-								constant.league_select_id);
-							this.league_select = new Select({
-								name:'league_select',
-								onChange: lang.hitch(this, function(evt) {
-									this.newschedwatch_obj.set('leagueselect_flag',evt!="");
-									this.league_select_value = evt;
-								})
-							}, select_node);
-							args_obj = {db_type:'rrdb', label_str:'Select League',
-								config_status:true};
-							var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
-							this.league_select.addOption(option_list);
-							this.league_select.startup();
-							if (option_list.length < 2) {
-								var ls_tooltipconfig = {
-									connectId:[constant.league_select_id],
-									label:"If Empty Specify League Spec's First",
-									position:['above','after']};
-								var ls_tooltip = new Tooltip(ls_tooltipconfig);
-							}
-							put(scinput_dom, "br, br");  // add space
-						} else {
-							this.league_select = registry.byNode(select_node);
-						}
-						*/
 						// create field group dropdown
 						var args_obj = {
 							topdiv_node:scinput_dom,
@@ -249,38 +216,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							put_trail_spacing:"span.empty_gap"
 						}
 						this.fg_select = this.widgetgen.create_select(args_obj);
-						/*
-						var fg_select_node = dom.byId("fg_select_id");
-						if (!fg_select_node) {
-							put(scinput_dom,
-								"label.label_box[for=fg_select_id]",
-								"Select Field Group");
-							fg_select_node = put(scinput_dom,
-								"select#fg_select_id[name=fg_select]");
-							this.fg_select = new Select({
-								name:'fg_select',
-								onChange: lang.hitch(this, function(evt) {
-									this.newschedwatch_obj.set('fgselect_flag',
-										evt!="");
-									this.fg_select_value = evt;
-								})
-							}, fg_select_node);
-							args_obj = {db_type:'fielddb',
-								label_str:'Select Field Group', config_status:true};
-							var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
-							this.fg_select.addOption(option_list);
-							this.fg_select.startup();
-							if (option_list.length < 2) {
-								var fg_tooltipconfig = {
-									connectId:['fg_select_id'],
-									label:"If Empty Specify Field Groups First",
-									position:['above','after']};
-								var fg_tooltip = new Tooltip(fg_tooltipconfig);
-							}
-							put(scinput_dom, "span.empty_gap");
-						} else {
-							this.fg_select = registry.byNode(fg_select_node);
-						} */
 						var btn_node = dom.byId("schedparambtn_id");
 						if (!btn_node) {
 							btn_node = put(scinput_dom,
@@ -319,6 +254,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// storeutil
 						this.selectexists_flag = true;
 						// need to add btn callbacks here
+						*/
 						this.uistackmgr.switch_pstackcpane({
 							idproperty:this.idproperty, p_stage:"config",
 							entry_pt:"init"});
@@ -381,9 +317,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (!this.widgetgen) {
 					this.create_widgets(divdb_type, divcol_name,
 						fieldcol_name);
+					this.uistackmgr.switch_pstackcpane({
+						idproperty:this.idproperty, p_stage:"config",
+						entry_pt:"fromdb"});
+				} else {
+					this.reload_widgets(divdb_type, divcol_name, fieldcol_name);
 				}
 			},
 			create_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
+				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
 				this.widgetgen = new WidgetGen({
 					storeutil_obj:this.storeutil_obj,
 					server_interface:this.server_interface
@@ -398,15 +341,76 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					topdiv_node:scinput_dom,
 					select_id:constant.league_select_id,
 					init_db_type:divdb_type,
-					init_colname:"",
+					init_colname:divcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
 						this.newschedwatch_obj.set('leagueselect_flag',
 							evt!="");
 						this.league_select_value = evt;
-					})
+					}),
+					name_str:"league select",
+					label_str:"Select League",
+					put_trail_spacing:"br, br"
 				}
 				this.league_select = this.widgetgen.create_select(args_obj);
+				// create field group dropdown
+				var args_obj = {
+					topdiv_node:scinput_dom,
+					select_id:constant.fg_select_id,
+					init_db_type:'fielddb',
+					init_colname:fieldcol_name,
+					onchange_callback:lang.hitch(this, function(evt) {
+						this.newschedwatch_obj.set('fgselect_flag',
+							evt!="");
+						this.fg_select_value = evt;
+					}),
+					name_str:"fg_select",
+					label_str:"Select Field Group",
+					put_trail_spacing:"span.empty_gap"
+				}
+				this.fg_select = this.widgetgen.create_select(args_obj);
+
+				var btn_node = dom.byId("schedparambtn_id");
+				if (!btn_node) {
+					btn_node = put(scinput_dom,
+						"button.dijitButton#schedparambtn_id[type=button]");
+					var btn_tooltipconfig = {
+						connectId:['schedparambtn_id'],
+						label:"Ensure League and Field Group are Selected",
+						position:['above','after']};
+					var schedule_btn = new Button({
+						label:"Generate",
+						disabled:true,
+						class:"success",
+						onClick: lang.hitch(this, this.send_generate)
+					}, btn_node);
+					schedule_btn.startup();
+					var btn_tooltip = new Tooltip(btn_tooltipconfig);
+					btn_tooltip.startup();
+					this.newschedwatch_obj.watch('league_fg_flag',
+						function(name, oldValue, value) {
+							if (value) {
+								schedule_btn.set('disabled', false);
+								btn_tooltip.set('label',
+									'Press to Generate Schedule');
+							}
+						}
+					)
+					put(scinput_dom, "br, br");
+				}
+				var schedstatustxt_node = dom.byId(constant.statustxt_id);
+				if (!schedstatustxt_node) {
+					schedstatustxt_node = put(scinput_dom,
+						"span#schedstatustxt_id",
+						"Configure Schedule Parameters")
+				}
+				// set flag that is used by observable memory update in
+				// storeutil
+				this.selectexists_flag = true;
 			},
+			reload_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
+				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
+			}
 			send_generate: function() {
 				var schedstatustxt_node = dom.byId(constant.statustxt_id);
 				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";
