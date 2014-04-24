@@ -268,29 +268,32 @@ def get_dbcol(db_type, getcol_name):
     callback_name = request.query.callback
     #db_type = request.query.db_type
     dbInterface = select_db_interface(db_type, getcol_name)
-    dbtuple = dbInterface.readDB();
-    info_list = dbtuple.list
-    config_status = dbtuple.config_status
-    return_obj = {'info_list':info_list, 'config_status':config_status}
-    print 'info_list', info_list
-    if db_type == 'fielddb':
-        # if db is fielddb, then append divinfo information also-
-        # used as part of fieldinfo config on UI grid
-        divstr_colname = dbtuple.divstr_colname
-        divstr_db_type = dbtuple.divstr_db_type
-        if divstr_colname and divstr_db_type:
-            dbInterface = select_db_interface(divstr_db_type, divstr_colname)
-            dbtuple = dbInterface.readDB();
-            info_list = dbtuple.list
-            config_status = dbtuple.config_status
-        else:
-            info_list = []
-            config_status = 0
-            divstr_db_type = ""
-            divstr_colname = ""
-        divstr_obj = {'colname':divstr_colname, 'db_type':divstr_db_type,
-            'info_list':info_list, 'config_status':config_status}
-        return_obj.update({'divstr_obj':divstr_obj})
+    if db_type == 'newscheddb':
+        return_obj = {'param_obj':dbInterface.getschedule_param()}
+    else:
+        dbtuple = dbInterface.readDB();
+        info_list = dbtuple.list
+        config_status = dbtuple.config_status
+        return_obj = {'info_list':info_list, 'config_status':config_status}
+        print 'info_list', info_list
+        if db_type == 'fielddb':
+            # if db is fielddb, then append divinfo information also-
+            # used as part of fieldinfo config on UI grid
+            divstr_colname = dbtuple.divstr_colname
+            divstr_db_type = dbtuple.divstr_db_type
+            if divstr_colname and divstr_db_type:
+                dbInterface = select_db_interface(divstr_db_type, divstr_colname)
+                dbtuple = dbInterface.readDB();
+                info_list = dbtuple.list
+                config_status = dbtuple.config_status
+            else:
+                info_list = []
+                config_status = 0
+                divstr_db_type = ""
+                divstr_colname = ""
+            divstr_obj = {'colname':divstr_colname, 'db_type':divstr_db_type,
+                'info_list':info_list, 'config_status':config_status}
+            return_obj.update({'divstr_obj':divstr_obj})
     a = json.dumps(return_obj)
     return callback_name+'('+a+')'
 

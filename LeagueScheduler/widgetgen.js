@@ -99,48 +99,79 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             },
             // create select dropdown
             // programmatic creation of enclosing node and then widget itself
-            create_league_select: function(topdiv_node, lselect_id, info_obj, init_db_type, init_colname) {
+            create_select: function(args_obj) {
+                var topdiv_node = args_obj.topdiv_node;
+                var lselect_id = args_obj.select_id;
+                var init_db_type = args_obj.init_db_type;
+                var init_colname = args_obj.init_colname;
+                var onchange_callback = args_obj.onchange_callback;
+                var name_str = args_obj.name_str;
+                var label_str = args_obj.label_str;
+                var put_trail_spacing = args_obj.put_trail_spacing;
+
                 var db_type = (init_db_type == "") ?
                     constant.default_db_type:init_db_type;
                 var league_select = null;
                 var select_node = dom.byId(lselect_id);
                 if (!select_node) {
                     put(topdiv_node,
-                        "label.label_box[for=$][style=margin-left:50px]", lselect_id, "Select League");
+                        "label.label_box[for=$][style=margin-left:50px]",
+                        lselect_id, label_str);
                     select_node = put(topdiv_node,
-                        "select[id=$][name=league_select]", lselect_id);
+                        "select[id=$][name=$]", lselect_id, name_str);
                     var league_select = new Select({
-                        name:'league_select',
+                        name:name_str,
                         //store:dbselect_store,
                         //labelAttr:"name",
+                        onChange:onchange_callback
+                        /*
                         onChange: lang.hitch(this, function(evt) {
                             this.getname_list(evt, db_type, info_obj);
-                        })
+                        }) */
                     }, select_node);
-                    args_obj = {db_type:db_type, label_str:'Select League',
+                    args_obj = {db_type:db_type, label_str:label_str,
                                 config_status:true, init_colname:init_colname};
                     var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
                     league_select.addOption(option_list);
                     league_select.startup();
+                    if (option_list.length < 2) {
+                        var ls_tooltipconfig = {
+                            connectId:[lselect_id],
+                            label:"If Empty Specify League Spec's First",
+                            position:['above','after']};
+                        var ls_tooltip = new Tooltip(ls_tooltipconfig);
+                    }
+                    // NOTE: the spaces below might not be appropriate for
+                    // fieldinfo - double check
+                    put(topdiv_node, put_trail_spacing);  // add space
                 } else {
                     // we can use by Node here as both node and widget are selects
                     league_select = registry.byNode(select_node);
                 }
+                return league_select;
             },
             // get list of items in db specified by db_type from server
             // collection name is the event of calling onChange event handler
-            getname_list: function(colname, db_type, info_obj) {
-                var query_obj = {db_type:db_type};
+            // ordering of parameters is important, as getname_list is an event
+            // handler - colname is passed as the event value - calling event handler
+            // is specified as lang.hitch(this, this.getname, db_type, info_obj)
+            // event comes in as the last parameter (empirically determined, should)
+            // get confirmation.
+            getname_list: function(db_type, info_obj, colname) {
                 // note {colname:colname} is the options_obj obj passed directly
                 // to the callback function create_divstr_list
                 // we want to pass the colname back to the callback so that the colname
                 // can be attached to the fieldinfo data when it is saved to the
                 // local store and also sent back to the server
-                var options_obj = {colname:colname, info_obj:info_obj};
-                this.server_interface.getServerData(
-                    'get_dbcol/'+db_type+'/'+colname,
-                    lang.hitch(this, this.create_divstr_list), query_obj,
-                    options_obj);
+                // ref http://stackoverflow.com/questions/154059/how-do-you-check-for-an-empty-string-in-javascript
+                // for checking for empty string
+                if (colname) {
+                    var options_obj = {colname:colname, info_obj:info_obj};
+                    this.server_interface.getServerData(
+                        'get_dbcol/'+db_type+'/'+colname,
+                        lang.hitch(this, this.create_divstr_list), null,
+                        options_obj);
+                }
             },
             // swap the store for the league select widget
             // usually driven by radio button db type selection

@@ -21,6 +21,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			radio1_id:'scradio1_id',
 			radio2_id:'scradio2_id',
 			league_select_id:'scleague_select_id',
+			fg_select_id:'fg_select_id',
 			statustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
 			newdivcpane_id:'newdivcpane_id',
@@ -39,7 +40,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newteamcpane_schedheader_id:'newteamcpane_schedheader_id',
 			newteamcpane_schedgrid_id:'newteamcpane_schedgrid_id',
 			newteamcpane_select_id:'newteamcpane_select_id',
-			default_db_type:'rrdb',
+			defaultselect_db_type:'rrdb',
+			db_type:'newscheddb'
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
@@ -47,7 +49,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		})
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
-			newsched_dom:"", schedutil_obj:null, storeutil_obj:null,
+			newsched_name:"", newsched_dom:"",
+			schedutil_obj:null, storeutil_obj:null,
 			info_obj:null, idproperty:constant.idproperty_str,
 			server_path:"", server_key:"",
 			seasondates_btn_reg:null,
@@ -58,7 +61,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
 			selectexists_flag:false,
 			league_select_value:"", fg_select_value:"", widgetgen:null,
-			current_db_type:constant.default_db_type,
+			current_db_type:constant.defaultselect_db_type,
 			tabcontainer_reg:null,
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
@@ -133,7 +136,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 
 				this.seasondates_btn_reg = registry.byId("seasondates_btn");
-				this.newsched_dom = dom.byId("newsched_text");
 				this.showConfig();
 			},
 			set_obj: function(schedutil_obj, storeutil_obj) {
@@ -163,12 +165,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
-						// disable schedule name form
-						//this.schedutil_obj.makeInvisible(this.form_dom);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
+						this.newsched_dom = dom.byId("newsched_text");
 						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
-						var today = new Date();
+						//this.create_widgets(constant.defaultselect_db_type);
 						var scinput_dom = dom.byId(constant.scinput_div);
 						// get or create handle to widgetgen obj
 						if (!this.widgetgen) {
@@ -179,10 +180,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}
 						this.widgetgen.create_dbtype_radiobtn(scinput_dom,
 							constant.radio1_id, constant.radio2_id,
-							constant.default_db_type, this,
+							constant.defaultselect_db_type, this,
 							this.radio1_callback, this.radio2_callback,
 							constant.league_select_id);
 						// create league info dropdowns
+						var args_obj = {
+							topdiv_node:scinput_dom,
+							select_id:constant.league_select_id,
+							init_db_type:constant.defaultselect_db_type,
+							init_colname:"",
+							onchange_callback:lang.hitch(this, function(evt) {
+								this.newschedwatch_obj.set('leagueselect_flag',
+									evt!="");
+								this.league_select_value = evt;
+							}),
+							name_str:"league select",
+							label_str:"Select League",
+							put_trail_spacing:"br, br"
+						}
+						this.league_select = this.widgetgen.create_select(args_obj);
+						/*
 						var select_node = dom.byId(constant.league_select_id);
 						if (!select_node) {
 							// get parent dom and generate dropdown selects
@@ -215,7 +232,24 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						} else {
 							this.league_select = registry.byNode(select_node);
 						}
+						*/
 						// create field group dropdown
+						var args_obj = {
+							topdiv_node:scinput_dom,
+							select_id:constant.fg_select_id,
+							init_db_type:'fielddb',
+							init_colname:"",
+							onchange_callback:lang.hitch(this, function(evt) {
+								this.newschedwatch_obj.set('fgselect_flag',
+									evt!="");
+								this.fg_select_value = evt;
+							}),
+							name_str:"fg_select",
+							label_str:"Select Field Group",
+							put_trail_spacing:"span.empty_gap"
+						}
+						this.fg_select = this.widgetgen.create_select(args_obj);
+						/*
 						var fg_select_node = dom.byId("fg_select_id");
 						if (!fg_select_node) {
 							put(scinput_dom,
@@ -246,7 +280,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							put(scinput_dom, "span.empty_gap");
 						} else {
 							this.fg_select = registry.byNode(fg_select_node);
-						}
+						} */
 						var btn_node = dom.byId("schedparambtn_id");
 						if (!btn_node) {
 							btn_node = put(scinput_dom,
@@ -282,7 +316,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								"Configure Schedule Parameters")
 						}
 						// set flag that is used by observable memory update in
-						// storeutl
+						// storeutil
 						this.selectexists_flag = true;
 						// need to add btn callbacks here
 						this.uistackmgr.switch_pstackcpane({
@@ -332,6 +366,46 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			is_newgrid_required: function() {
 				return false;
+			},
+			getServerDBInfo: function(options_obj) {
+				this.newsched_name = options_obj.item;
+				this.server_interface.getServerData(
+					'get_dbcol/'+constant.db_type+'/'+this.newsched_name,
+					lang.hitch(this, this.create_schedconfig));
+			},
+			create_schedconfig: function(adata) {
+				var param_obj = adata.param_obj;
+				var divcol_name = param_obj.divcol_name;
+				var divdb_type = param_obj.divdb_type;
+				var fieldcol_name = param_obj.fieldcol_name;
+				if (!this.widgetgen) {
+					this.create_widgets(divdb_type, divcol_name,
+						fieldcol_name);
+				}
+			},
+			create_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+				this.widgetgen = new WidgetGen({
+					storeutil_obj:this.storeutil_obj,
+					server_interface:this.server_interface
+				});
+				var scinput_dom = dom.byId(constant.scinput_div);
+				this.widgetgen.create_dbtype_radiobtn(scinput_dom,
+					constant.radio1_id, constant.radio2_id, divdb_type,
+					this, this.radio1_callback, this.radio2_callback,
+					constant.league_select_id);
+				// create league info dropdowns
+				var args_obj = {
+					topdiv_node:scinput_dom,
+					select_id:constant.league_select_id,
+					init_db_type:divdb_type,
+					init_colname:"",
+					onchange_callback:lang.hitch(this, function(evt) {
+						this.newschedwatch_obj.set('leagueselect_flag',
+							evt!="");
+						this.league_select_value = evt;
+					})
+				}
+				this.league_select = this.widgetgen.create_select(args_obj);
 			},
 			send_generate: function() {
 				var schedstatustxt_node = dom.byId(constant.statustxt_id);

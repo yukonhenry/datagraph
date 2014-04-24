@@ -701,8 +701,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
 					radio1_id, radio2_id, init_db_type,
 					this, this.radio1_callback, this.radio2_callback, select_id);
-				this.widgetgen.create_league_select(topdiv_node, select_id,
-					this, init_db_type, init_colname);
+				//for callback function, additional parameters after the first two
+				// are passed to the callback as extra parameters.
+				var args_obj = {
+					topdiv_node:topdiv_node, select_id:select_id,
+					init_db_type:init_db_type,
+					init_colname:init_colname,
+					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, init_db_type, this),
+					name_str:"league select",
+					label_str:"Select League",
+					put_trail_spacing:"br"}
+				this.widgetgen.create_select(args_obj);
 			},
 			// callback function when dbtype radiobutton is changed
 			radio1_callback: function(select_id, event) {

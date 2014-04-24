@@ -32,6 +32,8 @@ class SchedDBInterface:
 
     def getschedule_param(self):
         doc = self.dbinterface.getSchedType_doc()
+        # delete config status field as not needed by UI for newsched_id
+        del doc[config_status_CONST]
         lc_doc = {k.lower():v for k,v in doc.items()}
         return lc_doc
 
