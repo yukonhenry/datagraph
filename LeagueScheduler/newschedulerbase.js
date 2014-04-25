@@ -478,6 +478,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'team_id') {
 					statusnode_id = constant.newteamcpane_txt_id;
+					this.getdivselect_dropdown();
+					/*
 					// first get the div information selected by
 					// league_select_value and current_db_type
 					select_value = this.league_select_value;
@@ -497,12 +499,35 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.server_interface.getServerData(
 							'get_dbcol/'+db_type+'/'+select_value,
 							lang.hitch(this, this.createdivselect_dropdown));
-					}
+					} */
 				} else if (idproperty == 'fair_id') {
-
+					statusnode_id = constant.newfaircpane_txt_id;
+					this.getdivselect_dropdown();
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
+			},
+			getdivselect_dropdown: function() {
+				// first get the div information selected by
+				// league_select_value and current_db_type
+				select_value = this.league_select_value;
+				db_type = this.current_db_type;
+				// check if the divselect_reg divsion select drop-down
+				// for team id selection has been created; if it has not
+				// create the dropdown.
+				// first see if divinfo information is in current store
+				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
+				if (divinfo_obj && divinfo_obj.infogrid_store &&
+					divinfo_obj.activegrid_colname == select_value) {
+					// if in store, get data and create dropdown
+					var data_list = divinfo_obj.infogrid_store.query();
+					this.createdivselect_dropdown(data_list);
+				} else {
+					// if not in store get from server
+					this.server_interface.getServerData(
+						'get_dbcol/'+db_type+'/'+select_value,
+						lang.hitch(this, this.createdivselect_dropdown));
+				}
 			},
 			getgrid_data:function(idproperty, select_value, db_type) {
 				// now we want to create and populate grids, starting with
