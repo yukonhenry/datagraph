@@ -80,7 +80,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var dbselect_store = this.getselect_store(db_type);
 				if (dbselect_store) {
 					return dbselect_store.query({name:colname,
-						db_type:db_type}).total == 0;
+						config_status:1}).total == 0;
 				} else
 					return null;
 			},

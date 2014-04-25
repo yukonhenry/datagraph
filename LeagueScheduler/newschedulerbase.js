@@ -45,6 +45,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
+			fgselect_flag:false,
 			league_fg_flag:false
 		})
 		return declare(null, {
@@ -167,8 +168,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
-						this.newsched_dom = dom.byId("newsched_text");
-						this.newsched_dom.innerHTML = "Schedule Name: "+this.newsched_name;
 						this.create_widgets(constant.defaultselect_db_type);
 						/*
 						var scinput_dom = dom.byId(constant.scinput_div);
@@ -327,6 +326,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			create_widgets: function(divdb_type, divcol_name, fieldcol_name) {
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
+				this.newsched_dom = dom.byId("newsched_text");
+				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen = new WidgetGen({
 					storeutil_obj:this.storeutil_obj,
 					server_interface:this.server_interface
@@ -337,7 +338,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this, this.radio1_callback, this.radio2_callback,
 					constant.league_select_id);
 				// create league info dropdowns
-				var args_obj = {
+				var lsargs_obj = {
 					topdiv_node:scinput_dom,
 					select_id:constant.league_select_id,
 					init_db_type:divdb_type,
@@ -349,11 +350,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}),
 					name_str:"league select",
 					label_str:"Select League",
-					put_trail_spacing:"br, br"
+					put_trail_spacing:"span.empty_gap"
 				}
-				this.league_select = this.widgetgen.create_select(args_obj);
+				this.league_select = this.widgetgen.create_select(lsargs_obj);
 				// create field group dropdown
-				var args_obj = {
+				var fgargs_obj = {
 					topdiv_node:scinput_dom,
 					select_id:constant.fg_select_id,
 					init_db_type:'fielddb',
@@ -367,7 +368,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					label_str:"Select Field Group",
 					put_trail_spacing:"span.empty_gap"
 				}
-				this.fg_select = this.widgetgen.create_select(args_obj);
+				this.fg_select = this.widgetgen.create_select(fgargs_obj);
 
 				var btn_node = dom.byId("schedparambtn_id");
 				if (!btn_node) {
@@ -406,11 +407,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// set flag that is used by observable memory update in
 				// storeutil
 				this.selectexists_flag = true;
+				// if initial option selection is other than the default blank
+				// "", then call the onChange callback so that if necessary the
+				// logic to enable the 'Generate' button is activated:
+				// These calls need to be done at the end of create_widgets() after
+				// all the this.newschedwatch_obj.watch() callback functions have
+				// been defined
+				if (divcol_name) {
+					lsargs_obj.onchange_callback(divcol_name);
+				}
+				if (fieldcol_name) {
+					fgargs_obj.onchange_callback(fieldcol_name);
+				}
 			},
 			reload_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+				// reuse widgets that have already been created and reload new values
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
-			}
+				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
+				var scinput_dom = dom.byId(constant.scinput_div);
+				this.widgetgen.reload_dbytpe_radiobtn(constant.radio1_id, constant.radio2_id, divdb_type);
+				var lsargs_obj = {
+					select_reg:this.league_select,
+					init_db_type:divdb_type,
+					init_colname:divcol_name,
+					label_str:"Select League",
+				};
+				this.widgetgen.reload_select(lsargs_obj);
+			},
 			send_generate: function() {
 				var schedstatustxt_node = dom.byId(constant.statustxt_id);
 				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";

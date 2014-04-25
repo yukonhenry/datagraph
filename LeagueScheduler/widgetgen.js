@@ -91,11 +91,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         onChange: lang.hitch(callback_context, radio2_callback, league_select_id)
                     }, div2_radio_node);
                     div2_radio.startup();
+                    put(topdiv_node, "br, br");
                 } else {
                     // see comment above on why byId is used instead of
                     // byNode
                     div2_radio = registry.byId(div2_radio_id);
                 }
+            },
+            // reload already-created radio buttons with different default selections
+            reload_dbytpe_radiobtn: function(div1_radio_id, div2_radio_id, init_db_type) {
+                var radio1_flag = (init_db_type == 'rrdb')?true:false;
+                var div1_radio = registry.byId(div1_radio_id);
+                div1_radio.set("checked", radio1_flag);
+                var div2_radio = registry.byId(div2_radio_id);
+                div2_radio.set("checked", !radio1_flag);
             },
             // create select dropdown
             // programmatic creation of enclosing node and then widget itself
@@ -115,7 +124,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var select_node = dom.byId(lselect_id);
                 if (!select_node) {
                     put(topdiv_node,
-                        "label.label_box[for=$][style=margin-left:50px]",
+                        //"label.label_box[for=$][style=margin-left:50px]",
+                        "label.label_box[for=$]",
                         lselect_id, label_str);
                     select_node = put(topdiv_node,
                         "select[id=$][name=$]", lselect_id, name_str);
@@ -137,7 +147,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     if (option_list.length < 2) {
                         var ls_tooltipconfig = {
                             connectId:[lselect_id],
-                            label:"If Empty Specify League Spec's First",
+                            label:"If Empty Make Selection First",
                             position:['above','after']};
                         var ls_tooltip = new Tooltip(ls_tooltipconfig);
                     }
@@ -149,6 +159,19 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     league_select = registry.byNode(select_node);
                 }
                 return league_select;
+            },
+            reload_select: function(args_obj) {
+                // reset/reload select dropdown
+                var select_reg = args_obj.select_reg;
+                var init_db_type = args_obj.init_db_type;
+                var init_colname = args_obj.init_colname;
+                var label_str = args_obj.label_str;
+
+                args_obj = {db_type:init_db_type, label_str:label_str,
+                    config_status:true, init_colname:init_colname};
+                var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
+                select_reg.set("options", option_list);
+                select_reg.startup();
             },
             // get list of items in db specified by db_type from server
             // collection name is the event of calling onChange event handler
