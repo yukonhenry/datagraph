@@ -72,6 +72,8 @@ class SchedDBInterface:
             #game_list = [{k.lower():v for k,v in x.items()} for x in game_list]
         elif idproperty == 'team_id':
             game_list = self.dbinterface.getteam_schedule(team_id, div_age, div_gen)
+        elif idproperty == 'fair_id':
+            game_list = self.dbinterface.getfairness_metrics(div_age, div_gen)
         else:
             game_list = None
         return game_list

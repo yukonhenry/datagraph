@@ -107,6 +107,12 @@ class SchedMaster:
             game_list = self.sdbInterface.get_schedule(idproperty, team_id=propid,
                 div_age=div_age, div_gen=div_gen)
             return {'game_list':game_list}
+        elif idproperty == 'fair_id':
+            # get fairness metrics
+            metrics_list = self.sdbInterface.get_schedule(idproperty,
+                div_age=div_age, div_gen=div_gen)
+            return {'metrics_list':game_list}
+
 '''
     def getsched_status(self):
         return self.sdbInterface.getsched_status()
