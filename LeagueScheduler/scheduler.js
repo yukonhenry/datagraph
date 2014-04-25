@@ -298,20 +298,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
     			});
 			}));
 		}
-		/*
-		var getElimDivisionData = function(evt) {
-			var divisioncode = registry.byId("elimDivisionSelect").get("value");
-			if (elimDivisionGrid) {
-				// clear grid by clearing dom node
-				dom.byId("divisionGridLinkTeams").innerHTML = "";
-				// delete reference to obj
-				delete divisionGrid;
-				// remove event listener
-				// http://dojotoolkit.org/documentation/tutorials/1.8/events/
-				if (divisionGridHandle)
-					divisionGridHandle.remove();
-			}
-		} */
 		var getTeamMetrics = function(evt) {
 			var division_id = registry.byId("divisionSelectForMetrics").get("value");
     		script.get(constant.SERVER_PREFIX+"schedulemetrics/"+division_id,{

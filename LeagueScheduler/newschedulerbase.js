@@ -73,7 +73,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
-			calendarmap_obj:null, common_calendardate_list:null,
+			calendarmap_obj:null,
 			divselect_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -478,36 +478,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'team_id') {
 					statusnode_id = constant.newteamcpane_txt_id;
-					this.getdivselect_dropdown();
-					/*
-					// first get the div information selected by
-					// league_select_value and current_db_type
-					select_value = this.league_select_value;
-					db_type = this.current_db_type;
-					// check if the divselect_reg divsion select drop-down
-					// for team id selection has been created; if it has not
-					// create the dropdown.
-					// first see if divinfo information is in current store
-					var divinfo_obj = baseinfoSingleton.get_obj('div_id');
-					if (divinfo_obj && divinfo_obj.infogrid_store &&
-						divinfo_obj.activegrid_colname == select_value) {
-						// if in store, get data and create dropdown
-						var data_list = divinfo_obj.infogrid_store.query();
-						this.createdivselect_dropdown(data_list);
-					} else {
-						// if not in store get from server
-						this.server_interface.getServerData(
-							'get_dbcol/'+db_type+'/'+select_value,
-							lang.hitch(this, this.createdivselect_dropdown));
-					} */
+					this.getdivselect_dropdown(idproperty, constant.newteamcpane_select_id);
 				} else if (idproperty == 'fair_id') {
 					statusnode_id = constant.newfaircpane_txt_id;
-					this.getdivselect_dropdown();
+					this.getdivselect_dropdown(idproperty, constant.newfaircpane_select_id);
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
 			},
-			getdivselect_dropdown: function() {
+			getdivselect_dropdown: function(idproperty, select_id) {
 				// first get the div information selected by
 				// league_select_value and current_db_type
 				select_value = this.league_select_value;
@@ -521,12 +500,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					divinfo_obj.activegrid_colname == select_value) {
 					// if in store, get data and create dropdown
 					var data_list = divinfo_obj.infogrid_store.query();
-					this.createdivselect_dropdown(data_list);
+					this.createdivselect_dropdown(data_list, {idproperty:idproperty,
+						select_id:select_id});
 				} else {
 					// if not in store get from server
 					this.server_interface.getServerData(
 						'get_dbcol/'+db_type+'/'+select_value,
-						lang.hitch(this, this.createdivselect_dropdown));
+						lang.hitch(this, this.createdivselect_dropdown), null,
+						{idproperty:idproperty, select_id:select_id});
 				}
 			},
 			getgrid_data:function(idproperty, select_value, db_type) {
@@ -563,7 +544,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					console.log("Error: No info_obj object");
 				}
 			},
-			createdivselect_dropdown:function(data_list) {
+			pipegrid_data: function(adata, options_obj) {
+				var griddata_list = adata.info_list;
+				var columnsdef_obj = options_obj.info_obj.getfixedcolumnsdef_obj();
+				this.createinfo_grid(options_obj.idproperty, columnsdef_obj,
+					griddata_list);
+			},
+			createdivselect_dropdown:function(data_list, options_obj) {
+				var idproperty = options_obj.idproperty;
+				var select_id = options_obj.select_id;
 				if (data_list.config_status == 1) {
 					var info_list = data_list.info_list;
 					// compare against div dropdown function in schedutil
@@ -578,44 +567,63 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// set("options",) replaces options list if there was
 					// a prior options list loaded onto the select widget
 					// of course works for initial options list load also.
-					var select_reg = registry.byId(constant.newteamcpane_select_id);
+					var select_reg = registry.byId(select_id);
 					select_reg.set("options", option_list);
 					if (this.divselect_handle)
 						this.divselect_handle.remove();
-					this.divselect_handle = select_reg.set("onChange",
-						lang.hitch(this, function(event) {
-							// option_list is in the execution context of the
-							// event handler (verify this is always true however)
-							var match_option = arrayUtil.filter(option_list,
-								function(item) {
-									return item.value == event;
-								})
-							var match = match_option[0];
-							var totalteams = match.totalteams;
-							var query_obj = {div_age:match.div_age,
-								div_gen:match.div_gen};
-							var columnsdef_obj = {team_id:"Team ID"}
-							var griddata_list = new Array();
-							for (var i=1; i<totalteams+1; i++) {
-								griddata_list.push({team_id:i})
-							}
-							this.createinfo_grid('team_id', columnsdef_obj,
-								griddata_list, query_obj);
-					}))
+					if (idproperty == 'team_id') {
+						this.divselect_handle = select_reg.set("onChange",
+							lang.hitch(this, this.createteaminfo_grid,
+								option_list, idproperty));
+					} else if (idproperty == 'fair_id') {
+						this.divselect_handle = select_reg.set("onChange",
+							lang.hitch(this, this.createfairinfo_grid,
+								option_list, idproperty));
+					}
 					select_reg.startup();
 				} else {
 					console.log("Warning: Div Configuration Not Complete");
 				}
-
 			},
-			pipegrid_data: function(adata, options_obj) {
-				var griddata_list = adata.info_list;
-				var columnsdef_obj = options_obj.info_obj.getfixedcolumnsdef_obj();
-				this.createinfo_grid(options_obj.idproperty, columnsdef_obj,
-					griddata_list);
+			createteaminfo_grid: function(option_list, idproperty, event) {
+				// option_list is in the execution context of the
+				// event handler (verify this is always true however)
+				var match_option = arrayUtil.filter(option_list,
+					function(item) {
+						return item.value == event;
+					})
+				var match = match_option[0];
+				var totalteams = match.totalteams;
+				var query_obj = {div_age:match.div_age,
+					div_gen:match.div_gen};
+				// Note team_id below in columnsdef does not reflect
+				// idproperty - we are merely creating a grid of team id's whether idproperty is 'team_id' or 'fair_id'
+				var columnsdef_obj = {team_id:"Team ID"}
+				var griddata_list = new Array();
+				for (var i=1; i<totalteams+1; i++) {
+					griddata_list.push({team_id:i})
+				}
+				this.createinfo_grid(idproperty, columnsdef_obj,
+					griddata_list, query_obj);
+			},
+			createfairinfo_grid: function(option_list, idproperty, event) {
+				var match_option = arrayUtil.filter(option_list,
+					function(item) {
+						return item.value == event;
+					})
+				var match = match_option[0];
+				var div_id = match.div_id;
+				this.setselect_text(match, idproperty);
+				var callback_method = this.gridmethod_mapobj[idproperty]
+				this.server_interface.getServerData('get_schedule/'+
+					this.newsched_name+'/'+idproperty+'/'+div_id,
+					callback_method,
+					null, {idproperty:idproperty}
+				);
 			},
 			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list, query_obj) {
 				var query_obj = (typeof query_obj === "undefined" || query_obj === null) ? "" : query_obj;
+				/*
 				if (idproperty == 'field_id') {
 					var simple_calendarmap_list = new Array();
 					arrayUtil.forEach(griddata_list, function(item, index) {
@@ -635,7 +643,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// for converting array to variable arguments for a function
 					this.common_calendardate_list = _.intersection.apply(null,
 						simple_calendarmap_list);
-				}
+				} */
 				var info_grid = this.info_grid_mapobj[idproperty];
 				if (!info_grid) {
 					var cpane_grid_id = this.cpane_grid_id_mapobj[idproperty];
@@ -733,6 +741,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.createsched_grid(idproperty, game_list, columnsdef_obj,
 					'game_id');
 			},
+			createfairsched_grid: function(adata, options_obj) {
+				var idproperty = options_obj.idproperty;
+				var columnsdef_obj = {
+
+				}
+			},
 			createsched_grid: function(idproperty, game_list, columnsdef_obj, store_idProperty) {
 				// get store and grid for this idproperty
 				var sched_store = this.sched_store_mapobj[idproperty];
@@ -779,6 +793,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					text_str = event_data.div_age+event_data.div_gen + " selected";
 				} else if (idproperty == 'field_id') {
 					text_str = event_data.field_name + " selected";
+				} else if (idproperty == 'team_id') {
+					text_str = "Team ID#"+event_data.team_id + " selected";
 				}
 				dom.byId(schedheader_id).innerHTML = text_str;
 			},
