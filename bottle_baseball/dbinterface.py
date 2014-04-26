@@ -328,6 +328,8 @@ class MongoDBInterface:
                 field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST], match_id_CONST:field_game[match_id_CONST], round_CONST:field_game[round_CONST]})
         return field_game_list
 
+    def gettimeslot_metrics(self, div_age, div_gen, divfields, totalfielddays):
+
     def getTimeSlotMetrics(self, age, gender, fields, totalgamedays):
         # find max min start time for each gameday/field and provide summary stats for how many earliest/latest games each team has
         # ref http://stackoverflow.com/questions/15334408/find-distinct-documents-with-max-value-of-a-field-in-mongodb
@@ -379,7 +381,7 @@ class MongoDBInterface:
                 'awayteam_id_list':"$awayteam_id_list",
                 'time':"$_id"}}}},
                 {"$project":{'_id':0,'latest_data':1,'earliest_data':1}}])
-        '''
+            '''
             result = res_list['result'] # there should only be one element which includes the latest and earliest team data
             earliest_home = [x['earliest']['data'][0]['home']
                              for x in result
@@ -436,6 +438,12 @@ class MongoDBInterface:
                                  'EARLIEST_COUNT':earliest_counter_dict[team_id],
                                  'LATEST_COUNT':latest_counter_dict[team_id]})
         return metrics_list
+
+    def getfairness_metrics(self, divinfo, div_age, div_gen):
+        '''Updated information of computing metrics for generated schedule'''
+        totalteams = divinfo['totalteams']
+        divfields = divinfo['fields']
+        #totalgamedays = divinfo['totalgamedays']
 
 
     def dropGameDocuments(self, gameday_list=None):

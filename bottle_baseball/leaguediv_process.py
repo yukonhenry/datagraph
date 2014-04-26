@@ -275,7 +275,7 @@ def get_dbcol(db_type, getcol_name):
         info_list = dbtuple.list
         config_status = dbtuple.config_status
         return_obj = {'info_list':info_list, 'config_status':config_status}
-        print 'info_list', info_list
+        #print 'info_list', info_list
         if db_type == 'fielddb':
             # if db is fielddb, then append divinfo information also-
             # used as part of fieldinfo config on UI grid

@@ -486,30 +486,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
 			},
-			getdivselect_dropdown: function(idproperty, select_id) {
-				// first get the div information selected by
-				// league_select_value and current_db_type
-				select_value = this.league_select_value;
-				db_type = this.current_db_type;
-				// check if the divselect_reg divsion select drop-down
-				// for team id selection has been created; if it has not
-				// create the dropdown.
-				// first see if divinfo information is in current store
-				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
-				if (divinfo_obj && divinfo_obj.infogrid_store &&
-					divinfo_obj.activegrid_colname == select_value) {
-					// if in store, get data and create dropdown
-					var data_list = divinfo_obj.infogrid_store.query();
-					this.createdivselect_dropdown(data_list, {idproperty:idproperty,
-						select_id:select_id});
-				} else {
-					// if not in store get from server
-					this.server_interface.getServerData(
-						'get_dbcol/'+db_type+'/'+select_value,
-						lang.hitch(this, this.createdivselect_dropdown), null,
-						{idproperty:idproperty, select_id:select_id});
-				}
-			},
 			getgrid_data:function(idproperty, select_value, db_type) {
 				// now we want to create and populate grids, starting with
 				// divinfo/fieldinfo grid.  First check if local store has data
@@ -550,6 +526,30 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.createinfo_grid(options_obj.idproperty, columnsdef_obj,
 					griddata_list);
 			},
+			getdivselect_dropdown: function(idproperty, select_id) {
+				// first get the div information selected by
+				// league_select_value and current_db_type
+				select_value = this.league_select_value;
+				db_type = this.current_db_type;
+				// check if the divselect_reg divsion select drop-down
+				// for team id selection has been created; if it has not
+				// create the dropdown.
+				// first see if divinfo information is in current store
+				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
+				if (divinfo_obj && divinfo_obj.infogrid_store &&
+					divinfo_obj.activegrid_colname == select_value) {
+					// if in store, get data and create dropdown
+					var data_list = divinfo_obj.infogrid_store.query();
+					this.createdivselect_dropdown(data_list, {idproperty:idproperty,
+						select_id:select_id});
+				} else {
+					// if not in store get from server
+					this.server_interface.getServerData(
+						'get_dbcol/'+db_type+'/'+select_value,
+						lang.hitch(this, this.createdivselect_dropdown), null,
+						{idproperty:idproperty, select_id:select_id});
+				}
+			},
 			createdivselect_dropdown:function(data_list, options_obj) {
 				var idproperty = options_obj.idproperty;
 				var select_id = options_obj.select_id;
@@ -569,18 +569,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// of course works for initial options list load also.
 					var select_reg = registry.byId(select_id);
 					select_reg.set("options", option_list);
+					select_reg.startup();
 					if (this.divselect_handle)
 						this.divselect_handle.remove();
 					if (idproperty == 'team_id') {
-						this.divselect_handle = select_reg.set("onChange",
+						this.divselect_handle = select_reg.on("change",
 							lang.hitch(this, this.createteaminfo_grid,
 								option_list, idproperty));
 					} else if (idproperty == 'fair_id') {
-						this.divselect_handle = select_reg.set("onChange",
+						this.divselect_handle = select_reg.on("change",
 							lang.hitch(this, this.createfairinfo_grid,
 								option_list, idproperty));
 					}
-					select_reg.startup();
+					//select_reg.startup();
 				} else {
 					console.log("Warning: Div Configuration Not Complete");
 				}
@@ -612,11 +613,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						return item.value == event;
 					})
 				var match = match_option[0];
-				var div_id = match.div_id;
 				this.setselect_text(match, idproperty);
 				var callback_method = this.gridmethod_mapobj[idproperty]
+				// send request to server = note event is the div_id here
 				this.server_interface.getServerData('get_schedule/'+
-					this.newsched_name+'/'+idproperty+'/'+div_id,
+					this.newsched_name+'/'+idproperty+'/'+event,
 					callback_method,
 					null, {idproperty:idproperty}
 				);
