@@ -60,7 +60,7 @@ class SchedDBInterface:
         self.dbinterface.drop_collection()
 
     def get_schedule(self, idproperty, div_age='', div_gen='', field_id=0,
-        team_id=0, divinfo=None):
+        team_id=0, divinfo=None, fieldinfo_tuple=None):
         if idproperty == 'div_id':
             game_list = self.dbinterface.getdiv_schedule(div_age, div_gen)
             # switch key to lower case for transfer to client
@@ -73,7 +73,8 @@ class SchedDBInterface:
         elif idproperty == 'team_id':
             game_list = self.dbinterface.getteam_schedule(team_id, div_age, div_gen)
         elif idproperty == 'fair_id':
-            game_list = self.dbinterface.getfairness_metrics(divinfo, div_age, div_gen)
+            game_list = self.dbinterface.getfairness_metrics(div_age, div_gen,
+                divinfo, fieldinfo_tuple)
         else:
             game_list = None
         return game_list

@@ -9,6 +9,7 @@ import logging
 import socket
 from flufl.enum import Enum
 from datetime import date
+from pprint import pprint
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 game_date_CONST = 'GAME_DATE'
@@ -328,7 +329,29 @@ class MongoDBInterface:
                 field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST], match_id_CONST:field_game[match_id_CONST], round_CONST:field_game[round_CONST]})
         return field_game_list
 
-    def gettimeslot_metrics(self, div_age, div_gen, divfields, totalfielddays):
+    def getimeslot_metrics(self, div_age, div_gen, divfields, fieldinfo_tuple):
+        fieldinfo_list = fieldinfo_tuple.dict_list
+        fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
+        latest_teams = []
+        earliest_teams = []
+        for field_id in divfields:
+            fieldinfo = fieldinfo_list[fieldinfo_indexerGet(field_id)]
+            totalfielddays = fieldinfo['totalfielddays']
+            for fieldday_id in range(1, totalfielddays+1):
+                # see comments in older getTimeSlotMetrics for design of
+                # aggregation query
+                res_list = self.collection.aggregate([
+                    {"$match":{venue_CONST:field_id,
+                    fieldday_id_CONST:fieldday_id}},
+                    {"$group":{'_id':{'start_time':"$START_TIME"},
+                        'data':{"$push":{'home':"$HOME", 'away':"$AWAY",
+                            'div_age':"$DIV_AGE", 'div_gen':"$DIV_GEN"}}}},
+                    {"$sort":{'_id.start_time':1}},
+                    {"$group":{'earliest':{"$first":{'data':"$data", 'time':"$_id.start_time"}},
+                        'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
+                    {"$project":{'_id':0, 'earliest':1,'latest':1}}])
+                pprint(res_list)
+
 
     def getTimeSlotMetrics(self, age, gender, fields, totalgamedays):
         # find max min start time for each gameday/field and provide summary stats for how many earliest/latest games each team has
@@ -439,10 +462,12 @@ class MongoDBInterface:
                                  'LATEST_COUNT':latest_counter_dict[team_id]})
         return metrics_list
 
-    def getfairness_metrics(self, divinfo, div_age, div_gen):
+    def getfairness_metrics(self, div_age, div_gen, divinfo, fieldinfo_tuple):
         '''Updated information of computing metrics for generated schedule'''
         totalteams = divinfo['totalteams']
         divfields = divinfo['fields']
+        ELcounter_tuple = self.getimeslot_metrics(div_age, div_gen, divfields,
+            fieldinfo_tuple)
         #totalgamedays = divinfo['totalgamedays']
 
 

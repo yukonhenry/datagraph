@@ -37,10 +37,10 @@ class SchedMaster:
         if fdbtuple.config_status == 1:
             self.fieldinfo_list = fdbtuple.list
             self.fieldinfo_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(self.fieldinfo_list)).get(x)
-            fieldinfo_tuple = _List_Indexer(self.fieldinfo_list,
+            self.fieldinfo_tuple = _List_Indexer(self.fieldinfo_list,
                 self.fieldinfo_indexerGet)
         else:
-            fieldinfo_tuple = _List_Indexer(None, None)
+            self.fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: field config not complete=%s" % (fieldcol_name,))
         # create list of div_ids that do not have a 'fields' key
         divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'fields' not in x]
@@ -52,7 +52,7 @@ class SchedMaster:
         self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
             dbinterface=self.sdbInterface,
-            divinfo_tuple=divinfo_tuple, fieldinfo_tuple=fieldinfo_tuple)
+            divinfo_tuple=divinfo_tuple, fieldinfo_tuple=self.fieldinfo_tuple)
         self.schedcol_name = schedcol_name
 
     def generate(self):
@@ -113,7 +113,8 @@ class SchedMaster:
             # parameters
             divinfo = self.divinfo_list[self.divinfo_indexerGet(propid)]
             metrics_list = self.sdbInterface.get_schedule(idproperty,
-                div_age=div_age, div_gen=div_gen, divinfo=divinfo)
+                div_age=div_age, div_gen=div_gen, divinfo=divinfo,
+                fieldinfo_tuple=self.fieldinfo_tuple)
             return {'metrics_list':metrics_list}
 '''
     def getsched_status(self):
