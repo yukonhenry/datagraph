@@ -330,12 +330,15 @@ class MongoDBInterface:
         return field_game_list
 
     def getimeslot_metrics(self, div_age, div_gen, divfields, fieldinfo_tuple):
+        ''' find number of earlies/latest slots for each team
+        '''
         fieldinfo_list = fieldinfo_tuple.dict_list
         fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
         latest_teams = []
         earliest_teams = []
         for field_id in divfields:
             fieldinfo = fieldinfo_list[fieldinfo_indexerGet(field_id)]
+            # totalfielddays can be different for each field
             totalfielddays = fieldinfo['totalfielddays']
             for fieldday_id in range(1, totalfielddays+1):
                 # see comments in older getTimeSlotMetrics for design of
