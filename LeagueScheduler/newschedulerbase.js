@@ -613,13 +613,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						return item.value == event;
 					})
 				var match = match_option[0];
+				var query_obj = {div_age:match.div_age,
+					div_gen:match.div_gen};
 				this.setselect_text(match, idproperty);
 				var callback_method = this.gridmethod_mapobj[idproperty]
 				// send request to server = note event is the div_id here
 				this.server_interface.getServerData('get_schedule/'+
 					this.newsched_name+'/'+idproperty+'/'+event,
 					callback_method,
-					null, {idproperty:idproperty}
+					query_obj, {idproperty:idproperty}
 				);
 			},
 			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list, query_obj) {
@@ -744,9 +746,29 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			createfairsched_grid: function(adata, options_obj) {
 				var idproperty = options_obj.idproperty;
+				var metrics_list = adata.metrics_list;
+				var divfield_list = adata.divfield_list;
 				var columnsdef_obj = {
-
+					team_id:"Team ID",
+					games_total:"Total# Games",
+					homegames_ratio:"Home Ratio",
+					earliest_count:"# Earliest Games",
+					latest_count:"# Latest Games",
 				}
+				// see schedmaster.py get_schedule() for definition of divfield_list
+				// Extract column header field names
+				arrayUtil.forEach(divfield_list, function(item) {
+					columnsdef_obj[item.field_id] = "# Games "+item.field_name;
+				})
+				// flatten field_count_list
+				arrayUtil.forEach(metrics_list, function(item) {
+					arrayUtil.forEach(item.field_count_list, function(item2) {
+						item[item2.field_id] = item2.field_count;
+					})
+				})
+				//
+				this.createsched_grid(idproperty, metrics_list, columnsdef_obj,
+					'team_id');
 			},
 			createsched_grid: function(idproperty, game_list, columnsdef_obj, store_idProperty) {
 				// get store and grid for this idproperty

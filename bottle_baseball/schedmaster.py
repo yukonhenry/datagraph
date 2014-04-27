@@ -115,7 +115,10 @@ class SchedMaster:
             metrics_list = self.sdbInterface.get_schedule(idproperty,
                 div_age=div_age, div_gen=div_gen, divinfo=divinfo,
                 fieldinfo_tuple=self.fieldinfo_tuple)
-            return {'metrics_list':metrics_list}
+            divfield_list = [{'field_id':x,
+                'field_name':self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name']}
+                for x in divinfo['fields']]
+            return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
 '''
     def getsched_status(self):
         return self.sdbInterface.getsched_status()

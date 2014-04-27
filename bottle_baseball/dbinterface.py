@@ -336,24 +336,51 @@ class MongoDBInterface:
         fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
         latest_teams = []
         earliest_teams = []
-        for field_id in divfields:
-            fieldinfo = fieldinfo_list[fieldinfo_indexerGet(field_id)]
-            # totalfielddays can be different for each field
-            totalfielddays = fieldinfo['totalfielddays']
-            for fieldday_id in range(1, totalfielddays+1):
-                # see comments in older getTimeSlotMetrics for design of
-                # aggregation query
-                res_list = self.collection.aggregate([
-                    {"$match":{venue_CONST:field_id,
-                    fieldday_id_CONST:fieldday_id}},
-                    {"$group":{'_id':{'start_time':"$START_TIME"},
-                        'data':{"$push":{'home':"$HOME", 'away':"$AWAY",
-                            'div_age':"$DIV_AGE", 'div_gen':"$DIV_GEN"}}}},
-                    {"$sort":{'_id.start_time':1}},
-                    {"$group":{'earliest':{"$first":{'data':"$data", 'time':"$_id.start_time"}},
-                        'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
-                    {"$project":{'_id':0, 'earliest':1,'latest':1}}])
-                pprint(res_list)
+        # even if fields have different totalfielddays and even completely independent
+        # calendar dates, it is ok to combine the search for early latest game counters
+        # into one aggreation command per 'fieldday' as the counters are still
+        # 'linearly independent'
+        max_totalfielddays = max(fieldinfo_list[fieldinfo_indexerGet(x)]['totalfielddays'] for x in divfields)
+        for fieldday_id in range(1, max_totalfielddays+1):
+            res_list = self.collection.aggregate([
+                {"$match":{venue_CONST:{"$in":divfields},
+                fieldday_id_CONST:fieldday_id}},
+                {"$group":{'_id':{'start_time':"$START_TIME", 'venue':"$VENUE"},
+                'data':{"$push":{'home':"$HOME", 'away':"$AWAY",
+                'div_age':"$DIV_AGE", 'div_gen':"$DIV_GEN"}}}},
+                {"$sort":{'_id.start_time':1}},
+                {"$group":{'_id':"$_id.venue",
+                'earliest':{"$first":{'data':"$data", 'time':"$_id.start_time"}},
+                'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
+                {"$project":{'_id':0, 'venue':"$_id", 'earliest':1,'latest':1}}])
+            result = res_list['result'] # there should only be one element which includes the latest and earliest team data
+            earliest_home = [x['earliest']['data'][0]['home']
+                             for x in result
+                             if x['earliest']['data'][0]['div_age']==div_age and x['earliest']['data'][0]['div_gen']==div_gen]
+            earliest_away = [x['earliest']['data'][0]['away']
+                             for x in result
+                             if x['earliest']['data'][0]['div_age']==div_age and x['earliest']['data'][0]['div_gen']==div_gen]
+            latest_home = [x['latest']['data'][0]['home']
+                           for x in result
+                           if x['latest']['data'][0]['div_age']==div_age and x['latest']['data'][0]['div_gen']==div_gen]
+            latest_away = [x['latest']['data'][0]['away']
+                           for x in result
+                           if x['latest']['data'][0]['div_age']==div_age and x['latest']['data'][0]['div_gen']==div_gen]
+            logging.debug("dbinterface:gettimeslot_metrics:query result=%s earliest home=%s earliest away=%s",
+                          result, earliest_home, earliest_away)
+            logging.debug("dbinterface:gettimeslot_metrics: latest home=%s latest away=%s",
+                          latest_home, latest_away)
+            earliest_teams += earliest_home + earliest_away
+            latest_teams += latest_home + latest_away
+        # ref http://stackoverflow.com/questions/2600191/how-to-count-the-occurrences-of-a-list-item-in-python
+        latest_counter_dict = Counter(latest_teams)
+        earliest_counter_dict = Counter(earliest_teams)
+        logging.debug("dbinterface:gettimeslot_metrics div=%s%s earliest_teams=%s, earliest_counter_dict=%s",
+            div_age, div_gen, earliest_teams, earliest_counter_dict)
+        logging.debug("dbinterface:gettimeslot_metrics latest_teams=%s, latest_counter_dict=%s",
+            latest_teams, latest_counter_dict)
+        EL_counter = namedtuple('EL_counter','earliest latest')
+        return EL_counter(earliest_counter_dict, latest_counter_dict)
 
 
     def getTimeSlotMetrics(self, age, gender, fields, totalgamedays):
@@ -467,12 +494,41 @@ class MongoDBInterface:
 
     def getfairness_metrics(self, div_age, div_gen, divinfo, fieldinfo_tuple):
         '''Updated information of computing metrics for generated schedule'''
+        logging.debug("dbinterface:getfairness_metrics: age %s gen %s",div_age, div_gen)
         totalteams = divinfo['totalteams']
         divfields = divinfo['fields']
         ELcounter_tuple = self.getimeslot_metrics(div_age, div_gen, divfields,
             fieldinfo_tuple)
-        #totalgamedays = divinfo['totalgamedays']
-
+        earliest_counter_dict = ELcounter_tuple.earliest
+        latest_counter_dict = ELcounter_tuple.latest
+        fieldinfo_list = fieldinfo_tuple.dict_list
+        fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
+        metrics_list = []
+        for team_id in range(1, totalteams+1):
+            games_total = self.collection.find(
+                {div_age_CONST:div_age, div_gen_CONST:div_gen,
+                "$or":[{home_CONST:team_id},{away_CONST:team_id}]
+                }).count()
+            homegames_total = self.collection.find(
+                {div_age_CONST:div_age, div_gen_CONST:div_gen,
+                home_CONST:team_id}).count()
+            homegames_ratio = float(homegames_total)/float(games_total)
+            field_count_list = []
+            for field_id in divfields:
+                #field_name = fieldinfo_list[fieldinfo_indexerGet(field_id)]
+                field_count = self.collection.find(
+                    {div_age_CONST:div_age, div_gen_CONST:div_gen,
+                    venue_CONST:field_id,
+                    "$or":[{home_CONST:team_id},{away_CONST:team_id}]
+                    }).count()
+                field_count_list.append({'field_id':field_id,
+                    'field_count':field_count})
+            metrics_list.append({'team_id':team_id, 'games_total':games_total,
+                'homegames_ratio':homegames_ratio,
+                'field_count_list':field_count_list,
+                'earliest_count':earliest_counter_dict[team_id],
+                'latest_count':latest_counter_dict[team_id]})
+        return metrics_list
 
     def dropGameDocuments(self, gameday_list=None):
         # remove documents only have to do with game data
