@@ -137,7 +137,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					sched_input = put(this.form_reg.domNode,
 						"input#newsched_input_id[type=text][required=true]");
 					this.dbname_reg = new ValidationTextBox({
-						value:'PHMSA2014',
+						value:'',
 						regExp:'[\\w]+',
 						promptMessage:'Enter New Schedule - only alphanumeric characters and _',
 						invalidMessage:'only alphanumeric characters and _',
@@ -149,7 +149,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// sched_input is an HTML Input element
 					// however, this.dbname_reg.domNode is an HTML Div Element
 					// (not sure exactly why)
-					// Anyway, is sched_input exists, then this.dbname_reg should exist
+					// Anyway, if sched_input exists, then this.dbname_reg should exist, so disregard below
 					// alternatively, use:
 					//this.dbname_reg = registry.byId("newsched_input_id");
 					// DON"T use below:

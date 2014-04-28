@@ -113,12 +113,12 @@ div.bar {
   width:50px;
 }
 /* http://dojotoolkit.org/reference-guide/1.9/dijit/layout/BorderContainer.html */
-#borderContainer {
+.allonehundred {
     width: 100%;
     height: 100%;
 }
 
-#borderContainer_LeftContentPane {
+#.allauto {
   width: auto;
   height: auto;
 }

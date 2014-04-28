@@ -89,7 +89,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// retrieve actual obj and find index
 				var state_obj = this.get_cpanestate(id);
 				var match_obj = state_obj.match_obj;
-				var index = state_obj.index;
+				//var index = state_obj.index;
 				// http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/
 				lang.mixin(match_obj, args_obj);
 				match_obj.p_pane = select_pane;
@@ -158,10 +158,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					oldmatch_obj.active_flag = false;
 				}
 			},
-			switch_gstackcpane: function(id, preconfig_flag, current_grid) {
-				var preconfig_flag = (typeof preconfig_flag === "undefined") ? false:preconfig_flag;
+			switch_gstackcpane: function(id, blankcpane_flag, current_grid) {
+				var blankcpane_flag = (typeof blankcpane_flag === "undefined") ? false:blankcpane_flag;
 				var select_pane = "";
-				if (preconfig_flag) {
+				if (blankcpane_flag) {
 					select_pane = constant.blankcpane_id;
 				} else {
 					var idmatch_list = arrayUtil.filter(this.gstackmap_list,
@@ -299,6 +299,17 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 											entry_pt:constant.fromdb
 										}
 										info_obj.reconfig_infobtn(args_obj);
+									} else {
+										// if it newsched_id, we still have to switch cpane
+										var args_obj = {
+											idproperty:'newsched_id',
+											p_stage:'config',
+											entry_pt:constant.fromdb
+										}
+										this.switch_pstackcpane(args_obj);
+										// 'true' argument indicates we are switching to a
+										// state where no grid is required
+										this.switch_gstackcpane('newsched_id', true);
 									}
 								}
 							}
@@ -350,6 +361,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 									entry_pt:constant.fromdb
 								}
 								info_obj.reconfig_infobtn(args_obj);
+							} else {
+								// if it newsched_id, we still have to switch cpane
+								var args_obj = {
+									idproperty:'newsched_id',
+									p_stage:'config', entry_pt:constant.fromdb
+								}
+								this.switch_pstackcpane(args_obj);
+								// 'true' argument indicates we are switching to a
+								// state where no grid is required
+								this.switch_gstackcpane('newsched_id', true);
 							}
 						}
 					}

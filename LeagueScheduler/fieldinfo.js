@@ -3,12 +3,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox",
-	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox", "dijit/form/Button", "dijit/Tooltip",
+	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
+	"dijit/form/Button", "dijit/Tooltip",
+	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
-		Tooltip, put, Calendar){
+		Tooltip, BorderContainer, ContentPane, put, Calendar){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			idproperty_str:"field_id",
@@ -218,7 +220,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var oldfield_index = this.field_id-1;
 				this.field_id = row_id;
 				// get older sibling node from where we will place sibling div that will hold calendar
-				var fieldinfocpanner_inner_node = dom.byId("fieldinfocpane_inner_id");
+				var siblingcpane_node = dom.byId("fieldinfocpane_inner_id");
+				var parent_bordercontainer_node = dom.byId("parent_bordercontainer_id");
+				if (!parent_bordercontainer_node) {
+					parent_bordercontainer_node = put(siblingcpane_node,
+						"+div.allonehundred#parent_bordercontainer_id");
+					var parent_bordercontainer_reg = new BorderContainer({
+						region:'center', design:'sidebar', gutters:true,
+						liveSplitters:true
+					}, parent_bordercontainer_node);
+					var calendargrid_node = put("div#calendargrid_id");
+					calendar_bordercontainer_reg = new ContentPane({
+						splitter:true, region:'center'
+					})
+				}
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
 				// property, as usage of latter (inline, block, any other property)

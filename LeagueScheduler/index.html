@@ -26,7 +26,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.19b";
+                var version_str = "v1.0.0.19c";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", running since "+ today.toLocaleDateString();
@@ -217,7 +217,7 @@
                         <!-- ref http://stackoverflow.com/questions/17658263/2-dojo-dijit-content-panes-side-by-side-when-showing-hiding-one-the-other-wil -->
                         <!-- Use visibility style property below to make borderContainter contents
                         visible at will.  There seems to be a problem using the style display property -->
-                        <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="region: 'center', design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
+                        <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainerb" data-dojo-props="region: 'center', design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
                             <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
                                 <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
                                     <label for="fieldselect_id">Select Venue</label>
