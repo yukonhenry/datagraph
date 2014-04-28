@@ -217,6 +217,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				var field_index = row_id-1;
 				var oldfield_index = this.field_id-1;
 				this.field_id = row_id;
+				// get older sibling node from where we will place sibling div that will hold calendar
+				var fieldinfocpanner_inner_node = dom.byId("fieldinfocpane_inner_id");
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
 				// property, as usage of latter (inline, block, any other property)
