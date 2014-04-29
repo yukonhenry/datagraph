@@ -170,7 +170,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						});
 					select_pane = idmatch_list[0].pane_id;
 					this.current_grid = current_grid;
-					this.current_grid.resize();
+					//this.current_grid.resize();
 				}
 				this.gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state
@@ -182,6 +182,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// assign db collection name to match_obj property
 				this.setreset_cpanestate_active(match_obj);
 				this.cpanestate_list[index] = match_obj;
+				// do the reisze after the pane has been selected
+				if (this.current_grid)
+					this.current_grid.resize();
 			},
 			check_initialize: function(info_obj, event) {
 				/* initialization UI is selected; manage pane change to initialization UI
