@@ -215,18 +215,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
-			edit_calendar: function(row_id) {
-				var field_index = row_id-1;
+			edit_calendar: function(field_id) {
+				var field_index = field_id-1;
 				var oldfield_index = this.field_id-1;
-				this.field_id = row_id;
+				this.field_id = field_id;
+				// see if we can get the 1st level bordercontainer which should be
+				// below the top-level cpane which also happens to be a border
+				// container.
 				var detailed_bordercontainer = registry.byId("detailed_bordercontainer_id");
 				if (!detailed_bordercontainer) {
+					// if it doesn't exist, then we need to create it
+					// first get the top-level cpane widget (which is also a
+					// bordercontainer)
 					var fieldinfocpane = registry.byId("fieldinfocpane_id");
+					// created border container
 					var detailed_bordercontainer = new BorderContainer({
 						region:'center', design:'sidebar', gutters:true,
 						liveSplitters:true, class:'allonehundred',
 						id:'detailed_bordercontainer_id'
 					});
+					// underneath the above bordercontainer we have another
+					// cpane which itself has a div underneath it.
+					// that div will hold the dojox calendar.
 					var calendargrid_node = put("div#calendargrid_id");
 					var detailed_rightcpane = new ContentPane({
 						splitter:true, region:'center', class:'allauto',
@@ -235,7 +245,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					detailed_bordercontainer.addChild(detailed_rightcpane);
 					detailed_bordercontainer.startup();
 					fieldinfocpane.addChild(detailed_bordercontainer);
+					// create store that feeds the dojox calendar
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
+					if (this.infogrid_store) {
+						// copy elements of the the fieldinfo grid store to the
+						// dojox calendar store
+						this.infogrid_store.query().forEach(
+							lang.hitch(this, function(item) {
+							fieldevent_str = "";
+							var data_obj = {id:this.calendar_id,
+								fieldevent_str:fieldevent_str,
+								summary:'Field'+this.field_id+':'+fieldevent_str+
+								' '+'Block:'+this.calendar_id}
+						}))
+					}
 					this.calendar = new Calendar({
 						dateInterval: "day",
 						date: this.today,

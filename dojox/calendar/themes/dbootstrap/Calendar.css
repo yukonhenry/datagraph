@@ -909,6 +909,9 @@
   top: 0;
   bottom: 0;
 }
+/* http://www.w3schools.com/cssref/css_colorsfull.asp
+See also http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
+for detailes on styling renderer for dojox calendar */
 .dbootstrap .dojoxCalendarEvent.Calendar1 .bg {
   background-color: #0000FF; /*blue*/
 }
@@ -922,7 +925,7 @@
   background-color: #800000; /*maroon*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2.Hovered .bg {
-  background-color: #0000FF;
+  background-color: #0000FF; /*blue*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2.Selected .bg {
   background-color: #000044;
@@ -943,5 +946,14 @@
   background-color: #0000FF;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar4.Selected .bg {
+  background-color: #000044;
+}
+.dbootstrap .dojoxCalendarEvent.Calendar5 .bg {
+  background-color: #7CFC00; /*lawn green*/
+}
+.dbootstrap .dojoxCalendarEvent.Calendar5.Hovered .bg {
+  background-color: #0000FF;
+}
+.dbootstrap .dojoxCalendarEvent.Calendar5.Selected .bg {
   background-color: #000044;
 }
