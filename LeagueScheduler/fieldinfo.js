@@ -229,11 +229,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						region:'center', design:'sidebar', gutters:true,
 						liveSplitters:true
 					}, parent_bordercontainer_node);
-					var calendargrid_node = put("div#calendargrid_id");
+					var calendargrid_node = put("div#calendargrid_id", "test1234");
 					calendar_bordercontainer_reg = new ContentPane({
-						splitter:true, region:'center'
+						splitter:true, region:'center',
+						containerNode:calendargrid_node
 					})
+					calendargrid_node.innerHTML="adgasd"
+					calendar_bordercontainer_reg.startup();
+					parent_bordercontainer_reg.addChild(calendar_bordercontainer_reg);
+					parent_bordercontainer_reg.startup();
 				}
+				/*
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
 				// property, as usage of latter (inline, block, any other property)
@@ -262,18 +268,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					//this.calendar.currentView.invalidateLayout();
 					// send store info to server
 					// first make store query and get count
-					/*
-					if (this.calendar_store) {
-						var fieldtime_obj = this.calendar_store.query({});
-						if (fieldtime_obj.total > 0) {
-							fieldtime_str = JSON.stringify(fieldtime_obj);
-							// note REST parameter has to be this.field_id and not row_id as row_id indicates current field_id where paramenters have yet to be entered.
-							this.server_interface.getServerData("update_fieldtimes/"+colname,
-								this.server_interface.server_ack,
-								{fieldtime_str:fieldtime_str});
-						}
-					}
-					*/
 				} else {
 					// if field select widget does not exist, create one.
 					this.fieldselect_reg = registry.byId("fieldselect_id");
@@ -341,7 +335,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					this.calendar.set("createOnGridClick", true);
 					this.calendar.set("createItemFunc", this.createItem);
 					this.calendar.on("itemClick", lang.hitch(this,this.clickedItemProcess));
-				}
+				} */
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');

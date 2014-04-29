@@ -217,20 +217,17 @@
                         <!-- ref http://stackoverflow.com/questions/17658263/2-dojo-dijit-content-panes-side-by-side-when-showing-hiding-one-the-other-wil -->
                         <!-- Use visibility style property below to make borderContainter contents
                         visible at will.  There seems to be a problem using the style display property -->
-                        <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainerb" data-dojo-props="region: 'center', design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
+                        <!--
+                        <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="region: 'center', design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
                             <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
                                 <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
                                     <label for="fieldselect_id">Select Venue</label>
-                                    <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
-                                    name parameter is required for declarative setup -->
                                     <select id="fieldselect_id" name="fieldselect_id" data-dojo-type="dijit/form/Select">
                                     </select>
                                     <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
                                     <label for="fieldevent_id">Event Name</label><br>
                                     <input type="text" id="fieldevent_id" value="Sports" required="true" data-dojo-type="dijit/form/ValidationTextBox"
                                     data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                                    <!--
-                                    <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldevent_id', position:['below','after']">Enter Event Type and Name</span></div>-->
                                     <br>
                                     <label for="eventdate_id">Event Date:</label><br>
                                     <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
@@ -246,8 +243,6 @@
                                 </div>
                                 <div id="duptitlepane_id" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Duplicate', open:false">
                                     <label for="dupfieldselect_id">Select Venue for Duplication</label>
-                                    <!-- according to http://dojotoolkit.org/documentation/tutorials/1.9/selects/
-                                    name parameter is required for declarative setup -->
                                     <select id="dupfieldselect_id" name="dupfieldselect_id" data-dojo-type="dijit/form/Select">
                                     </select><br>
                                     <label for="dupeventdate_id">Event Date to Dup:</label><br>
@@ -257,8 +252,8 @@
                             </div>
                             <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
                                 <div id="calendarGrid_id"></div>
-                            </div>
-                        </div> <!-- inner border container -->
+                            </div> 
+                        </div>  -->
                     </div> <!---outer bordercontainer as one of content panes-->
                 </div> <!--stackcontainer-->
                 <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->
