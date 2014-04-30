@@ -24,7 +24,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		};
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
-			calendar_store:null,
+			calendar_store:null, calendar_id:0,
 			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			starttime_handle:null, tooltip:null,
@@ -250,33 +250,30 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
 					if (this.calendarmapobj_list) {
 						// copy fieldinfo data originally returned from server to
-						// create fieldinfo grid to dojox calendar store
-						var filtered_list = arrayUtil.filter(
-							this.calendarmapobj_list, function(item) {
-							return item.field_id == field_id;
-						})
-						// filtered_list should only have one element as it
-						// filters on field_id and there should only be one obj
-						// for every field_id
-						var match_obj = filtered_list[0];
-						var field_id = match_obj.field_id;
+						// create fieldinfo grid, to dojox calendar store
+						//
 						// use the current grid/db name as the 'fieldevent'
 						// for now - reevaluate
 						var fieldevent_str = this.activegrid_colname;
-						var calendar_id = 0;
-						arrayUtil.forEach(match_obj.calendarmap_list,
-							function(item) {
-							var data_obj = {
-								id:calendar_id,
-								fieldevent_str:fieldevent_str,
-								summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+calendar_id,
-								field_id:field_id,
-								calendar:'Calendar'+field_id,
-								startTime:item.start_time,
-								endTime:item.end_time
-							}
-							this.calendar_store.add(data_obj);
-							calendar_id++;
+						// read in entire calendarmapobj_list - note that doing a setData for every field_id request does not work as setData
+						// does not work for observable stores (setData is a function for Memory store, not the Observable wrapper)
+						// http://dojo-toolkit.33424.n3.nabble.com/dojo-store-Observable-Change-Request-td3286606.html
+						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
+							var field_id = item.field_id;
+							arrayUtil.forEach(item.calendarmap_list,
+								function(item2) {
+								var data_obj = {
+									id:this.calendar_id,
+									fieldevent_str:fieldevent_str,
+									field_id:field_id,
+									summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
+									startTime:item2.start_time,
+									endTime:item2.end_time,
+									calendar:'Calendar'+field_id
+								}
+								this.calendar_store.add(data_obj);
+								this.calendar_id++;
+							}, this);
 						}, this);
 					}
 					// create dojox calendar - note we create a (blank) calendar
@@ -288,7 +285,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						style: "position:inherit;width:600px;height:600px",
 						cssClassFunc: function(item) {
 							return item.calendar;
-						}
+						},
+						query:{field_id:this.field_id}
 					}, calendargrid_node);
 					this.calendar.startup();
 					this.calendar.resize();
@@ -298,37 +296,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// with the dojox calendar.
 					// Here we will see if there is a different field_id, and if
 					// there is, display the configured field-specific config
-					if (this.calendarmapobj_list &&
-						this.field_id != this.old_field_id) {
-						// copy fieldinfo data originally returned from server to
-						// create fieldinfo grid to dojox calendar store
-						var filtered_list = arrayUtil.filter(
-							this.calendarmapobj_list, function(item) {
-							return item.field_id == field_id;
-						})
-						var match_obj = filtered_list[0];
-						var field_id = match_obj.field_id;
-						var fieldevent_str = this.activegrid_colname;
-						var calendar_id = 100;
-						var data_list = new Array();
-						arrayUtil.forEach(match_obj.calendarmap_list,
-							function(item) {
-							var data_obj = {
-								id:calendar_id,
-								fieldevent_str:fieldevent_str,
-								summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+calendar_id,
-								field_id:field_id,
-								calendar:'Calendar'+field_id,
-								startTime:item.start_time,
-								endTime:item.end_time
-							}
-							data_list.push(data_obj);
-							calendar_id++;
-						});
-						this.calendar_store.setData(data_list);
-						//this.calendar.startup();
-						this.calendar.resize();
-					}
+					this.calendar.set("query", {field_id:this.field_id});
+					this.calendar.resize();
 				}
 				/*
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div

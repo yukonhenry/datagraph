@@ -217,6 +217,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);
 			},
 			replace_store: function(colname, griddata_list) {
+				//reference http://www.sitepen.com/blog/2013/09/06/dojo-faq-how-can-i-add-filtering-controls-to-dgrid/
+				// Note we should be setting filtering queries to the store, instead
+				// of doing setData everytime new data comes in
+				// setData does not work with observable stores - see comment in fieldinfo.js
 				this.colname = colname;
 				this.schedInfoStore.setData(griddata_list);
 				this.schedInfoGrid.refresh();
