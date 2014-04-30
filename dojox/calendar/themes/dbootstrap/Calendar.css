@@ -919,13 +919,13 @@ for detailes on styling renderer for dojox calendar */
   background-color: #FFFFFF; /*white*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar1.Selected .bg {
-  background-color: #004400;
+  background-color: #000044;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2 .bg {
   background-color: #800000; /*maroon*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2.Hovered .bg {
-  background-color: #0000FF; /*blue*/
+  background-color: #FFFFFF; /*white*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar2.Selected .bg {
   background-color: #000044;
@@ -934,7 +934,7 @@ for detailes on styling renderer for dojox calendar */
   background-color: #008000; /*green*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar3.Hovered .bg {
-  background-color: #0000FF;
+  background-color: #FFFFFF;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar3.Selected .bg {
   background-color: #000044;
@@ -943,7 +943,7 @@ for detailes on styling renderer for dojox calendar */
   background-color: #FFFF00; /*yellow*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar4.Hovered .bg {
-  background-color: #0000FF;
+  background-color: #FFFFFF;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar4.Selected .bg {
   background-color: #000044;
@@ -952,7 +952,7 @@ for detailes on styling renderer for dojox calendar */
   background-color: #7CFC00; /*lawn green*/
 }
 .dbootstrap .dojoxCalendarEvent.Calendar5.Hovered .bg {
-  background-color: #0000FF;
+  background-color: #FFFFFF;
 }
 .dbootstrap .dojoxCalendarEvent.Calendar5.Selected .bg {
   background-color: #000044;

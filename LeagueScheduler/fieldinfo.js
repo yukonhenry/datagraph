@@ -34,7 +34,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"",
-			infogrid_store:null,
+			infogrid_store:null, calendarmapobj_list:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -247,17 +247,29 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					fieldinfocpane.addChild(detailed_bordercontainer);
 					// create store that feeds the dojox calendar
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
-					if (this.infogrid_store) {
-						// copy elements of the the fieldinfo grid store to the
-						// dojox calendar store
-						this.infogrid_store.query().forEach(
-							lang.hitch(this, function(item) {
-							fieldevent_str = "";
-							var data_obj = {id:this.calendar_id,
-								fieldevent_str:fieldevent_str,
-								summary:'Field'+this.field_id+':'+fieldevent_str+
-								' '+'Block:'+this.calendar_id}
-						}))
+					if (this.calendarmapobj_list) {
+						// copy fieldinfo data originally returned from server to
+						// create fieldinfo grid to dojox calendar store
+						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
+							var field_id = item.field_id;
+							// use the current grid/db name as the 'fieldevent'
+							// for now - reevaluate
+							var fieldevent_str = this.activegrid_colname;
+							arrayUtil.forEach(item.calendarmap_list,
+								function(item2) {
+								var data_obj = {
+									id:this.calendar_id,
+									fieldevent_str:fieldevent_str,
+									summmary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
+									field_id:field_id,
+									calendar:'Calendar'+field_id,
+									startTime:item2.start_time,
+									endTime:item2.end_time
+								}
+								this.calendar_store.add(data_obj);
+								this.calendar_id++;
+							}, this);
+						}, this);
 					}
 					this.calendar = new Calendar({
 						dateInterval: "day",
@@ -810,16 +822,37 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			},
 			// modify field_id-specific data returned from server
 			modifyserver_data: function(data_list, divstr_obj) {
+				if (this.calendarmapobj_list)
+					delete this.calendarmapobj_list;
+				this.calendarmapobj_list = new Array();
 				arrayUtil.forEach(data_list, function(item, index) {
 					// save date str to pass into start and end time calc
 					// (though it can be a dummy date)
-					var start_str = item.start_date;
-					var end_str = item.end_date;
-					item.start_date = new Date(start_str);
-					item.end_date = new Date(end_str);
-					item.start_time = new Date(start_str+' '+item.start_time);
-					item.end_time = new Date(end_str+' '+item.end_time);
-				})
+					var start_date_str = item.start_date;
+					var end_date_str = item.end_date;
+					var start_time_str = item.start_time;
+					var end_time_str = item.end_time;
+					item.start_date = new Date(start_date_str);
+					item.end_date = new Date(end_date_str);
+					item.start_time = new Date(start_date_str+' '+start_time_str);
+					item.end_time = new Date(end_date_str+' '+end_time_str);
+					// this.calendarmapobj_list is used by the dojox calendar
+					// to set initial date/time configurations based on server
+					// data.
+					var calendarmap_list = new Array();
+					// calendarmap_list includes date string, so concatenate w
+					// timestr from above and create date objects for both
+					// start and end times
+					arrayUtil.forEach(item.calendarmap_list, function(item2) {
+						var start_time = new Date(item2+' '+start_time_str)
+						var end_time = new Date(item2+' '+end_time_str)
+						calendarmap_list.push({
+							start_time:start_time,
+							end_time:end_time});
+					})
+					this.calendarmapobj_list.push({field_id:item.field_id,
+						calendarmap_list:calendarmap_list})
+				}, this);
 				// datalist modifications end above. However, there are other
 				// field_id-specific processing that needs to be done, concerning
 				// divinfo data attached for fieldinfo data
