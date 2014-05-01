@@ -188,6 +188,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // local store and also sent back to the server
                 // ref http://stackoverflow.com/questions/154059/how-do-you-check-for-an-empty-string-in-javascript
                 // for checking for empty string
+                // if db_type is still null, assign default
+                var db_type = (db_type == "") ?
+                    constant.default_db_type:db_type;
                 if (colname) {
                     var options_obj = {colname:colname, info_obj:info_obj};
                     this.server_interface.getServerData(

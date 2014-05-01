@@ -297,7 +297,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// Here we will see if there is a different field_id, and if
 					// there is, display the configured field-specific config
 					this.calendar.set("query", {field_id:this.field_id});
-					this.calendar.resize();
+					//this.calendar.resize();
 				}
 				/*
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
