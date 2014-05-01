@@ -26,7 +26,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.19r";
+                var version_str = "v1.0.0.19t";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", running since "+ today.toLocaleDateString();
@@ -45,7 +45,7 @@
                             <div data-dojo-type="dijit/DropDownMenu">
                                 <div data-dojo-type="dijit/MenuItem" id="newsched_item">New Schedule Parameters</div>
                                 <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Edit Schedule Parameters</span>
+                                    <span>Existing Schedule Parameters</span>
                                     <div data-dojo-type="dijit/DropDownMenu" id="newscheddbcollection_submenu">
                                     </div>
                                 </div>

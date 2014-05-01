@@ -74,7 +74,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
 			calendarmap_obj:null,
-			divselect_handle:null,
+			teamdivselect_handle:null, fairdivselect_handle:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -448,7 +448,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// add by-team sched grid
 				args_obj = {
 					suffix_id:constant.newteamcpane_id,
-					content_str:"<div id='"+constant.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID from grid to see team-specific schedule - scroll down<br><label for='"+constant.newteamcpane_select_id+"'>Select Division</label><select id='"+constant.newteamcpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newteamcpane_select_id+"'></select><div id='"+constant.newteamcpane_grid_id+"'></div><div id='"+constant.newteamcpane_schedheader_id+"'></div><div id='"+constant.newteamcpane_schedgrid_id+"'></div>",
+					content_str:"<div id='"+constant.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+constant.newteamcpane_select_id+"'>Select Division</label><select id='"+constant.newteamcpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newteamcpane_select_id+"'></select><div id='"+constant.newteamcpane_grid_id+"'></div><div id='"+constant.newteamcpane_schedheader_id+"'></div><div id='"+constant.newteamcpane_schedgrid_id+"'></div>",
 					title_suffix:' by Team',
 				}
 				this.createnewsched_pane(args_obj);
@@ -456,7 +456,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// add fairness metrics cpane
 				args_obj = {
 					suffix_id:constant.newfaircpane_id,
-					content_str:"<div id='"+constant.newfaircpane_txt_id+"'></div> <b>Select Division</b> and then select team ID from grid to see team-specific Fairness Metrics - scroll down<br><label for='"+constant.newfaircpane_select_id+"'>Select Division</label><select id='"+constant.newfaircpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newfaircpane_select_id+"'></select><div id='"+constant.newfaircpane_grid_id+"'></div><div id='"+constant.newfaircpane_schedheader_id+"'></div><div id='"+constant.newfaircpane_schedgrid_id+"'></div>",
+					content_str:"<div id='"+constant.newfaircpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+constant.newfaircpane_select_id+"'>Select Division</label><select id='"+constant.newfaircpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newfaircpane_select_id+"'></select><div id='"+constant.newfaircpane_grid_id+"'></div><div id='"+constant.newfaircpane_schedheader_id+"'></div><div id='"+constant.newfaircpane_schedgrid_id+"'></div>",
 					title_suffix:' by Fairness Metrics',
 				}
 				this.createnewsched_pane(args_obj);
@@ -570,14 +570,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var select_reg = registry.byId(select_id);
 					select_reg.set("options", option_list);
 					select_reg.startup();
-					if (this.divselect_handle)
-						this.divselect_handle.remove();
+
 					if (idproperty == 'team_id') {
-						this.divselect_handle = select_reg.on("change",
+						if (this.teamdivselect_handle)
+							this.teamdivselect_handle.remove();
+						this.teamdivselect_handle = select_reg.on("change",
 							lang.hitch(this, this.createteaminfo_grid,
 								option_list, idproperty));
 					} else if (idproperty == 'fair_id') {
-						this.divselect_handle = select_reg.on("change",
+						if (this.fairdivselect_handle)
+							this.fairdivselect_handle.remove();
+						this.fairdivselect_handle = select_reg.on("change",
 							lang.hitch(this, this.createfairinfo_grid,
 								option_list, idproperty));
 					}
@@ -842,8 +845,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					if (handle)
 						handle.remove();
 				}
-				if (this.divselect_handle)
-					this.divselect_handle.remove();
+				if (this.teamdivselect_handle)
+					this.teamdivselect_handle.remove();
+				if (this.fairdivselect_handle)
+					this.fairdivselect_handle.remove();
 			}
 		});
 	})

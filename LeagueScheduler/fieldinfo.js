@@ -296,7 +296,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// with the dojox calendar.
 					// Here we will see if there is a different field_id, and if
 					// there is, display the configured field-specific config
-					this.calendar.set("query", {field_id:this.field_id});
+					var query_obj = new Object();
+					query_obj.field_id = this.field_id;
+					this.calendar.set("query", query_obj);
+					console.log("setquery field="+this.field_id);
 					//this.calendar.resize();
 				}
 				/*
