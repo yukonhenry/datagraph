@@ -5,7 +5,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox",
 	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
 	"dijit/form/Button", "dijit/Tooltip",
-	"dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dijit/layout/TitlePane",
+	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
+	"dijit/TitlePane",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
@@ -239,9 +240,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						splitter:true, region:'leading',
 						id:'detailed_leftcpane_id'
 					})
+					var title_pane_content_node = put("div#title_pane_content_id",
+						"tsetse2435")
 					var title_pane = new TitlePane({
-
+						title:'Select Dates',
+						content:title_pane_content_node
 					})
+					detailed_leftcpane.addChild(title_pane);
 					// underneath the above bordercontainer we have another
 					// cpane which itself has a div underneath it.
 					// that div will hold the dojox calendar.
