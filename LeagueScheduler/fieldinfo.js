@@ -2,7 +2,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
-	"dijit/form/TimeTextBox", "dijit/form/DateTextBox",
+	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Select",
 	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
 	"dijit/form/Button", "dijit/Tooltip",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
@@ -10,7 +10,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
-		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
+		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
+		CheckBox, Button,
 		Tooltip, BorderContainer, ContentPane, TitlePane, put, Calendar){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
@@ -26,7 +27,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
 			calendar_store:null, calendar_id:0,
-			fieldselect_reg:null, fieldevent_reg:null, eventdate_reg:null,
+			fieldselect_widget:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			starttime_handle:null, tooltip:null,
 			datetimeset_handle:null, datetimedel_handle:null,
@@ -217,8 +218,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			// for dojox calendar specifics
 			// also check api for for dojox/calendar/Calendar
 			edit_calendar: function(field_id) {
-				var field_index = field_id-1;
-				var oldfield_index = this.field_id-1;
 				this.old_field_id = this.field_id;
 				this.field_id = field_id;
 				// see if we can get the 1st level bordercontainer which should be
@@ -240,11 +239,30 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						splitter:true, region:'leading',
 						id:'detailed_leftcpane_id'
 					})
-					var title_pane_content_node = put("div#title_pane_content_id",
-						"tsetse2435")
+					var tpcontent_node = put("div#title_pane_content_id");
+					put(tpcontent_node, "label.label_box[for=fieldselect_id]",
+						"Select Venue:");
+					var fieldselect_node = put(tpcontent_node,
+						"select#fieldselect_id[name=fieldselect_id]");
+					this.fieldselect_widget = new Select({
+						name:"fieldselect_id",
+						onChange: function(event) {
+							console.log("select event="+event);
+						}
+					}, fieldselect_node);
+					var fieldselect_list = new Array();
+					// this.rownum is defined in baseinfo
+					for (var i = 1; i < this.rownum+1; i++) {
+						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
+					}
+					// initialize selected value with field_id row that selected
+					// calendar.
+					fieldselect_list[this.field_id-1].selected = true;
+					this.fieldselect_widget.addOption(fieldselect_list);
+					//fieldselect_widget.startup();
 					var title_pane = new TitlePane({
 						title:'Select Dates',
-						content:title_pane_content_node
+						content:tpcontent_node
 					})
 					detailed_leftcpane.addChild(title_pane);
 					// underneath the above bordercontainer we have another
@@ -316,9 +334,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// unlike dgrid, set("store",) must be explicitly called
 					// for the new store query to take effect
 					this.calendar.set("store", this.calendar_store);
+					// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
+					// autochange fieldselect drop-down selection in titlepane
+					this.fieldselect_widget.set('value', this.field_id);
+
 				}
 				this.calendar.resize();
-
 				/*
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
@@ -484,8 +505,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 			},
 			process_clickedCalendarItem: function(event) {
 				var select_id = event.item.id;
-				// query should return a one-element list
-				var match_obj = this.calendar_store.query({id:select_id})[0];
+				// get store object with id==select_id
+				var match_obj = this.calendar_store.get(select_id);
+				// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 			},
 			// handler for clicking on calendar item/slot
 			clickedItemProcess: function(event) {

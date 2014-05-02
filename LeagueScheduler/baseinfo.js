@@ -63,10 +63,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							alert("Selected sched name already exists, choose another");
 							return;
 						}
-						//divnum is the total # of divisions or other entity like fields
-						var divnum = entrynum_reg.get("value");
-						this.rownum = divnum;
-						var info_list = this.getInitialList(divnum);
+						//rownum, is the total # of divisions/fields/current config
+						this.rownum = entrynum_reg.get("value");
+						var info_list = this.getInitialList(this.rownum);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						// if idproperty is field, create radio buttons for
