@@ -235,6 +235,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						liveSplitters:true, class:'allonehundred',
 						id:'detailed_bordercontainer_id'
 					});
+					var detailed_leftcpane = new ContentPane({
+
+					})
 					// underneath the above bordercontainer we have another
 					// cpane which itself has a div underneath it.
 					// that div will hold the dojox calendar.
@@ -254,12 +257,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						//
 						// use the current grid/db name as the 'fieldevent'
 						// for now - reevaluate
-						var fieldevent_str = this.activegrid_colname;
 						// read in entire calendarmapobj_list - note that doing a setData for every field_id request does not work as setData
 						// does not work for observable stores (setData is a function for Memory store, not the Observable wrapper)
 						// http://dojo-toolkit.33424.n3.nabble.com/dojo-store-Observable-Change-Request-td3286606.html
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
 							var field_id = item.field_id;
+							var fieldevent_str = this.newsched_name+':'+item.field_name;
 							arrayUtil.forEach(item.calendarmap_list,
 								function(item2) {
 								var data_obj = {
@@ -282,26 +285,30 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						dateInterval: "day",
 						date: this.today,
 						store: this.calendar_store,
-						style: "position:inherit;width:600px;height:600px",
+						style: "position:inherit;width:100%;height:600px",
 						cssClassFunc: function(item) {
 							return item.calendar;
 						},
 						query:{field_id:this.field_id}
 					}, calendargrid_node);
 					this.calendar.startup();
-					this.calendar.resize();
+					this.calendar.on("itemClick",
+						lang.hitch(this,this.process_clickedCalendarItem));
+					//this.calendar.resize();
 				} else {
 					// if border container has already been created, then the
 					// calendar store should already have been created, along
 					// with the dojox calendar.
 					// Here we will see if there is a different field_id, and if
 					// there is, display the configured field-specific config
-					var query_obj = new Object();
-					query_obj.field_id = this.field_id;
-					this.calendar.set("query", query_obj);
-					console.log("setquery field="+this.field_id);
-					//this.calendar.resize();
+					this.calendar.set("query", {field_id:this.field_id});
+					// ref http://stackoverflow.com/questions/12585051/dojox-calendar-and-jsonrest-how-to-update
+					// unlike dgrid, set("store",) must be explicitly called
+					// for the new store query to take effect
+					this.calendar.set("store", this.calendar_store);
 				}
+				this.calendar.resize();
+
 				/*
 				// technically the form_dom covers the parent Container that encloses both the form and the calendar div
 				// to make border container use visibility property instead of display
@@ -464,6 +471,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 				} else {
 					alert("end time must be later than start timse");
 				}
+			},
+			process_clickedCalendarItem: function(event) {
+				var select_id = event.item.id;
+				// query should return a one-element list
+				var match_obj = this.calendar_store.query({id:select_id})[0];
 			},
 			// handler for clicking on calendar item/slot
 			clickedItemProcess: function(event) {
@@ -871,6 +883,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 							end_time:end_time});
 					})
 					this.calendarmapobj_list.push({field_id:item.field_id,
+						field_name:item.field_name,
 						calendarmap_list:calendarmap_list})
 				}, this);
 				// datalist modifications end above. However, there are other

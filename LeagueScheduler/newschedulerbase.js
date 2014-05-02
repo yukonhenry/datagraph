@@ -47,7 +47,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newfaircpane_schedgrid_id:'newfaircpane_schedgrid_id',
 			newfaircpane_select_id:'newfaircpane_select_id',
 			defaultselect_db_type:'rrdb',
-			db_type:'newscheddb'
+			db_type:'newscheddb',
+			slot_id:'slot_id',
+			game_id:'game_id',
+			team_id:'team_id',
+			fair_id:'fair_id'
 		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
@@ -452,7 +456,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Team',
 				}
 				this.createnewsched_pane(args_obj);
-				this.prepgrid_data('team_id', dbstatus)
+				this.prepgrid_data(constant.team_id, dbstatus)
 				// add fairness metrics cpane
 				args_obj = {
 					suffix_id:constant.newfaircpane_id,
@@ -460,7 +464,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Fairness Metrics',
 				}
 				this.createnewsched_pane(args_obj);
-				this.prepgrid_data('fair_id', dbstatus)
+				this.prepgrid_data(constant.fair_id, dbstatus)
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
@@ -476,10 +480,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					select_value = this.fg_select_value;
 					db_type = 'fielddb';
 					this.getgrid_data(idproperty, select_value, db_type);
-				} else if (idproperty == 'team_id') {
+				} else if (idproperty == constant.team_id) {
 					statusnode_id = constant.newteamcpane_txt_id;
 					this.getdivselect_dropdown(idproperty, constant.newteamcpane_select_id);
-				} else if (idproperty == 'fair_id') {
+				} else if (idproperty == constant.fair_id) {
 					statusnode_id = constant.newfaircpane_txt_id;
 					this.getdivselect_dropdown(idproperty, constant.newfaircpane_select_id);
 				}
@@ -571,13 +575,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					select_reg.set("options", option_list);
 					select_reg.startup();
 
-					if (idproperty == 'team_id') {
+					if (idproperty == constant.team_id) {
 						if (this.teamdivselect_handle)
 							this.teamdivselect_handle.remove();
 						this.teamdivselect_handle = select_reg.on("change",
 							lang.hitch(this, this.createteaminfo_grid,
 								option_list, idproperty));
-					} else if (idproperty == 'fair_id') {
+					} else if (idproperty == constant.fair_id) {
 						if (this.fairdivselect_handle)
 							this.fairdivselect_handle.remove();
 						this.fairdivselect_handle = select_reg.on("change",
@@ -601,7 +605,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var query_obj = {div_age:match.div_age,
 					div_gen:match.div_gen};
 				// Note team_id below in columnsdef does not reflect
-				// idproperty - we are merely creating a grid of team id's whether idproperty is 'team_id' or 'fair_id'
+				// idproperty - we are merely creating a grid of team id's whether idproperty is constant.team_id or constant.fair_id
 				var columnsdef_obj = {team_id:"Team ID"}
 				var griddata_list = new Array();
 				for (var i=1; i<totalteams+1; i++) {
@@ -706,7 +710,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					grid_list.push(grid_row);
 				}, this)
 				this.createsched_grid(idproperty, grid_list, columnsdef_obj,
-					'slot_id');
+					constant.slot_id);
 			},
 			createfieldsched_grid: function(adata, options_obj) {
 				// create schedule grid defined by selected field_id
@@ -729,7 +733,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					item.game_id = index+1; //to be used as idprop for store
 				})
 				this.createsched_grid(idproperty, game_list, columnsdef_obj,
-					'game_id');
+					constant.game_id);
 			},
 			createteamsched_grid: function(adata, options_obj) {
 				var idproperty = options_obj.idproperty;
@@ -745,7 +749,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					item.game_id = index+1; //to be used as idprop for store
 				})
 				this.createsched_grid(idproperty, game_list, columnsdef_obj,
-					'game_id');
+					constant.game_id);
 			},
 			createfairsched_grid: function(adata, options_obj) {
 				var idproperty = options_obj.idproperty;
@@ -771,7 +775,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				})
 				//
 				this.createsched_grid(idproperty, metrics_list, columnsdef_obj,
-					'team_id');
+					constant.team_id);
 			},
 			createsched_grid: function(idproperty, game_list, columnsdef_obj, store_idProperty) {
 				// get store and grid for this idproperty
@@ -819,7 +823,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					text_str = event_data.div_age+event_data.div_gen + " selected";
 				} else if (idproperty == 'field_id') {
 					text_str = event_data.field_name + " selected";
-				} else if (idproperty == 'team_id') {
+				} else if (idproperty == constant.team_id) {
 					text_str = "Team ID#"+event_data.team_id + " selected";
 				}
 				dom.byId(schedheader_id).innerHTML = text_str;
