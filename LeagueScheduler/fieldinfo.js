@@ -5,12 +5,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox",
 	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
 	"dijit/form/Button", "dijit/Tooltip",
-	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
+	"dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dijit/layout/TitlePane",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
 		TimeTextBox, DateTextBox, DropDownButton, TooltipDialog, CheckBox, Button,
-		Tooltip, BorderContainer, ContentPane, put, Calendar){
+		Tooltip, BorderContainer, ContentPane, TitlePane, put, Calendar){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
 			idproperty_str:"field_id",
@@ -236,6 +236,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						id:'detailed_bordercontainer_id'
 					});
 					var detailed_leftcpane = new ContentPane({
+						splitter:true, region:'leading',
+						id:'detailed_leftcpane_id'
+					})
+					var title_pane = new TitlePane({
 
 					})
 					// underneath the above bordercontainer we have another
@@ -246,6 +250,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						splitter:true, region:'center', class:'allauto',
 						content:calendargrid_node
 					})
+					detailed_bordercontainer.addChild(detailed_leftcpane);
 					detailed_bordercontainer.addChild(detailed_rightcpane);
 					detailed_bordercontainer.startup();
 					fieldinfocpane.addChild(detailed_bordercontainer);
