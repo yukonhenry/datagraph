@@ -1,4 +1,5 @@
-define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
+define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
+	"dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
@@ -10,7 +11,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 	"dijit/TitlePane",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
-		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
+		arrayUtil, registry, editor, baseinfo, baseinfoSingleton,
+		WidgetGen,
 		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
 		CheckBox, Button, Form, ValidationTextBox,
 		Tooltip, BorderContainer, ContentPane, TitlePane, put, Calendar){
@@ -261,6 +263,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// calendar.
 					fieldselect_list[this.field_id-1].selected = true;
 					this.fieldselect_widget.addOption(fieldselect_list);
+					put(tpcontent_node, "br, br");
 					//fieldselect_widget.startup();
 					// end defining field select widget
 					// start defining form under titlepane
@@ -269,14 +272,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// http://stackoverflow.com/questions/15000249/how-to-make-and-display-a-form-in-a-dijit-dialog-programmatically
 					// http://blackcatsolutions.co.uk/blog/programmatic-form-creation-with-dojo
 					// create dojo form widget
-					var tpform_node = put(tpcontent_node, "form#tpform_id");
-					//var tpform_widget = new Form({}, tpform_node);
-					put(tpform_node, "label.label_box[for=fieldevent_id]",
+					//var tpform_node = put(tpcontent_node, "form#tpform_id");
+					var tpform_widget = new Form({id:"tpform_id`"}, tpcontent_node);
+					// Note tpform_node does not equal tpform_node, but confirm
+					put(tpform_widget.domNode,
+						"label.label_box[for=fieldevent_id]",
 						"Event Name:")
-					/*
-					var tpform_validationtext_node = put(tpform_node,
+					var tpform_input_node = put(tpform_widget.domNode,
 						"input#fieldevent_id");
-					var tpform_validationtext_widget = new ValidationTextBox({
+					var tpform_input_widget = new ValidationTextBox({
 						value:'',
 						required:true,
 						regExp:'[\\w]+',
@@ -284,7 +288,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 						invalidMessage:'only alphanumeric characters and _',
 						missingMessage:'enter event name',
 						type:'text'
-					}, tpform_validationtext_node); */
+					}, tpform_input_node);
+
 					var title_pane = new TitlePane({
 						title:'Select Dates',
 						content:tpcontent_node
