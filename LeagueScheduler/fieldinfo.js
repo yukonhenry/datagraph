@@ -269,18 +269,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare","dojo/_base/la
 					// http://stackoverflow.com/questions/15000249/how-to-make-and-display-a-form-in-a-dijit-dialog-programmatically
 					// http://blackcatsolutions.co.uk/blog/programmatic-form-creation-with-dojo
 					// create dojo form widget
-					var tpform_widget = new Form({}, tpform_node);
-					put(tpform_widget.containerNode,
-						"+label.label_box[for=fieldevent_id]",
+					var tpform_node = put(tpcontent_node, "form#tpform_id");
+					//var tpform_widget = new Form({}, tpform_node);
+					put(tpform_node, "label.label_box[for=fieldevent_id]",
 						"Event Name:")
+					/*
+					var tpform_validationtext_node = put(tpform_node,
+						"input#fieldevent_id");
 					var tpform_validationtext_widget = new ValidationTextBox({
 						value:'',
 						required:true,
 						regExp:'[\\w]+',
 						promptMessage:'Enter Event Name - only alphanumeric characters and _',
 						invalidMessage:'only alphanumeric characters and _',
-						missingMessage:'enter event name'
-					}, tpform_widget.containerNode)
+						missingMessage:'enter event name',
+						type:'text'
+					}, tpform_validationtext_node); */
 					var title_pane = new TitlePane({
 						title:'Select Dates',
 						content:tpcontent_node
