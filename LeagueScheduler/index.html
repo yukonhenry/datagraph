@@ -26,7 +26,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.19y";
+                var version_str = "v1.0.0.20e";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", running since "+ today.toLocaleDateString();
@@ -143,11 +143,6 @@
                     <div id="dummy_id" data-dojo-type="dijit/layout/ContentPane"></div>
                     <div id="newschedcpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <form data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id">
-                            <!--<label for="newsched_input_id">New Schedule Name</label>
-                            <input id="newsched_input_id"/> -->
-                        <!--
-                            <input type="text" name="newsched_input" id="newsched_input_id" value="PHMSA2013" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Schedule Name"
-                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/> -->
                         </form>
                     </div>
                     <div id="seasoncalendar_input" data-dojo-type="dijit/layout/ContentPane">

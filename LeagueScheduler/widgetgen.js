@@ -192,7 +192,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var db_type = (db_type == "") ?
                     constant.default_db_type:db_type;
                 if (colname) {
-                    var options_obj = {colname:colname, info_obj:info_obj};
+                    var options_obj = {colname:colname, info_obj:info_obj,
+                        db_type:db_type};
                     this.server_interface.getServerData(
                         'get_dbcol/'+db_type+'/'+colname,
                         lang.hitch(this, this.create_divstr_list), null,

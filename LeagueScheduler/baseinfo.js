@@ -18,7 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			server_interface:null, editgrid:null, uistackmgr:null,
 			storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
-			button_div:null, schedutil_obj:null, activegrid_colname:"",
+			schedutil_obj:null, activegrid_colname:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
@@ -247,21 +247,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
 				this.update_configdone(-1); // reset
-				// https://github.com/kriszyp/put-selector
-				// button is enclosed in a div
-				// outer div has class that has the float:right property
-				/*
-				var generate_button = null;
-				if (!this.button_div) {
-					this.button_div = put(updatebtn_widget.domNode,
-						"+div.generate_button button");
-					generate_button = new Button({
-						label:"Generate", type:"button", class:"success"},
-						this.button_div);
-					generate_button.startup();
-				} else {
-					generate_button = registry.byId(this.button_div);
-				} */
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str) {
 				var infobtn_widget = registry.byId(constant.infobtn_id);

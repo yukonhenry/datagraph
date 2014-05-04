@@ -38,7 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			field_id:0, old_field_id:-1, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
-			divstr_colname:"", divstr_db_type:"",
+			divstr_colname:"", divstr_db_type:"rrdb",
 			infogrid_store:null, calendarmapobj_list:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
@@ -87,7 +87,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						/*
 						set: function(item) {
 							if (this.columntype) {
-								var column_obj = item.start_time;
 								var time_str = column_obj.toLocaleTimeString();
 								console.log("setitem="+time_str);
 								this.columntype = false;
@@ -263,7 +262,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// calendar.
 					fieldselect_list[this.field_id-1].selected = true;
 					this.fieldselect_widget.addOption(fieldselect_list);
-					put(tpcontent_node, "br, br");
+					put(tpcontent_node, "br, hr");
 					//fieldselect_widget.startup();
 					// end defining field select widget
 					// start defining form under titlepane
@@ -271,25 +270,51 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// reference
 					// http://stackoverflow.com/questions/15000249/how-to-make-and-display-a-form-in-a-dijit-dialog-programmatically
 					// http://blackcatsolutions.co.uk/blog/programmatic-form-creation-with-dojo
+					// However, despite the references above - where the goal was
+					// to try to minimize put() statements to create nodes before creating
+					// a widget, and because of the label elements that did not have
+					// and equivalent dojo widget, we went back to the methodology
+					// of creating nodes using put() first, and then creating widgets
+					// on top of the created nodes.  See also baseinfo.js with use
+					// of dbname widgets etc.
 					// create dojo form widget
-					//var tpform_node = put(tpcontent_node, "form#tpform_id");
-					var tpform_widget = new Form({id:"tpform_id`"}, tpcontent_node);
-					// Note tpform_node does not equal tpform_node, but confirm
-					put(tpform_widget.domNode,
-						"label.label_box[for=fieldevent_id]",
-						"Event Name:")
-					var tpform_input_node = put(tpform_widget.domNode,
+					var tpform_node = put(tpcontent_node, "form#tpform_id");
+					var tpform_widget = new Form({}, tpform_node);
+					var tpform_domnode = tpform_widget.domNode;
+					// Note tpform_domnode does not equal tpform_node, but confirm
+					// create elements that fall under form
+					put(tpform_domnode,
+						"label.label_box[for=fieldevent_id]", "Event Name:");
+					var tpform_input_node = put(tpform_domnode,
 						"input#fieldevent_id");
 					var tpform_input_widget = new ValidationTextBox({
-						value:'',
-						required:true,
-						regExp:'[\\w]+',
+						value:'', required:true, regExp:'[\\w]+',
 						promptMessage:'Enter Event Name - only alphanumeric characters and _',
 						invalidMessage:'only alphanumeric characters and _',
 						missingMessage:'enter event name',
-						type:'text'
+						type:'text',
+						style:'width:150px'
 					}, tpform_input_node);
-
+					put(tpform_domnode,"br, br");
+					// create date input
+					put(tpform_domnode,
+						"label.label_box[for=eventdate_id]", "Event Date:");
+					var tpform_date_node = put(tpform_domnode,
+						"input#eventdate_id");
+					var tpform_date_widget = new DateTextBox({
+						value:this.today,
+						style:'width:150px'
+					}, tpform_date_node);
+					put(tpform_domnode,"br, br");
+					// create time input
+					put(tpform_domnode,
+						"label.label_box[for=starttime_id]", "Start:");
+					var tpform_starttime_node = put(tpform_domnode,
+						"input#starttime_id");
+					var tpform_starttime_widget = new TimeTextBox({
+						value:"T08:00:00",
+						style:'width:110px'
+					}, tpform_starttime_node);
 					var title_pane = new TitlePane({
 						title:'Select Dates',
 						content:tpcontent_node
@@ -320,7 +345,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// http://dojo-toolkit.33424.n3.nabble.com/dojo-store-Observable-Change-Request-td3286606.html
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
 							var field_id = item.field_id;
-							var fieldevent_str = this.newsched_name+':'+item.field_name;
+							var fieldevent_str = this.activegrid_colname+':'+item.field_name;
 							arrayUtil.forEach(item.calendarmap_list,
 								function(item2) {
 								var data_obj = {
@@ -855,7 +880,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					topdiv_node:topdiv_node, select_id:select_id,
 					init_db_type:init_db_type,
 					init_colname:init_colname,
-					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, init_db_type, this),
+					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this.divstr_db_type, this),
 					name_str:"league select",
 					label_str:"Select League",
 					put_trail_spacing:"br"}
@@ -865,11 +890,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			radio1_callback: function(select_id, event) {
 				if (event) {
 					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
+					this.divstr_db_type = 'rrdb';
 				}
 			},
 			radio2_callback: function(select_id, event) {
 				if (event) {
 					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
+					this.divstr_db_type = 'tourndb';
 				}
 			},
 			// set and get divinfo  obj information that is attached to the current
@@ -914,7 +941,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				return config_status;
 			},
-			// modify field_id-specific data returned from server
+			// modify field_id-specific data returned from server, which consists
+			// of converting date/time strings to js date objects needed for dojo
+			// widgets.
+			// also create (in js) calendarmap_list which maps fieldday_id to date objects
 			modifyserver_data: function(data_list, divstr_obj) {
 				if (this.calendarmapobj_list)
 					delete this.calendarmapobj_list;
