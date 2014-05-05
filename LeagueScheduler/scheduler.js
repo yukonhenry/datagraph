@@ -449,7 +449,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
 			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
-			on(registry.byId("editPane"),"load",scrollTopEditPane);
+			//on(registry.byId("editPane"),"load",scrollTopEditPane);
 			//on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			//			on(registry.byId("newdivinfo_item"), "click",initNewDivInfo
 			//	);

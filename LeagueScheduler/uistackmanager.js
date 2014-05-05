@@ -1,7 +1,7 @@
 /* manage UI content pane structure, especially switching stack container panes */
-define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 	"dijit/registry", "dojo/domReady!"],
-	function(declare, lang, arrayUtil, registry) {
+	function(declare, lang, arrayUtil, dom, registry) {
 		var constant = {
 			// param stack id's
 			pstackcontainer_id:"paramStackContainer_id",
@@ -185,6 +185,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// do the reisze after the pane has been selected
 				if (this.current_grid)
 					this.current_grid.resize();
+				this.scrollTopEditPane()
 			},
 			check_initialize: function(info_obj, event) {
 				/* initialization UI is selected; manage pane change to initialization UI
@@ -378,6 +379,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						}
 					}
 				}
+			},
+			scrollTopEditPane: function() {
+				console.log("scroll to top");
+				//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
+				// ensure edit pane scroll resets to top
+				// seems like scrolling to top only works if it works off of onLoad and not onShow
+				var pane_dom = dom.byId("editPane");
+				pane_dom.scrollTop = 0;
 			}
 		});
 	}

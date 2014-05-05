@@ -35,13 +35,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			starttime_handle:null, tooltip:null,
 			datetimeset_handle:null,
 			calendar:null, db_type:constant.db_type,
-			field_id:0, old_field_id:-1, fieldselect_handle:null,
+			field_id:0, old_field_id:-1,
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"rrdb",
 			infogrid_store:null, calendarmapobj_list:null,
 			tpform_btn_widget:null, tpform_delbtn_widget:null,
-			tpform_savebtn_widget:null,
+			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
 			caldelta_store:null, caldelta_id:0,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
@@ -264,7 +264,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}
 					// initialize selected value with field_id row that selected
 					// calendar.
-					fieldselect_list[this.field_id-1].selected = true;
+					fieldselect_list[field_id-1].selected = true;
 					this.fieldselect_widget.addOption(fieldselect_list);
 					put(tpcontent_node, "br, hr");
 					//fieldselect_widget.startup();
@@ -334,14 +334,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var tpform_delbtn_node = put(tpform_domnode,
 						"button.dijitButton#tpform_delbtn_id[type=button]");
 					this.tpform_delbtn_widget = new Button({
-						label:"Delete Event", class:"warning", disabled:true
+						label:"Delete Event", class:"info", disabled:true,
 					}, tpform_delbtn_node);
 					put(tpform_domnode, "br, br");
+					// save to server button
 					var tpform_savebtn_node = put(tpform_domnode,
 						"button.dijitButton#tpform_savebtn_id[type=button]");
 					this.tpform_savebtn_widget = new Button({
 						label:"Save Changes", class:"success", disabled:true
 					}, tpform_savebtn_node);
+					// cancel changes button
+					var tpform_cancelbtn_node = put(tpform_domnode,
+						"button.dijitButton#tpform_cancelbtn_id[type=button]");
+					this.tpform_cancelbtn_widget = new Button({
+						label:"cancel Changes", class:"warning", disabled:true,
+						onClick:lang.hitch(this, this.restore_caldelta, field_id),
+					}, tpform_cancelbtn_node);
 					// attach all of the above form and its widgets to the title
 					// pane
 					var title_pane = new TitlePane({
@@ -401,7 +409,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						cssClassFunc: function(item) {
 							return item.calendar;
 						},
-						query:{field_id:this.field_id}
+						query:{field_id:field_id}
 					}, calendargrid_node);
 					this.calendar.startup();
 					this.calendar.on("itemClick",
@@ -415,17 +423,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// with the dojox calendar.
 					// Here we will see if there is a different field_id, and if
 					// there is, display the configured field-specific config
-					this.calendar.set("query", {field_id:this.field_id});
+					this.calendar.set("query", {field_id:field_id});
 					// ref http://stackoverflow.com/questions/12585051/dojox-calendar-and-jsonrest-how-to-update
 					// unlike dgrid, set("store",) must be explicitly called
 					// for the new store query to take effect
 					this.calendar.set("store", this.calendar_store);
 					// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 					// autochange fieldselect drop-down selection in titlepane
-					this.fieldselect_widget.set('value', this.field_id);
+					this.fieldselect_widget.set('value', field_id);
 					this.tpform_btn_widget.set('disabled', true);
 					this.tpform_delbtn_widget.set('disabled', true);
 					this.tpform_savebtn_widget.set('disabled', true);
+					this.tpform_cancelbtn_widget.set('disabled', true);
+					// update callback with current field_id
+					this.tpform_cancelbtn_widget.set("onClick",
+						lang.hitch(this, this.restore_caldelta, field_id));
 				}
 				this.calendar.resize();
 				/*
@@ -592,13 +604,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 			},
 			process_clickedCalendarItem: function(event) {
-				var select_id = event.item.id;
+				var calendar_id = event.item.id;
 				// get store object with id==select_id
-				var match_obj = this.calendar_store.get(select_id);
+				var match_obj = this.calendar_store.get(calendar_id);
 				// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 				this.tpform_delbtn_widget.set('disabled', false);
-				this.tpform_delbtn_widget.set('onClick',
-					lang.hitch(this, this.delete_calevent, match_obj.id));
+				this.tpform_delbtn_widget.set("onClick",
+					lang.hitch(this, this.delete_calevent, calendar_id));
 			},
 			// handler for clicking on calendar item/slot
 			clickedItemProcess: function(event) {
@@ -625,8 +637,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			delete_calevent: function(calendar_id, event) {
 				this.calendar_store.remove(calendar_id);
 				this.caldelta_store.add({action:'remove', arg:calendar_id,
-					id:this.caldelta_id});
+					id:this.caldelta_id, field_id:this.field_id});
 				this.caldelta_id++;
+				this.enable_tpform_widgets();
+			},
+			enable_tpform_widgets:function() {
+				if (this.tpform_cancelbtn_widget.get('disabled'))
+					this.tpform_cancelbtn_widget.set('disabled', false);
+				if (this.tpform_savebtn_widget.get('disabled'))
+					this.tpform_savebtn_widget.set('disabled', false);
+			},
+			// restore calendar changes defined in the caldelta_store
+			restore_caldelta: function(field_id, evt) {
+				console.log("restore btn="+evt+" field="+field_id);
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
@@ -1130,8 +1153,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.starttime_handle.remove();
 				if (this.datetimeset_handle)
 					this.datetimeset_handle.remove();
-				if (this.fieldselect_handle)
-					this.fieldselect_handle.remove();
 				this.calendar.destroyRecursive();
 				//delete this.calendar;
 				delete this.calendar_store;
