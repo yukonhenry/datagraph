@@ -15,7 +15,8 @@
     </head>
     <body class="dbootstrap">
         <h1>Sports League Scheduler <small id="versiongreeting"></small> </h1>
-        <h3>Maximize fairness and meet large number of constraints</h3>
+        <h3><i>Maximize fairness and meet large number of constraints</i></h3>
+        <h5>Start by configuring Edit/Generate</h5>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
@@ -26,10 +27,10 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.20e";
+                var version_str = "v1.0.0.20j";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
-                greeting_node.innerHTML = version_str + ", running since "+ today.toLocaleDateString();
+                greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
     			//var greeting = dom.byId("greeting");
     			//greeting.innerHTML +="";
 			});

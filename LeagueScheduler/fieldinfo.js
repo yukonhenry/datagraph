@@ -29,17 +29,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		};
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
-			calendar_store:null, calendar_id:0,
+			calendar_store:null, calendar_id:1,
 			fieldselect_widget:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			starttime_handle:null, tooltip:null,
-			datetimeset_handle:null, datetimedel_handle:null,
+			datetimeset_handle:null,
 			calendar:null, db_type:constant.db_type,
 			field_id:0, old_field_id:-1, fieldselect_handle:null,
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"rrdb",
 			infogrid_store:null, calendarmapobj_list:null,
+			tpform_btn_widget:null, tpform_delbtn_widget:null,
+			tpform_savebtn_widget:null,
+			caldelta_store:null, caldelta_id:0,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -249,9 +252,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						"select#fieldselect_id[name=fieldselect_id]");
 					this.fieldselect_widget = new Select({
 						name:"fieldselect_id",
-						onChange: function(event) {
-							console.log("select event="+event);
-						}
+						onChange: lang.hitch(this, function(event) {
+							// call edit_calendar with event as field_id
+							this.edit_calendar(event);
+						})
 					}, fieldselect_node);
 					var fieldselect_list = new Array();
 					// this.rownum is defined in baseinfo
@@ -292,8 +296,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						promptMessage:'Enter Event Name - only alphanumeric characters and _',
 						invalidMessage:'only alphanumeric characters and _',
 						missingMessage:'enter event name',
-						type:'text',
-						style:'width:150px'
+						type:'text', style:'width:150px'
 					}, tpform_input_node);
 					put(tpform_domnode,"br, br");
 					// create date input
@@ -302,8 +305,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var tpform_date_node = put(tpform_domnode,
 						"input#eventdate_id");
 					var tpform_date_widget = new DateTextBox({
-						value:this.today,
-						style:'width:150px'
+						value:this.today, style:'width:150px'
 					}, tpform_date_node);
 					put(tpform_domnode,"br, br");
 					// create time input
@@ -311,14 +313,41 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						"label.label_box[for=starttime_id]", "Start:");
 					var tpform_starttime_node = put(tpform_domnode,
 						"input#starttime_id");
-					var tpform_starttime_widget = new TimeTextBox({
-						value:"T08:00:00",
-						style:'width:110px'
+					this.tpform_starttime_widget = new TimeTextBox({
+						value:"T08:00:00", style:'width:110px'
 					}, tpform_starttime_node);
+					put(tpform_domnode,"br");
+					put(tpform_domnode,
+						"label.label_box[for=endtime_id]", "End:");
+					var tpform_endtime_node = put(tpform_domnode,
+						"input#endtime_id");
+					this.tpform_endtime_widget = new TimeTextBox({
+						value:"T09:00:00", style:'width:110px'
+					}, tpform_endtime_node);
+					put(tpform_domnode,"br, br");
+					// create buttons
+					var tpform_btn_node = put(tpform_domnode,
+						"button.dijitButton#tpform_btn_id[type=button]");
+					this.tpform_btn_widget = new Button({
+						label:"Change Event", class:"primary", disabled:true
+					}, tpform_btn_node);
+					var tpform_delbtn_node = put(tpform_domnode,
+						"button.dijitButton#tpform_delbtn_id[type=button]");
+					this.tpform_delbtn_widget = new Button({
+						label:"Delete Event", class:"warning", disabled:true
+					}, tpform_delbtn_node);
+					put(tpform_domnode, "br, br");
+					var tpform_savebtn_node = put(tpform_domnode,
+						"button.dijitButton#tpform_savebtn_id[type=button]");
+					this.tpform_savebtn_widget = new Button({
+						label:"Save Changes", class:"success", disabled:true
+					}, tpform_savebtn_node);
+					// attach all of the above form and its widgets to the title
+					// pane
 					var title_pane = new TitlePane({
-						title:'Select Dates',
-						content:tpcontent_node
+						title:'Select Dates', content:tpcontent_node
 					})
+
 					detailed_leftcpane.addChild(title_pane);
 					// underneath the above bordercontainer we have another
 					// cpane which itself has a div underneath it.
@@ -377,6 +406,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar.startup();
 					this.calendar.on("itemClick",
 						lang.hitch(this,this.process_clickedCalendarItem));
+					this.caldelta_store = new Memory({data:new Array()});
+					this.caldeta_id = 1;
 					//this.calendar.resize();
 				} else {
 					// if border container has already been created, then the
@@ -392,7 +423,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 					// autochange fieldselect drop-down selection in titlepane
 					this.fieldselect_widget.set('value', this.field_id);
-
+					this.tpform_btn_widget.set('disabled', true);
+					this.tpform_delbtn_widget.set('disabled', true);
+					this.tpform_savebtn_widget.set('disabled', true);
 				}
 				this.calendar.resize();
 				/*
@@ -563,6 +596,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// get store object with id==select_id
 				var match_obj = this.calendar_store.get(select_id);
 				// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
+				this.tpform_delbtn_widget.set('disabled', false);
+				this.tpform_delbtn_widget.set('onClick',
+					lang.hitch(this, this.delete_calevent, match_obj.id));
 			},
 			// handler for clicking on calendar item/slot
 			clickedItemProcess: function(event) {
@@ -575,6 +611,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.eventdate_reg.set('value', start_datetime);
 						this.starttime_reg.set('value', start_datetime);
 						this.endtime_reg.set('value', end_datetime);
+						/*
 						var datetimedel_reg = registry.byId("datetimedel_btn");
 						// note use of third parameter (optional arg to event handler) to lang.hitch
 						if (this.datetimedel_handle) {
@@ -582,10 +619,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}
 						this.datetimedel_handle = datetimedel_reg.on("click",
 							lang.hitch(this, this.datetimedel_submit, obj.id));
+*/
 					}));
 			},
-			datetimedel_submit: function(id, event) {
-				this.calendar_store.remove(id);
+			delete_calevent: function(calendar_id, event) {
+				this.calendar_store.remove(calendar_id);
+				this.caldelta_store.add({action:'remove', arg:calendar_id,
+					id:this.caldelta_id});
+				this.caldelta_id++;
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
@@ -880,7 +921,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					topdiv_node:topdiv_node, select_id:select_id,
 					init_db_type:init_db_type,
 					init_colname:init_colname,
-					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this.divstr_db_type, this),
+					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this),
 					name_str:"league select",
 					label_str:"Select League",
 					put_trail_spacing:"br"}
@@ -967,12 +1008,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// calendarmap_list includes date string, so concatenate w
 					// timestr from above and create date objects for both
 					// start and end times
-					arrayUtil.forEach(item.calendarmap_list, function(item2) {
+					arrayUtil.forEach(item.calendarmap_list,
+						function(item2, index2) {
 						var start_time = new Date(item2+' '+start_time_str)
 						var end_time = new Date(item2+' '+end_time_str)
 						calendarmap_list.push({
 							start_time:start_time,
-							end_time:end_time});
+							end_time:end_time,
+							fieldday_id:index2+1});
 					})
 					this.calendarmapobj_list.push({field_id:item.field_id,
 						field_name:item.field_name,
@@ -1087,8 +1130,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.starttime_handle.remove();
 				if (this.datetimeset_handle)
 					this.datetimeset_handle.remove();
-				if (this.datetimedel_handle)
-					this.datetimedel_handle.remove();
 				if (this.fieldselect_handle)
 					this.fieldselect_handle.remove();
 				this.calendar.destroyRecursive();

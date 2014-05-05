@@ -67,6 +67,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         value:'rrdb',
                         checked:radio1_flag,
                         style:"margin-left:5px",
+                        // ok to include league_select_id as a third parameter to
+                        // hitch as league_select_id is a fixed dom id that gets
+                        // determined when the callback is defined.
+                        // If the third parameter is determined run-time, do Not
+                        // define it as the 3rd parameter of hitch and instead get
+                        // the variable from within the callback function during
+                        // runtime.
                         onChange: lang.hitch(callback_context, radio1_callback, league_select_id)
                     }, div1_radio_node);
                     div1_radio.startup();
@@ -180,7 +187,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             // is specified as lang.hitch(this, this.getname, db_type, info_obj)
             // event comes in as the last parameter (empirically determined, should)
             // get confirmation.
-            getname_list: function(db_type, info_obj, colname) {
+            getname_list: function(info_obj, colname) {
                 // note {colname:colname} is the options_obj obj passed directly
                 // to the callback function create_divstr_list
                 // we want to pass the colname back to the callback so that the colname
@@ -189,8 +196,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // ref http://stackoverflow.com/questions/154059/how-do-you-check-for-an-empty-string-in-javascript
                 // for checking for empty string
                 // if db_type is still null, assign default
-                var db_type = (db_type == "") ?
-                    constant.default_db_type:db_type;
+                var divstr_db_type = info_obj.divstr_db_type;
+                var db_type = (divstr_db_type == "") ?
+                    constant.default_db_type:divstr_db_type;
                 if (colname) {
                     var options_obj = {colname:colname, info_obj:info_obj,
                         db_type:db_type};
