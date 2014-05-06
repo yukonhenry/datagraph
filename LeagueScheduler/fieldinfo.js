@@ -389,8 +389,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									fieldevent_str:fieldevent_str,
 									field_id:field_id,
 									summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
+									// start and end times have dates embedded
+									// in them
 									startTime:item2.start_time,
 									endTime:item2.end_time,
+									fieldday_id:item2.fieldday_id,
 									calendar:'Calendar'+field_id
 								}
 								this.calendar_store.add(data_obj);
@@ -624,8 +627,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var data_obj = this.calendar_store.get(calendar_id);
 				// re-use calendar_id as id for caldelta_store also.
 				// should not be a problem as calendar_id is unique
+				// calendar_id should be same as data_obj.id
 				this.caldelta_store.add({action:'remove', data_obj:data_obj,
-					id:delta_obj.id, field_id:this.field_id});
+					id:calendar_id, field_id:this.field_id});
 				this.calendar_store.remove(calendar_id);
 				this.enable_savecancel_widgets();
 			},
@@ -649,9 +653,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}, this);
 			},
 			send_caldelta: function(field_id, evt) {
+				// send delta field delete list to server
+				// each entry should correspond to a closed day on the designated
+				// field_id
+				var caldelta_list = new Array();
 				this.caldelta_store.query({field_id:field_id})
 					.forEach(function(item) {
-				}, this);
+					var data_obj = {
+						fieldday_id:item.fieldday_id,
+						field_id:item.field_id
+					}
+					caldelta_list.push(data_obj);
+				});
+				if (caldelta_list) {
+
+				}
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
