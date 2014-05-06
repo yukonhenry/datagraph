@@ -19,6 +19,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			storeutil_obj:null, text_node:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
 			schedutil_obj:null, activegrid_colname:"",
+			config_status:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.text_node = dom.byId(constant.text_id);
@@ -288,6 +289,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					// implement reset condition
 					gridstatus_node.innerHTML = "";
 				}
+				// save as member var so that it can be accessed (i.e. send_delta)
+				this.config_status = config_status;
 			},
 			is_serverdata_required: function(options_obj) {
 				return (options_obj.item != this.activegrid_colname)?true:false;

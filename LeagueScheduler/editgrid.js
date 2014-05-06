@@ -136,23 +136,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.cellselect_handle.remove();
 				this.cellselect_handle = this.schedInfoGrid.on("dgrid-select", lang.hitch(this, this.cellSelectHandler));
 			},
-			/*
-			manageBracketEdit: function(val) {
-				// depending on toggle value enable/disable bracket editing
-				if (this.rowSelectHandle){
-					this.rowSelectHandle.remove();
-				}
-				if (val) {
-					// if toggle switch is true
-					this.rowSelectHandle = this.schedInfoGrid.on("dgrid-select",lang.hitch(this, this.rowSelectHandler));
-				} else {
-					if (this.bracketinfo) {
-						this.bracketinfo.bracketinfotext_node.innerHTML = "";
-						this.bracketinfo.cleanup();
-						delete this.bracketinfo;
-					}
-				}
-			}, */
 			editschedInfoGrid: function(event) {
 				var val = event.value;
         		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
@@ -164,16 +147,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var eventdata = event.rows[0].data
 				var div_str = eventdata.div_age + eventdata.div_gen;
 				var totalbrackets = eventdata.totalbrackets;
-				/*
-				if (this.bracketinfo) {
-					this.bracketinfo.cleanup();
-					delete this.bracketinfo;
-				}
-				this.bracketinfo = new BracketInfo({totalbrackets:totalbrackets,
-					bracketinfo_name:"bracketInfoInputGrid",
-					bracketinfotext_node:dom.byId("bracketInfoNodeText")});
-				this.bracketinfo.createBracketInfoGrid(div_str);
-				*/
 			},
 			cellSelectHandler: function(event) {
 				if (this.info_obj) {

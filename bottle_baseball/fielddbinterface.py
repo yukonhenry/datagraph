@@ -113,8 +113,13 @@ class FieldDBInterface:
             totalfielddays += len(set(lw_list).intersection(dayweek_list))
         return totalfielddays
 
-    def remove_fieldday(self, field_id, delta_list):
-        print field_id, delta_list
+    def adjust_config(self, action_type, field_id, delta_list):
+        query_key_suffix = 'FIELD_ID'
+        if action_type == 'remove':
+            set_key_suffix = 'CLOSED_LIST'
+        status = self.dbinterface.updateSelectedFieldInfoDocument(query_key_suffix, field_id,
+            set_key_suffix, delta_list)
+        print 'adjust_config status=', status
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

@@ -115,12 +115,12 @@ class MongoDBInterface:
                                       upsert=True)
 
     def updateSchedType_doc(self, updatedoc):
-        docID = self.collection.update({sched_type_CONST:self.sched_type},
+        result_obj = self.collection.update({sched_type_CONST:self.sched_type},
                                       {"$set": updatedoc},
                                       upsert=True)
 
     def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
-        docID = self.collection.update({sched_type_CONST:self.sched_type,
+        result_obj = self.collection.update({sched_type_CONST:self.sched_type,
                                       doc_list_CONST:{"$exists":True}},
                                       {"$set": {doc_list_CONST:doc_list,
                                       config_status_CONST:config_status,
@@ -128,12 +128,28 @@ class MongoDBInterface:
                                       divstr_db_type_CONST:divstr_db_type}},
                                       upsert=True)
 
+    def updateSelectedFieldInfoDocument(self, query_key_suffix, query_value,
+        set_key_suffix, set_value):
+        ''' Update single element of an array subdocument
+        ref http://mongoblog.tumblr.com/post/21792332279/updating-one-element-in-an-array
+        http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
+        '''
+        query_key = doc_list_CONST+'.'+query_key_suffix
+        set_key = doc_list_CONST+'.$.'+set_key_suffix
+        result_obj = self.collection.update({query_key:query_value},
+            {"$set":{set_key:set_value}})
+        if 'writeConcernError' in result_obj:
+            raise CodeLogiceError("dbinterface:updatedSelecteFieldInfoDoc collection updae error=%s" %(result_obj.writeConcernError.errmsg,))
+            return -1
+        else:
+            return 1
+
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
                  start_time_CONST:old_start_time}
         updatefields = {"$set":{start_time_CONST:new_start_time}}
         logging.debug("dbinterface:updateGameTime: query=%s, update=%s", query, updatefields)
-        docID = self.collection.update(query, updatefields, safe=True)
+        result_obj = self.collection.update(query, updatefields, safe=True)
 
     def getdiv_schedule(self, age, gender):
         '''use mongodb aggregation framework to group results by shared gametime.

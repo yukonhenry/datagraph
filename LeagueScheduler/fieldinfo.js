@@ -656,21 +656,25 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// send delta field delete list to server
 				// each entry should correspond to a closed day on the designated
 				// field_id
-				var delta_list = new Array();
-				this.delta_store.query({field_id:field_id})
-					.forEach(function(item) {
-					/*
-					var data_obj = {
-						fieldday_id:item.fieldday_id,
-					} */
-					delta_list.push(item.data_obj.fieldday_id);
-				});
-				if (delta_list) {
-					var server_key_obj = {delta_str:delta_list.join(',')};
-					this.server_interface.getServerData(
-						"send_delta/remove/"+field_id, function(data) {
+				if (this.config_status) {
+					var delta_list = new Array();
+					this.delta_store.query({field_id:field_id})
+						.forEach(function(item) {
+						/*
+						var data_obj = {
+							fieldday_id:item.fieldday_id,
+						} */
+						delta_list.push(item.data_obj.fieldday_id);
+					});
+					if (delta_list) {
+						var server_key_obj = {delta_str:delta_list.join(',')};
+						this.server_interface.getServerData(
+							"send_delta/remove/"+field_id, function(data) {
 
-						}, server_key_obj)
+							}, server_key_obj)
+					}
+				} else {
+					alert("Re-Save after basic configuration is saved");
 				}
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {

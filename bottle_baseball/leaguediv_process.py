@@ -344,10 +344,8 @@ def send_delta(action_type, field_id):
     # send_data is always called from UI config grid, which generates either a
     # create_newdbcol or get_dbcol
     dbInterface = _routelogic_obj.dbinterface_obj
-    if action_type == 'remove':
-        print 'field_id', field_id, 'data', delta_str
-        dbInterface.remove_fieldday(field_id, delta_list)
-    a = json.dumps({"dbstatus":"ok"})
+    dbstatus = dbInterface.adjust_config(action_type, field_id, delta_list)
+    a = json.dumps({"dbstatus":dbstatus})
 
 @route('/get_schedule/<schedcol_name>/<idproperty>/<propid:int>')
 def get_schedule(schedcol_name, idproperty, propid):
