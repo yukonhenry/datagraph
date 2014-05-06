@@ -113,5 +113,8 @@ class FieldDBInterface:
             totalfielddays += len(set(lw_list).intersection(dayweek_list))
         return totalfielddays
 
+    def remove_fieldday(self, field_id, delta_list):
+        print field_id, delta_list
+
     def drop_collection(self):
         self.dbinterface.drop_collection()

@@ -42,7 +42,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			infogrid_store:null, calendarmapobj_list:null,
 			tpform_btn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
-			caldelta_store:null,
+			delta_store:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -347,7 +347,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var tpform_cancelbtn_node = put(tpform_domnode,
 						"button.dijitButton#tpform_cancelbtn_id[type=button]");
 					this.tpform_cancelbtn_widget = new Button({
-						label:"cancel Changes", class:"warning", disabled:true
+						label:"Cancel Changes", class:"warning", disabled:true
 					}, tpform_cancelbtn_node);
 					// attach all of the above form and its widgets to the title
 					// pane
@@ -416,7 +416,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar.startup();
 					this.calendar.on("itemClick",
 						lang.hitch(this,this.process_clickedCalendarItem));
-					this.caldelta_store = new Memory({data:new Array()});
+					this.delta_store = new Memory({data:new Array()});
 					//this.calendar.resize();
 				} else {
 					// if border container has already been created, then the
@@ -440,9 +440,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.calendar.resize();
 				// update callback with current field_id
 				this.tpform_cancelbtn_widget.set("onClick",
-					lang.hitch(this, this.restore_caldelta, field_id));
+					lang.hitch(this, this.restore_delta, field_id));
 				this.tpform_savebtn_widget.set("onClick",
-					lang.hitch(this, this.send_caldelta, field_id));
+					lang.hitch(this, this.send_delta, field_id));
 				/*
 				// create drop down to select (either) field
 				if (this.fieldselect_reg) {
@@ -604,7 +604,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			process_clickedCalendarItem: function(event) {
 				var calendar_id = event.item.id;
 				// get store object with id==select_id
-				var match_obj = this.calendar_store.get(calendar_id);
+				//var match_obj = this.calendar_store.get(calendar_id);
 				// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 				this.tpform_delbtn_widget.set('disabled', false);
 				this.tpform_delbtn_widget.set("onClick",
@@ -625,11 +625,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			delete_calevent: function(calendar_id, event) {
 				var data_obj = this.calendar_store.get(calendar_id);
-				// re-use calendar_id as id for caldelta_store also.
+				// re-use calendar_id as id for delta_store also.
 				// should not be a problem as calendar_id is unique
 				// calendar_id should be same as data_obj.id
-				this.caldelta_store.add({action:'remove', data_obj:data_obj,
-					id:calendar_id, field_id:this.field_id});
+				this.delta_store.add({action:'remove', data_obj:data_obj,
+					id:calendar_id, field_id:data_obj.field_id});
 				this.calendar_store.remove(calendar_id);
 				this.enable_savecancel_widgets();
 			},
@@ -639,34 +639,38 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (this.tpform_savebtn_widget.get('disabled'))
 					this.tpform_savebtn_widget.set('disabled', false);
 			},
-			// restore calendar changes defined in the caldelta_store
-			restore_caldelta: function(field_id, evt) {
-				this.caldelta_store.query({field_id:field_id})
+			// restore calendar changes defined in the delta_store
+			restore_delta: function(field_id, evt) {
+				this.delta_store.query({field_id:field_id})
 					.forEach(function(item) {
 					if (item.action == 'remove') {
 						// if action was 'remove', add element back to
 						// calendar store
 						this.calendar_store.add(item.data_obj)
 					}
-					// delete action item from caldelta_store
-					this.caldelta_store.remove(item.id);
+					// delete action item from delta_store
+					this.delta_store.remove(item.id);
 				}, this);
 			},
-			send_caldelta: function(field_id, evt) {
+			send_delta: function(field_id, evt) {
 				// send delta field delete list to server
 				// each entry should correspond to a closed day on the designated
 				// field_id
-				var caldelta_list = new Array();
-				this.caldelta_store.query({field_id:field_id})
+				var delta_list = new Array();
+				this.delta_store.query({field_id:field_id})
 					.forEach(function(item) {
+					/*
 					var data_obj = {
 						fieldday_id:item.fieldday_id,
-						field_id:item.field_id
-					}
-					caldelta_list.push(data_obj);
+					} */
+					delta_list.push(item.data_obj.fieldday_id);
 				});
-				if (caldelta_list) {
+				if (delta_list) {
+					var server_key_obj = {delta_str:delta_list.join(',')};
+					this.server_interface.getServerData(
+						"send_delta/remove/"+field_id, function(data) {
 
+						}, server_key_obj)
 				}
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {

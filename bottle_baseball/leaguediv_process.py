@@ -247,6 +247,7 @@ def create_newdbcol(db_type, newcol_name):
                             divstr_db_type=divstr_db_type)
     else:
         raise CodeLogicError("leaguedivprocess:create_newdbcol: db_type not recognized db_type=%s" % (db_type,))
+    _routelogic_obj.dbinterface_obj = dbInterface
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
@@ -266,8 +267,9 @@ def delete_dbcol(db_type, delcol_name):
 @route('/get_dbcol/<db_type>/<getcol_name>')
 def get_dbcol(db_type, getcol_name):
     callback_name = request.query.callback
-    #db_type = request.query.db_type
     dbInterface = select_db_interface(db_type, getcol_name)
+    # save as member of global routelogic object to be used in send_delta function
+    _routelogic_obj.dbinterface_obj = dbInterface
     if db_type == 'newscheddb':
         return_obj = {'param_obj':dbInterface.getschedule_param()}
     else:
@@ -332,6 +334,20 @@ def send_generate():
     dbstatus = schedMaster.generate()
     a = json.dumps({"dbstatus":dbstatus})
     return callback_name+'('+a+')'
+
+@route('/send_delta/<action_type>/<field_id:int>')
+def send_delta(action_type, field_id):
+    callback_name = request.query.callback
+    delta_str = request.query.delta_str
+    delta_list = [int(x) for x in delta_str.split(',')]
+    # get dbinterface_obj assigned during create_newdbcol
+    # send_data is always called from UI config grid, which generates either a
+    # create_newdbcol or get_dbcol
+    dbInterface = _routelogic_obj.dbinterface_obj
+    if action_type == 'remove':
+        print 'field_id', field_id, 'data', delta_str
+        dbInterface.remove_fieldday(field_id, delta_list)
+    a = json.dumps({"dbstatus":"ok"})
 
 @route('/get_schedule/<schedcol_name>/<idproperty>/<propid:int>')
 def get_schedule(schedcol_name, idproperty, propid):
