@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.20p";
+                var version_str = "v1.0.0.20r";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -281,6 +281,7 @@
     			<div id="metricsHeader"></div>
     			<div id="metricsGrid"></div>
     		</div>
+            <!--
     		<div data-dojo-type="dijit/layout/ContentPane" title="Download Here" id="DownloadPane">
                 <div id="divScheduleLinks">
     			<b>Schedules for Download</b><br><br>
@@ -322,14 +323,7 @@
                 </span>
                 <div id="dbstatus1_txt"></div>
     		</div>
-            <!--
-            <div data-dojo-type="dijit/layout/ContentPane" title="Tournament" id="tournamentPane">
-                <label for="elimDivisionSelect">Select Division</label>
-                <select id="elimDivisionSelect" data-dojo-type="dijit/form/Select" name="elimdivisionSelect">
-                </select>
-                <b>Selection division</b>
-                <div id="elimDivisionGrid"></div>
-            </div> -->
+            -->
     	</div>
     </body>
 </html>

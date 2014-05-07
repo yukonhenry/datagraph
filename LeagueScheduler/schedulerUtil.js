@@ -24,7 +24,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			infobtn_id:"infoBtnNode_id",
 		};
 		var status_dom = dom.byId("dbstatus_txt");
-		var status1_dom = dom.byId("dbstatus1_txt");
+		//var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
 			leaguedata: null, server_interface:null,
 			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
@@ -65,7 +65,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
   				return time.join (''); // return adjusted time or original string
 			},
 			updateDBstatusline: function(dbstatus) {
-				arrayUtil.forEach([status_dom, status1_dom], function(item_dom, index) {
+				arrayUtil.forEach([status_dom], function(item_dom, index) {
 					if (dbstatus) {
 						item_dom.innerHTML = "Schedule in database, Ready";
 						item_dom.style.color = 'green';

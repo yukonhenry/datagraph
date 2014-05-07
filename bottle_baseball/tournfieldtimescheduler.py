@@ -106,9 +106,10 @@ class TournamentFieldTimeScheduler:
                     search_tuple = self.getSearchStart_daytime(div_id, home, away, field_list, latest_endtime-gameinterval)
                     current_gameday = search_tuple[0]
                     current_start = search_tuple[1]
-                    # start time calc needs to be done here as start times for fields may change based non gameday
+                    # start time calc needs to be done here as start times for fields may change based on gameday
+                    # if check in the list comprehension below exists as slotstatus_list[index] might be None if there is a closed_list
+                    # (closed gameday list)
                     starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list if self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1]]
-                    #starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_gameday-1][0]['start_time']) for f in field_list]
                     found_tuple = self.findAlternateFieldSlot(field_list, current_gameday, current_start, starttime_list, endtime_list, gameinterval, div_id, home, away)
                     #earliest_dict = earliestfield_list.pop()
                     #efield = earliest_dict['field_id']
@@ -118,30 +119,6 @@ class TournamentFieldTimeScheduler:
                     egameday = found_tuple.gameday_id
                     selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][egameday-1][eslot]
                     logging.debug("tournftscheduler:generate:assignment success rrgame %s gameday %d field %d slot %d", rrgame, egameday, efield, eslot)
-                    '''
-                    validation_tuple = self.validateTimeSlot(div_id, efield, egameday, eslot, home, away)
-                    if not validation_tuple[0]:
-                        logging.debug("tournftscheduler:generate: validation failed div %d gameday %d eslot %d newgameday %d newslot %d field %d", div_id, current_gameday, eslot, validation_tuple[2], validation_tuple[1], efield)
-                        alt_tuple = self.findAlternateFieldSlot(field_list, validation_tuple[2], validation_tuple[1], div_id, rrgame['home'], rrgame['away'])
-                        if alt_tuple:
-                            alt_field = alt_tuple.field_id
-                            alt_gameday = alt_tuple.gameday_id
-                            #current_gameday = alt_gameday
-                            #if div_id in u10div_tuple:
-                             #   current_gameday_list[div_id-1] = current_gameday
-                            alt_slot = alt_tuple.slot_index
-                            selected_tfstatus = self.tfstatus_list[self.tfindexerGet(alt_field)]['slotstatus_list'][alt_gameday-1][alt_slot]
-                            revalidation_tuple = self.validateTimeSlot(div_id, alt_field, alt_gameday, alt_slot, rrgame['home'], rrgame['away'])
-                            if not revalidation_tuple[0]:
-                                raise CodeLogicError("tournftscheduler:generateSchedule: revalidation should have worked")
-                            else:
-                                logging.debug("tournftscheduler:generate:second revalidation success rrgame %s field %d slot %d", rrgame, alt_field, alt_slot)
-                        else:
-                            raise FieldAvailabilityError(div_id)
-                    else:
-                        selected_tfstatus = self.tfstatus_list[self.tfindexerGet(efield)]['slotstatus_list'][egameday-1][eslot]
-                        logging.debug("tournftscheduler:generate:first revalidation success rrgame %s field %d slot %d", rrgame, efield, eslot)
-                    '''
                     if selected_tfstatus['isgame']:
                         raise CodeLogicError("tournftscheduler:generate:game is already booked:")
                     selected_tfstatus['isgame'] = True
@@ -458,17 +435,3 @@ class TournamentFieldTimeScheduler:
             gameday_ind = slot_count / total_gameday_slots
             slot_index = slot_count % total_gameday_slots / total_fields
             fstatus[1][gameday_ind][slot_index]['div_id'] = div_id
-
-#        for fstatus in fstatus_list:
-#           print 'field fstatus', fstatus[0], fstatus[1]
-        '''
-        for div_id in connected_div_list:
-            reserve_days = self.divinfo_list[self.dindexerGet(div_id)]['rr_gamedays']
-            #for f in field_list:
-            #    self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][gameday_ind][target_slot]
-
-            fstatus_list = [(f, self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list']) for f in field_list]
-            fstatus_cycle = cycle(fstatus_list)
-            for gameday_ind in range(reserve_days):
-        '''
-

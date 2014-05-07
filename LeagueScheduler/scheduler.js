@@ -59,9 +59,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			},
 			selectionMode:"single"
 		}, "fieldInfoGrid");    // div ID
-		//script.get(constant.SERVER_PREFIX+"leaguedivinfo", {
-		//	jsonp:"callback"
-		//}).then(function(ldata){
 		var leaguediv_func = function(ldata) {
 			ldata_array = ldata.leaguedivinfo;
 			var fdata_array = ldata.field_info;
@@ -79,9 +76,9 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
-			schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
+			//schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
-			schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
+			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
 			var rrdbcollection_list = ldata.rrdbcollection_list;
 			// fill initial store and create dropdown menu
@@ -94,6 +91,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)
 			storeutil_obj.create_menu('sched_id', schedinfo_obj, false);
 			// generate dropdown for 'generate cup schedule'
+			/*
 			var cupdbcollection_list = ldata.tourndbcollection_list;
 			var cupdbcollection_smenu_reg = registry.byId("cupdbcollection_submenu");
 			schedUtil.generateDBCollection_smenu(cupdbcollection_smenu_reg,
@@ -103,6 +101,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedUtil.generateDBCollection_smenu(exportcupdbcollection_smenu_reg,
 				cupdbcollection_list, schedUtil, schedUtil.export_rr2013,
 				{db_type:'export'});
+			*/
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
 			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
@@ -440,8 +439,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			schedinfo_obj.uistackmgr = uiStackManager;
 			newschedbase_obj.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
-			on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
-			on(registry.byId("export_btn"), "click", exportSchedule);
+			//on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
+			//on(registry.byId("export_btn"), "click", exportSchedule);
 			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
 			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
@@ -462,9 +461,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("newsched_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize,
 					newschedbase_obj));
-			on(registry.byId("elimination2013"), "click", elimination2013);
-			on(registry.byId("export_elimination2013"), "click", export_elim2013);
-			//on(registry.byId("elimDivisionSelect"), "change", getElimDivisionData);
+			//on(registry.byId("elimination2013"), "click", elimination2013);
+			//on(registry.byId("export_elimination2013"), "click", export_elim2013);
  		});
 	}
 );

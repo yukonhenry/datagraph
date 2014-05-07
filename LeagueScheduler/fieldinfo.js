@@ -139,7 +139,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}, TimeTextBox),
 					dayweek_str:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
-					detaileddates: {label:"Detail Config",
+					detaileddates: {label:"Detailed Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
 					totalfielddays: {label:"# Open Field Days",
 						set:lang.hitch(this, this.calc_totalfielddays)
@@ -369,7 +369,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					detailed_bordercontainer.startup();
 					fieldinfocpane.addChild(detailed_bordercontainer);
 					// create store that feeds the dojox calendar
+					if (this.calendar_store)
+						delete this.calendar_store
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
+					if (this.delta_store)
+						delete this.delta_store
+					this.delta_store = new Memory({data:new Array()});
 					if (this.calendarmapobj_list) {
 						// copy fieldinfo data originally returned from server to
 						// create fieldinfo grid, to dojox calendar store
@@ -382,8 +387,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
 							var field_id = item.field_id;
 							var fieldevent_str = this.activegrid_colname+':'+item.field_name;
+							var closed_list = null;
+							if ('closed_list' in item) {
+								closed_list = item.closed_list;
+							}
 							arrayUtil.forEach(item.calendarmap_list,
 								function(item2) {
+								var fieldday_id = item2.fieldday_id;
 								var data_obj = {
 									id:this.calendar_id,
 									fieldevent_str:fieldevent_str,
@@ -393,10 +403,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									// in them
 									startTime:item2.start_time,
 									endTime:item2.end_time,
-									fieldday_id:item2.fieldday_id,
+									fieldday_id:fieldday_id,
 									calendar:'Calendar'+field_id
 								}
-								this.calendar_store.add(data_obj);
+								if (closed_list && closed_list.indexOf(fieldday_id) > -1) {
+									// if fieldday_id falls in a closed_list, then
+									// add to delta store instead of calendar store
+									this.delta_store.add({action:'remove',
+										data_obj:data_obj,
+										id:this. calendar_id, field_id:field_id});
+								} else {
+									this.calendar_store.add(data_obj);
+								}
 								this.calendar_id++;
 							}, this);
 						}, this);
@@ -416,7 +434,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar.startup();
 					this.calendar.on("itemClick",
 						lang.hitch(this,this.process_clickedCalendarItem));
-					this.delta_store = new Memory({data:new Array()});
 					//this.calendar.resize();
 				} else {
 					// if border container has already been created, then the
@@ -1066,9 +1083,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							end_time:end_time,
 							fieldday_id:index2+1});
 					})
-					this.calendarmapobj_list.push({field_id:item.field_id,
+					var obj = {
+						field_id:item.field_id,
 						field_name:item.field_name,
-						calendarmap_list:calendarmap_list})
+						calendarmap_list:calendarmap_list
+					}
+					if ('closed_list' in item) {
+						obj.closed_list = item.closed_list;
+					}
+					this.calendarmapobj_list.push(obj)
 				}, this);
 				// datalist modifications end above. However, there are other
 				// field_id-specific processing that needs to be done, concerning
@@ -1182,6 +1205,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.calendar.destroyRecursive();
 				//delete this.calendar;
 				delete this.calendar_store;
+				delete this.delta_store;
 				if (this.tooltip)
 					this.tooltip.destroyRecursive();
 			}
