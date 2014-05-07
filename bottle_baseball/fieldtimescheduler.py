@@ -2103,14 +2103,23 @@ class FieldTimeScheduleGenerator:
             sstatus_len = len(sstatus_list)
             #slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
             ratio = totalfielddays/totalgamedays
-            #f_dayweek_len = len(f['dayweek_list'])
-            # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
-            # when assigning fieldslots, round_id from the match generator should
-            # match up with the round_id
-            slotstatus_list = [{'fieldday_id':i, 'game_date':calendarmap_list[i-1],
-                'round_id':(i-1)/ratio+1,
-                'sstatus_list':deepcopy(sstatus_list)}
-                for i in range(1,totalfielddays+1)]
+            closed_list = f.get('closed_list')
+            if closed_list:
+                print 'closed_list', closed_list
+                slotstatus_list = [{'fieldday_id':i,
+                    'game_date':calendarmap_list[i-1], 'round_id':(i-1)/ratio+1,
+                    'sstatus_list':deepcopy(sstatus_list)}
+                    if i in closed_list else None
+                    for i in range(1,totalfielddays+1)]
+            else:
+                #f_dayweek_len = len(f['dayweek_list'])
+                # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
+                # when assigning fieldslots, round_id from the match generator should
+                # match up with the round_id
+                slotstatus_list = [{'fieldday_id':i, 'game_date':calendarmap_list[i-1],
+                    'round_id':(i-1)/ratio+1,
+                    'sstatus_list':deepcopy(sstatus_list)}
+                    for i in range(1,totalfielddays+1)]
             # create lambda function to return list of indices where round_id matches
             # note this is different from standard indexerGet as multiple indices
             # may match.  A failure to match returns and empty list.  A single match
@@ -2118,13 +2127,6 @@ class FieldTimeScheduleGenerator:
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
             round_indexerMatch = lambda x: [i for i,p in enumerate(slotstatus_list) if p['round_id']==x]
             rg_indexerMatch = lambda x,y: [i for i,p in enumerate(slotstatus_list) if p['round_id']==x and p['fieldday_id']==y]
-            closed_gameday_list = f.get('closed_gameday_list')
-            if closed_gameday_list:
-                # if there are fields that are closed on certain days, then slotstatus
-                # entry must be set to null; note gameslotsperday is Not nulled out as the field
-                # applies to the whole season and not individual games.
-                for gameday in closed_gameday_list:
-                    slotstatus_list[gameday-1] = None
             fieldstatus_list.append({'field_id':f['field_id'],
                 'slotstatus_list':slotstatus_list,
                 'round_indexerMatch':round_indexerMatch,

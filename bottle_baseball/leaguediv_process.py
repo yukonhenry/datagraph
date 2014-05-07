@@ -11,7 +11,7 @@ from matchgenerator import MatchGenerator
 from basicfieldtimescheduler import BasicFieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface, DB_Col_Type
 from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
-     getFieldInfo, getTournamentFieldInfo, getTournAgeGenderDivision
+     getFieldInfo, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 from eliminationscheduler import EliminationScheduler
