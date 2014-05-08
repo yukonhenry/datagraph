@@ -387,10 +387,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
 							var field_id = item.field_id;
 							var fieldevent_str = this.activegrid_colname+':'+item.field_name;
+							/*
 							var closed_list = null;
 							if ('closed_list' in item) {
 								closed_list = item.closed_list;
-							}
+							} */
 							arrayUtil.forEach(item.calendarmap_list,
 								function(item2) {
 								var fieldday_id = item2.fieldday_id;
@@ -406,6 +407,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 									fieldday_id:fieldday_id,
 									calendar:'Calendar'+field_id
 								}
+								/*
 								if (closed_list && closed_list.indexOf(fieldday_id) > -1) {
 									// if fieldday_id falls in a closed_list, then
 									// add to delta store instead of calendar store
@@ -414,10 +416,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 										id:this. calendar_id, field_id:field_id});
 								} else {
 									this.calendar_store.add(data_obj);
-								}
+								} */
+								this.calendar_store.add(data_obj);
 								this.calendar_id++;
 							}, this);
 						}, this);
+					} else {
+						// if this.calendarmapobj_list does not exist, then no data
+						// has been returned from the server.  Instead, retrieve
+						// data from the current store
+						var item = this.editgrid.schedInfoStore.get(field_id);
 					}
 					// create dojox calendar - note we create a (blank) calendar
 					// even if there is no calendarmap_obj_list data
@@ -1088,9 +1096,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						field_name:item.field_name,
 						calendarmap_list:calendarmap_list
 					}
+					/*
 					if ('closed_list' in item) {
 						obj.closed_list = item.closed_list;
-					}
+					} */
 					this.calendarmapobj_list.push(obj)
 				}, this);
 				// datalist modifications end above. However, there are other

@@ -64,6 +64,10 @@ class FieldDBInterface:
             field['calendarmap_list'] = [{x['fieldday_id'],
                 x['date'].strftime(date_format_CONST)} for x in field['CALENDARMAP_LIST']]
             del field['CALENDARMAP_LIST']
+            # don't send closed_list to UI
+            # http://stackoverflow.com/questions/15411107/delete-a-dictionary-item-if-the-key-exists (None is the return value if closed_list doesnt exist
+            field.pop('CLOSED_LIST', None)
+
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
@@ -120,7 +124,6 @@ class FieldDBInterface:
             set_key_suffix = 'CLOSED_LIST'
         status = self.dbinterface.updateSelectedFieldInfoDocument(query_key_suffix, field_id,
             set_key_suffix, delta_list)
-        print 'adjust_config status=', status
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

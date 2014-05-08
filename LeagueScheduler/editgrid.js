@@ -105,31 +105,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							this.info_obj.rendercell_flag = true;
 						}
 					}));
-				/*
-				if (this.idproperty == 'div_id') {
-					this.tbutton_reg = baseinfoSingleton.get_tbutton_reg();
-					if (!this.tbutton_reg) {
-						this.tbutton_reg = new ToggleButton({showLabel: true, checked: false,
-							onChange: lang.hitch(this, function(val){
-								if (val) {
-									this.tbutton_reg.set('label','Disable Bracket Edit');
-								} else {
-									this.tbutton_reg.set('label', 'Enable Bracket Edit');
-								}
-								// based on change of toggle, turn on/off bracket edit
-								this.manageBracketEdit(val);
-							}),
-							label: "Enable Bracket Edit", type:"button"}, "bracketenable_btn");
-						this.tbutton_reg.startup();
-						baseinfoSingleton.set_tbutton_reg(this.tbutton_reg);
-					} else {
-						// togglebutton widget already exists, merely show
-						// ref http://stackoverflow.com/questions/18096763/how-can-i-hide-a-dijit-form-button
-						//domClass.add(this.tbutton_reg.domNode, "dijitToggleButton info");
-						domStyle.set(this.tbutton_reg.domNode, 'display', 'inline');
-					}
-				}
-				*/
 			},
 			manageCellSelect: function() {
 				if (this.cellselect_handle)

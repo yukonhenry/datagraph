@@ -272,11 +272,11 @@ def get_dbcol(db_type, getcol_name):
     _routelogic_obj.dbinterface_obj = dbInterface
     if db_type == 'newscheddb':
         return_obj = {'param_obj':dbInterface.getschedule_param()}
-    elif db_type == 'fielddb':
+    else:
         dbtuple = dbInterface.readDB();
         info_list = dbtuple.list
         config_status = dbtuple.config_status
-        #print 'info_list', info_list
+        return_obj = {'info_list':info_list, 'config_status':config_status}
         if db_type == 'fielddb':
             # if db is fielddb, then append divinfo information also-
             # used as part of fieldinfo config on UI grid
@@ -295,11 +295,6 @@ def get_dbcol(db_type, getcol_name):
             divstr_obj = {'colname':divstr_colname, 'db_type':divstr_db_type,
                 'info_list':info_list, 'config_status':config_status}
             return_obj.update({'divstr_obj':divstr_obj})
-    else:
-        dbtuple = dbInterface.readDB();
-        info_list = dbtuple.list
-        config_status = dbtuple.config_status
-        return_obj = {'info_list':info_list, 'config_status':config_status}
     a = json.dumps(return_obj)
     return callback_name+'('+a+')'
 
