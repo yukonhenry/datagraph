@@ -294,7 +294,7 @@ def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     #calendar date string
     mapdate_list = []
     for fieldday_id in range(1, totalfielddays+1):
-        mapdate_list.append(next_date)
+        mapdate_list.append({'fieldday_id':fieldday_id, 'date':next_date})
         #get the next index into the gap list
         #if index is length of list, then roll over to 0
         next_index = (next_index+1) % dayweek_len

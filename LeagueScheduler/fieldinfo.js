@@ -1076,12 +1076,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// start and end times
 					arrayUtil.forEach(item.calendarmap_list,
 						function(item2, index2) {
-						var start_time = new Date(item2+' '+start_time_str)
-						var end_time = new Date(item2+' '+end_time_str)
+						var start_time = new Date(item2.date+' '+start_time_str)
+						var end_time = new Date(item2.date+' '+end_time_str)
 						calendarmap_list.push({
 							start_time:start_time,
 							end_time:end_time,
-							fieldday_id:index2+1});
+							fieldday_id:item2.fieldday_id});
 					})
 					var obj = {
 						field_id:item.field_id,

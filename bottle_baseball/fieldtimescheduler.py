@@ -2066,6 +2066,7 @@ class FieldTimeScheduleGenerator:
             totalfielddays = f['totalfielddays']
             # get calendarmap_list for field
             calendarmap_list = f['calendarmap_list']
+            calendarmap_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(calendarmap_list)).get(x)
             # note the below is a duplicate check to one of the tests in
             # fieldcheckavailability
             # If checks do not produce consistent results look at test logic.
@@ -2089,7 +2090,8 @@ class FieldTimeScheduleGenerator:
             closed_list = f.get('closed_list')
             if closed_list:
                 slotstatus_list = [{'fieldday_id':i,
-                    'game_date':calendarmap_list[i-1], 'round_id':(i-1)/ratio+1,
+                    'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
+                    'round_id':(i-1)/ratio+1,
                     'sstatus_list':deepcopy(sstatus_list)}
                     if i not in closed_list else None
                     for i in range(1,totalfielddays+1)]
@@ -2098,7 +2100,8 @@ class FieldTimeScheduleGenerator:
                 # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
                 # when assigning fieldslots, round_id from the match generator should
                 # match up with the round_id
-                slotstatus_list = [{'fieldday_id':i, 'game_date':calendarmap_list[i-1],
+                slotstatus_list = [{'fieldday_id':i,
+                    'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
                     'round_id':(i-1)/ratio+1,
                     'sstatus_list':deepcopy(sstatus_list)}
                     for i in range(1,totalfielddays+1)]

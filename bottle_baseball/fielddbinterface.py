@@ -61,7 +61,8 @@ class FieldDBInterface:
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
             field['dayweek_str'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
-            field['calendarmap_list'] = [x.strftime(date_format_CONST) for x in field['CALENDARMAP_LIST']]
+            field['calendarmap_list'] = [{x['fieldday_id'],
+                x['date'].strftime(date_format_CONST)} for x in field['CALENDARMAP_LIST']]
             del field['CALENDARMAP_LIST']
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
