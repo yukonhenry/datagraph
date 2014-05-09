@@ -181,6 +181,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					cellselect_flag:true
 				}
 				this.showConfig(args_obj);
+				// delete old calendarmapobj_list if this is the subsequent time
+				// we are coming through initialize()
+				if (this.calendarmapobj_list)
+					delete this.calendarmapobj_list;
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -369,8 +373,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					detailed_bordercontainer.startup();
 					fieldinfocpane.addChild(detailed_bordercontainer);
 					// create store that feeds the dojox calendar
-					if (this.calendar_store)
+					if (this.calendar_store) {
+						// reset calendar store and id
 						delete this.calendar_store
+						this.calendar_id = 1;
+					}
 					this.calendar_store = new Observable(new Memory({data:new Array()}));
 					if (this.delta_store)
 						delete this.delta_store
@@ -385,28 +392,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// does not work for observable stores (setData is a function for Memory store, not the Observable wrapper)
 						// http://dojo-toolkit.33424.n3.nabble.com/dojo-store-Observable-Change-Request-td3286606.html
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
-							var field_id = item.field_id;
 							var fieldevent_str = this.activegrid_colname+':'+item.field_name;
 							/*
 							var closed_list = null;
 							if ('closed_list' in item) {
 								closed_list = item.closed_list;
 							} */
-							arrayUtil.forEach(item.calendarmap_list,
-								function(item2) {
-								var fieldday_id = item2.fieldday_id;
-								var data_obj = {
-									id:this.calendar_id,
-									fieldevent_str:fieldevent_str,
-									field_id:field_id,
-									summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
-									// start and end times have dates embedded
-									// in them
-									startTime:item2.start_time,
-									endTime:item2.end_time,
-									fieldday_id:fieldday_id,
-									calendar:'Calendar'+field_id
-								}
+							this.populate_calendar_store(item.calendarmap_list,
+								item.field_id, fieldevent_str);
 								/*
 								if (closed_list && closed_list.indexOf(fieldday_id) > -1) {
 									// if fieldday_id falls in a closed_list, then
@@ -417,15 +410,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								} else {
 									this.calendar_store.add(data_obj);
 								} */
-								this.calendar_store.add(data_obj);
-								this.calendar_id++;
-							}, this);
 						}, this);
 					} else {
 						// if this.calendarmapobj_list does not exist, then no data
 						// has been returned from the server.  Instead, retrieve
 						// data from the current store
 						var item = this.editgrid.schedInfoStore.get(field_id);
+						var args_obj = {dayweek_list:item.dayweek_str.split(','),
+							start_date:item.start_date,
+							totalfielddays:item.totalfielddays,
+							start_time_str:item.start_time.toLocaleTimeString(),
+							end_time_str:item.end_time.toLocaleTimeString()};
+						// get calendarmap list that maps fieldday_id to calendar
+						// date, for each field
+						var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
+						var fieldevent_str = this.activegrid_colname+':'+item.field_name;
+						this.populate_calendar_store(calendarmap_list,
+							item.field_id, fieldevent_str);
 					}
 					// create dojox calendar - note we create a (blank) calendar
 					// even if there is no calendarmap_obj_list data
@@ -560,6 +561,28 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar.set("createItemFunc", this.createItem);
 					this.calendar.on("itemClick", lang.hitch(this,this.clickedItemProcess));
 				} */
+			},
+			populate_calendar_store: function(calendarmap_list, field_id, fieldevent_str) {
+				// populate calendar_store with entries from calendarmap_list
+				// which holds field dates, and fieldevent and field_id
+				// parameters
+				arrayUtil.forEach(calendarmap_list, function(item) {
+					var fieldday_id = item.fieldday_id;
+					var data_obj = {
+						id:this.calendar_id,
+						fieldevent_str:fieldevent_str,
+						field_id:field_id,
+						summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
+						// start and end times have dates embedded
+						// in them
+						startTime:item.start_time,
+						endTime:item.end_time,
+						fieldday_id:fieldday_id,
+						calendar:'Calendar'+field_id
+					}
+					this.calendar_store.add(data_obj);
+					this.calendar_id++;
+				}, this);
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');

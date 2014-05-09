@@ -15,7 +15,7 @@
     </head>
     <body class="dbootstrap">
         <h1>Sports League Scheduler <small id="versiongreeting"></small> </h1>
-        <h3><i>Maximize fairness and meet large number of constraints</i></h3>
+        <h3><i>Maximize fairness and satisfy constraints</i></h3>
         <h5>Start by configuring Edit/Generate</h5>
     	<!-- load Dojo -->
     	<script src="../dojo/dojo.js"
@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.20s";
+                var version_str = "v1.0.0.20y";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -94,8 +94,9 @@
                                 </div>
                             </div> <!-- dropdownmenu -->
                         </div> <!-- popupmenuitem-->
+                        <!--
                         <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Game Schedule</span>
+                            <span>Existing Schedule</span>
                             <div data-dojo-type="dijit/DropDownMenu">
                                 <div data-dojo-type="dijit/PopupMenuItem">
                                     <span>Display Schedule</span>
@@ -108,7 +109,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Specify Fields</span>
                             <div data-dojo-type="dijit/DropDownMenu">
@@ -128,7 +129,7 @@
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Restrictions/Priorities</span>
                             <div data-dojo-type="dijit/DropDownMenu">
-                                <div data-dojo-type="dijit/MenuItem" id="newconstraint_item">
+                                <div data-dojo-type="dijit/MenuItem" id="newconstraint_id">
                                     New Restriction/Priority
                                 </div>
                             </div>
@@ -254,6 +255,7 @@
                 </div> <!--stackcontainer-->
                 <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->
             </div>
+            <!--
         	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="divisionPane">
                 <div id="dbstatus_txt"></div>
                 <b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
@@ -280,7 +282,7 @@
     			</select>
     			<div id="metricsHeader"></div>
     			<div id="metricsGrid"></div>
-    		</div>
+    		</div> -->
             <!--
     		<div data-dojo-type="dijit/layout/ContentPane" title="Download Here" id="DownloadPane">
                 <div id="divScheduleLinks">

@@ -61,8 +61,8 @@ class FieldDBInterface:
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
             field['dayweek_str'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
-            field['calendarmap_list'] = [{x['fieldday_id'],
-                x['date'].strftime(date_format_CONST)} for x in field['CALENDARMAP_LIST']]
+            field['calendarmap_list'] = [{'fieldday_id':x['fieldday_id'],
+                'date':x['date'].strftime(date_format_CONST)} for x in field['CALENDARMAP_LIST']]
             del field['CALENDARMAP_LIST']
             # don't send closed_list to UI
             # http://stackoverflow.com/questions/15411107/delete-a-dictionary-item-if-the-key-exists (None is the return value if closed_list doesnt exist

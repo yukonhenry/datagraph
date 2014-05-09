@@ -315,12 +315,17 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			},
 			getcalendarmap_list: function(args_obj) {
 				// get list that maps fieldday_id to calendar date
-				// field_id is index+1 of list
-				// Returning a list is more convenient than returing a dictionary/obj
-				// as a list is more convenient for use in an intersection function
+				// note logic is similar to getcalendarmap_list used in py
+				// but the input/output is different as this function combines some
+				// of the functionality that is done in modifyserver_data with the
+				// py getcalendarmap_list code
+				// this function only intended to be called when a new grid is
+				// created and not when data is retrieved from server
 				var dayweek_list = args_obj.dayweek_list;
 				var start_date = args_obj.start_date;
 				var totalfielddays = args_obj.totalfielddays;
+				var start_time_str = args_obj.start_time_str;
+				var end_time_str = args_obj.end_time_str;
 				var start_day = start_date.getDay();
 				var fielddaymapdate_list = new Array();
 				var dayweek_len = dayweek_list.length;
@@ -372,7 +377,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
         		// generate list that maps fieldday_id (represented as position in
         		// list) to calendar date string
         		for (var id = 1; id < totalfielddays+1; id++) {
-        			fielddaymapdate_list.push(next_date.toLocaleDateString());
+        			var next_date_str = next_date.toLocaleDateString();
+        			fielddaymapdate_list.push({
+        				fieldday_id:id,
+        				start_time:new Date(next_date_str+' '+start_time_str),
+        				end_time: new Date(next_date_str+' '+end_time_str)
+        				//date:next_date.toLocaleDateString()
+        			});
         			// get the next index into the gap list
         			// if index is length of list, then roll over to 0
         			if (++next_dwindex == dayweek_len)

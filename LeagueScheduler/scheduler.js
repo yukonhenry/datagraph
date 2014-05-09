@@ -41,6 +41,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var schedinfo_obj = new schedinfo({server_interface:serverInterface});
 		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
+		/*
 		var grid = new CustomGrid({
 			columns: {
 				div_age:"Age Group",
@@ -59,12 +60,13 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			},
 			selectionMode:"single"
 		}, "fieldInfoGrid");    // div ID
+		*/
 		var leaguediv_func = function(ldata) {
 			ldata_array = ldata.leaguedivinfo;
 			var fdata_array = ldata.field_info;
-			grid.renderArray(ldata_array);
-			fieldInfoGrid.renderArray(fdata_array);
-			var dbstatus = ldata.dbstatus;
+			//grid.renderArray(ldata_array);
+			//fieldInfoGrid.renderArray(fdata_array);
+			//var dbstatus = ldata.dbstatus;
 			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
 			var storeutil_obj = new storeUtil({schedutil_obj:schedUtil, uistackmgr:uiStackManager, server_interface:serverInterface});
 			newschedbase_obj.set_obj(schedUtil, storeutil_obj);
@@ -72,10 +74,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			divinfo_obj.set_obj(schedUtil, storeutil_obj);
 			tourndivinfo_obj.set_obj(schedUtil, storeutil_obj);
 			schedinfo_obj.set_obj(schedUtil, storeutil_obj);
+			/*
 			schedUtil.updateDBstatusline(dbstatus);
 			// generate division selection drop-down menus
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
 			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
+			*/
 			//schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
@@ -88,8 +92,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			storeutil_obj.createdb_store(tourndbcollection_list, 'tourndb');
 			storeutil_obj.create_menu('tourndiv_id', tourndivinfo_obj, true);
 			// note we need to add delete to the schedule here by passing 'true'
-			var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)
-			storeutil_obj.create_menu('sched_id', schedinfo_obj, false);
+			//var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)
+			//storeutil_obj.create_menu('sched_id', schedinfo_obj, false);
 			// generate dropdown for 'generate cup schedule'
 			/*
 			var cupdbcollection_list = ldata.tourndbcollection_list;
@@ -113,7 +117,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			storeutil_obj.create_menu('newsched_id', newschedbase_obj, true);
 			console.log("load basic info complete");
 		}
-		//});
+		/*
 		grid.on("dgrid-select", function(event){
     	// Report the item from the selected row to the console.
     		var idnum = event.rows[0].data.div_id;
@@ -197,34 +201,14 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
     			fieldScheduleGrid.renderArray(fieldschedule_array);
     		});
 		});
+*/
+/*
 		var getAllDivSchedule = function(evt) {
 			schedUtil.updateDBstatusline(0);
 	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 				schedUtil.updateDBstatusline(adata.dbstatus);
-/*
-	        	if (game_listP) {
-	        		d3.select(schedulerDiv).selectAll("p").remove();
-	        	}
-	        	// data returned from server is an array of tuples, with each tuple
-	        	// representing two teams in a match
-	        	// ref https://github.com/mbostock/d3/wiki/Selections#wiki-exit
-	        	// on how to assign variable before enter() so that a check
-	        	// can be made later (above) to see if added paragraphs need to be deleted.
-	        	game_listP = d3.select(schedulerDiv).selectAll("p")
-	        						.data(data.game_list);
-	        	game_listP.enter()
-					.append("p")
-					.text(function(d,i) {
-						var matchstr = "slot "+i+": ";
-						for (var j =0; j < d.length; j++) {
-							var match = d[j];
-							matchstr += match[0]+"vs"+match[1]+" ";
-						}
-						return matchstr;
-					});
-*/
 			});
 		}
 		var exportSchedule = function(evt) {
@@ -402,6 +386,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			if (metricsGrid)
 				metricsGrid.resize();
 		}
+		*/
 		var resizeEditPaneGrids = function(evt) {
 			console.log("show edit pane");
 			if (uiStackManager && uiStackManager.current_grid) {
@@ -441,14 +426,14 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 			//on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
 			//on(registry.byId("export_btn"), "click", exportSchedule);
-			on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
-			on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
-			on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
-			on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
-			on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
-			on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
+			//on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
+			//on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
+			//on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
+			//on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
+			//on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
+			//on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
-			//on(registry.byId("editPane"),"load",scrollTopEditPane);
+			on(registry.byId("editPane"),"load",scrollTopEditPane);
 			//on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			//			on(registry.byId("newdivinfo_item"), "click",initNewDivInfo
 			//	);
@@ -461,6 +446,9 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("newsched_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize,
 					newschedbase_obj));
+			on(registry.byId("newconstraint_id"), "click", function(evt) {
+				alert("file input only - UI support upcoming");
+			});
 			//on(registry.byId("elimination2013"), "click", elimination2013);
 			//on(registry.byId("export_elimination2013"), "click", export_elim2013);
  		});
