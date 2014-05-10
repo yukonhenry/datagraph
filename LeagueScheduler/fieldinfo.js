@@ -25,7 +25,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			db_type:'fielddb',
 			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
-			league_select_id:"league_select_id"
+			league_select_id:"league_select_id",
+			default_fieldevent_str:"Sports"
 		};
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
@@ -292,11 +293,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// Note tpform_domnode does not equal tpform_node, but confirm
 					// create elements that fall under form
 					put(tpform_domnode,
-						"label.label_box[for=fieldevent_id]", "Event Name:");
+						"label.label_box[for=tpform_input_id]", "Event Name:");
 					var tpform_input_node = put(tpform_domnode,
-						"input#fieldevent_id");
-					var tpform_input_widget = new ValidationTextBox({
-						value:'', required:true, regExp:'[\\w]+',
+						"input#tpform_input_id");
+					this.tpform_input_widget = new ValidationTextBox({
+						value:constant.default_fieldevent_str, required:true, regExp:'[\\w]+',
 						promptMessage:'Enter Event Name - only alphanumeric characters and _',
 						invalidMessage:'only alphanumeric characters and _',
 						missingMessage:'enter event name',
@@ -305,26 +306,26 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					put(tpform_domnode,"br, br");
 					// create date input
 					put(tpform_domnode,
-						"label.label_box[for=eventdate_id]", "Event Date:");
+						"label.label_box[for=tpform_date_id]", "Event Date:");
 					var tpform_date_node = put(tpform_domnode,
-						"input#eventdate_id");
-					var tpform_date_widget = new DateTextBox({
+						"input#tpform_date_id");
+					this.tpform_date_widget = new DateTextBox({
 						value:this.today, style:'width:150px'
 					}, tpform_date_node);
 					put(tpform_domnode,"br, br");
 					// create time input
 					put(tpform_domnode,
-						"label.label_box[for=starttime_id]", "Start:");
+						"label.label_box[for=tpform_starttime_id]", "Start:");
 					var tpform_starttime_node = put(tpform_domnode,
-						"input#starttime_id");
+						"input#tpform_starttime_id");
 					this.tpform_starttime_widget = new TimeTextBox({
 						value:"T08:00:00", style:'width:110px'
 					}, tpform_starttime_node);
 					put(tpform_domnode,"br");
 					put(tpform_domnode,
-						"label.label_box[for=endtime_id]", "End:");
+						"label.label_box[for=tpform_endtime_id]", "End:");
 					var tpform_endtime_node = put(tpform_domnode,
-						"input#endtime_id");
+						"input#tpform_endtime_id");
 					this.tpform_endtime_widget = new TimeTextBox({
 						value:"T09:00:00", style:'width:110px'
 					}, tpform_endtime_node);
@@ -392,7 +393,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// does not work for observable stores (setData is a function for Memory store, not the Observable wrapper)
 						// http://dojo-toolkit.33424.n3.nabble.com/dojo-store-Observable-Change-Request-td3286606.html
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
-							var fieldevent_str = this.activegrid_colname+':'+item.field_name;
+							var fieldevent_str = constant.default_fieldevent_str;
 							/*
 							var closed_list = null;
 							if ('closed_list' in item) {
@@ -424,7 +425,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// get calendarmap list that maps fieldday_id to calendar
 						// date, for each field
 						var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
-						var fieldevent_str = this.activegrid_colname+':'+item.field_name;
+						var fieldevent_str = constant.default_fieldevent_str;
 						this.populate_calendar_store(calendarmap_list,
 							item.field_id, fieldevent_str);
 					}
@@ -433,6 +434,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar = new Calendar({
 						dateInterval: "day",
 						date: this.today,
+						startTimeAttr:"starttime",
+						endTimeAttr:"endtime",
 						store: this.calendar_store,
 						style: "position:inherit;width:100%;height:600px",
 						cssClassFunc: function(item) {
@@ -517,9 +520,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					);
 					this.fieldselect_reg.startup();
 					// set registers for field time parameters entry
-					this.fieldevent_reg = registry.byId("fieldevent_id");
-					this.eventdate_reg = registry.byId("eventdate_id");
-					this.starttime_reg = registry.byId("starttime_id");
+					this.fieldevent_reg = registry.byId("tpform_input_id");
+					this.eventdate_reg = registry.byId("tpform_date_id");
+					this.starttime_reg = registry.byId("tpform_starttime_id");
 					if (this.starttime_handle) {
 						this.starttime_handle.remove();
 					}
@@ -528,14 +531,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.endtime_reg.set('value',
 								date.add(event, 'hour', 1));
 						}));
-					this.endtime_reg = registry.byId("endtime_id");
+					this.endtime_reg = registry.byId("tpform_endtime_id");
 					var datetimeset_reg = registry.byId("datetimeset_btn");
 					if (this.datetimeset_handle) {
 						this.datetimeset_handle.remove();
 					}
 					this.datetimeset_handle = datetimeset_reg.on("click",
 						lang.hitch(this, this.datetimeset_submit));
-					var tooltipconfig = {connectId:['fieldevent_id'],
+					var tooltipconfig = {connectId:['tpform_input_id'],
 						label:"Enter Event Type and Name",
 						position:['below','after']};
 					this.tooltip = new Tooltip(tooltipconfig);
@@ -559,7 +562,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar.startup();
 					this.calendar.set("createOnGridClick", true);
 					this.calendar.set("createItemFunc", this.createItem);
-					this.calendar.on("itemClick", lang.hitch(this,this.clickedItemProcess));
 				} */
 			},
 			populate_calendar_store: function(calendarmap_list, field_id, fieldevent_str) {
@@ -575,8 +577,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
 						// start and end times have dates embedded
 						// in them
-						startTime:item.start_time,
-						endTime:item.end_time,
+						starttime:item.start_time,
+						endtime:item.end_time,
 						fieldday_id:fieldday_id,
 						calendar:'Calendar'+field_id
 					}
@@ -606,9 +608,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// on making complex queries
 					var overlapped_list = this.calendar_store.query(lang.hitch(this, function(object){
 						return date.compare(start_datetime_obj,
-							object.startTime, "date") == 0 &&
+							object.starttime, "date") == 0 &&
 							date.compare(end_datetime_obj,
-							object.endTime, "date") == 0 &&
+							object.endtime, "date") == 0 &&
 							(object.field_id == this.field_id);
 					})).filter(function(object) {
 						//ref http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -620,8 +622,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if object field_id is different than selected field id
 						// then no need to worry about time overlap
 						return (date.compare(start_datetime_obj,
-							object.endTime,"time") < 0 &&
-							date.compare(end_datetime_obj, object.startTime,
+							object.endtime,"time") < 0 &&
+							date.compare(end_datetime_obj, object.starttime,
 								"time") > 0);
 					})
 					if (!overlapped_list.length) {
@@ -637,7 +639,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							fieldevent_str:fieldevent_str,
 							summary:"Field"+this.field_id+':'+fieldevent_str+' '+
 								"Block:"+this.calendar_id,
-							startTime:start_datetime_obj, endTime:end_datetime_obj,
+							starttime:start_datetime_obj, endtime:end_datetime_obj,
 							field_id:this.field_id,
 							calendar:'Calendar'+this.field_id};
 						this.calendar_store.add(data_obj);
@@ -650,7 +652,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 			},
 			process_clickedCalendarItem: function(event) {
-				var calendar_id = event.item.id;
+				var item = event.item;
+				var calendar_id = item.id;
 				// get store object with id==select_id
 				//var match_obj = this.calendar_store.get(calendar_id);
 				// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
@@ -661,19 +664,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.tpform_btn_widget.set('disabled', false);
 				this.tpform_btn_widget.set("onClick",
 					lang.hitch(this, this.change_calevent, calendar_id));
-			},
-			// handler for clicking on calendar item/slot
-			clickedItemProcess: function(event) {
-				var select_id = event.item.id;
-				this.calendar_store.query({id:select_id}
-					).forEach(lang.hitch(this,function(obj) {
-						var start_datetime = obj.startTime;
-						var end_datetime = obj.endTime;
-						this.fieldevent_reg.set('value', obj.fieldevent_str);
-						this.eventdate_reg.set('value', start_datetime);
-						this.starttime_reg.set('value', start_datetime);
-						this.endtime_reg.set('value', end_datetime);
-					}));
+				this.tpform_input_widget.set('value', item.fieldevent_str)
+				this.tpform_date_widget.set('value', item.starttime);
+				this.tpform_starttime_widget.set('value', item.starttime);
+				this.tpform_endtime_widget.set('value', item.endtime);
 			},
 			delete_calevent: function(calendar_id, event) {
 				var data_obj = this.calendar_store.get(calendar_id);
@@ -686,6 +680,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.enable_savecancel_widgets();
 			},
 			change_calevent: function(calendar_id, event) {
+				var data_obj = this.calendar_store.get(calendar_id);
+				var fieldevent_str = this.tpform_input_widget.get('value');
+				var date_str = this.eventdate_reg.get('value').toDateString();
+				data_obj.fieldevent_str = fieldevent_str;
+				data_obj.summary = "Field"+data_obj.field_id+':'+fieldevent_str+' '+"Block:"+calendar_id;
+				data_obj.starttime = new Date(date_str+' '+
+					this.tpform_starttime_widget.get('value').TimeString());
+				data_obj.endtime = new Date(date_str+' '+
+					this.tpform_endtime_widget.get('value').TimeString());
 				this.enable_savecancel_widgets();
 			},
 			enable_savecancel_widgets:function() {
