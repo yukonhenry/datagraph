@@ -657,6 +657,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.tpform_delbtn_widget.set('disabled', false);
 				this.tpform_delbtn_widget.set("onClick",
 					lang.hitch(this, this.delete_calevent, calendar_id));
+				// enable change event button
+				this.tpform_btn_widget.set('disabled', false);
+				this.tpform_btn_widget.set("onClick",
+					lang.hitch(this, this.change_calevent, calendar_id));
 			},
 			// handler for clicking on calendar item/slot
 			clickedItemProcess: function(event) {
@@ -679,6 +683,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.delta_store.add({action:'remove', data_obj:data_obj,
 					id:calendar_id, field_id:data_obj.field_id});
 				this.calendar_store.remove(calendar_id);
+				this.enable_savecancel_widgets();
+			},
+			change_calevent: function(calendar_id, event) {
 				this.enable_savecancel_widgets();
 			},
 			enable_savecancel_widgets:function() {
