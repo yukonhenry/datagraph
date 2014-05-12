@@ -681,14 +681,25 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			change_calevent: function(calendar_id, event) {
 				var data_obj = this.calendar_store.get(calendar_id);
+				// save original data_obj in delta_store before changes are made to
+				// the delta_store
+				this.delta_store.add({action:'change', data_obj:data_obj,
+					id:calendar_id, field_id:data_obj.field_id});
 				var fieldevent_str = this.tpform_input_widget.get('value');
-				var date_str = this.eventdate_reg.get('value').toDateString();
+				var date_str = this.tpform_date_widget.get('value').toLocaleDateString();
 				data_obj.fieldevent_str = fieldevent_str;
 				data_obj.summary = "Field"+data_obj.field_id+':'+fieldevent_str+' '+"Block:"+calendar_id;
-				data_obj.starttime = new Date(date_str+' '+
-					this.tpform_starttime_widget.get('value').TimeString());
-				data_obj.endtime = new Date(date_str+' '+
-					this.tpform_endtime_widget.get('value').TimeString());
+				var starttime = new Date(date_str+' '+
+					this.tpform_starttime_widget.get('value').toLocaleTimeString());
+				var endtime = new Date(date_str+' '+
+					this.tpform_endtime_widget.get('value').toLocaleTimeString());
+				if (date.compare(endtime, starttime) > 0) {
+					data_obj.starttime = starttime;
+					data_obj.endtime = endtime;
+					this.calendar_store.put(data_obj);
+				} else {
+					alert("end time must be later than start timse");
+				}
 				this.enable_savecancel_widgets();
 			},
 			enable_savecancel_widgets:function() {
@@ -705,6 +716,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if action was 'remove', add element back to
 						// calendar store
 						this.calendar_store.add(item.data_obj)
+					} else if (item.action == 'change') {
+						this.calendare_store.put(item.data_obj);
 					}
 					// delete action item from delta_store
 					this.delta_store.remove(item.id);
