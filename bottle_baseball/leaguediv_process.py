@@ -337,13 +337,13 @@ def send_generate():
 @route('/send_delta/<action_type>/<field_id:int>')
 def send_delta(action_type, field_id):
     callback_name = request.query.callback
-    delta_str = request.query.delta_str
-    delta_list = [int(x) for x in delta_str.split(',')]
+    remove_str = request.query.remove_str
+    remove_list = [int(x) for x in remove_str.split(',')]
     # get dbinterface_obj assigned during create_newdbcol
     # send_data is always called from UI config grid, which generates either a
     # create_newdbcol or get_dbcol
     dbInterface = _routelogic_obj.dbinterface_obj
-    dbstatus = dbInterface.adjust_config(action_type, field_id, delta_list)
+    dbstatus = dbInterface.adjust_config(action_type, field_id, remove_list)
     a = json.dumps({"dbstatus":dbstatus})
 
 @route('/get_schedule/<schedcol_name>/<idproperty>/<propid:int>')

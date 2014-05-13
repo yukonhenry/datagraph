@@ -724,21 +724,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}, this);
 			},
 			send_delta: function(field_id, evt) {
-				// send delta field delete list to server
-				// each entry should correspond to a closed day on the designated
-				// field_id
+				// send contents of delta_store to server, except instead
+				// sending each entry separately, we will aggregate changes
+				// and removals into separate lists and send them as separate
+				// commands (gets).  We need to send the changes first as
+				// there may be some calendar id's that were changed first and then
+				// removed.
 				if (this.config_status) {
-					var delta_list = new Array();
+					var change_list = new Array();
+					var remove_list = new Array();
 					this.delta_store.query({field_id:field_id})
 						.forEach(function(item) {
-						/*
-						var data_obj = {
-							fieldday_id:item.fieldday_id,
-						} */
-						delta_list.push(item.data_obj.fieldday_id);
+						if (item.action == 'remove') {
+							remove_list.push(item.data_obj.fieldday_id);
+						} else if (item.action == 'change') {
+							change_list.push(item.data_obj);
+						}
 					});
-					if (delta_list) {
-						var server_key_obj = {delta_str:delta_list.join(',')};
+					var server_key_obj = null;
+					if (change_list) {
+						// send change list
+						server_key_obj = {change_list:change_list};
+						this.server_interface.getServerData(
+							"send_delta/change"+field_id, function(data) {
+
+							}, server_key_obj)
+					}
+					if (remove_list) {
+						server_key_obj = {remove_str:remove_list.join(',')};
 						this.server_interface.getServerData(
 							"send_delta/remove/"+field_id, function(data) {
 
