@@ -475,27 +475,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				/*
 				// create drop down to select (either) field
 				if (this.fieldselect_reg) {
-					// if select already exists,
-					// look at dijit/form/Select api for getOptions, updateOption
-					// parameters
-					// ref http://dojotoolkit.org/documentation/tutorials/1.9/selects_using_stores/
-					// (section without stores) to properly configure select widget
-					// programmatically
-					// also see same reference - apparently select widget
-					// needs to be started up again if options change
-					// (just add or delete? or change in value also?)
-					var cur_option = this.fieldselect_reg.getOptions(oldfield_index);
-					cur_option.selected = false;
-					// retrieved option is a pointer to the obtion object in the widget
-					// no need to call updateOption (it actually confuses the update)
-					// make sure to call widget startup()
-					//this.fieldselect_reg.updateOption(cur_option);
-					cur_option = this.fieldselect_reg.getOptions(field_index);
-					cur_option.selected = true;
-					this.fieldselect_reg.startup();
-					//this.calendar.currentView.invalidateLayout();
-					// send store info to server
-					// first make store query and get count
+
 				} else {
 					// if field select widget does not exist, create one.
 					this.fieldselect_reg = registry.byId("fieldselect_id");
@@ -681,9 +661,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			change_calevent: function(calendar_id, event) {
 				var data_obj = this.calendar_store.get(calendar_id);
-				// save original data_obj in delta_store before changes are made to
-				// the delta_store
-				this.delta_store.add({action:'change', data_obj:data_obj,
+				// make a copy to store in delta_store as data_obj will be overwritten
+				var clonedata_obj = lang.clone(data_obj);
+				if (this.delta_store.get(calendar_id)) {
+					// if there is already a delta change already in the delta_store
+					// remove it, as the latest one will have priority
+					this.delta_store.remove(calendar_id);
+				}
+				this.delta_store.add({action:'change', data_obj:clonedata_obj,
 					id:calendar_id, field_id:data_obj.field_id});
 				var fieldevent_str = this.tpform_input_widget.get('value');
 				var date_str = this.tpform_date_widget.get('value').toLocaleDateString();
@@ -738,9 +723,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						if (item.action == 'remove') {
 							remove_list.push(item.data_obj.fieldday_id);
 						} else if (item.action == 'change') {
-							change_list.push(item.data_obj);
+							// don't use delta_store object for sending to server
+							// as that has the pre-change info necessary to restore
+							// original when a cancel button is clicked; instead
+							// get from calendar_store
+							var data_obj = this.calendar_store.get(item.id)
+							// we only need a subset of the original calendar_store
+							// data_obj for the server
+							change_list.push({
+								fieldday_id:data_obj.fieldday_id,
+								starttime:data_obj.starttime.toLocaleTimeString(),
+								endtime:data_obj.endtime.toLocaleTimeString()
+							});
 						}
-					});
+					}, this);
 					var server_key_obj = null;
 					if (change_list.length > 0) {
 						// make sure to convert list of objects to json string
@@ -1226,6 +1222,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			calc_totalfielddays: function(item) {
 				// calculate # of totalfielddays based on current grid
 				// cell values
+				// Current calculation is independent of closed day list calculation
 				var start_date = item.start_date;
 				// get day of week
 				var start_day = start_date.getDay();

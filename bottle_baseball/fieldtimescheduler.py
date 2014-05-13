@@ -2087,6 +2087,8 @@ class FieldTimeScheduleGenerator:
             sstatus_len = len(sstatus_list)
             #slotstatus_list = [deepcopy(sstatus_list) for i in range(totalgamedays)]
             ratio = totalfielddays/totalgamedays
+            # get the limited day list
+            limited_list = f.get('limited_list')
             closed_list = f.get('closed_list')
             if closed_list:
                 slotstatus_list = [{'fieldday_id':i,
