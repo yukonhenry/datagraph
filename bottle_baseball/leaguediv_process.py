@@ -337,13 +337,17 @@ def send_generate():
 @route('/send_delta/<action_type>/<field_id:int>')
 def send_delta(action_type, field_id):
     callback_name = request.query.callback
-    remove_str = request.query.remove_str
-    remove_list = [int(x) for x in remove_str.split(',')]
-    # get dbinterface_obj assigned during create_newdbcol
-    # send_data is always called from UI config grid, which generates either a
-    # create_newdbcol or get_dbcol
     dbInterface = _routelogic_obj.dbinterface_obj
-    dbstatus = dbInterface.adjust_config(action_type, field_id, remove_list)
+    if action_type == 'remove':
+        remove_str = request.query.remove_str
+        remove_list = [int(x) for x in remove_str.split(',')]
+        # get dbinterface_obj assigned during create_newdbcol
+        # send_data is always called from UI config grid, which generates either a
+        # create_newdbcol or get_dbcol
+        dbstatus = dbInterface.adjust_config(action_type, field_id, remove_list)
+    elif action_type == 'change':
+        change_str = request.query.change_str
+        change_list = json.loads(change_str)
     a = json.dumps({"dbstatus":dbstatus})
 
 @route('/get_schedule/<schedcol_name>/<idproperty>/<propid:int>')

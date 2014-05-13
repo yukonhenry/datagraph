@@ -742,15 +742,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}
 					});
 					var server_key_obj = null;
-					if (change_list) {
-						// send change list
-						server_key_obj = {change_list:change_list};
+					if (change_list.length > 0) {
+						// make sure to convert list of objects to json string
+						server_key_obj = {change_str:JSON.stringify(change_list)};
 						this.server_interface.getServerData(
-							"send_delta/change"+field_id, function(data) {
+							"send_delta/change/"+field_id, function(data) {
 
 							}, server_key_obj)
 					}
-					if (remove_list) {
+					if (remove_list.length > 0) {
 						server_key_obj = {remove_str:remove_list.join(',')};
 						this.server_interface.getServerData(
 							"send_delta/remove/"+field_id, function(data) {
