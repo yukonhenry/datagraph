@@ -122,6 +122,8 @@ class FieldDBInterface:
         query_key_suffix = 'FIELD_ID'
         if action_type == 'remove':
             set_key_suffix = 'CLOSED_LIST'
+        elif action_type == 'change':
+            set_key_suffix = 'LIMITED_LIST'
         status = self.dbinterface.updateSelectedFieldInfoDocument(query_key_suffix, field_id,
             set_key_suffix, delta_list)
 

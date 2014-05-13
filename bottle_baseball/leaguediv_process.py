@@ -348,6 +348,7 @@ def send_delta(action_type, field_id):
     elif action_type == 'change':
         change_str = request.query.change_str
         change_list = json.loads(change_str)
+        dbstatus = dbInterface.adjust_config(action_type, field_id, change_list)
     a = json.dumps({"dbstatus":dbstatus})
 
 @route('/get_schedule/<schedcol_name>/<idproperty>/<propid:int>')

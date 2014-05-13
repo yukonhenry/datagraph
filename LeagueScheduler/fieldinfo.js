@@ -717,7 +717,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// calendar store
 						this.calendar_store.add(item.data_obj)
 					} else if (item.action == 'change') {
-						this.calendare_store.put(item.data_obj);
+						this.calendar_store.put(item.data_obj);
 					}
 					// delete action item from delta_store
 					this.delta_store.remove(item.id);
