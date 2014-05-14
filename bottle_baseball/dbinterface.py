@@ -120,22 +120,28 @@ class MongoDBInterface:
                                       upsert=True)
 
     def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
-        result_obj = self.collection.update({sched_type_CONST:self.sched_type,
-                                      doc_list_CONST:{"$exists":True}},
-                                      {"$set": {doc_list_CONST:doc_list,
-                                      config_status_CONST:config_status,
-                                      divstr_colname_CONST:divstr_colname,
-                                      divstr_db_type_CONST:divstr_db_type}},
-                                      upsert=True)
+        # going to flatten doc structure for fields - do away with doc_list top
+        # level structure; put divstr information into main status doc
+        self.collection.update({sched_type_CONST:self.sched_type,
+            sched_status_CONST:{"$exists":True}},
+            {"$set": {config_status_CONST:config_status,
+            divstr_colname_CONST:divstr_colname,
+            divstr_db_type_CONST:divstr_db_type}}, upsert=True)
+        for doc in doc_list:
+            # put fieldinfo in separate mongo documents
+            # each doc should have a sched_type field
+            doc[sched_type_CONST] = self.sched_type
+            self.collection.update({sched_type_CONST:self.sched_type,
+                'FIELD_ID':doc['FIELD_ID']}, doc, upsert=True)
 
     def updateSelectedFieldInfoDocument(self, query_key, query_value,
-        operator, operator_key, operator_value):
+        operator, operator_key, operator_value, multi_flag=False):
         ''' Update single element of an array subdocument
         ref http://mongoblog.tumblr.com/post/21792332279/updating-one-element-in-an-array
         http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
         '''
         result_obj = self.collection.update({query_key:query_value},
-            {operator:{operator_key:operator_value}})
+            {operator:{operator_key:operator_value}}, multi=multi_flag)
         if 'writeConcernError' in result_obj:
             raise CodeLogiceError("dbinterface:updatedSelecteFieldInfoDoc collection updae error=%s" %(result_obj.writeConcernError.errmsg,))
             return -1
@@ -600,12 +606,14 @@ class MongoDBInterface:
 
     def getFieldInfoDocument(self):
         result = self.collection.find_one({sched_type_CONST:self.sched_type,
-                                         doc_list_CONST:{"$exists":True}},
-                                         {'_id':0})
-        info_list = result[doc_list_CONST]
+            sched_status_CONST:{"$exists":True}}, {'_id':0})
         config_status = result[config_status_CONST]
         divstr_colname = result[divstr_colname_CONST]
         divstr_db_type = result[divstr_db_type_CONST]
+        info_curs = self.collection.find({sched_type_CONST:self.sched_type,
+            field_id_CONST:{"$exists":True}}, {'_id':0})
+        # convert cursor to list
+        info_list = [x for x in info_curs]
         return _FieldList_Status(info_list, config_status, divstr_colname,
                             divstr_db_type)
 

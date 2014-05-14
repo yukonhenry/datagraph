@@ -119,25 +119,35 @@ class FieldDBInterface:
         return totalfielddays
 
     def adjust_config(self, action_type, field_id, delta_list):
-        query_key = "DOC_LIST.FIELD_ID"
+        query_key = "FIELD_ID"
         if action_type == 'remove':
             # first decrease totalfielddays field
-            # db.<collection>.update({DOC_LIST.FIELD_ID:field_id},
-            #   {$inc:{DOC_LIST.$.TOTALFIELDDAYS:-length(delta_list)}})
+            # db.<collection>.update({FIELD_ID:field_id},
+            #   {$inc:{TOTALFIELDDAYS:-length(delta_list)}})
             operator = "$inc"
-            operator_key = "DOC_LIST.$.TOTALFIELDDAYS"
+            operator_key = "TOTALFIELDDAYS"
             operator_value = -len(delta_list)
             status = self.dbinterface.updateSelectedFieldInfoDocument(
                 query_key, field_id, operator, operator_key, operator_value)
             # next remove entry from calendar map_list
             # ref http://stackoverflow.com/questions/6928354/mongodb-remove-subdocument-from-document
-            # db.PHMSA.update({"DOC_LIST.FIELD_ID":1},{$pull:{"DOC_LIST.$.CALENDARMAP_LIST":{"fieldday_id":2}}})
+            # db.PHMSA.update({"FIELD_ID":1},{$pull:{CALENDARMAP_LIST:{"fieldday_id":2}}})
             operator = "$pull"
-            operator_key = 'DOC_LIST.$.CALENDARMAP_LIST'
+            operator_key = "CALENDARMAP_LIST"
             for fieldday_id in delta_list:
-                operator_value = {'fieldday_id':fieldday_id}
+                operator_value = {"fieldday_id":fieldday_id}
                 self.dbinterface.updateSelectedFieldInfoDocument(
                     query_key, field_id, operator, operator_key, operator_value)
+            # next decrement all the fieldday_id fields after the entry above
+            # was removed so that fieldday_id's are still contiguous
+            # example cmd: col.update({FIELD_ID:1, "CALENDARMAP_LIST.fieldday_id":{$gt:4}},{$inc:{"CALENDARMAP_LIST.$.fieldday_id":-1}},{multi:true}) <-- Note multi:true does NOT work as positional operator $ is good for only one match
+            query_obj = {"FIELD_ID":field_id, }
+            operator = "$inc"
+            operator_key = {"CALENDARMAP_LIST.fieldday_id":{"$gt":fieldday_id}}
+            operator_value = -1
+            self.dbinterface.updateSelectedFieldInfoDocument(
+                query_key, field_id, operator, operator_key, operator_value,
+                multi_flag=True)
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

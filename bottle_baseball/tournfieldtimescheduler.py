@@ -61,7 +61,7 @@ class TournamentFieldTimeScheduler:
             flatmatch_list = [{'ROUND_ID':z['ROUND_ID'], 'HOME':p['HOME'], 'AWAY':p['AWAY'], 'DIV_ID':x['div_id']} for x in connecteddiv_match_list for y in x['match_list'] for z in y for p in z['GAME_TEAM']]
             # sort the list according to round_id (needed for groupby below), and then by div_id
             sorted_flatmatch_list = sorted(flatmatch_list, key=itemgetter('ROUND_ID', 'DIV_ID'))
-            # group list by round_id; dict value of 'match_list' key is a nested array, which sis created by an inner groupby based on div_id
+            # group list by round_id; dict value of 'match_list' key is a nested array, which is created by an inner groupby based on div_id
             # The nested list will be passed to the roundrobin multiplexer
             #for key, items in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID')):
             #   for key1, items1 in groupby(items, key=itemgetter('DIV_ID')):
