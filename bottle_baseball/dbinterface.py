@@ -128,16 +128,14 @@ class MongoDBInterface:
                                       divstr_db_type_CONST:divstr_db_type}},
                                       upsert=True)
 
-    def updateSelectedFieldInfoDocument(self, query_key_suffix, query_value,
-        set_key_suffix, set_value):
+    def updateSelectedFieldInfoDocument(self, query_key, query_value,
+        operator, operator_key, operator_value):
         ''' Update single element of an array subdocument
         ref http://mongoblog.tumblr.com/post/21792332279/updating-one-element-in-an-array
         http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
         '''
-        query_key = doc_list_CONST+'.'+query_key_suffix
-        set_key = doc_list_CONST+'.$.'+set_key_suffix
         result_obj = self.collection.update({query_key:query_value},
-            {"$set":{set_key:set_value}})
+            {operator:{operator_key:operator_value}})
         if 'writeConcernError' in result_obj:
             raise CodeLogiceError("dbinterface:updatedSelecteFieldInfoDoc collection updae error=%s" %(result_obj.writeConcernError.errmsg,))
             return -1

@@ -119,13 +119,25 @@ class FieldDBInterface:
         return totalfielddays
 
     def adjust_config(self, action_type, field_id, delta_list):
-        query_key_suffix = 'FIELD_ID'
+        query_key = "DOC_LIST.FIELD_ID"
         if action_type == 'remove':
-            set_key_suffix = 'CLOSED_LIST'
-        elif action_type == 'change':
-            set_key_suffix = 'LIMITED_LIST'
-        status = self.dbinterface.updateSelectedFieldInfoDocument(query_key_suffix, field_id,
-            set_key_suffix, delta_list)
+            # first decrease totalfielddays field
+            # db.<collection>.update({DOC_LIST.FIELD_ID:field_id},
+            #   {$inc:{DOC_LIST.$.TOTALFIELDDAYS:-length(delta_list)}})
+            operator = "$inc"
+            operator_key = "DOC_LIST.$.TOTALFIELDDAYS"
+            operator_value = -len(delta_list)
+            status = self.dbinterface.updateSelectedFieldInfoDocument(
+                query_key, field_id, operator, operator_key, operator_value)
+            # next remove entry from calendar map_list
+            # ref http://stackoverflow.com/questions/6928354/mongodb-remove-subdocument-from-document
+            # db.PHMSA.update({"DOC_LIST.FIELD_ID":1},{$pull:{"DOC_LIST.$.CALENDARMAP_LIST":{"fieldday_id":2}}})
+            operator = "$pull"
+            operator_key = 'DOC_LIST.$.CALENDARMAP_LIST'
+            for fieldday_id in delta_list:
+                operator_value = {'fieldday_id':fieldday_id}
+                self.dbinterface.updateSelectedFieldInfoDocument(
+                    query_key, field_id, operator, operator_key, operator_value)
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

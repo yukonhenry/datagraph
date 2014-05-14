@@ -41,7 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			rendercell_flag:true, today:null, widgetgen:null,
 			divstr_colname:"", divstr_db_type:"rrdb",
 			infogrid_store:null, calendarmapobj_list:null,
-			tpform_btn_widget:null, tpform_delbtn_widget:null,
+			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
 			delta_store:null,
 			constructor: function(args) {
@@ -331,11 +331,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}, tpform_endtime_node);
 					put(tpform_domnode,"br, br");
 					// create buttons
-					var tpform_btn_node = put(tpform_domnode,
-						"button.dijitButton#tpform_btn_id[type=button]");
-					this.tpform_btn_widget = new Button({
+					var tpform_chgbtn_node = put(tpform_domnode,
+						"button.dijitButton#tpform_chgbtn_id[type=button]");
+					this.tpform_chgbtn_widget = new Button({
 						label:"Change Event", class:"primary", disabled:true
-					}, tpform_btn_node);
+					}, tpform_chgbtn_node);
 					var tpform_delbtn_node = put(tpform_domnode,
 						"button.dijitButton#tpform_delbtn_id[type=button]");
 					this.tpform_delbtn_widget = new Button({
@@ -461,7 +461,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 					// autochange fieldselect drop-down selection in titlepane
 					this.fieldselect_widget.set('value', field_id);
-					this.tpform_btn_widget.set('disabled', true);
+					this.tpform_chgbtn_widget.set('disabled', true);
 					this.tpform_delbtn_widget.set('disabled', true);
 					this.tpform_savebtn_widget.set('disabled', true);
 					this.tpform_cancelbtn_widget.set('disabled', true);
@@ -641,8 +641,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.tpform_delbtn_widget.set("onClick",
 					lang.hitch(this, this.delete_calevent, calendar_id));
 				// enable change event button
-				this.tpform_btn_widget.set('disabled', false);
-				this.tpform_btn_widget.set("onClick",
+				this.tpform_chgbtn_widget.set('disabled', false);
+				this.tpform_chgbtn_widget.set("onClick",
 					lang.hitch(this, this.change_calevent, calendar_id));
 				this.tpform_input_widget.set('value', item.fieldevent_str)
 				this.tpform_date_widget.set('value', item.starttime);
@@ -657,6 +657,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.delta_store.add({action:'remove', data_obj:data_obj,
 					id:calendar_id, field_id:data_obj.field_id});
 				this.calendar_store.remove(calendar_id);
+				this.tpform_chgbtn_widget.set('disabled', true);
+				this.tpform_delbtn_widget.set('disabled', true);
 				this.enable_savecancel_widgets();
 			},
 			change_calevent: function(calendar_id, event) {
@@ -685,6 +687,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				} else {
 					alert("end time must be later than start timse");
 				}
+				this.tpform_chgbtn_widget.set('disabled', true);
+				this.tpform_delbtn_widget.set('disabled', true);
 				this.enable_savecancel_widgets();
 			},
 			enable_savecancel_widgets:function() {
