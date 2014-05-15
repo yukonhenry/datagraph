@@ -79,11 +79,19 @@ class MongoDBInterface:
         docID = self.collection.insert(document)
         return docID
 
-    def updatedoc(self, query_obj, update_obj, upsert=False):
-        if upsert:
-            self.collection.update(query_obj, update_obj, upsert=True)
+    def updatedoc(self, query_obj, operator, operator_obj, upsert_flag=False):
+        ''' Update single element of an array subdocument
+        ref http://mongoblog.tumblr.com/post/21792332279/updating-one-element-in-an-array
+        http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
+        '''
+        result_obj = self.collection.update(query_obj, {operator:operator_obj},
+            upsert=upsert_flag)
+        if 'writeConcernError' in result_obj:
+            raise CodeLogiceError("dbinterface:updatedoc: collection update error=%s" %(result_obj.writeConcernError.errmsg,))
+            return -1
         else:
-            self.collection.update(query_obj, update_obj)
+            return 1
+
 
     def getdoc(self, query_obj, findone_flag=False):
         if findone_flag:
@@ -133,20 +141,6 @@ class MongoDBInterface:
             doc[sched_type_CONST] = self.sched_type
             self.collection.update({sched_type_CONST:self.sched_type,
                 'FIELD_ID':doc['FIELD_ID']}, doc, upsert=True)
-
-    def updateSelectedFieldInfoDocument(self, query_key, query_value,
-        operator, operator_key, operator_value, multi_flag=False):
-        ''' Update single element of an array subdocument
-        ref http://mongoblog.tumblr.com/post/21792332279/updating-one-element-in-an-array
-        http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
-        '''
-        result_obj = self.collection.update({query_key:query_value},
-            {operator:{operator_key:operator_value}}, multi=multi_flag)
-        if 'writeConcernError' in result_obj:
-            raise CodeLogiceError("dbinterface:updatedSelecteFieldInfoDoc collection updae error=%s" %(result_obj.writeConcernError.errmsg,))
-            return -1
-        else:
-            return 1
 
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,

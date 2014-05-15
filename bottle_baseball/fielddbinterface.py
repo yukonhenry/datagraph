@@ -6,6 +6,7 @@ from schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist, \
 import simplejson as json
 from collections import namedtuple
 from dateutil import parser
+from sched_exceptions import SchedulerConfigurationError
 import logging
 
 # global for namedtuple
@@ -119,35 +120,40 @@ class FieldDBInterface:
         return totalfielddays
 
     def adjust_config(self, action_type, field_id, delta_list):
-        query_key = "FIELD_ID"
+        query_obj = {"FIELD_ID":field_id}
         if action_type == 'remove':
             # first decrease totalfielddays field
             # db.<collection>.update({FIELD_ID:field_id},
             #   {$inc:{TOTALFIELDDAYS:-length(delta_list)}})
             operator = "$inc"
-            operator_key = "TOTALFIELDDAYS"
-            operator_value = -len(delta_list)
-            status = self.dbinterface.updateSelectedFieldInfoDocument(
-                query_key, field_id, operator, operator_key, operator_value)
+            operator_obj = {"TOTALFIELDDAYS":-len(delta_list)}
+            status = self.dbinterface.updatedoc(query_obj, operator,
+                operator_obj)
             # next remove entry from calendar map_list
             # ref http://stackoverflow.com/questions/6928354/mongodb-remove-subdocument-from-document
             # db.PHMSA.update({"FIELD_ID":1},{$pull:{CALENDARMAP_LIST:{"fieldday_id":2}}})
             operator = "$pull"
-            operator_key = "CALENDARMAP_LIST"
             for fieldday_id in delta_list:
-                operator_value = {"fieldday_id":fieldday_id}
-                self.dbinterface.updateSelectedFieldInfoDocument(
-                    query_key, field_id, operator, operator_key, operator_value)
+                self.dbinterface.updatedoc(query_obj, operator,
+                    {"CALENDARMAP_LIST":{"fieldday_id":fieldday_id}})
             # next decrement all the fieldday_id fields after the entry above
             # was removed so that fieldday_id's are still contiguous
             # example cmd: col.update({FIELD_ID:1, "CALENDARMAP_LIST.fieldday_id":{$gt:4}},{$inc:{"CALENDARMAP_LIST.$.fieldday_id":-1}},{multi:true}) <-- Note multi:true does NOT work as positional operator $ is good for only one match
-            query_obj = {"FIELD_ID":field_id, }
-            operator = "$inc"
-            operator_key = {"CALENDARMAP_LIST.fieldday_id":{"$gt":fieldday_id}}
-            operator_value = -1
-            self.dbinterface.updateSelectedFieldInfoDocument(
-                query_key, field_id, operator, operator_key, operator_value,
-                multi_flag=True)
+            # regenerate all fieldday_id fields
+            field_curs = self.dbinterface.getdoc(query_obj)
+            if field_curs.count() > 1:
+                # pymongo cursor doc at
+                # http://api.mongodb.org/python/current/api/pymongo/cursor.html
+                raise SchedulerConfigurationError("fielddbinterface:adjust_config: Query returns more than one document for field_id %d" % (field_id,))
+            else:
+                totalfielddays = field_curs[0]['TOTALFIELDDAYS']
+                # reassign fieldday_id values in calendarmap_list
+                operator = "$set"
+                for fieldday_id in range(1, totalfielddays+1):
+                    index = fieldday_id-1
+                    operator_key = "CALENDARMAP_LIST."+str(index)+".fieldday_id"
+                    operator_obj = {operator_key:fieldday_id}
+                    self.dbinterface.updatedoc(query_obj, operator, operator_obj)
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

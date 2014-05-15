@@ -50,8 +50,8 @@ class RRDBInterface:
         div_id = divinfo['div_id']
         field_list = divinfo['fields']
         query_obj = {"DOC_LIST.DIV_ID":div_id}
-        update_obj = {"$set":{"DOC_LIST.$.FIELDS":field_list}}
-        self.dbinterface.updatedoc(query_obj, update_obj)
+        operator_obj = {"DOC_LIST.$.FIELDS":field_list}
+        self.dbinterface.updatedoc(query_obj, "$set", operator_obj)
 
     def drop_collection(self):
         self.dbinterface.drop_collection()
