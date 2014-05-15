@@ -65,10 +65,7 @@ class FieldDBInterface:
             field['calendarmap_list'] = [{'fieldday_id':x['fieldday_id'],
                 'date':x['date'].strftime(date_format_CONST)} for x in field['CALENDARMAP_LIST']]
             del field['CALENDARMAP_LIST']
-            # don't send closed_list to UI
             # http://stackoverflow.com/questions/15411107/delete-a-dictionary-item-if-the-key-exists (None is the return value if closed_list doesnt exist
-            field.pop('CLOSED_LIST', None)
-
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
@@ -138,8 +135,6 @@ class FieldDBInterface:
                     {"CALENDARMAP_LIST":{"fieldday_id":fieldday_id}})
             # next decrement all the fieldday_id fields after the entry above
             # was removed so that fieldday_id's are still contiguous
-            # example cmd: col.update({FIELD_ID:1, "CALENDARMAP_LIST.fieldday_id":{$gt:4}},{$inc:{"CALENDARMAP_LIST.$.fieldday_id":-1}},{multi:true}) <-- Note multi:true does NOT work as positional operator $ is good for only one match
-            # regenerate all fieldday_id fields
             field_curs = self.dbinterface.getdoc(query_obj)
             if field_curs.count() > 1:
                 # pymongo cursor doc at
@@ -154,6 +149,12 @@ class FieldDBInterface:
                     operator_key = "CALENDARMAP_LIST."+str(index)+".fieldday_id"
                     operator_obj = {operator_key:fieldday_id}
                     self.dbinterface.updatedoc(query_obj, operator, operator_obj)
+            # add closed list field - this is for informational purposes only for the UI that can be displayed to the user. CLOSED_LIST has already been
+            # processed on the UI side.
+            operator = "$set"
+            operator_obj = {'CLOSED_LIST':delta_list}
+            self.dbinterface.updatedoc(query_obj, operator, operator_obj,
+                upsert_flag=True)
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

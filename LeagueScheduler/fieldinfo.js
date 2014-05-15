@@ -417,7 +417,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// has been returned from the server.  Instead, retrieve
 						// data from the current store
 						var item = this.editgrid.schedInfoStore.get(field_id);
-						var args_obj = {dayweek_list:item.dayweek_str.split(','),
+						// convert string elements to int; also sort ascending
+        				var dayweekint_list = arrayUtil.map(
+        					item.dayweek_str.split(','), function(item2) {
+        					return parseInt(item2);
+        					});
+        				// http://www.w3schools.com/jsref/jsref_sort.asp
+        				dayweekint_list.sort(function(a, b){return a-b});
+						var args_obj = {dayweek_list:dayweekint_list,
 							start_date:item.start_date,
 							totalfielddays:item.totalfielddays,
 							start_time_str:item.start_time.toLocaleTimeString(),
@@ -461,10 +468,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// http://stackoverflow.com/questions/7869805/programmatically-set-the-selected-value-of-a-dijit-select-widget
 					// autochange fieldselect drop-down selection in titlepane
 					this.fieldselect_widget.set('value', field_id);
-					this.tpform_chgbtn_widget.set('disabled', true);
-					this.tpform_delbtn_widget.set('disabled', true);
-					this.tpform_savebtn_widget.set('disabled', true);
-					this.tpform_cancelbtn_widget.set('disabled', true);
+					this.disable_chgdel_widgets();
+					this.disble_savecancel_widgets();
 				}
 				this.calendar.resize();
 				// update callback with current field_id
@@ -657,8 +662,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.delta_store.add({action:'remove', data_obj:data_obj,
 					id:calendar_id, field_id:data_obj.field_id});
 				this.calendar_store.remove(calendar_id);
-				this.tpform_chgbtn_widget.set('disabled', true);
-				this.tpform_delbtn_widget.set('disabled', true);
+				this.disable_chgdel_widgets();
 				this.enable_savecancel_widgets();
 			},
 			change_calevent: function(calendar_id, event) {
@@ -687,8 +691,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				} else {
 					alert("end time must be later than start timse");
 				}
-				this.tpform_chgbtn_widget.set('disabled', true);
-				this.tpform_delbtn_widget.set('disabled', true);
+				this.disable_chgdel_widgets();
 				this.enable_savecancel_widgets();
 			},
 			enable_savecancel_widgets:function() {
@@ -696,6 +699,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.tpform_cancelbtn_widget.set('disabled', false);
 				if (this.tpform_savebtn_widget.get('disabled'))
 					this.tpform_savebtn_widget.set('disabled', false);
+			},
+			disable_savecancel_widgets:function() {
+				this.tpform_cancelbtn_widget.set('disabled', true);
+				this.tpform_savebtn_widget.set('disabled', true);
+			},
+			disable_chgdel_widgets:function() {
+				this.tpform_chgbtn_widget.set('disabled', true);
+				this.tpform_delbtn_widget.set('disabled', true);
 			},
 			// restore calendar changes defined in the delta_store
 			restore_delta: function(field_id, evt) {
@@ -757,9 +768,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 
 							}, server_key_obj)
 					}
+					this.remove_deltastore(field_id);
 				} else {
-					alert("Re-Save after basic configuration is saved");
+					alert("Save basic configuration first");
 				}
+				this.disable_savecancel_widgets();
+			},
+			remove_deltastore: function(field_id) {
+				// remove delta_store items that correspond to current field_id
+				this.delta_store.query({field_id:field_id})
+					.forEach(function(item) {
+					this.delta_store.remove(item.id);
+				}, this);
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
 				if (this.rendercell_flag) {
@@ -1240,9 +1260,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
         			'week');
         		// get current configuration for days-of-week and it's length
         		// i.e. number of days in week
+        		// Note dayweek_list might not be sorted correctly
         		var dayweek_list = item.dayweek_str.split(',')
-        		var dayweekint_list = arrayUtil.map(dayweek_list, function(item){
-        			return parseInt(item);
+        		var dayweekint_list = arrayUtil.map(dayweek_list, function(item2){
+        			return parseInt(item2);
         		})
         		var dayweek_len = dayweek_list.length;
         		// calc baseline # of fielddays based on full weeks

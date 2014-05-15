@@ -235,13 +235,15 @@ def getDivFieldEdgeWeight_list(divinfo_tuple, fieldinfo_list):
 
 def convertJStoPY_daylist(jsday_list):
     '''Convert list of days from JS format (Sun/0 to Sat/6) to Python day format
-    (Mon/0 to Sun/6)'''
+    (Mon/0 to Sun/6); sort list'''
     pyday_list = [(j-1)%7 for j in jsday_list]
+    pyday_list.sort()
     return pyday_list
 
 def convertPYtoJS_daylist(pyday_list):
-    '''Inverse of convertJStoPY_daylist().  Convert list of days from PY to JS format'''
+    '''Inverse of convertJStoPY_daylist().  Convert list of days from PY to JS format; sort list'''
     jsday_list = [(p+1)%7 for p in pyday_list]
+    jsday_list.sort()
     return jsday_list
 
 def find_le(a, x):
