@@ -33,8 +33,8 @@ class TournamentFieldTimeScheduler:
         tfstatus_tuple = self.getTournFieldSeasonStatus_list()
         self.tfstatus_list = tfstatus_tuple.dict_list
         self.tfindexerGet = tfstatus_tuple.indexerGet
-        self.gaplist = None
-        self.gapindexerGet = None
+        self.timegap_list = None
+        self.timegap_indexerGet = None
         # add field parameters to the divinfo list entries
         # better to eventually move this to the tournamentscheduler constructor
         for tfield in self.tfieldinfo_list:
@@ -236,21 +236,21 @@ class TournamentFieldTimeScheduler:
         return mintime_list
 
     def initTeamTimeGap_list(self, div_list):
-        self.gaplist = [{'div_id':self.divinfo_list[self.dindexerGet(x)]['div_id'], 'team_id':y, 'last_end':-1, 'last_gameday':0} for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)]
+        self.timegap_list = [{'div_id':self.divinfo_list[self.dindexerGet(x)]['div_id'], 'team_id':y, 'last_end':-1, 'last_gameday':0} for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)]
         # gapindexerGet must have a (div_id, team_id) tuple passed to it
-        self.gapindexerGet = lambda x: [i for i,p in enumerate(self.gaplist) if p['div_id'] == x[0] and p['team_id']==x[1]]
+        self.timegap_indexerGet = lambda x: [i for i,p in enumerate(self.timegap_list) if p['div_id'] == x[0] and p['team_id']==x[1]]
 
     def updateTeamTimeGap_list(self, div_id, home, away, gameday, end_time):
         for team in (home,away):
-            gapindex_list = self.gapindexerGet((div_id, team))
-            gapteam_dict = self.gaplist[gapindex_list[0]]
+            gapindex_list = self.timegap_indexerGet((div_id, team))
+            gapteam_dict = self.timegap_list[gapindex_list[0]]
             gapteam_dict['last_end'] = end_time
             gapteam_dict['last_gameday'] = gameday
 
     def getSearchStart_daytime(self, div_id, home, away, field_list, latest_starttime):
         #minslot_gap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
-        homegap_dict = self.gaplist[self.gapindexerGet((div_id, home))[0]]
-        awaygap_dict = self.gaplist[self.gapindexerGet((div_id, away))[0]]
+        homegap_dict = self.timegap_list[self.timegap_indexerGet((div_id, home))[0]]
+        awaygap_dict = self.timegap_list[self.timegap_indexerGet((div_id, away))[0]]
         homegap_gameday = homegap_dict['last_gameday']
         awaygap_gameday = awaygap_dict['last_gameday']
         homegap_end = homegap_dict['last_end']
@@ -287,10 +287,10 @@ class TournamentFieldTimeScheduler:
         validate_flag = [False, False]
         target_tuple =  [-1,-1]
         for i, team in enumerate((home,away)):
-            gapindex_list = self.gapindexerGet((div_id, team))
+            gapindex_list = self.timegap_indexerGet((div_id, team))
             if len(gapindex_list) != 1:
                 raise CodeLogicError("tournftscheduler:initteamtimegap:gap list has multiple or No entries for div %d team %d indexlist %s" % (div_id, team, gapindex_list))
-            gapteam_dict = self.gaplist[gapindex_list[0]]
+            gapteam_dict = self.timegap_list[gapindex_list[0]]
             gapslot = gapteam_dict['last_slot']
             gapday = gapteam_dict['last_gameday']
             #print 'div team home away gapslot gapday slot_index gameday',div_id, team, home, away, gapslot, gapday, slot_index, gameday
@@ -313,8 +313,8 @@ class TournamentFieldTimeScheduler:
                 #print 'VALIDATE', div_id, home,away
                 logging.debug("tournftscheduler:validateTimeSlot: validation Success slot=%d target gameday=%d",slot_index, gameday)
                 for team in (home,away):
-                    gapindex_list = self.gapindexerGet((div_id, team))
-                    gapteam_dict = self.gaplist[gapindex_list[0]]
+                    gapindex_list = self.timegap_indexerGet((div_id, team))
+                    gapteam_dict = self.timegap_list[gapindex_list[0]]
                     gapteam_dict['last_slot'] = slot_index
                     gapteam_dict['last_gameday'] = gameday
             else:
@@ -403,15 +403,15 @@ class TournamentFieldTimeScheduler:
                 # low cost if match has been scheduled earlier - cost is
                 # sum of cost for home and away games.  gameday multiplied by 10
                 # and added to slot number + 1 (because default slot is -1)
-                #cost = sum(10*self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_gameday'] + self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_end'] +1 for x in (home,away))
-                cost = sum(10*self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_gameday'] for x in (home,away))
+                #cost = sum(10*self.timegap_list[self.timegap_indexerGet((div_id, x))[0]]['last_gameday'] + self.timegap_list[self.timegap_indexerGet((div_id, x))[0]]['last_end'] +1 for x in (home,away))
+                cost = sum(10*self.timegap_list[self.timegap_indexerGet((div_id, x))[0]]['last_gameday'] for x in (home,away))
                 for x in (home,away):
-                    last_end = self.gaplist[self.gapindexerGet((div_id, x))[0]]['last_end']
+                    last_end = self.timegap_list[self.timegap_indexerGet((div_id, x))[0]]['last_end']
                     if last_end != -1:
                     # note the difference against the earliest time or the division factor is not important - just needs to be consistent to calculate cost
                         cost += int(ceil((last_end - parser.parse('09:00')).total_seconds()/_min_timegap.total_seconds()))
                 match['cost'] = cost
-                #print 'cost match home away', cost, match, self.gaplist[self.gapindexerGet((div_id, home))[0]], self.gaplist[self.gapindexerGet((div_id, away))[0]]
+                #print 'cost match home away', cost, match, self.timegap_list[self.timegap_indexerGet((div_id, home))[0]], self.timegap_list[self.timegap_indexerGet((div_id, away))[0]]
             divmatch_list.sort(key=itemgetter('cost'))
             #print 'divmatch after sort', divmatch_list
 
