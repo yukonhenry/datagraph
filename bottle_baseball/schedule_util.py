@@ -7,7 +7,7 @@ from collections import Iterable, namedtuple
 from operator import itemgetter
 from dateutil import parser
 from datetime import timedelta
-from bisect import bisect_right
+from bisect import bisect_right, bisect_left
 import logging
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
@@ -255,6 +255,15 @@ def find_le(a, x):
         return (return_index, a[return_index])
     raise ValueError
 
+def find_ge(a,x):
+    '''Find leftmost value greater than or equal to x
+    ref https://docs.python.org/2/library/bisect.html'''
+    i = bisect_left(a, x)
+    if i != len(a):
+        return_index = i
+        return (return_index, a[return_index])
+    raise ValueError
+
 def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     '''Get list that maps fieldday_id to calendar date;
     Start Date is a datetime object as Date objects cannot be serialized
@@ -267,7 +276,7 @@ def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     #find first actual start day by finding the first day from the dayweek_list
     # that is past the start_date which is selected from the UI calendar.
     try:
-        firststart_index, firststart_day = find_le(dayweek_list, start_day)
+        firststart_index, firststart_day = find_ge(dayweek_list, start_day)
     except ValueError:
         # case where the firststart_day is the first day in the list
         firststart_index, firststart_day = (0, dayweek_list[0])

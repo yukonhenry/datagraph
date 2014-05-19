@@ -3,7 +3,7 @@ from datetime import  datetime, timedelta
 from itertools import groupby
 from schedule_util import roundrobin, all_same, all_value, enum, shift_list, \
     bipartiteMatch, getConnectedDivisionGroup, getDivFieldEdgeWeight_list,\
-    all_isless
+    all_isless, find_ge, find_le
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 from leaguedivprep import getTeamTimeConstraintInfo, getSwapTeamInfo
@@ -41,8 +41,10 @@ date_format_CONST = '%m/%d/%Y'
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 
 #https://docs.python.org/2/library/datetime.html
-_absolute_earliest_time = parser.parse('05:00')
-_absolute_earliest_date = parser.parse('01/01/2010')
+_absolute_earliest_time = parser.parse('05:00').time()
+_absolute_earliest_date = parser.parse('01/01/2010').date()
+
+# use constants below for now - but can be field or div_id dependent
 _min_timegap = timedelta(days=4)  # min 4 days between games
 _max_timegap = timedelta(days=8)  # max 8 days between games
 _diff_timegap = _max_timegap - _min_timegap
@@ -1022,6 +1024,11 @@ class FieldTimeScheduleGenerator:
             # endtime_list will be used by other functions where the field_id info
             # will be useful
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
+            #determine earliest dates for each field
+            #these will be used in conjunction with calls to mapdatetime_fieldday
+            earliestdate_list = [{'field_id':f,
+                'date':self.fieldinfo_list[self.fieldinfo_indexerGet(f)]['calendarmap_list'][0]['date']} for f in field_list]
+            earliestdate_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(earliestdate_list)).get(x)
             # use generator list comprehenshion to calcuate sum of required and available fieldslots
             # http://www.python.org/dev/peps/pep-0289/
             # compute number of required gameslots to cover a single round of
@@ -1129,12 +1136,20 @@ class FieldTimeScheduleGenerator:
                             # t[0]:field_id
                             # t[1]: isgame list (list of values corresponding to 'isgame' key)
                             # t[2]: fieldday_id (separate from round_id)
-                            for fieldcand in fieldcand_list:
+                            for field_id in fieldcand_list:
+                                # get fieldday_id corresponding to nextmin/nextmax
+                                # datetimes (first fieldday_id after passed date)
                                 minfieldday_id = self.mapdatetime_fieldday(
-                                    fieldcand, nextmin_datetime)
+                                    field_id, nextmin_datetime, key='min')
+                                if (nextmin_datetime.date() == _absolute_earliest_date):
+                                    # if nextmin_datetime is an initial condition
+                                    # date, then the nextmax_datetime is computed
+                                    # by first determining the first date for the
+                                    # field and adding diff_timegap
+                                    nextmax_datetime = earliestdate_list[earliestdate_indexerGet(field_id)]['date'] + _diff_timegap
                                 maxfieldday_id = self.mapdatetime_fieldday(
-                                    fieldcand, nextmax_datetime)
-                                fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(fieldcand)]
+                                    field_id, nextmax_datetime, key='max')
+                                fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
                                 # get the list of fieldstatus list indices that
                                 # match the round_id (can be list as there could)
                                 # be multiple days in the week that match up with
@@ -1147,7 +1162,7 @@ class FieldTimeScheduleGenerator:
                                             continue
                                         # isgame_list is a 3-tuple
                                         # (field_id, isgame list, fielday_id)
-                                        isgame_list.append((fieldcand,
+                                        isgame_list.append((field_id,
                                             [y['isgame']
                                             for y in round_slotstatus_list['sstatus_list']],
                                             round_slotstatus_list['fieldday_id']))
@@ -1623,6 +1638,10 @@ class FieldTimeScheduleGenerator:
             next_start = _absolute_earliest_time
             # get equivalent datetime object
             nextmin_datetime = datetime.combine(next_gameday, next_start)
+            # nextmax_datetime is kept the same here for the initial condition
+            # case, but is later calculated once the field list is known as the
+            # initial nextmax_datetime will be field_id dependent
+            nextmax_datetime = nextmin_datetime
         else:
             maxgap_datetime = datetime.combine(maxgap_gameday, maxgap_end)
             # calculate earliest datetime that satisfies the minimum timegap
@@ -1640,8 +1659,9 @@ class FieldTimeScheduleGenerator:
             # we have to set a max so that the algorithm does not indefinitely look
             # for dates to schedule a game; if the max is reached and no game can be
             # scheduled, then there is field resource problem.
-        nextmax_datetime = nextmin_datetime + _diff_timegap
-        if nextmax_datetime.time() > latest_starttime:
+            nextmax_datetime = nextmin_datetime + _diff_timegap
+        # latest_starttime is datetime, so convert to time() before comparing
+        if nextmax_datetime.time() > latest_starttime.time():
             #increment date and set time to earliest time if time exceeds the
             #latest time
             next_gameday = next_datetime.date() + timedelta(days=1)
@@ -1651,11 +1671,18 @@ class FieldTimeScheduleGenerator:
             'nextmin_datetime nextmax_datetime')
         return NextMinMax_tuple(nextmin_datetime, nextmax_datetime)
 
-    def mapdatetime_fieldday(self, field_id, dt_obj):
+    def mapdatetime_fieldday(self, field_id, dt_obj, key):
         ''' Map datetime date to fieldday_id as defined by the calendarmap_list
         for the field_id '''
         fieldinfo_list = self.fieldinfo_list[self.fieldinfo_indexerGet(field_id)]
         calendarmap_list = fieldinfo_list['calendarmap_list']
+        date_list = [x['date'].date() for x in calendarmap_list]
+        dt_date = dt_obj.date()
+        if key == 'min':
+            (match_index, match_date) = find_ge(date_list, dt_date)
+        else:
+            (match_index, match_date) = find_le(date_list, dt_date)
+        return calendarmap_list[match_index]['fieldday_id']
 
     def ManualSwapTeams(self, fset, div_set):
         ''' Manual Swap Teams as specified in _swap_team_info in leaguedivprep '''

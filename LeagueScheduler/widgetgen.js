@@ -45,7 +45,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // radiobtn selection
                     radio1_flag = (constant.default_db_type == 'rrdb')?true:false;
                 }
-                put(topdiv_node, "span", "Select Schedule Type:");
                 // NOTE: dom.byID after the widget does not recover the
                 // widget's domNode. In this example, the widget's domNode is a
                 // HTML div element, but the dom.byId after the widget is created
@@ -57,6 +56,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var div1_radio_node = dom.byId(div1_radio_id);
                 var div1_radio = null;
                 if (!div1_radio_node) {
+                    put(topdiv_node, "span", "Select Schedule Type:");
                     div1_radio_node = put(topdiv_node,
                         "div[id=$]", div1_radio_id);
                     put(topdiv_node,
