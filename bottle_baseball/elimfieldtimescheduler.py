@@ -119,7 +119,7 @@ class EliminationFieldTimeScheduler:
                     # playing based on previous elimination game results
                     ginterval = self.divinfo_list[self.dindexerGet(div_id)]['gameinterval']
                     gameinterval = timedelta(0,0,0,0,ginterval)
-                    search_tuple = self.getSearchStart_daytime(div_id, home, away, field_list, latest_endtime-gameinterval, absround_id)
+                    search_tuple = self.getcandidate_daytime(div_id, home, away, field_list, latest_endtime-gameinterval, absround_id)
                     current_gameday = search_tuple[0]
                     current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based non gameday
@@ -254,7 +254,7 @@ class EliminationFieldTimeScheduler:
         gapteam_dict['last_end'] = end_time
         gapteam_dict['last_gameday'] = gameday
 
-    def getSearchStart_daytime(self, div_id, home, away, field_list, latest_starttime, absround_id):
+    def getcandidate_daytime(self, div_id, home, away, field_list, latest_starttime, absround_id):
         #team_list = self.processTeamType(cumulative)
         team_list = [int(t[1:]) for t in (home, away) if t[0] !='S']
         #logging.debug("elimftsched:getSearchStart: teamlist %s", team_list)

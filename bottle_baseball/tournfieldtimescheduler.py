@@ -103,7 +103,7 @@ class TournamentFieldTimeScheduler:
                     away = rrgame['away']
                     ginterval = self.divinfo_list[self.dindexerGet(div_id)]['gameinterval']
                     gameinterval = timedelta(0,0,0,0,ginterval)
-                    search_tuple = self.getSearchStart_daytime(div_id, home, away, field_list, latest_endtime-gameinterval)
+                    search_tuple = self.getcandidate_daytime(div_id, home, away, field_list, latest_endtime-gameinterval)
                     current_gameday = search_tuple[0]
                     current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based on gameday
@@ -247,7 +247,7 @@ class TournamentFieldTimeScheduler:
             gapteam_dict['last_end'] = end_time
             gapteam_dict['last_gameday'] = gameday
 
-    def getSearchStart_daytime(self, div_id, home, away, field_list, latest_starttime):
+    def getcandidate_daytime(self, div_id, home, away, field_list, latest_starttime):
         #minslot_gap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
         homegap_dict = self.timegap_list[self.timegap_indexerGet((div_id, home))[0]]
         awaygap_dict = self.timegap_list[self.timegap_indexerGet((div_id, away))[0]]
