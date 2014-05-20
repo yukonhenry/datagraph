@@ -1123,13 +1123,6 @@ class FieldTimeScheduleGenerator:
                         if len(fieldcand_list) > 1:
                             # see if fieldcand_list needs to be reduced:
                             # for each field, get the True/False list of game scheduled status
-                            '''
-                            isgame_list = [(x,
-                                            [y['isgame'] for y in self.fieldstatus_list[self.fstatus_indexerGet(x)]
-                                             ['slotstatus_list'][round_id-1]])
-                                           for x in fieldcand_list if self.fieldstatus_list[self.fstatus_indexerGet(x)]
-                                           ['slotstatus_list'][round_id-1]]
-                            '''
                             isgame_list = []
                             # isgame_list is a list of 3-tuples, where each 3-tuple
                             # is deinfed as
@@ -1150,76 +1143,44 @@ class FieldTimeScheduleGenerator:
                                 maxfieldday_id = self.mapdatetime_fieldday(
                                     field_id, nextmax_datetime, key='max')
                                 fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
-                                # get the list of fieldstatus list indices that
-                                # match the round_id (can be list as there could)
-                                # be multiple days in the week that match up with
-                                # the round_id
-                                round_index_list = fieldstatus_list['round_indexerMatch'](round_id)
-                                if round_index_list:
-                                    for round_index in round_index_list:
-                                        round_slotstatus_list = fieldstatus_list['slotstatus_list'][round_index]
-                                        if not round_slotstatus_list:
-                                            continue
-                                        # isgame_list is a 3-tuple
-                                        # (field_id, isgame list, fielday_id)
-                                        isgame_list.append((field_id,
-                                            [y['isgame']
-                                            for y in round_slotstatus_list['sstatus_list']],
-                                            round_slotstatus_list['fieldday_id']))
-                                else:
-                                    continue
+                                for fieldday_id in range(minfieldday_id,
+                                    maxfieldday_id+1):
+                                    fieldday_index = fieldday_id-1
+                                    slotstatus_list = fieldstatus_list['slotstatus_list'][fieldday_index]
+                                    # first create  a simple array of isgame statuses for the given slotstatus_list
+                                    # if it is all True then it is not usable
+                                    temp_list = [x['isgame'] for x in slotstatus_list]
+                                    if all(temp_list):
+                                        # not usable, go to next fieldday
+                                        continue
+                                    else:
+                                        # as long as we have one isgame_list for
+                                        # current field_id, break out of the for
+                                        # fieldday_id loop
+                                        isgame_list.append((field_id, temp_list,
+                                            fieldday_id))
+                                        break
                             if not isgame_list:
                                 logging.warning("ftscheduler: fields %s not available on round_id %d", fieldcand_list, round_id)
+                                # if an isgame_list does not exist for either
+                                # fieldcandidates, go for suboptimal solution
                                 submin += 1
                                 continue
-                            # recreate the isgame list by filtering out any entry
-                            # where the isgame_list is all True
-                            # isgame_tuple[1] is the one-element of the tuple which
-                            # is the list of 'isgame' values
-                            isgame_list[:] = [isgame_tuple for isgame_tuple in isgame_list if not all(isgame_tuple[1])]
                             # ref http://stackoverflow.com/questions/2600191/how-can-i-count-the-occurrences-of-a-list-item-in-python
                             # http://stackoverflow.com/questions/2161752/how-to-count-the-frequency-of-the-elements-in-a-list
-                            # NOTE we are not using counters referenced above for the following code - instead sorting isgame_list:
-                            # next thing to do is reduce the isgame_list by eliminating
-                            # duplicate fieldday_id entries - keep only the most recent
-                            # fieldday_id for a given field
-                            # first sort the isgame_list, first by field_id, and
-                            # then by fieldday_id
-                            # NOTE: filtering isgame_list by keeping only minfieldday_id
-                            # assumes that we want to fill up a day on a field before we go to an alternate day (for the same round_id)
-                            # we will need to change strategy if alternate days should be equally filled up.
-                            sorted_isgame_list = sorted(isgame_list,
-                                key=itemgetter(0,2))
-                            isgame_list = []
-                            field_gameday_dict  = {}
-                            # keep only the first (min gameid) occurrence in
-                            # sorted isgame_list
-                            for isgame_tuple in sorted_isgame_list:
-                                if isgame_tuple[0] not in field_gameday_dict.keys():
-                                    # if..not in.. is the key logic to limit the
-                                    # isgame_list to only the first field_id
-                                    isgame_list.append(isgame_tuple)
-                                    # field_gameday_dict maps
-                                    # field_id:current fieldday_id
-                                    # The dict mapping is specific for this round_id
-                                    field_gameday_dict.update({isgame_tuple[0]:isgame_tuple[2]})
                             if len(isgame_list) < len(fieldcand_list):
                                 logging.info("ftscheduler:schedulegen: dropping candidate field size reduced from %d to %d",
                                              len(fieldcand_list), len(isgame_list))
-                            if not isgame_list:
-                                logging.warning("ftscheduler: fields %s are full, looking for alternates",
-                                                [x[0] for x in isgame_list])
-                                submin += 1
-                                continue
-                            else:
                                 # recreate the field candidate list based on remaining fields in isgame_list
                                 # 0-element is the field_id
                                 fieldcand_list[:] = [x[0] for x in isgame_list]
+
                         if len(fieldcand_list) > 1:
                             # take care of the case where a field is completely unscheduled - if it is,
                             # assign a game and credit both early and late game counters
                             fieldempty_list = [x[0] for x in isgame_list if all_value(x[1], False)]
                             if fieldempty_list:
+                                # just grab the first field
                                 field_id = fieldempty_list[0]
                                 minfieldday_id = field_gameday_dict.get(field_id)
                                 slot_index = 0
@@ -1255,7 +1216,7 @@ class FieldTimeScheduleGenerator:
                                     for field_id in firstslotscheduled_list:
                                         fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
                                         slotstatus_list = fieldstatus_list['slotstatus_list']
-                                        # index into slotstatus_lisis merely the
+                                        # index into slotstatus_list is merely the
                                         # fieldday_id minus 1
                                         rg_index = field_gameday_dict.get(field_id)-1
                                         match_list.append({'field_id':field_id,
@@ -2212,32 +2173,17 @@ class FieldTimeScheduleGenerator:
             ratio = totalfielddays/totalgamedays
             # get the limited day list
             limited_list = f.get('limited_list')
-            closed_list = f.get('closed_list')
-            if closed_list:
-                slotstatus_list = [{'fieldday_id':i,
-                    'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
-                    'round_id':(i-1)/ratio+1,
-                    'sstatus_list':deepcopy(sstatus_list)}
-                    if i not in closed_list else None
-                    for i in range(1,totalfielddays+1)]
-            else:
-                # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
-                # when assigning fieldslots, round_id from the match generator should
-                # match up with the round_id
-                slotstatus_list = [{'fieldday_id':i,
-                    'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
-                    'round_id':(i-1)/ratio+1,
-                    'sstatus_list':deepcopy(sstatus_list)}
-                    for i in range(1,totalfielddays+1)]
-            # create lambda function to return list of indices where round_id matches
-            # note this is different from standard indexerGet as multiple indices
-            # may match.  A failure to match returns and empty list.  A single match
-            # returns a list w single element
+            # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
+            # when assigning fieldslots, round_id from the match generator should
+            # match up with the round_id
+            slotstatus_list = [{'fieldday_id':i,
+                'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
+                'round_id':(i-1)/ratio+1,
+                'sstatus_list':deepcopy(sstatus_list)}
+                for i in range(1,totalfielddays+1)]
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
-            round_indexerMatch = lambda x: [i for i,p in enumerate(slotstatus_list) if p['round_id']==x]
             fieldstatus_list.append({'field_id':f['field_id'],
                 'slotstatus_list':slotstatus_list,
-                'round_indexerMatch':round_indexerMatch,
                 'daygameslots_num':sstatus_len})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldstatus_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
