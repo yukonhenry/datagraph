@@ -20,7 +20,6 @@ primaryuse_list_CONST = 'PRIMARYUSE_LIST'
 start_date_CONST = 'START_DATE'
 end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
-end_time_CONST = 'END_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
 totalfielddays_CONST = 'TOTALFIELDDAYS'
 date_format_CONST = "%m/%d/%Y"
