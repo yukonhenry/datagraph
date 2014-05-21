@@ -71,7 +71,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							style:'width:120px',
 						},
 					}, DateTextBox),
-					start_time: editor({label:"Start Time", field:"start_time", autoSave:true, columntype:false,
+					start_time: editor({label:"Start Time", autoSave:true, columntype:false,
 						// note adding editorArgs w constraints timePattern
 						// HH:MM:ss turns time display into 24-hr format
 						// do not use if 12 hour am/pm format is desired
@@ -107,36 +107,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							}
 						} */
 					}, TimeTextBox),
-					end_time: editor({label:"End Time", field:"end_time",
-					                 autoSave:true, columntype:false,
-					                 /*
-						editorArgs:{
-							constraints: {
-								timePattern: 'HH:mm:ss',
-								clickableIncrement: 'T00:15:00',
-								visibleIncrement: 'T00:15:00',
-								visibleRange: 'T01:00:00'
-							},
-						}, */
-						/*
-						set: function(item) {
-							if (this.columntype) {
-								var column_obj = item.end_time;
-								var time_str = column_obj.toLocaleTimeString();
-								console.log("end setitem="+time_str);
-								this.columntype = false;
-								return time_str;
-							}
-						},
-						renderCell: function(object, value) {
-							if (typeof value == "string")
-								return put("div", value);
-							else {
-								// if the type if a Date object (only type of obj) possible
-								// here, extract (local) timestring
-								return put("div", value?value.toLocaleTimeString():"");
-							}
-						}, */
+					end_time: editor({label:"End Time", autoSave:true,
+						columntype:false
 					}, TimeTextBox),
 					dayweek_str:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},

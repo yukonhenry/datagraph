@@ -32,7 +32,6 @@ venue_count_list_CONST = 'VENUE_COUNT_LIST'
 sched_status_CONST = 'SCHED_STATUS'
 div_id_CONST = 'DIV_ID'
 totalteams_CONST = 'TOTALTEAMS'
-totalbrackets_CONST = 'TOTALBRACKETS'
 elimination_num_CONST = 'ELIMINATION_NUM'
 field_id_list_CONST = 'FIELD_ID_LIST'
 sched_type_CONST = 'SCHED_TYPE'
@@ -114,13 +113,19 @@ class MongoDBInterface:
 
     def updateInfoDocument(self, doc_list, config_status):
         # note $set operator only updates specified fields, not the entire document
-        # Also the query object includes doc_list_CONST in addition to sched_type_CONST
-        # because there are multiple types of documents that include sched_type_CONST
-        docID = self.collection.update({sched_type_CONST:self.sched_type,
-                                      doc_list_CONST:{"$exists":True}},
-                                      {"$set": {doc_list_CONST:doc_list,
-                                      config_status_CONST:config_status}},
-                                      upsert=True)
+        # change doc structure to be similar to the fielddb structure - separate
+        # doc for each div_id, instead of putting it all as subdocuments under
+        # DOC_LIST
+        self.collection.update({sched_type_CONST:self.sched_type,
+            sched_status_CONST:{"$exists":True}},
+            {"$set": {config_status_CONST:config_status}}, upsert=True)
+        for doc in doc_list:
+            # put fieldinfo in separate mongo documents
+            # each doc should have a sched_type field
+            doc[sched_type_CONST] = self.sched_type
+            self.collection.update({sched_type_CONST:self.sched_type,
+                'DIV_ID':doc['DIV_ID']}, doc, upsert=True)
+
 
     def updateSchedType_doc(self, updatedoc):
         result_obj = self.collection.update({sched_type_CONST:self.sched_type},
@@ -592,10 +597,12 @@ class MongoDBInterface:
 
     def getInfoDocument(self):
         result = self.collection.find_one({sched_type_CONST:self.sched_type,
-                                         doc_list_CONST:{"$exists":True}},
-                                         {'_id':0})
-        info_list = result[doc_list_CONST]
+            sched_status_CONST:{"$exists":True}}, {'_id':0})
         config_status = result[config_status_CONST]
+        info_curs = self.collection.find({sched_type_CONST:self.sched_type,
+            div_id_CONST:{"$exists":True}}, {'_id':0})
+        # convert cursor to list
+        info_list = [x for x in info_curs]
         return _List_Status(info_list, config_status)
 
     def getFieldInfoDocument(self):

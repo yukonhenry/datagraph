@@ -1,9 +1,9 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-	"dijit/registry", "dgrid/editor",
+	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "put-selector/put", "dojo/domReady!"],
-	function(declare, dom, lang, arrayUtil, registry, editor,
+	function(declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
 		baseinfo, baseinfoSingleton, WidgetGen, put){
 		var constant = {
 			infobtn_id:"infoBtnNode_id",
@@ -61,6 +61,20 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						set:function(item) {
 							return parseInt(item.gameinterval)
 						}}, "text", "dblclick"),
+					mingap_days: editor({label:"Minimum Gap (days)", autoSave:true,
+						editorArgs:{
+							style:'width:70px', value:1, smallDelta:1,
+							//id:"mingap_days_spinner_id",
+							constraints:{min:1, max:50, places:0}
+						}
+					}, NumberSpinner),
+					maxgap_days: editor({label:"Maximum Gap (days)", autoSave:true,
+						editorArgs:{
+							style:'width:70px', value:2, smallDelta:1,
+							//id:"maxgap_days_spinner_id",
+							constraints:{min:1, max:50, places:0}
+						}
+					}, NumberSpinner)
 				};
 				return columnsdef_obj;
 			},
@@ -126,10 +140,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					info_list.push({div_id:i, div_age:"", div_gen:"",
-					                  totalteams:2, numweeks:this.base_numweeks,
-					                  numgdaysperweek:1,
-					                  totalgamedays:this.base_numweeks,
-					                  gameinterval:1});
+						totalteams:2, numweeks:this.base_numweeks,
+						numgdaysperweek:1, totalgamedays:this.base_numweeks,
+						gameinterval:1, mingap_days:1, maxgap_days:2});
 				}
 				return info_list;
 			},

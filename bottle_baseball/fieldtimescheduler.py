@@ -44,11 +44,6 @@ date_format_CONST = '%m/%d/%Y'
 _absolute_earliest_time = parser.parse('05:00').time()
 _absolute_earliest_date = parser.parse('01/01/2010').date()
 
-# use constants below for now - but can be field or div_id dependent
-_min_timegap = timedelta(days=1)  # min 4 days between games
-_max_timegap = timedelta(days=2)  # max 8 days between games
-_diff_timegap = _max_timegap - _min_timegap
-
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
 class FieldTimeScheduleGenerator:
@@ -1094,9 +1089,13 @@ class FieldTimeScheduleGenerator:
                     if (home_currentel_dict['late'] < home_targetel_dict['late'] and
                           away_currentel_dict['late'] < away_targetel_dict['late']):
                         el_state |= EL_enum.LATE_TEAM_NOTMET
-
+                    # get the min and max # days that each team should have between
+                    # games (set for div_id in UI)
+                    mingap_days = self.divinfo_list[self.divinfo_indexerGet(div_id)]['mingap_days']
+                    maxgap_days = self.divinfo_list[self.divinfo_indexerGet(div_id)]['maxgap_days']
+                    diffgap_days_td = timedelta(maxgap_days - mingap_days)
                     nextmin_datetime = self.getcandidate_daytime(div_id, home_id,
-                        away_id, latest_endtime-gameinterval)
+                        away_id, latest_endtime-gameinterval, mingap_days)
                     logging.debug("----------------------")
                     logging.debug("fieldtimescheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
                                   div_id, round_id, home_id, away_id)
@@ -1134,7 +1133,7 @@ class FieldTimeScheduleGenerator:
                                 # calculate latest date for stopping search, and
                                 # then find field date that is equal to or latest
                                 # date that is earlier than that date
-                                nextmax_datetime = mindate + _diff_timegap
+                                nextmax_datetime = mindate + diffgap_days_td
                                 maxfieldday_id, maxdate = self.mapdatetime_fieldday(
                                     field_id, nextmax_datetime, key='max')
                                 fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
@@ -1381,7 +1380,7 @@ class FieldTimeScheduleGenerator:
                             field_id = fieldcand_list[0]
                             minfieldday_id, mindate = self.mapdatetime_fieldday(
                                 field_id, nextmin_datetime, key='min')
-                            nextmax_datetime = mindate + _diff_timegap
+                            nextmax_datetime = mindate + diffgap_days_td
                             maxfieldday_id, maxdate = self.mapdatetime_fieldday(
                                 field_id, nextmax_datetime, key='max')
                             # find status list for this round
@@ -1573,7 +1572,7 @@ class FieldTimeScheduleGenerator:
             teamgap_dict['last_date'] = game_date.date()
             teamgap_dict['last_endtime'] = endtime.time()
 
-    def getcandidate_daytime(self, div_id, home, away, latest_starttime):
+    def getcandidate_daytime(self, div_id, home, away, latest_starttime, mingap_days):
         homegap_dict = self.timegap_list[self.timegap_indexerMatch((div_id, home))[0]]
         awaygap_dict = self.timegap_list[self.timegap_indexerMatch((div_id, away))[0]]
         homegap_gameday = homegap_dict['last_date']
@@ -1599,9 +1598,8 @@ class FieldTimeScheduleGenerator:
             maxgap_datetime = datetime.combine(maxgap_gameday, maxgap_end)
             # calculate earliest datetime that satisfies the minimum timegap
             # between games
-            # NOTE we are only using a constant now to define the gap, but this
-            # can be extended to div or even team-specific
-            nextmin_datetime = maxgap_datetime + _min_timegap
+            # NOTE: for now assume unit of gap to be days
+            nextmin_datetime = maxgap_datetime + timedelta(days=mingap_days)
             if nextmin_datetime.time() > latest_starttime.time():
                 # get time from the next_datetime - if it exceeds the latest allowable
                 # time, increment date and set time to earliest time
