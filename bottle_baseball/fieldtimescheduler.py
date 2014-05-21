@@ -236,7 +236,6 @@ class FieldTimeScheduleGenerator:
                             if not slotstatus:
                                 continue
                             sstatus_list = slotstatus['sstatus_list']
-                            round_id =slotstatus['round_id']
                             isgame_list = [x['isgame'] for x in sstatus_list]
                             if any(isgame_list):
                                 # check for any() to make sure that at least one slot has been scheduled.
@@ -250,10 +249,9 @@ class FieldTimeScheduleGenerator:
                                     # if a match is found, find opponent and it's cost
                                     oppteam_id = match_teams[home_CONST] if match_teams[away_CONST] == team_id else match_teams[away_CONST]
                                     oppteam_cost = self.getSingleTeamELstats(div_id, oppteam_id, el_type)
-                                    #print 'found slot 0 match with field=', field_id, 'div=', div_id, 'gameday=', fieldday_id, 'team=', team_id, 'opp=', oppteam_id
-                                    logging.debug("ftscheduler:FindSwapMatchForTB: found slot0 field=%d div=%d fieldday=%d round_id=%d team=%d opp=%d",
-                                        field_id,div_id, fieldday_id, round_id,
-                                        team_id, oppteam_id)
+                                    logging.debug("ftscheduler:FindSwapMatchForTB: found slot0 field=%d div=%d fieldday=%d team=%d opp=%d",
+                                        field_id,div_id, fieldday_id, team_id,
+                                        oppteam_id)
                                     # only look for range that does not involve EL slots
                                     swapmatch_list = [{'swapteams':sstatus_list[x]['teams'],
                                         'cost':self.getELstats(sstatus_list[x]['teams'], el_type).measure,
@@ -540,7 +538,7 @@ class FieldTimeScheduleGenerator:
                         # target team because they may be playing on a different field
                         if not max_round_status or not min_round_status:
                             # if max count field is not being used on a particular gameday, skip and go to the next
-                            logging.debug("ftscheduler:refieldbalance: either max or min on gameday=%d is None",
+                            logging.debug("ftscheduler:refieldbalance: either max or min on fieldday_id=%d is None",
                                 fieldday_id)
                             continue
                         else:
@@ -1145,7 +1143,8 @@ class FieldTimeScheduleGenerator:
                                     # if it is all True then it is not usable
                                     temp_list = [x['isgame'] for x in sstatus_list]
                                     if all(temp_list):
-                                        # not usable, go to next fieldday
+                                        # not usable as games are scheduled in
+                                        # every slot, go to next fieldday
                                         continue
                                     else:
                                         # as long as we have one isgame_list for
@@ -1153,7 +1152,8 @@ class FieldTimeScheduleGenerator:
                                         # fieldday_id loop
                                         isgame_list.append({'field_id':field_id,
                                             'isgame_list':temp_list,
-                                            'fieldday_id':fieldday_id})
+                                            'fieldday_id':fieldday_id,
+                                            'date':self.mapfieldday_datetime(field_id, fieldday_id)})
                                         break
                             if not isgame_list:
                                 logging.warning("ftscheduler: fields %s not available on round_id %d", fieldcand_list, round_id)
@@ -1162,7 +1162,20 @@ class FieldTimeScheduleGenerator:
                                 submin += 1
                                 continue
                             else:
-                                isgame_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(isgame_list)).get(x)
+                                # at this point, isgame_list entries each have
+                                #their own min fieldday_id entry; further reduce
+                                #isgame_list by restricting entries to field_id's
+                                #that have the minimum (earliest) calendar date.
+                                # ref http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
+                                # first find minimum date value
+                                # NOTE: we are assuming filling up earlier dates is MOST important compared to other criteria
+                                min_date = min(isgame_list, key=itemgetter('date'))['date']
+                                # find indices of isgame_list that have entries with the minimum date
+                                index_list = [i for i,j in enumerate(isgame_list)
+                                    if j['date']==min_date]
+                                # reduce isgame_list to only include entrie with min date
+                                isgame_list[:] = [x for i,x in enumerate(isgame_list) if i in index_list]
+                                # create mapping dict from field_id to fieldday_id
                                 mapfield_dict = {x['field_id']:x['fieldday_id'] for x in isgame_list}
                             # ref http://stackoverflow.com/questions/2600191/how-can-i-count-the-occurrences-of-a-list-item-in-python
                             # http://stackoverflow.com/questions/2161752/how-to-count-the-frequency-of-the-elements-in-a-list
@@ -1627,6 +1640,13 @@ class FieldTimeScheduleGenerator:
             (match_index, match_date) = find_le(date_list, dt_date)
         match_dict = calendarmap_list[match_index]
         return (match_dict['fieldday_id'], match_dict['date'])
+
+    def mapfieldday_datetime(self, field_id, fieldday_id):
+        "Map fieldday_id to date as expressed in datetime obj"
+        fieldinfo_list = self.fieldinfo_list[self.fieldinfo_indexerGet(field_id)]
+        calendarmap_list = fieldinfo_list['calendarmap_list']
+        calendarmap_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(calendarmap_list)).get(x)
+        return calendarmap_list[calendarmap_indexerGet(fieldday_id)]['date']
 
     def ManualSwapTeams(self, fset, div_set):
         ''' Manual Swap Teams as specified in _swap_team_info in leaguedivprep '''
@@ -2161,7 +2181,6 @@ class FieldTimeScheduleGenerator:
             # match up with the round_id
             slotstatus_list = [{'fieldday_id':i,
                 'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
-                'round_id':(i-1)/ratio+1,
                 'sstatus_list':deepcopy(sstatus_list)}
                 for i in range(1,totalfielddays+1)]
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension

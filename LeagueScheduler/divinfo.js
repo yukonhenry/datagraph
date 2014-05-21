@@ -183,29 +183,42 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// Baseline implementation - if need to customize, do so in
 				// inherited child class
 				var config_status = 0;
+				var alert_msg = "";
 				if (arrayUtil.some(raw_result, function(item, index) {
 					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
 					// iterate through object's own properties too see if there
 					// any unfilled fields.  If so alert and exit without sending
 					// data to server
 					var break_flag = false;
+					var mingap_days = -1;
 					for (var prop in item) {
 						if (prop == 'totalgamedays') {
 							// for totalgamedays column we want at least positive gamedays
 							if (item[prop] <= 0) {
 								console.log("divinfo:checkconfig:need at least one total gameday");
+								alert_msg = "Need totalgameday value"
 								break_flag = true;
 								break;
 							}
 						} else if (prop == 'totalteams') {
 							if (item[prop] < 2) {
 								console.log("divinfo:checkconfig:need at least two teams");
+								alert_msg = "Need >=2 teams"
+								break_flag = true;
+								break;
+							}
+						} else if (prop == 'mingap_days') {
+							mingap_days = item[prop]
+						} else if (prop == 'maxgap_days') {
+							if (item[prop] <= mingap_days) {
+								console.log("divinfo:checkconfig: maxgap value needs to be larger than or equal to mingap value");
+								alert_msg = "Need Max >= Min"
 								break_flag = true;
 								break;
 							}
 						} else {
 							if (item[prop] === "") {
-								//alert("Not all fields in grid filled out, but saving");
+								alert_msg = "Empty Field"
 								break_flag = true;
 								break;
 							}
@@ -216,6 +229,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete for "+this.idproperty+
 						" but saving");
+					alert(alert_msg);
 				} else {
 					config_status = 1;
 				}
