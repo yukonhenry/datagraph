@@ -1,12 +1,11 @@
 #!/usr/bin/python
-from leaguedivprep import getDivFieldEdgeWeight_list
-from schedule_util import nth_listitem
-from leaguediv_process import elimination2013, export_elim2013, get_alldivSchedule
+from singletonlite import mongoClient
+from schedmaster import SchedMaster
 import logging
 
 def main():
-    logging.basicConfig(filename='debug.log', filemode='w', level=logging.INFO)
-    #logging.basicConfig(level=logging.INFO)
+    #logging.basicConfig(filename='debug.log', filemode='w', level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     '''
     l = [0,0,1,0,1,0,1]
     for i in range(6):
@@ -14,6 +13,9 @@ def main():
     '''
     #get_alldivSchedule()
     #elimination2013('phmsacup2013')
-    export_elim2013('phmsacup2013')
+    #export_elim2013('phmsacup2013')
+    schedMaster = SchedMaster(mongoClient, "rrdb", "ph", "PHMSA",
+        "PHMSA2014")
+    dbstatus = schedMaster.generate()
 if __name__ == '__main__':
     main()

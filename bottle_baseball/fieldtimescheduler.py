@@ -45,8 +45,8 @@ _absolute_earliest_time = parser.parse('05:00').time()
 _absolute_earliest_date = parser.parse('01/01/2010').date()
 
 # use constants below for now - but can be field or div_id dependent
-_min_timegap = timedelta(days=4)  # min 4 days between games
-_max_timegap = timedelta(days=8)  # max 8 days between games
+_min_timegap = timedelta(days=1)  # min 4 days between games
+_max_timegap = timedelta(days=2)  # max 8 days between games
 _diff_timegap = _max_timegap - _min_timegap
 
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
@@ -1025,11 +1025,6 @@ class FieldTimeScheduleGenerator:
             # will be useful
             # convert to time obj from datetime obj
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
-            #determine earliest dates for each field
-            #these will be used in conjunction with calls to mapdatetime_fieldday
-            earliestdate_list = [{'field_id':f,
-                'date':self.fieldinfo_list[self.fieldinfo_indexerGet(f)]['calendarmap_list'][0]['date']} for f in field_list]
-            earliestdate_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(earliestdate_list)).get(x)
             # use generator list comprehenshion to calcuate sum of required and available fieldslots
             # http://www.python.org/dev/peps/pep-0289/
             # compute number of required gameslots to cover a single round of
@@ -1100,15 +1095,14 @@ class FieldTimeScheduleGenerator:
                           away_currentel_dict['late'] < away_targetel_dict['late']):
                         el_state |= EL_enum.LATE_TEAM_NOTMET
 
-                    candidate_tuple = self.getcandidate_daytime(div_id, home_id,
+                    nextmin_datetime = self.getcandidate_daytime(div_id, home_id,
                         away_id, latest_endtime-gameinterval)
-                    nextmin_datetime = candidate_tuple.nextmin_datetime
-                    nextmax_datetime = candidate_tuple.nextmax_datetime
                     logging.debug("----------------------")
                     logging.debug("fieldtimescheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
                                   div_id, round_id, home_id, away_id)
                     logging.debug("early late hometarget=%s awaytarget=%s homecurrent=%s awaycurrent=%s",
                                   home_targetel_dict, away_targetel_dict, home_currentel_dict, away_currentel_dict)
+                    logging.debug("next min datetime %s",nextmin_datetime)
                     submin = 0
                     while True:
                         # first find fields based strictly on field balancing criteria
@@ -1133,15 +1127,15 @@ class FieldTimeScheduleGenerator:
                             for field_id in fieldcand_list:
                                 # get fieldday_id corresponding to nextmin/nextmax
                                 # datetimes (first fieldday_id after passed date)
-                                minfieldday_id = self.mapdatetime_fieldday(
+                                minfieldday_id, mindate = self.mapdatetime_fieldday(
                                     field_id, nextmin_datetime, key='min')
-                                if (nextmin_datetime.date() == _absolute_earliest_date):
-                                    # if nextmin_datetime is an initial condition
-                                    # date, then the nextmax_datetime is computed
-                                    # by first determining the first date for the
-                                    # field and adding diff_timegap
-                                    nextmax_datetime = earliestdate_list[earliestdate_indexerGet(field_id)]['date'] + _diff_timegap
-                                maxfieldday_id = self.mapdatetime_fieldday(
+                                # calculate latest date that search for a field
+                                # should iterate to; mindate is real field date
+                                # calculate latest date for stopping search, and
+                                # then find field date that is equal to or latest
+                                # date that is earlier than that date
+                                nextmax_datetime = mindate + _diff_timegap
+                                maxfieldday_id, maxdate = self.mapdatetime_fieldday(
                                     field_id, nextmax_datetime, key='max')
                                 fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
                                 for fieldday_id in range(minfieldday_id,
@@ -1385,15 +1379,10 @@ class FieldTimeScheduleGenerator:
                             # of the if....  See comments above.  Singe candidate field is a simplification of the
                             # multiple fieldcand case
                             field_id = fieldcand_list[0]
-                            minfieldday_id = self.mapdatetime_fieldday(
+                            minfieldday_id, mindate = self.mapdatetime_fieldday(
                                 field_id, nextmin_datetime, key='min')
-                            if (nextmin_datetime.date() == _absolute_earliest_date):
-                                # if nextmin_datetime is an initial condition
-                                # date, then the nextmax_datetime is computed
-                                # by first determining the first date for the
-                                # field and adding diff_timegap
-                                nextmax_datetime = earliestdate_list[earliestdate_indexerGet(field_id)]['date'] + _diff_timegap
-                            maxfieldday_id = self.mapdatetime_fieldday(
+                            nextmax_datetime = mindate + _diff_timegap
+                            maxfieldday_id, maxdate = self.mapdatetime_fieldday(
                                 field_id, nextmax_datetime, key='max')
                             # find status list for this round
                             fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
@@ -1437,7 +1426,7 @@ class FieldTimeScheduleGenerator:
                                     # as in the case for multiple fieldcand's - see if it makes sense to push out
                                     # the current slot-0-scheduled match
                                     match_list = [{'field_id':field_id,
-                                        'match':slotstatus_list[fieldday_index]['sstatus_list'][firstslot_CONST]['teams'],
+                                        'match':sstatus_list[firstslot_CONST]['teams'],
                                         'newslot':firstslot_CONST}]
                                     fieldslot_tuple = self.compareCounterToTarget(match_list, 'early')
                                     if fieldslot_tuple:
@@ -1467,7 +1456,7 @@ class FieldTimeScheduleGenerator:
                                     'newslot':firstopen_index}]
                                 '''
                                 match_list = [{'field_id':field_id,
-                                    'match':slotstatus_list[fieldday_index]['sstatus_list'][firstopen_index-1]['teams'],
+                                    'match':sstatus_list[firstopen_index-1]['teams'],
                                     'newslot':firstopen_index}]
                                 fieldslot_tuple = self.compareCounterToTarget(match_list, 'late')
                                 if fieldslot_tuple:
@@ -1476,7 +1465,7 @@ class FieldTimeScheduleGenerator:
                                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
                                     break
                             # for EL_enum 'normal' cases, see if it makes sense to take over first or last slot anyways
-                            sstatus_list = slotstatus_list[fieldday_index]['sstatus_list']
+                            #sstatus_list = slotstatus_list[fieldday_index]['sstatus_list']
                             firstlastmatch_list = [{'field_id':field_id,
                                 'firstmatch':sstatus_list[firstslot_CONST]['teams'],
                                 'firstmatch_newslot':firstslot_CONST,
@@ -1605,10 +1594,7 @@ class FieldTimeScheduleGenerator:
             next_start = _absolute_earliest_time
             # get equivalent datetime object
             nextmin_datetime = datetime.combine(maxgap_gameday, next_start)
-            # nextmax_datetime is kept the same here for the initial condition
-            # case, but is later calculated once the field list is known as the
-            # initial nextmax_datetime will be field_id dependent
-            nextmax_datetime = nextmin_datetime
+            # nextmax_datetime is later calculated once the field list is known
         else:
             maxgap_datetime = datetime.combine(maxgap_gameday, maxgap_end)
             # calculate earliest datetime that satisfies the minimum timegap
@@ -1616,7 +1602,7 @@ class FieldTimeScheduleGenerator:
             # NOTE we are only using a constant now to define the gap, but this
             # can be extended to div or even team-specific
             nextmin_datetime = maxgap_datetime + _min_timegap
-            if nextmin_datetime > latest_starttime:
+            if nextmin_datetime.time() > latest_starttime.time():
                 # get time from the next_datetime - if it exceeds the latest allowable
                 # time, increment date and set time to earliest time
                 next_gameday = nextmin_datetime.date() + timedelta(days=1)
@@ -1626,17 +1612,9 @@ class FieldTimeScheduleGenerator:
             # we have to set a max so that the algorithm does not indefinitely look
             # for dates to schedule a game; if the max is reached and no game can be
             # scheduled, then there is field resource problem.
-            nextmax_datetime = nextmin_datetime + _diff_timegap
-        # latest_starttime is datetime, so convert to time() before comparing
-        if nextmax_datetime.time() > latest_starttime.time():
-            #increment date and set time to earliest time if time exceeds the
-            #latest time
-            next_gameday = next_datetime.date() + timedelta(days=1)
-            next_start = _absolute_earliest_time
-            nextmax_datetime = datetime.combine(next_gameday, next_start)
-        NextMinMax_tuple = namedtuple('NextMinMax_tuple',
-            'nextmin_datetime nextmax_datetime')
-        return NextMinMax_tuple(nextmin_datetime, nextmax_datetime)
+            # CHANGE: nextmax_datetime is calculated only After a real fieldday
+            # date is found out
+        return nextmin_datetime
 
     def mapdatetime_fieldday(self, field_id, dt_obj, key):
         ''' Map datetime date to fieldday_id as defined by the calendarmap_list
@@ -1649,7 +1627,8 @@ class FieldTimeScheduleGenerator:
             (match_index, match_date) = find_ge(date_list, dt_date)
         else:
             (match_index, match_date) = find_le(date_list, dt_date)
-        return calendarmap_list[match_index]['fieldday_id']
+        match_dict = calendarmap_list[match_index]
+        return (match_dict['fieldday_id'], match_dict['date'])
 
     def ManualSwapTeams(self, fset, div_set):
         ''' Manual Swap Teams as specified in _swap_team_info in leaguedivprep '''
