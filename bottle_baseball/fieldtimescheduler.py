@@ -465,17 +465,18 @@ class FieldTimeScheduleGenerator:
         else:
             return False
 
-
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         fieldcountdiff_list = []
         for div_id in connected_div_list:
-            #divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
             # http://stackoverflow.com/questions/10543303/number-of-values-in-a-list-greater-than-a-certain-number
+            # count occurrences of diff between max and min counts are > 1, per
+            # div_id
             fcountdiff_num = sum(max(tmetrics, key=itemgetter('count'))['count']-min(tmetrics, key=itemgetter('count'))['count'] > 1
                                  for tmetrics in tfmetrics)
             fieldcountdiff_list.append({'div_id':div_id, 'fcountdiff_num':fcountdiff_num})
         return fieldcountdiff_list
+
     def IncDecELCounters(self, teams, el_type, increment):
         ''' inc/dec early/late counters based on el type and inc/dec flag '''
         div_id = teams['div_id']
@@ -512,9 +513,7 @@ class FieldTimeScheduleGenerator:
         rebalance_count = 0
         for div_id in connected_div_list:
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-            #div_totalgamedays = divinfo['totalgamedays']
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
-            #team_id = 1
             for team_id, team_metrics in enumerate(tfmetrics, start=1):
                 # for each team in the division, get counts for fields with maximum/minimum use counts
                 maxuse = max(team_metrics, key=itemgetter('count'))
@@ -522,16 +521,18 @@ class FieldTimeScheduleGenerator:
                 diff = maxuse['count']-minuse['count']
                 if diff > 1:
                     # if the difference between max and min is greater than a threshold
-                    # (1 in this case)
+                    # (1 in this case), that meas the current team_id is favoring
+                    # the use of maxfield over minfield. See if it is possible to
+                    # move a game between two fields if they are available on the
+                    # same day
                     maxfield = maxuse['field_id']
                     minfield = minuse['field_id']
-                    #print 'div', div_id, 'team', team_id, 'needs to move from field', maxuse['field_id'], 'to', minuse['field_id'], 'because diff=', diff
-                    max_ftstatus = self.fieldstatus_list[self.fstatus_indexerGet(maxfield)]['slotstatus_list']
-                    min_ftstatus = self.fieldstatus_list[self.fstatus_indexerGet(minfield)]['slotstatus_list']
+                    max_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(maxfield)]['slotstatus_list']
+                    min_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(minfield)]['slotstatus_list']
                     maxfteam_metrics_list = []
                     minfteam_metrics_list = []
                     gameday_totalcost_list = []
-                    for fieldday_id, (max_round_status, min_round_status) in enumerate(zip(max_ftstatus, min_ftstatus),start=1):
+                    for fieldday_id, (max_round_status, min_round_status) in enumerate(zip(max_ftstatus_list, min_ftstatus_list),start=1):
                         # for each gameday first find game stats for max count fields
                         # for max count fields, find for each gameday, each gameday slot where the target
                         # team plays on the max count field.  Each gameday slot might not involve the
@@ -557,6 +558,7 @@ class FieldTimeScheduleGenerator:
                         if today_maxfield_info_list:
                             logging.info("ftscheduler:refieldbalance: div=%d gameday=%d maxfield=%d minfield=%d",
                                          div_id, fieldday_id, maxfield, minfield)
+                            # assuming one game per team per day when taking 0-element
                             today_maxfield_info = today_maxfield_info_list[0]
                             logging.debug("ftscheduler:refieldbalance: maxfield info=%s", today_maxfield_info)
                             # if there is game being played on the max count field by the current team, then first find out
@@ -675,10 +677,10 @@ class FieldTimeScheduleGenerator:
                     logging.debug('ftscheduler:refieldbalance: swap with match div=%d, home=%d away=%d, slot=%d field=%d',
                                   max_minf_div_id, max_minf_home_id, max_minf_away_id, max_minf_slot, minfield)
                     # ready to swap matches
-                    maxf_sstatus_list = max_ftstatus[max_fieldday_id-1]['sstatus_list']
-                    minf_sstatus_list = min_ftstatus[max_fieldday_id-1]['sstatus_list']
+                    maxf_sstatus_list = max_ftstatus_list[max_fieldday_id-1]['sstatus_list']
+                    minf_sstatus_list = min_ftstatus_list[max_fieldday_id-1]['sstatus_list']
                     maxf_teams = maxf_sstatus_list[max_maxf_slot]['teams']
-                    minf_teams = min_ftstatus[max_fieldday_id-1]['sstatus_list'][max_minf_slot]['teams']
+                    minf_teams = minf_sstatus_list[max_minf_slot]['teams']
                     logging.debug('teams check only before swap maxf=%s minf=%s',
                         maxf_sstatus_list[max_maxf_slot],
                         minf_sstatus_list[max_minf_slot])
@@ -1445,7 +1447,7 @@ class FieldTimeScheduleGenerator:
                                         # ok we can shift
                                         slot_index = fieldslot_tuple.slot_index # should be same as slot 0
                                         self.shiftFSstatus_list(field_id,
-                                            slot_index, ieldday_id)
+                                            slot_index, fieldday_id)
                                         self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
                                         break
 
