@@ -155,22 +155,5 @@ class FieldDBInterface:
             self.dbinterface.updatedoc(query_obj, operator, operator_obj,
                 upsert_flag=True)
 
-    def findcommon_dates(self, field_list, fieldinfo_list,
-        fieldinfo_indexerGet):
-        ''' Find common dates from multiple calendarmap_lists and return the
-        common dates, along with the fieldday_id's corresponding to each
-        list '''
-        # first create list of tuples, with x[0] field_id, x[1] calendarmap_list
-        maptuple_list = [(f,fieldinfo_list[fieldinfo_indexerGet(f)]['calendarmap_list']) for f in field_list]
-        # use set comprehension as described in
-        # https://docs.python.org/2/tutorial/datastructures.html#sets
-        dateset_list = [{y['date'] for y in x[1]} for x in maptuple_list]
-        commondate_list = list(set.intersection(*dataset_list))
-        commonmap_list = []
-        commonmap_list = [(x['fieldday_id'], y['fieldday_id'])
-            for x in map1_list for y in map2_list
-            if x['date'] in commondate_list and y['date'] in commondate_list]
-        return commonmap_list
-
     def drop_collection(self):
         self.dbinterface.drop_collection()

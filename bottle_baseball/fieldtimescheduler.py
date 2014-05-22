@@ -509,7 +509,7 @@ class FieldTimeScheduleGenerator:
             home_fieldmetrics_list[home_fieldmetrics_indexerGet(field_id)]['count'] -= 1
             away_fieldmetrics_list[away_fieldmetrics_indexerGet(field_id)]['count'] -= 1
 
-    def ReFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
+    def ReFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet, commondates_list):
         rebalance_count = 0
         for div_id in connected_div_list:
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
@@ -532,19 +532,22 @@ class FieldTimeScheduleGenerator:
                     maxfteam_metrics_list = []
                     minfteam_metrics_list = []
                     gameday_totalcost_list = []
-                    for fieldday_id, (max_round_status, min_round_status) in enumerate(zip(max_ftstatus_list, min_ftstatus_list),start=1):
+                    #for fieldday_id, (max_round_status, min_round_status) in enumerate(zip(max_ftstatus_list, min_ftstatus_list),start=1):
+                    for commondates_dict in commondates_list:
+                        # work off of dates that are shared between the max and min
+                        # fields - first get the corresponding fieldday_id
+                        maxfieldday_id = commondates_dict['map_dict'][maxfield]
+                        minfieldday_id = commondates_dict['map_dict'][minfield]
+                        # we could also use an indexerGet function with fieldday_id
+                        # as an argument, but we are being lazy here using the index
+                        max_round_status = max_ftstatus_list[maxfieldday_id-1]
+                        min_round_status = min_ftstatus_list[minfieldday_id-1]
                         # for each gameday first find game stats for max count fields
                         # for max count fields, find for each gameday, each gameday slot where the target
                         # team plays on the max count field.  Each gameday slot might not involve the
                         # target team because they may be playing on a different field
-                        if not max_round_status or not min_round_status:
-                            # if max count field is not being used on a particular gameday, skip and go to the next
-                            logging.debug("ftscheduler:refieldbalance: either max or min on fieldday_id=%d is None",
-                                fieldday_id)
-                            continue
-                        else:
-                            logging.debug("continuing on gameday=%d", fieldday_id)
-                        today_maxfield_info_list = [{'fieldday_id':fieldday_id,
+                        logging.debug("continuing on maxfieldday=%d minfieldday=%d", maxfieldday_id, minfieldday_id)
+                        today_maxfield_info_list = [{'fieldday_id':maxfieldday_id,
                             'slot_index':i,
                             'start_time':j['start_time'],
                             'teams':j['teams']}
@@ -556,8 +559,8 @@ class FieldTimeScheduleGenerator:
                                 len(today_maxfield_info_list))
                             #raise CodeLogicError('ftschedule:rebalance: There should only be one game per gameday')
                         if today_maxfield_info_list:
-                            logging.info("ftscheduler:refieldbalance: div=%d gameday=%d maxfield=%d minfield=%d",
-                                         div_id, fieldday_id, maxfield, minfield)
+                            logging.info("ftscheduler:refieldbalance: div=%d maxfieldday=%d minfieldday=%d maxfield=%d minfield=%d",
+                                div_id, maxfieldday_id, minfieldday_id, maxfield, minfield)
                             # assuming one game per team per day when taking 0-element
                             today_maxfield_info = today_maxfield_info_list[0]
                             logging.debug("ftscheduler:refieldbalance: maxfield info=%s", today_maxfield_info)
@@ -595,7 +598,7 @@ class FieldTimeScheduleGenerator:
                             # best match involving the maxfteam out of all the gamedays to swap out
                             maxfteam_metrics = {'team':team_id, 'oppteam_id':oppteam_id, 'maxf_count':maxfield_opp_count,
                                                 'minf_count':minfield_opp_count, 'opp_measure':opp_measure,
-                                                'fieldday_id':fieldday_id, 'el_measure':el_measure,
+                                                'fieldday_id':maxfieldday_id, 'el_measure':el_measure,
                                                 'maxftotal_cost':maxftotal_cost}
                             maxfteam_metrics_list.append(maxfteam_metrics)
                             logging.debug('ftscheduler:refieldbalance: maxfield team metrics=%s', maxfteam_metrics)
@@ -1020,6 +1023,7 @@ class FieldTimeScheduleGenerator:
             # will be useful
             # convert to time obj from datetime obj
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
+            commondates_list = self.find_commondates(field_list)
             # use generator list comprehenshion to calcuate sum of required and available fieldslots
             # http://www.python.org/dev/peps/pep-0289/
             # compute number of required gameslots to cover a single round of
@@ -1546,7 +1550,7 @@ class FieldTimeScheduleGenerator:
                                   div['div_age'], div['div_gen'], round_id, field_id, gametime, slot_index)
                 logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
                               connected_div_list, round_id, gameday_fieldcount)
-            self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet)
+            self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
             # now work on time balanceing
             self.ReTimeBalance(fset, connected_div_list)
             self.ManualSwapTeams(fset, connected_div_list)
@@ -1687,9 +1691,9 @@ class FieldTimeScheduleGenerator:
 
 
 
-    def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet):
+    def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list):
         old_balcount_list = self.CountFieldBalance(connected_div_list,
-            fieldmetrics_list, fieldmetrics_indexerGet)
+            fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
         iteration_count = 1
         logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s", iteration_count,
@@ -2257,4 +2261,33 @@ class FieldTimeScheduleGenerator:
         # there was a break, check failed
         return False
 
+    def find_commondates(self, field_list):
+        ''' Find common dates from multiple calendarmap_lists and return the
+        common dates, along with the fieldday_id's corresponding to each
+        list '''
+        # first create list of tuples, with x[0] field_id, x[1] calendarmap_list
+        maptuple_list = []
+        for f in field_list:
+            calendarmap_list = self.fieldinfo_list[self.fieldinfo_indexerGet(f)]['calendarmap_list']
+            calendarmap_indexerGet = lambda x: dict((p['date'],i) for i,p in enumerate(calendarmap_list)).get(x)
+            maptuple_list.append((f, calendarmap_list, calendarmap_indexerGet))
+        # use set comprehension as described in
+        # https://docs.python.org/2/tutorial/datastructures.html#sets
+        # to create list of sets of dates
+        dateset_list = [{y['date'] for y in x[1]} for x in maptuple_list]
+        # do an intersection amongst the sets to get common dates
+        intersection_list = list(set.intersection(*dateset_list))
+        # create the data structure to return the common dates
+        commonmap_list = []
+        for date in intersection_list:
+            map_dict = {}
+            for maptuple in maptuple_list:
+                field_id = maptuple[0]
+                calendarmap_list = maptuple[1]
+                calendarmap_indexerGet = maptuple[2]
+                fieldday_id = calendarmap_list[calendarmap_indexerGet(date)]['fieldday_id']
+                # mapping dictionary maps field_id to fieldday_id
+                map_dict.update({field_id:fieldday_id})
+            commonmap_list.append({'date':date, 'map_dict':map_dict})
+        return commonmap_list
 

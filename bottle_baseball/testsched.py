@@ -15,7 +15,7 @@ def main():
     #elimination2013('phmsacup2013')
     #export_elim2013('phmsacup2013')
     schedMaster = SchedMaster(mongoClient, "rrdb", "ph", "PHMSA",
-        "2014")
+        "M2014")
     dbstatus = schedMaster.generate()
 if __name__ == '__main__':
     main()
