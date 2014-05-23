@@ -75,7 +75,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_list = []
         self.timegap_indexerMatch = None
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, required_roundslots_num, submin=0):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, required_roundslots_num, submin=0, field_list):
         # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
@@ -84,6 +84,15 @@ class FieldTimeScheduleGenerator:
         # return field_id(s) - not indices
         #optional parameter submin is used when the submin-th minimum is required, i.e. is submin=1
         #return the 2nd-most minimum count fields
+        # Also pass in the field_list - we want to find fields that satisfy
+        # the minimum-date criteria - fill up fields on earlier calendar date
+        # before starting to fill a later calendar date, even if violating field
+        # count balancing requirements.  For example, if Field 1 is available on
+        # Saturdays only and Field 2 is available on Sundays only - if teams
+        # are only playing once during that weekend, have them play on Field1
+        # on Saturdays until they have to play on Sunday/Field 2 because Sat/
+        # Field1 is full, even though this will not meet field balancing
+        # requirements.
         requiredslots_perfield = int(ceil(float(required_roundslots_num)/len(gd_fieldcount)))
         maxedout_field = None
         almostmaxed_field = None
@@ -1125,7 +1134,7 @@ class FieldTimeScheduleGenerator:
                         # first find fields based strictly on field balancing criteria
                         fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
                             away_fieldmetrics_list, gameday_fieldcount,
-                            required_roundslots_num, submin)
+                            required_roundslots_num, submin, field_list)
                         if not fieldcand_list:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
