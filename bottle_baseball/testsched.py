@@ -14,8 +14,8 @@ def main():
     #get_alldivSchedule()
     #elimination2013('phmsacup2013')
     #export_elim2013('phmsacup2013')
-    schedMaster = SchedMaster(mongoClient, "rrdb", "ph", "PHMSA",
-        "M2014")
+    schedMaster = SchedMaster(mongoClient, "rrdb", "ph2", "PHMSA2",
+        "PH2014")
     dbstatus = schedMaster.generate()
 if __name__ == '__main__':
     main()

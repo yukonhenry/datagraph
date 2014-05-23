@@ -140,9 +140,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						"input#newsched_input_id[type=text][required=true]");
 					this.dbname_reg = new ValidationTextBox({
 						value:'',
-						regExp:'[\\w]+',
-						promptMessage:'Enter New Schedule - only alphanumeric characters and _',
-						invalidMessage:'only alphanumeric characters and _',
+						regExp:'\\D[\\w]+',
+						promptMessage:'Enter New Schedule-start with letter or _, followed by alphanumeric or _',
+						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
 						missingMessage:'enter schedule name'
 					}, sched_input);
 				} else {
