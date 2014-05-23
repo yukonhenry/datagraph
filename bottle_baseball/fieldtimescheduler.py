@@ -1123,6 +1123,11 @@ class FieldTimeScheduleGenerator:
                     diffgap_days_td = timedelta(maxgap_days - mingap_days)
                     nextmin_datetime = self.getcandidate_daytime(div_id, home_id,
                         away_id, latest_endtime-gameinterval, mingap_days)
+                    # get full list of fieldday_id, calendardates that correspond
+                    # to min and max nextmin/nextmax datestimes that will bound the
+                    # search for fields during current round
+                    minmaxdate_list = self.getminmaxdate_list(nextmin_datetime,
+                        diffgap_days_td, field_list)
                     logging.debug("----------------------")
                     logging.debug("fieldtimescheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
                                   div_id, round_id, home_id, away_id)
@@ -1621,6 +1626,10 @@ class FieldTimeScheduleGenerator:
             teamgap_dict['last_endtime'] = endtime.time()
 
     def getcandidate_daytime(self, div_id, home, away, latest_starttime, mingap_days):
+        ''' get next earliest potential calendar date and time to schedule a game.
+        Satisfies gaptime requirements.  Note calculations are based on raw
+        calendar dates; Actual scheduling dates based on real field availability is
+        done outside of this method.'''
         homegap_dict = self.timegap_list[self.timegap_indexerMatch((div_id, home))[0]]
         awaygap_dict = self.timegap_list[self.timegap_indexerMatch((div_id, away))[0]]
         homegap_gameday = homegap_dict['last_date']
@@ -1661,6 +1670,27 @@ class FieldTimeScheduleGenerator:
             # CHANGE: nextmax_datetime is calculated only After a real fieldday
             # date is found out
         return nextmin_datetime
+
+    def getminmaxdate_list(self, nextmin_datetime, diffgap_days_td, field_list):
+        ''' Given nextmin_datetime calculated by getcandidate_daytime, along with
+        the required gap between max and mintimes, and the field_list, calculate
+        fieldday_id and calendar dates that fall on potentially available days on
+        a given field (specified by fieldinfo data). Calculate both min and max
+        dates and fieldday_id's that bound the search for scheduling days for a
+        specific field. '''
+        minmaxdate_list = []
+        for field_id in field_list:
+            minfieldday_id, min_date = self.mapdatetime_fieldday(field_id,
+                nextmin_datetime, key='min')
+            nextmax_datetime = min_date + diffgap_days_td
+            maxfieldday_id, max_date = self.mapdatetime_fieldday(field_id,
+                nextmax_datetime, key='max')
+            minmaxdate_dict = {'field_id':field_id,
+                'minfieldday_id':minfieldday_id, 'min_date':min_date,
+                'maxfieldday_id':maxfieldday_id, 'max_date':max_date}
+            minmaxdate_list.append(minmaxdate_dict)
+        minmaxdate_indexerGet = lambda x: dict((p[field_id_CONST],i) for i,p in enumerate(minmaxdate_list)).get(x)
+        return _List_Indexer(minmaxdate_list, minmaxdate_indexerGet)
 
     def mapdatetime_fieldday(self, field_id, dt_obj, key):
         ''' Map datetime date to fieldday_id as defined by the calendarmap_list
