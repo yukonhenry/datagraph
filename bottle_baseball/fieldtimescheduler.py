@@ -75,7 +75,9 @@ class FieldTimeScheduleGenerator:
         self.timegap_list = []
         self.timegap_indexerMatch = None
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, gd_fieldcount, required_roundslots_num, submin=0, field_list):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list,
+        rd_fieldcount, required_roundslots_num, submin=0, minmaxdate_list,
+        minmaxdate_indexerGet, field_list):
         # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
@@ -84,7 +86,7 @@ class FieldTimeScheduleGenerator:
         # return field_id(s) - not indices
         #optional parameter submin is used when the submin-th minimum is required, i.e. is submin=1
         #return the 2nd-most minimum count fields
-        # Also pass in the field_list - we want to find fields that satisfy
+        # Also pass in the minmaxdate_list and field_list - we want to find fields that satisfy
         # the minimum-date criteria - fill up fields on earlier calendar date
         # before starting to fill a later calendar date, even if violating field
         # count balancing requirements.  For example, if Field 1 is available on
@@ -93,12 +95,12 @@ class FieldTimeScheduleGenerator:
         # on Saturdays until they have to play on Sunday/Field 2 because Sat/
         # Field1 is full, even though this will not meet field balancing
         # requirements.
-        requiredslots_perfield = int(ceil(float(required_roundslots_num)/len(gd_fieldcount)))
+        requiredslots_perfield = int(ceil(float(required_roundslots_num)/len(rd_fieldcount)))
         maxedout_field = None
         almostmaxed_field = None
         # get count/field dict with maximum count
-        maxgd = max(gd_fieldcount, key=itemgetter('count'))
-        #for gd in gd_fieldcount:
+        maxgd = max(rd_fieldcount, key=itemgetter('count'))
+        #for gd in rd_fieldcount:
         diff = maxgd['count'] - requiredslots_perfield
         if diff >= 0:
             #******** cost function
@@ -128,6 +130,9 @@ class FieldTimeScheduleGenerator:
         if maxedout_field:
             maxedout_ind = home_field_list.index(maxedout_field)
             # when scaling, increment by 1 as fieldcount maybe 0
+            # since homecount_list and awaycount_list are made from the respective
+            # sorted (according to field) metrics list, maxedout_ind should
+            # correspond to the maxed field for both homecount and awaycount lists
             homecount_list[maxedout_ind] = (homecount_list[maxedout_ind]+1)*penalty
             awaycount_list[maxedout_ind] = (awaycount_list[maxedout_ind]+1)*penalty
             logging.info("ftscheduler:findMinCountField: field=%d maxed out, required=%d ind=%d penalty=%d",
@@ -147,7 +152,7 @@ class FieldTimeScheduleGenerator:
             logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
                          homecount_list, awaycount_list)
 
-       # get min
+        # get min
         sumcount_list = [x+y for (x,y) in zip(homecount_list, awaycount_list)]
         if (submin == 0):
             minsum = min(sumcount_list)
@@ -160,7 +165,8 @@ class FieldTimeScheduleGenerator:
                 return None
         # refer to http://stackoverflow.com/questions/3989016/how-to-find-positions-of-the-list-maximum
         minind = [i for i, j in enumerate(sumcount_list) if j == minsum]
-        # doesn't matter below if we use home_field_list or away_field_list - should produce same results
+        # doesn't matter below if we use home_field_list or away_field_list - should produce same results since both lists are created from metrics lists
+        # that are sorted according to field_id
         mincount_fields = [home_field_list[i] for i in minind]
         return mincount_fields
 
@@ -1056,8 +1062,8 @@ class FieldTimeScheduleGenerator:
             for round_id in range(1,max(matchlist_len_list)+1):
                 # counters below count how many time each field is used for every gameday
                 # reset for each round/gameday
-                gameday_fieldcount = [{'field_id':y, 'count':0} for y in fset]
-                gd_fieldcount_indexerGet =  lambda x: dict((p['field_id'],i) for i,p in enumerate(gameday_fieldcount)).get(x)
+                round_fieldcount = [{'field_id':y, 'count':0} for y in fset]
+                rd_fieldcount_indexerGet =  lambda x: dict((p['field_id'],i) for i,p in enumerate(round_fieldcount)).get(x)
                 # create combined list of matches so that it can be passed to the multiplexing
                 # function 'roundrobin' below
                 combined_match_list = []
@@ -1126,20 +1132,25 @@ class FieldTimeScheduleGenerator:
                     # get full list of fieldday_id, calendardates that correspond
                     # to min and max nextmin/nextmax datestimes that will bound the
                     # search for fields during current round
-                    minmaxdate_list = self.getminmaxdate_list(nextmin_datetime,
+                    minmaxdate_tuple = self.getminmaxdate_tuple(nextmin_datetime,
                         diffgap_days_td, field_list)
+                    minmaxdate_list = minmaxdate_tuple.dict_list
+                    minmaxdate_indexerGet = minmaxdate_tuple.indexerGet
                     logging.debug("----------------------")
-                    logging.debug("fieldtimescheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
+                    logging.debug("ftscheduler: rrgenobj loop div=%d round_id=%d home=%d away=%d",
                                   div_id, round_id, home_id, away_id)
                     logging.debug("early late hometarget=%s awaytarget=%s homecurrent=%s awaycurrent=%s",
                                   home_targetel_dict, away_targetel_dict, home_currentel_dict, away_currentel_dict)
                     logging.debug("next min datetime %s",nextmin_datetime)
+                    logging.debug("ftscheduler:generate: fieldlist=%s minmaxdate_list=%s",
+                        field_list, minmaxdate_list)
                     submin = 0
                     while True:
                         # first find fields based strictly on field balancing criteria
                         fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
-                            away_fieldmetrics_list, gameday_fieldcount,
-                            required_roundslots_num, submin, field_list)
+                            away_fieldmetrics_list, round_fieldcount,
+                            required_roundslots_num, submin, minmaxdate_list,
+                            minmaxdate_indexerGet, field_list)
                         if not fieldcand_list:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
@@ -1158,16 +1169,9 @@ class FieldTimeScheduleGenerator:
                             for field_id in fieldcand_list:
                                 # get fieldday_id corresponding to nextmin/nextmax
                                 # datetimes (first fieldday_id after passed date)
-                                minfieldday_id, mindate = self.mapdatetime_fieldday(
-                                    field_id, nextmin_datetime, key='min')
-                                # calculate latest date that search for a field
-                                # should iterate to; mindate is real field date
-                                # calculate latest date for stopping search, and
-                                # then find field date that is equal to or latest
-                                # date that is earlier than that date
-                                nextmax_datetime = mindate + diffgap_days_td
-                                maxfieldday_id, maxdate = self.mapdatetime_fieldday(
-                                    field_id, nextmax_datetime, key='max')
+                                minmaxdate_dict = minmaxdate_list[minmaxdate_indexerGet(field_id)]
+                                minfieldday_id = minmaxdate_dict['minfieldday_id']
+                                maxfieldday_id = minmaxdate_dict['maxfieldday_id']
                                 fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
                                 for fieldday_id in range(minfieldday_id,
                                     maxfieldday_id+1):
@@ -1425,11 +1429,9 @@ class FieldTimeScheduleGenerator:
                             # of the if....  See comments above.  Singe candidate field is a simplification of the
                             # multiple fieldcand case
                             field_id = fieldcand_list[0]
-                            minfieldday_id, mindate = self.mapdatetime_fieldday(
-                                field_id, nextmin_datetime, key='min')
-                            nextmax_datetime = mindate + diffgap_days_td
-                            maxfieldday_id, maxdate = self.mapdatetime_fieldday(
-                                field_id, nextmax_datetime, key='max')
+                            minmaxdate_dict = minmaxdate_list[minmaxdate_indexerGet(field_id)]
+                            minfieldday_id = minmaxdate_dict['minfieldday_id']
+                            maxfieldday_id = minmaxdate_dict['maxfieldday_id']
                             # find status list for this round
                             fieldstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
                             # for a single fieldcandidate, using a dictionary
@@ -1573,7 +1575,7 @@ class FieldTimeScheduleGenerator:
                     away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))
                     home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count'] += 1
                     away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
-                    gameday_fieldcount[gd_fieldcount_indexerGet(field_id)]['count'] += 1
+                    round_fieldcount[rd_fieldcount_indexerGet(field_id)]['count'] += 1
                     self.updatetimegap_list(div_id, home_id, away_id, game_date,
                         gametime+gameinterval)
                     div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
@@ -1582,8 +1584,8 @@ class FieldTimeScheduleGenerator:
                         game_date, fieldday_id, field_id, gametime.time(),
                         slot_index)
                     logging.info("-----to next game------")
-                logging.debug("ftscheduler: divlist=%s end of round=%d gameday_fieldcount=%s",
-                              connected_div_list, round_id, gameday_fieldcount)
+                logging.debug("ftscheduler: divlist=%s end of round=%d round_fieldcount=%s",
+                              connected_div_list, round_id, round_fieldcount)
             self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
             # now work on time balanceing
             self.ReTimeBalance(fset, connected_div_list)
@@ -1671,13 +1673,16 @@ class FieldTimeScheduleGenerator:
             # date is found out
         return nextmin_datetime
 
-    def getminmaxdate_list(self, nextmin_datetime, diffgap_days_td, field_list):
+    def getminmaxdate_tuple(self, nextmin_datetime, diffgap_days_td, field_list):
         ''' Given nextmin_datetime calculated by getcandidate_daytime, along with
         the required gap between max and mintimes, and the field_list, calculate
         fieldday_id and calendar dates that fall on potentially available days on
         a given field (specified by fieldinfo data). Calculate both min and max
         dates and fieldday_id's that bound the search for scheduling days for a
-        specific field. '''
+        specific field.
+        Calculate latest date that search for a field should iterate to; mindate is
+        real field date calculate latest date for stopping search, and then find
+        field date that is equal to or latest date that is earlier than that date'''
         minmaxdate_list = []
         for field_id in field_list:
             minfieldday_id, min_date = self.mapdatetime_fieldday(field_id,
