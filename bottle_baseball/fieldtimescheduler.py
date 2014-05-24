@@ -76,7 +76,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_indexerMatch = None
 
     def findMinimumCountField(self, homemetrics_list, awaymetrics_list,
-        rd_fieldcount, required_roundslots_num, submin=0):
+        rd_fieldcount, required_roundslots_num, submin=0, field_list):
         # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
@@ -1157,7 +1157,7 @@ class FieldTimeScheduleGenerator:
                         # first find fields based strictly on field balancing criteria
                         fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
                             away_fieldmetrics_list, round_fieldcount,
-                            required_roundslots_num, submin)
+                            required_roundslots_num, submin, nextfield_list)
                         if not fieldcand_list:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
