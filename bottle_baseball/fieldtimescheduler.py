@@ -76,8 +76,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_indexerMatch = None
 
     def findMinimumCountField(self, homemetrics_list, awaymetrics_list,
-        rd_fieldcount, required_roundslots_num, submin=0, minmaxdate_list,
-        minmaxdate_indexerGet, field_list):
+        rd_fieldcount, required_roundslots_num, submin=0):
         # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
@@ -1146,11 +1145,12 @@ class FieldTimeScheduleGenerator:
                         field_list, minmaxdate_list)
                     submin = 0
                     while True:
+                        daysortedfield_list = self.daysort_fields(minmaxdate_list,
+                            field_list)
                         # first find fields based strictly on field balancing criteria
                         fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
                             away_fieldmetrics_list, round_fieldcount,
-                            required_roundslots_num, submin, minmaxdate_list,
-                            minmaxdate_indexerGet, field_list)
+                            required_roundslots_num, submin)
                         if not fieldcand_list:
                             raise FieldAvailabilityError(div_id)
                         logging.debug("rrgenobj while True loop:")
@@ -1672,6 +1672,18 @@ class FieldTimeScheduleGenerator:
             # CHANGE: nextmax_datetime is calculated only After a real fieldday
             # date is found out
         return nextmin_datetime
+
+    def daysort_fields(self, minmaxdate_list, field_list):
+        ''' sort and group fields by calendar date; sort list by min_date
+        before returning'''
+        minmaxdate_indexerMatch = lambda x: [i for i,p in
+            enumerate(minmaxdate_list) if p['min_date'] == x]
+        min_date_list = list(set([x['min_date'] for x in minmaxdate_list]))
+        daysortedfield_list = [{'min_date':x,
+            'field_list':[minmaxdate_list[y]['field_id'] for y in minmaxdate_indexerMatch(x)]} for x in min_date_list]
+        # sort according to date field
+        daysortedfield_list.sort(key=itemgetter('min_date'))
+        return daysortedfield_list
 
     def getminmaxdate_tuple(self, nextmin_datetime, diffgap_days_td, field_list):
         ''' Given nextmin_datetime calculated by getcandidate_daytime, along with
