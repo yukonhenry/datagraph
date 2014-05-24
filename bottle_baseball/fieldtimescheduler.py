@@ -1143,10 +1143,17 @@ class FieldTimeScheduleGenerator:
                     logging.debug("next min datetime %s",nextmin_datetime)
                     logging.debug("ftscheduler:generate: fieldlist=%s minmaxdate_list=%s",
                         field_list, minmaxdate_list)
+                    daysortedfield_list = self.daysort_fields(minmaxdate_list,
+                            field_list)
+                    for daysortedfield_dict in daysortedfield_list:
+                        nextfield_list = daysortedfield_dict['field_list']
+                        found_flag = self.findbalance_field(nextfield_list);
+                        if found_flag:
+                            break
+                        else:
+                            continue
                     submin = 0
                     while True:
-                        daysortedfield_list = self.daysort_fields(minmaxdate_list,
-                            field_list)
                         # first find fields based strictly on field balancing criteria
                         fieldcand_list = self.findMinimumCountField(home_fieldmetrics_list,
                             away_fieldmetrics_list, round_fieldcount,
