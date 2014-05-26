@@ -1170,15 +1170,35 @@ class FieldTimeScheduleGenerator:
                     # Here we are assuming that minimum date has priority
                     # if prioritization has a different structure, reorder the
                     # logic governing datesortedfield, sumsortedfield, and prioritizefield below
+                    isgame_list = None
                     for dsfield_dict in datesortedfield_list:
                         dategame_date = dsfield_dict['date']
                         datefield_list = dsfield_dict['datefield_list']
                         if len(datefield_list) > 1:
+                            # if there are two or more fields that can be assigned
+                            # for the given date, then find the priority amongst
+                            # those fields
                             prioritized_list = self.prioritizefield_list(datefield_list, sumsortedfield_list,key="sumcount")
+                            for p_dict in prioritized_list:
+                                # go through the ordered list of fields
+                                field_id = p_dict['field_id']
+                                fieldday_id = p_dict['fieldday_id']
+                                isgame_list = self.confirm_someempty_slot(field_id,
+                                    fieldday_id)
+                                if isgame_list:
+                                    break
+                            else:
+                                # iterated on the next datesortedfield_list entry
+                                continue
+                            break
                         else:
                             df_dict = datefield_list[0]
                             field_id = df_dict['field_id']
                             fieldday_id = df_dict['fieldday_id']
+                            isgame_list = self.confirm_someempty_slot(field_id,
+                                fieldday_id)
+                            if isgame_list:
+                                break
                     submin = 0
                     while True:
                         # first find fields based strictly on field balancing criteria
@@ -1652,6 +1672,114 @@ class FieldTimeScheduleGenerator:
         return True  # for dbstatus to be returned to client
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()
+
+    def findconfirm_slot(self, field_id, fieldday_id):
+        ''' Confirm if the candidate field_id and fieldday_id/date can be used
+        to assign a game by checking fieldseason status list. Note instead
+        of implementing an if..else if...else structure, code implemented with
+        series of if .. return as there are cases when an inner if fails, other
+        subsequent tests should be performed'''
+        fstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
+        fday_index = fieldday_id-1
+        sstatus_list = fstatus_list['slotstatus_list'][fday_index]['sstatus_list']
+        # first create simple array of isgame statuses for the given slotstatus_list
+        # if it is all True then it is not usable
+        isgame_list = [x['isgame'] for x in sstatus_list]
+        if all(isgame_list):
+            # not usable as games are scheduled in every slot, return False
+            return None
+        # as long as we have one Falso in the isgame_list for current field_id,
+        # continue processing
+        if all_value(isgame_list, False):
+            # if there are no games scheduled for the field, assign to first slot
+            # and update both early/late counters
+            slot_index = 0
+            self.incrementEL_counters(home_currentel_dict, away_currentel_dict,
+                'early')
+            self.incrementEL_counters(home_currentel_dict, away_currentel_dict,
+                'late')
+            return slot_index
+        if el_state & EL_enum.EARLY_TEAM_NOTMET and el_state & EL_enum.EARLY_DIVTOTAL_NOTMET:
+            if not isgame_list[0]:
+                # if no game scheduled in first slot, schedule it
+                slot_index = firstslot_CONST
+                self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                return slot_index
+            else:
+                # see if it makes sense to push out the current slot-0-scheduled
+                # match
+                match_list = [{'field_id':field_id,
+                    'match':sstatus_list[firstslot_CONST]['teams'],
+                    'newslot':0}]
+                fieldslot_tuple = self.compareCounterToTarget(match_list, 'early')
+                if fieldslot_tuple:
+                    # ok we can shift
+                    slot_index = fieldslot_tuple.slot_index # should be slot 0
+                    self.shiftFSstatus_list(field_id, slot_index, fieldday_id)
+                    self.incrementEL_counters(home_currentel_dict,
+                        away_currentel_dict, 'early')
+                    return slot_index
+        firstopen_index = isgame_list.index(False)
+        if el_state & EL_enum.LATE_TEAM_NOTMET and el_state & EL_enum.LATE_DIVTOTAL_NOTMET:
+            # see if there is only one game scheduled so far (assumed that
+            # game is scheduledin slot 0, which should always be the case)
+            if firstopen_index == 1:
+                slot_index = 1
+                self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
+                self.findTeamsDecrementEL_counters(field_id, 0, 'late', fieldday_id)
+                return slot_index
+            # see if the last game can afford to not be the last game
+            # anymore - do this by looking at the late counters and seeing
+            # if it is over the target value (both home and away)
+            match_list = [{'field_id':field_id,
+                'match':sstatus_list[firstopen_index-1]['teams'],
+                'newslot':firstopen_index}]
+            fieldslot_tuple = self.compareCounterToTarget(match_list, 'late')
+            if fieldslot_tuple:
+                slot_index = fieldslot_tuple.slot_index
+                # increment for current home and away teams which will take last slot
+                self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'late')
+                return slot_index
+        # for EL_enum 'normal' cases, see if it makes sense to take over first or last slot anyways
+        #sstatus_list = slotstatus_list[fieldday_index]['sstatus_list']
+        firstlastmatch_list = [{'field_id':field_id,
+            'firstmatch':sstatus_list[0]['teams'],
+            'firstmatch_newslot':0,
+            'lastmatch':sstatus_list[firstopen_index-1]['teams'],
+            'lastmatch_newslot':firstopen_index}]
+        fieldslotELtype_tuple = self.findBestSlot(firstlastmatch_list)
+        if fieldslotELtype_tuple:
+            field_id = fieldslotELtype_tuple.field_id
+            #TODO: get minfieldday_id here
+            #but minfieldday_id should be what was declared earlier
+            # for the single field_case (this also means that
+            # field_id assignment above is really not necessary)
+            # the call to findBestSlot is just to the find the
+            # optimal slot index in this case
+            slot_index = fieldslotELtype_tuple.slot_index
+            el_str = fieldslotELtype_tuple.el_str
+            if slot_index == 0 and el_str == 'early':
+                # shift the current scheduled games to the right one spot
+                self.shiftFSstatus_list(field_id, slot_index,
+                    fieldday_id)
+            elif (slot_index == 0 and el_str != 'early') or (slot_index != 0 and el_str == 'early'):
+                raise CodeLogicError("ftscheduler:findBestSlot slot_index el_str logic error")
+            # increment for current home and away teams which will take last slot
+            self.incrementEL_counters(home_currentel_dict, away_currentel_dict, el_str)
+            return slot_index
+        else:
+            # for all other cases, schedule not at first available slot, but take the last
+            # scheduled slot - and shift the currently scheduled last slot over to the right one
+            slot_index = firstopen_index-1
+            self.shiftFSstatus_list(field_id, slot_index,
+                fieldday_id)
+            if slot_index == 0:
+                # if we are inserting into slot0, then update appropriate EL counters
+                self.incrementEL_counters(home_currentel_dict, away_currentel_dict, 'early')
+                self.findTeamsDecrementEL_counters(field_id,
+                    1, 'early', fieldday_id)
+            return slot_index
+        return slot_index
 
     def updatetimegap_list(self, div_id, home, away, game_date, endtime):
         ''' update self.timegap_list entries with latest scheduled games '''
