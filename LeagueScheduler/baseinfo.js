@@ -164,7 +164,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
 						data_list = this.modifyserver_data(data_list,
-							server_data.divstr_obj);
+							server_data.divstr_obj, columnsdef_obj);
 					} else {
 						alert('check db_type and idproperty consistency');
 					}

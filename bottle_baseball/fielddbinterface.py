@@ -61,9 +61,18 @@ class FieldDBInterface:
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
             field['dayweek_str'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
-            field['calendarmap_list'] = [{'fieldday_id':x['fieldday_id'],
-                'date':x['date'].strftime(date_format_CONST)} for x in field['CALENDARMAP_LIST']]
-            del field['CALENDARMAP_LIST']
+            # convert date into string format
+            for cmap in field['CALENDARMAP_LIST']:
+                cmap['date'] = cmap['date'].strftime(date_format_CONST)
+            # if there are any time changes for a particular calendar date, add the
+            # date to the timechange_list.  Check for only start_time as start_time and end_time will both be present.
+            # creating the timechange_list item for the benefit of sending back to client
+            timechange_list = [x['date'] for x in field['CALENDARMAP_LIST'] if 'start_time' in x]
+            if timechange_list:
+                field['timechange_list'] = timechange_list
+            if 'CLOSED_LIST' in field:
+                field['closed_list'] = [x.strftime(date_format_CONST) for x in field['CLOSED_LIST']]
+                del field['CLOSED_LIST']
             # http://stackoverflow.com/questions/15411107/delete-a-dictionary-item-if-the-key-exists (None is the return value if closed_list doesnt exist
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
@@ -116,8 +125,8 @@ class FieldDBInterface:
         return totalfielddays
 
     def adjust_config(self, action_type, field_id, delta_list):
-        query_obj = {"FIELD_ID":field_id}
         if action_type == 'remove':
+            query_obj = {"FIELD_ID":field_id}
             # first decrease totalfielddays field
             # db.<collection>.update({FIELD_ID:field_id},
             #   {$inc:{TOTALFIELDDAYS:-length(delta_list)}})
@@ -125,6 +134,13 @@ class FieldDBInterface:
             operator_obj = {"TOTALFIELDDAYS":-len(delta_list)}
             status = self.dbinterface.updatedoc(query_obj, operator,
                 operator_obj)
+            # get dates before pulling the entries corresponding to the removed fields:
+            projection_obj = {"CALENDARMAP_LIST.$":1, '_id':0}
+            closed_list = []
+            for fieldday_id in delta_list:
+                datequery_obj = {"FIELD_ID":field_id, "CALENDARMAP_LIST.fieldday_id":fieldday_id}
+                fcurs = self.dbinterface.getdoc(datequery_obj, projection_obj)
+                closed_list.append(fcurs[0]["CALENDARMAP_LIST"][0]["date"])
             # next remove entry from calendar map_list
             # ref http://stackoverflow.com/questions/6928354/mongodb-remove-subdocument-from-document
             # db.PHMSA.update({"FIELD_ID":1},{$pull:{CALENDARMAP_LIST:{"fieldday_id":2}}})
@@ -134,7 +150,7 @@ class FieldDBInterface:
                     {"CALENDARMAP_LIST":{"fieldday_id":fieldday_id}})
             # next decrement all the fieldday_id fields after the entry above
             # was removed so that fieldday_id's are still contiguous
-            field_curs = self.dbinterface.getdoc(query_obj)
+            field_curs = self.dbinterface.getdoc(query_obj, {'_id':0})
             if field_curs.count() > 1:
                 # pymongo cursor doc at
                 # http://api.mongodb.org/python/current/api/pymongo/cursor.html
@@ -151,9 +167,19 @@ class FieldDBInterface:
             # add closed list field - this is for informational purposes only for the UI that can be displayed to the user. CLOSED_LIST has already been
             # processed on the UI side.
             operator = "$set"
-            operator_obj = {'CLOSED_LIST':delta_list}
+            operator_obj = {'CLOSED_LIST':closed_list}
             self.dbinterface.updatedoc(query_obj, operator, operator_obj,
                 upsert_flag=True)
+        elif action_type == 'change':
+            operator = "$set"
+            for delta_dict in delta_list:
+                fieldday_id = delta_dict['fieldday_id']
+                start_time = delta_dict['starttime']
+                end_time = delta_dict['endtime']
+                query_obj = {"FIELD_ID":field_id, "CALENDARMAP_LIST.fieldday_id":fieldday_id}
+                operator_obj = {"CALENDARMAP_LIST.$.start_time":start_time,
+                    "CALENDARMAP_LIST.$.end_time":end_time}
+                self.dbinterface.updatedoc(query_obj, operator, operator_obj)
 
     def drop_collection(self):
         self.dbinterface.drop_collection()

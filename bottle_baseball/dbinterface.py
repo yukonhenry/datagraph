@@ -86,17 +86,17 @@ class MongoDBInterface:
         result_obj = self.collection.update(query_obj, {operator:operator_obj},
             upsert=upsert_flag)
         if 'writeConcernError' in result_obj:
-            raise CodeLogiceError("dbinterface:updatedoc: collection update error=%s" %(result_obj.writeConcernError.errmsg,))
+            raise CodeLogicError("dbinterface:updatedoc: collection update error=%s" %(result_obj.writeConcernError.errmsg,))
             return -1
         else:
             return 1
 
 
-    def getdoc(self, query_obj, findone_flag=False):
+    def getdoc(self, query_obj, projection_obj, findone_flag=False):
         if findone_flag:
-            return self.collection.find_one(query_obj)
+            return self.collection.find_one(query_obj, projection_obj)
         else:
-            return self.collection.find(query_obj)
+            return self.collection.find(query_obj, projection_obj)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
@@ -614,7 +614,8 @@ class MongoDBInterface:
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
             field_id_CONST:{"$exists":True}}, {'_id':0})
         # convert cursor to list
-        info_list = [x for x in info_curs]
+        #info_list = [x for x in info_curs]
+        info_list = list(info_curs)
         return _FieldList_Status(info_list, config_status, divstr_colname,
                             divstr_db_type)
 

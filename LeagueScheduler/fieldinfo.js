@@ -373,16 +373,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							} */
 							this.populate_calendar_store(item.calendarmap_list,
 								item.field_id, fieldevent_str);
-								/*
-								if (closed_list && closed_list.indexOf(fieldday_id) > -1) {
-									// if fieldday_id falls in a closed_list, then
-									// add to delta store instead of calendar store
-									this.delta_store.add({action:'remove',
-										data_obj:data_obj,
-										id:this. calendar_id, field_id:field_id});
-								} else {
-									this.calendar_store.add(data_obj);
-								} */
 						}, this);
 					} else {
 						// if this.calendarmapobj_list does not exist, then no data
@@ -441,7 +431,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// autochange fieldselect drop-down selection in titlepane
 					this.fieldselect_widget.set('value', field_id);
 					this.disable_chgdel_widgets();
-					this.disble_savecancel_widgets();
+					this.disable_savecancel_widgets();
 				}
 				this.calendar.resize();
 				// update callback with current field_id
@@ -776,7 +766,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			    			content:"Select Database using Select Config->Division Info"
 			    		});
 			    	}
-					//myDialog.startup();
 					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
 					if (!dropdown_btn) {
 						var dropdown_btn = new DropDownButton({
@@ -807,7 +796,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
 				}
 				node.appendChild(dropdown_btn.domNode);
-				//dropdown_btn.startup();
 				return dropdown_btn;
 			},
 			create_primaryuse_dialog: function(divstr_list, field_id) {
@@ -1111,7 +1099,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			// of converting date/time strings to js date objects needed for dojo
 			// widgets.
 			// also create (in js) calendarmap_list which maps fieldday_id to date objects
-			modifyserver_data: function(data_list, divstr_obj) {
+			modifyserver_data: function(data_list, divstr_obj, columnsdef_obj) {
 				if (this.calendarmapobj_list)
 					delete this.calendarmapobj_list;
 				this.calendarmapobj_list = new Array();
@@ -1147,11 +1135,25 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						field_name:item.field_name,
 						calendarmap_list:calendarmap_list
 					}
-					/*
-					if ('closed_list' in item) {
-						obj.closed_list = item.closed_list;
-					} */
 					this.calendarmapobj_list.push(obj)
+					if ('closed_list' in item || 'timechange_list' in item) {
+						columnsdef_obj.notes = "Notes";
+						var note_str = "";
+						if ('closed_list' in item) {
+							note_str += "Field closed on ";
+							arrayUtil.forEach(item.closed_list, function(item2) {
+								note_str += item2;
+							})
+						}
+						if ('timechange_list' in item) {
+							note_str += " Times changed on ";
+							arrayUtil.forEach(item.timechange_list,
+							function(item2) {
+								note_str += item2;
+							})
+						}
+						item.notes = note_str;
+					}
 				}, this);
 				// datalist modifications end above. However, there are other
 				// field_id-specific processing that needs to be done, concerning
