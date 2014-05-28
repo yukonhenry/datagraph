@@ -17,7 +17,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		CheckBox, Button, Form, ValidationTextBox,
 		Tooltip, BorderContainer, ContentPane, TitlePane, put, Calendar){
 		var constant = {
-			infobtn_id:"infoBtnNode_id",
 			idproperty_str:"field_id",
 			updatebtn_str:"Update Field Info",
 			grid_id:"fieldinfogrid_id",
@@ -130,7 +129,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			initialize: function(newgrid_flag) {
 				var form_name = "fieldconfig_form_id";
 				var form_reg = registry.byId(form_name);
-				//var form_dom = dom.byId(form_name);
 				var input_name = "fieldlistname_input_id";
 				var input_reg = registry.byId(input_name);
 				var fieldnum_reg = registry.byId("fieldnum_input_id");
@@ -1121,10 +1119,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// calendarmap_list includes date string, so concatenate w
 					// timestr from above and create date objects for both
 					// start and end times
-					arrayUtil.forEach(item.calendarmap_list,
-						function(item2, index2) {
-						var start_time = new Date(item2.date+' '+start_time_str)
-						var end_time = new Date(item2.date+' '+end_time_str)
+					arrayUtil.forEach(item.calendarmap_list, function(item2) {
+						var start_time = null;
+						var end_time = null;
+						if ('start_time' in item2 && 'end_time' in item2) {
+							start_time = new Date(item2.date+' '+item2.start_time);
+							end_time = new Date(item2.date+' '+item2.end_time);
+						} else {
+							start_time = new Date(item2.date+' '+start_time_str)
+							end_time = new Date(item2.date+' '+end_time_str)
+						}
 						calendarmap_list.push({
 							start_time:start_time,
 							end_time:end_time,

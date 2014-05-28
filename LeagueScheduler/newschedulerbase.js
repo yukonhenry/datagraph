@@ -124,7 +124,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					fair_id:null};
 				this.calendarmap_obj = new Object();
 			},
-			initialize: function(arg_obj) {
+			initialize: function() {
 				this.form_reg = registry.byId(constant.form_name);
 				//this.dbname_reg = registry.byId("newsched_input_id");
 				// put selector documentation

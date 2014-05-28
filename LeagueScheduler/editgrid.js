@@ -182,11 +182,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 			},
 			cleanup: function() {
-				/*
-				if (this.bracketinfo) {
-					this.bracketinfo.cleanup();
-					delete this.bracketinfo;
-				} */
 				if (this.schedInfoGrid) {
 					dom.byId(this.grid_id).innerHTML = "";
 					delete this.schedInfoGrid;

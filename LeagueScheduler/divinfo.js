@@ -6,7 +6,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	function(declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
 		baseinfo, baseinfoSingleton, WidgetGen, put){
 		var constant = {
-			infobtn_id:"infoBtnNode_id",
 			idproperty_str:"div_id",
 			updatebtn_str:"Update Div Info",
 			grid_id:"divinfogrid_id",
@@ -33,23 +32,23 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						set:function(item) {
 							// trim any leading or trailing whitespace characters
 							return item.div_age.trim();
-						}},"text","dblclick"),
+						}},"text","click"),
 					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true,
 						set:function(item) {
 							return item.div_gen.trim();
-						}}, "text", "dblclick"),
+						}}, "text", "click"),
 					totalteams: editor({label:"Total Teams", autoSave:true,
 						set:function(item) {
 							return parseInt(item.totalteams)
-						}}, "text", "dblclick"),
+						}}, "text", "click"),
 					numweeks: editor({label:"Number Weeks", autoSave:true,
 						set:function(item) {
 							return parseInt(item.numweeks)
-						}}, "text", "dblclick"),
+						}}, "text", "click"),
 					numgdaysperweek: editor({label:"Num Gamedays per Week (per team)", autoSave:true,
 						set:function(item) {
 							return parseInt(item.numgdaysperweek)
-						}}, "text", "dblclick"),
+						}}, "text", "click"),
 					totalgamedays: {label:"Total Gamedays (per team)",
 						set:function(item) {
 							return parseInt(item.numgdaysperweek) *
@@ -60,7 +59,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						autoSave:true,
 						set:function(item) {
 							return parseInt(item.gameinterval)
-						}}, "text", "dblclick"),
+						}}, "text", "click"),
 					mingap_days: editor({label:"Minimum Gap (days)", autoSave:true,
 						editorArgs:{
 							style:'width:70px', value:1, smallDelta:1,

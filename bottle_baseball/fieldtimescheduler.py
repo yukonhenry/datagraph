@@ -2075,14 +2075,34 @@ class FieldTimeScheduleGenerator:
                 sstatus_list.append({'start_time':game_start_dt, 'isgame':False})
                 game_start_dt += gameinterval
             sstatus_len = len(sstatus_list)
-            ratio = totalfielddays/totalgamedays
             # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
             # when assigning fieldslots, round_id from the match generator should
             # match up with the round_id
+            '''
             slotstatus_list = [{'fieldday_id':i,
                 'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
                 'sstatus_list':deepcopy(sstatus_list)}
                 for i in range(1,totalfielddays+1)]
+            '''
+            slotstatus_list = []
+            for fieldday_id in range(1, totalfielddays+1):
+                calendarmap = calendarmap_list[calendarmap_indexerGet(fieldday_id)]
+                game_date = calendarmap['date']
+                slotstatus_dict = {'fieldday_id':fieldday_id, 'game_date':game_date}
+                if 'start_time' in calendarmap:
+                    # start_time in calendarmap indicates we have a specific start/
+                    # endtime for that date (and field)
+                    start_time = parser.parse(calendarmap['start_time'])
+                    end_time = parser.parse(calendarmap['end_time'])
+                    lstatus_list = []
+                    while start_time + gameinterval <= end_time:
+                        lstatus_list.append({'start_time':start_time,
+                            'isgame':False})
+                        start_time += gameinterval
+                    slotstatus_dict['sstatus_list'] = lstatus_list
+                else:
+                    slotstatus_dict['sstatus_list'] = deepcopy(sstatus_list)
+                slotstatus_list.append(slotstatus_dict)
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
             fieldstatus_list.append({'field_id':f['field_id'],
                 'slotstatus_list':slotstatus_list,

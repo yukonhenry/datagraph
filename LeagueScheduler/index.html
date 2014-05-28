@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.21x";
+                var version_str = "v1.0.0.22g";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -94,22 +94,6 @@
                                 </div>
                             </div> <!-- dropdownmenu -->
                         </div> <!-- popupmenuitem-->
-                        <!--
-                        <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Existing Schedule</span>
-                            <div data-dojo-type="dijit/DropDownMenu">
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Display Schedule</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="scheddbcollection_submenu">
-                                    </div>
-                                </div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Delete Schedule</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="del_scheddbcollection_submenu">
-                                    </div>
-                                </div>
-                            </div>
-                        </div> -->
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Specify Fields</span>
                             <div data-dojo-type="dijit/DropDownMenu">
@@ -127,10 +111,20 @@
                             </div>
                         </div>
                         <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Restrictions/Priorities</span>
+                            <span>Scheduling Preferences</span>
                             <div data-dojo-type="dijit/DropDownMenu">
-                                <div data-dojo-type="dijit/MenuItem" id="newconstraint_id">
-                                    New Restriction/Priority
+                                <div data-dojo-type="dijit/MenuItem" id="newpref_item">
+                                    New Preference List
+                                </div>
+                                <div data-dojo-type="dijit/PopupMenuItem">
+                                    <span>Edit Preference List</span>
+                                    <div data-dojo-type="dijit/DropDownMenu" id="prefdb_submenu">
+                                    </div>
+                                </div>
+                                <div data-dojo-type="dijit/PopupMenuItem">
+                                    <span>Delete Preference List</span>
+                                    <div data-dojo-type="dijit/DropDownMenu" id="delprefdb_submenu">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -185,6 +179,10 @@
                         <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
                         </select>
                     </div>
+                    <div id="prefparamcpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <form data-dojo-type="dijit/form/Form" id="pref_form_id" data-dojo-id="pref_form_id">
+                        </form>
+                    </div>
                 </div>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
                 <div id="divisionInfoInputGridErrorNode" class="style_none"></div>
@@ -196,14 +194,15 @@
                     </div>
                     <div id="divinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <div id="divinfogrid_id"></div>
-                        <span id="bracketInfoNodeText"></span>
-                        <div id="bracketInfoInputGrid"></div>
                     </div>
                     <div id="tourndivinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <div id="tourndivinfogrid_id"></div>
                     </div>
                     <div id="schedinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <div id="schedinfogrid_id"></div>
+                    </div>
+                    <div id="prefinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <div id="prefinfogrid_id"></div>
                     </div>
                     <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:true, liveSplitters:true" style="height:800px;width: 100%">
                         <div id="fieldinfocpane_inner_id" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'" style="height:300px; width: 100%">
@@ -255,34 +254,6 @@
                 </div> <!--stackcontainer-->
                 <!-- http://stackoverflow.com/questions/2637696/how-to-place-div-side-by-side -->
             </div>
-            <!--
-        	<div data-dojo-type="dijit/layout/ContentPane" title="Division"  id="divisionPane">
-                <div id="dbstatus_txt"></div>
-                <b>Click on Division row</b> to see division-specific schedule - scroll down.  See other tabs to see team-specific and field-specific schedule.
-                <div id="divisionInfoGrid"></div>
-                <div id="scheduleInfoGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Teams" id="teamsPane">
-    			<label for="divisionSelect">Select Division</label>
-    			<select id="divisionSelect" data-dojo-type="dijit/form/Select" name="divisionSelect">
-    			</select>
-    			<b>Selection division, then click on row</b> with team to see team schedule.  Scroll down. <b>Note on Bye Weeks:</b> Because of the odd number of teams in some divisions, some teams ih the division will have bye week(s) in their schedule.
-    			<div id="divisionGridLinkTeams"></div>
-    			<div id="teamDataGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Fields" id="fieldsPane">
-    			<b>click on Field row</b> to see field schedule.  Scroll down
-    			<div id="fieldInfoGrid"></div>
-    			<div id="fieldScheduleGrid"></div>
-    		</div>
-    		<div data-dojo-type="dijit/layout/ContentPane" title="Fairness Metrics" id="metricsPane">
-    			Internal use - display metrics for schedule fairness. Some specific schedule metrics impacted by constraints implemented for specific teams.<br>
-    			<label for="divisionSelectForMetrics">Select Division</label>
-                <select id="divisionSelectForMetrics" data-dojo-type="dijit/form/Select" name="divisionSelectForMetrics">
-    			</select>
-    			<div id="metricsHeader"></div>
-    			<div id="metricsGrid"></div>
-    		</div> -->
             <!--
     		<div data-dojo-type="dijit/layout/ContentPane" title="Download Here" id="DownloadPane">
                 <div id="divScheduleLinks">

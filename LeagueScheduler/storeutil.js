@@ -11,14 +11,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				{id:'field_id', db_type:'fielddb', name:"fielddb_submenu"},
 				{id:'sched_id', db_type:'rrdb', name:"scheddbcollection_submenu"},
 				{id:'newsched_id', db_type:'newscheddb',
-				name:"newscheddbcollection_submenu"}],
+				name:"newscheddbcollection_submenu"},
+				{id:'pref_id', db_type:'prefdb', name:"prefdb_submenu"}],
 			delsubmenu_list:[{id:'div_id',
 				db_type:'rrdb', name:"deldbcollection_submenu"},
 				{id:'tourndiv_id',
 				db_type:'tourndb', name:"deltourndbcollection_submenu"},
 				{id:'field_id', db_type:'fielddb', name:"delfielddb_submenu"},
 				{id:'newsched_id', db_type:'newscheddb',
-				name:"delnewscheddbcollection_submenu"}],
+				name:"delnewscheddbcollection_submenu"},
+				{id:'pref_id', db_type:'prefdb', name:"delprefdb_submenu"}],
 			delserver_path:"delete_dbcol/"
 		};
 		return declare(null, {

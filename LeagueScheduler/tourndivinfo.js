@@ -6,7 +6,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 	function(declare, dom, lang, registry, editor, baseinfo,
 		baseinfoSingleton){
 		var constant = {
-			infobtn_id:"infoBtnNode_id",
 			idproperty_str:"tourndiv_id",
 			updatebtn_str:"Update Tourn Div Info",
 			grid_id:"tourndivinfogrid_id",

@@ -24,7 +24,7 @@ class SchedDBInterface:
     def setschedule_param(self,db_type, divcol_name, fieldcol_name):
         # note config status is always 1 (complete) for newsched because of how
         # UI frontend works
-        # config_status is included as dbinterface.getScheduleCollections
+        # config_status is included as dbinterface.getScheduleCollection
         # requires it
         doc = {divdb_type_CONST:db_type, divcol_name_CONST:divcol_name,
             fieldcol_name_CONST:fieldcol_name, config_status_CONST:1}

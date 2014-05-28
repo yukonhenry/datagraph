@@ -20,9 +20,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
 			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park',
 			17:'Sequoia Middle U14', 18:'Hidden Lakes', 19:'Waterfront', 20:'CP Turf'};
-		var constant = {
-			infobtn_id:"infoBtnNode_id",
-		};
 		var status_dom = dom.byId("dbstatus_txt");
 		//var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {

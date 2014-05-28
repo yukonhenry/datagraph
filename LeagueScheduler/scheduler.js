@@ -10,15 +10,17 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"dojo/_base/declare", "dojo/_base/lang", "dgrid/Grid", "dgrid/Selection",
 		"dojo/request/script", "dojo/_base/array",
 		"dojo/request",
-		"LeagueScheduler/schedulerUtil", "LeagueScheduler/schedulerConfig",
-		"LeagueScheduler/serverinterface",
-		"LeagueScheduler/divinfo", "LeagueScheduler/schedinfo",
+		"LeagueScheduler/schedulerUtil", "LeagueScheduler/serverinterface",
+		"LeagueScheduler/divinfo",
 		"LeagueScheduler/fieldinfo", "LeagueScheduler/baseinfoSingleton",
-		"LeagueScheduler/newschedulerbase", "LeagueScheduler/uistackmanager",
-		"LeagueScheduler/storeutil", "LeagueScheduler/tourndivinfo",
+		"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
+		"LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil",
+		"LeagueScheduler/tourndivinfo",
 		"dojo/domReady!"],
-	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid, Selection,
-		script, arrayUtil, request, schedulerUtil, schedulerConfig, serverinterface, divinfo, schedinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase, UIStackManager, storeUtil, tourndivinfo) {
+	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid,
+		Selection, script, arrayUtil, request, schedulerUtil,
+		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
+		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var team_id_CONST = 'TEAM_ID';
 		var homeratio_CONST = 'HOMERATIO';
@@ -38,29 +40,11 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var divinfo_obj = new divinfo({server_interface:serverInterface});
 		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface});
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface});
-		var schedinfo_obj = new schedinfo({server_interface:serverInterface});
+		var preferenceinfo_obj = new PreferenceInfo(
+			{server_interface:serverInterface});
+		//var schedinfo_obj = new schedinfo({server_interface:serverInterface});
 		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
-		/*
-		var grid = new CustomGrid({
-			columns: {
-				div_age:"Age Group",
-				div_gen:"Boy/Girl",
-				totalteams:"Total#Teams",
-				fields:"Fields (ID)",
-				gameinterval:"Game Interval(min)",
-				gamesperseason:"Games in Season"
-			},
-			selectionMode: "single"
-		}, "divisionInfoGrid");
-		var fieldInfoGrid = new CustomGrid({
-			columns: {
-				field_id:"Field ID",
-				name:"Name"
-			},
-			selectionMode:"single"
-		}, "fieldInfoGrid");    // div ID
-		*/
 		var leaguediv_func = function(ldata) {
 			ldata_array = ldata.leaguedivinfo;
 			var fdata_array = ldata.field_info;
@@ -73,13 +57,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			fieldinfo_obj.set_obj(schedUtil, storeutil_obj);
 			divinfo_obj.set_obj(schedUtil, storeutil_obj);
 			tourndivinfo_obj.set_obj(schedUtil, storeutil_obj);
-			schedinfo_obj.set_obj(schedUtil, storeutil_obj);
-			/*
-			schedUtil.updateDBstatusline(dbstatus);
-			// generate division selection drop-down menus
-			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelect"));
-			schedUtil.generateDivSelectDropDown(registry.byId("divisionSelectForMetrics"));
-			*/
+			preferenceinfo_obj.set_obj(schedUtil, storeutil_obj);
+			//schedinfo_obj.set_obj(schedUtil, storeutil_obj);
 			//schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
@@ -115,171 +94,18 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var newscheddb_list = ldata.newscheddb_list;
 			storeutil_obj.createdb_store(newscheddb_list, 'newscheddb');
 			storeutil_obj.create_menu('newsched_id', newschedbase_obj, true);
+			var prefdb_list = ldata.prefdb_list;
+			storeutil_obj.createdb_store(prefdb_list, 'prefdb');
+			storeutil_obj.create_menu('pref_id', preferenceinfo_obj, true);
 			console.log("load basic info complete");
 		}
-		/*
-		grid.on("dgrid-select", function(event){
-    	// Report the item from the selected row to the console.
-    		var idnum = event.rows[0].data.div_id;
-    		script.get(constant.SERVER_PREFIX+"leaguedivinfo/"+idnum,{
-    			jsonp:"callback"
-    		}).then(function(sdata){
-				var field_array = sdata.fields;
-				// create columns dictionary
-				var time_column_key_CONST = 'time';
-				var gameday_column_key_CONST = 'cycle';
-				var game_columns = {};
-				game_columns[gameday_column_key_CONST] = 'Game Date'
-				game_columns[time_column_key_CONST] = 'GameTime';
-				arrayUtil.forEach(field_array, function(item, index) {
-					// fields names are keys to the column dictionary
-					game_columns[item] = schedUtil.getFieldMap(item);
-				});
-
-				var game_array = sdata.game_list;
-				var game_grid_list = new Array();
-				var listindex = 0;
-				arrayUtil.forEach(game_array, function(item,index) {
-					var gameday_id = item.GAMEDAY_ID;
-					var gameday_data = item.GAMEDAY_DATA;
-					var start_time = item.START_TIME;
-					var game_grid_row = {};
-					// fill in the game day number and start time
-					game_grid_row[gameday_column_key_CONST] = schedUtil.getCalendarMap(gameday_id);
-					game_grid_row[time_column_key_CONST] = schedUtil.tConvert(start_time);
-					arrayUtil.forEach(gameday_data, function(item2, index2) {
-						game_grid_row[item2.VENUE] = item2.HOME + 'v' + item2.AWAY;
-					});
-					game_grid_list[listindex] = game_grid_row;
-					listindex++;
-				});
-
-				// this will define number of columns (games per day)
-				if (gamesGrid) {
-					// clear grid by clearing dom node
-					dom.byId("scheduleInfoGrid").innerHTML = "";
-					delete gamesGrid;
-
-				}
-    			gamesGrid = new CustomGrid({
-    				columns:game_columns,
-    			},"scheduleInfoGrid");
-    			gamesGrid.renderArray(game_grid_list);
-    		});
-		});
-		grid.on("dgrid-deselect", function(event){
-    		//console.log("Row de-selected: ", event.rows[0].data);
-		});
-		fieldInfoGrid.on("dgrid-select", function(event){
-    	// Report the item from the selected row to the console.
-    		var fidnum = event.rows[0].data.field_id;
-			if (fieldScheduleGrid) {
-				// clear grid by clearing dom node
-				dom.byId("fieldScheduleGrid").innerHTML = "";
-				delete fieldScheduleGrid;
-			}
-    		fieldScheduleGrid = new CustomGrid({
-    			columns:{
-    				GAMEDAY_ID:'Game Date',
-    				START_TIME:'Start Time',
-    				AGE:'Age Group',
-    				GEN:'Boy/Girl',
-    				HOME:'Home Team#',
-    				AWAY:'Away Team#'
-    			}
-    		},"fieldScheduleGrid");
-    		script.get(constant.SERVER_PREFIX+"fieldschedule/"+fidnum,{
-    			jsonp:"callback"
-    		}).then(function(fdata){
-    			fieldschedule_array = fdata.fieldschedule_list;
-    			arrayUtil.forEach(fieldschedule_array, function(item, index) {
-					// fields names are keys to the column dictionary
-					gameday_id = item.GAMEDAY_ID;
-					item.GAMEDAY_ID = schedUtil.getCalendarMap(gameday_id);
-					item.START_TIME = schedUtil.tConvert(item.START_TIME)
-				});
-    			fieldScheduleGrid.renderArray(fieldschedule_array);
-    		});
-		});
-*/
 /*
-		var getAllDivSchedule = function(evt) {
-			schedUtil.updateDBstatusline(0);
-	        script.get(constant.SERVER_PREFIX+"getalldivschedule", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {
-				schedUtil.updateDBstatusline(adata.dbstatus);
-			});
-		}
 		var exportSchedule = function(evt) {
 			//dom.byId("status").innerHTML = "";
 	        script.get(constant.SERVER_PREFIX+"exportschedule", {
 	        	jsonp:"callback"
 	        }).then(function(adata) {
 			});
-		}
-		var getDivisionTeamData = function(evt) {
-			var divisioncode = registry.byId("divisionSelect").get("value");
-			if (divisionGrid) {
-				// clear grid by clearing dom node
-				dom.byId("divisionGridLinkTeams").innerHTML = "";
-				// delete reference to obj
-				delete divisionGrid;
-				// remove event listener
-				// http://dojotoolkit.org/documentation/tutorials/1.8/events/
-				if (divisionGridHandle)
-					divisionGridHandle.remove();
-			}
-			divisionGrid = new CustomGrid({
-				columns: {
-					team_id:"Team ID",
-				},
-				selectionMode: "single"
-			}, "divisionGridLinkTeams");
-			script.get(constant.SERVER_PREFIX+"divisiondata/"+divisioncode, {
-				jsonp:"callback"
-			}).then(function(ldata){
-				var totalteams = ldata.totalteams;
-				var division_list = new Array();
-				for (var i=0; i < totalteams; i++) {
-					division_list[i] = {'team_id':i+1};
-				}
-				divisionGrid.renderArray(division_list);
-			});
-			divisionGridHandle = divisionGrid.on("dgrid-select", lang.hitch(this, function(event) {
-    			// Report the item from the selected row to the console.
-    			// Note the last field is an element of the row.
-    			var rowid = event.rows[0].data.team_id;
-    			if (teamDataGrid) {
-					dom.byId("teamDataGrid").innerHTML = "";
-					// delete reference to obj
-					delete teamDataGrid;
-    			}
-    			teamDataGrid = new CustomGrid({
-    				columns: {
-    					GAMEDAY_ID:'Game Date',
-    					START_TIME:'Start Time',
-    					VENUE:'Venue',
-    					HOME:'Home',
-    					AWAY:'Away'
-    				}
-    			},"teamDataGrid");
-    			script.get(constant.SERVER_PREFIX+"teamdata/"+rowid,{
-    				jsonp:"callback",
-    				query:{divisioncode:divisioncode}
-    			}).then(function(tdata){
-    				var tdata_array = tdata.teamdata_list;
-					arrayUtil.forEach(tdata_array, function(item, index) {
-						// fields names are keys to the column dictionary						console.log("tdata "+item);
-						gameday_id = item.GAMEDAY_ID;
-						item.GAMEDAY_ID = schedUtil.getCalendarMap(gameday_id);
-						venue = item.VENUE;
-						item.VENUE = schedUtil.getFieldMap(venue);
-						item.START_TIME = schedUtil.tConvert(item.START_TIME);
-					});
-    				teamDataGrid.renderArray(tdata_array);
-    			});
-			}));
 		}
 		var getTeamMetrics = function(evt) {
 			var division_id = registry.byId("divisionSelectForMetrics").get("value");
@@ -334,21 +160,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
     			metricsGrid.renderArray(metricsGrid_list);
     		});
 		};
-		var editSeedGrid = function(evt) {
-			if (seedGrid) {
-				dom.byId("seedGrid").innerHTML = "";
-				delete seedGrid;
-			}
-			var schedConfig = new schedulerConfig({div_id:registry.byId("divSelectForEdit").get("value"),
-				schedutil_obj:schedUtil});
-			seedGrid = schedConfig.createSeedGrid("seedGrid");
-			// Note there are several ways to invoke event handler; see this file
-			// and ref http://dojotoolkit.org/documentation/tutorials/1.9/events/
-			// see http://dojotoolkit.org/documentation/tutorials/1.9/hitch/
-			// for usage of hitch to mitigate against js scope rules around execution context
-			on(seedGrid, "dgrid-datachange", lang.hitch(schedConfig, schedConfig.editSeedGrid));
-			schedConfig.testValue(1);
-		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
 	        	jsonp:"callback"
@@ -421,13 +232,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			divinfo_obj.uistackmgr = uiStackManager;
 			tourndivinfo_obj.uistackmgr = uiStackManager;
 			fieldinfo_obj.uistackmgr = uiStackManager;
-			schedinfo_obj.uistackmgr = uiStackManager;
+			//schedinfo_obj.uistackmgr = uiStackManager;
 			newschedbase_obj.uistackmgr = uiStackManager;
+			preferenceinfo_obj.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
-			//on(registry.byId("schedule_btn"), "click", getAllDivSchedule);
-			//on(registry.byId("export_btn"), "click", exportSchedule);
-			//on(registry.byId("divisionSelect"), "change", getDivisionTeamData);
-			//on(registry.byId("divisionSelectForMetrics"),"change", getTeamMetrics);
 			//on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
 			//on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
 			//on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
@@ -446,9 +254,9 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("newsched_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize,
 					newschedbase_obj));
-			on(registry.byId("newconstraint_id"), "click", function(evt) {
-				alert("file input only - UI support upcoming");
-			});
+			on(registry.byId("newpref_item"), "click",
+				lang.hitch(uiStackManager, uiStackManager.check_initialize,
+					preferenceinfo_obj));
 			//on(registry.byId("elimination2013"), "click", elimination2013);
 			//on(registry.byId("export_elimination2013"), "click", export_elim2013);
  		});
