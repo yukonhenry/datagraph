@@ -35,10 +35,10 @@ class TournDBInterface:
             del divinfo['field_id_str']  # remove old element
         # convert keys to uppercase
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
-        self.dbinterface.updateInfoDocument(document_list, config_status)
+        self.dbinterface.updateInfoDocument(document_list, config_status, 'DIV_ID')
 
     def readDB(self):
-        liststatus_tuple = self.dbinterface.getInfoDocument()
+        liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         # update field_id list val as string of comma-separated field_id's
@@ -51,7 +51,7 @@ class TournDBInterface:
     # read from DB, and convert fieldnames to lower case, but don't convert lists
     # back to string representation
     def readDBraw(self):
-        liststatus_tuple = self.dbinterface.getInfoDocument()
+        liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]

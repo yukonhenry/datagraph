@@ -11,4 +11,19 @@ _List_Status = namedtuple('_List_Status', 'list config_status')
 
 class PrefDBInterface:
     def __init__(self, mongoClient, newcol_name):
-        self.dbinterface = MongoDBInterface(mongoClient, collection_name=newcol_name, db_col_type=DB_Col_Type.PreferenceInfo)
+        self.dbinterface = MongoDBInterface(mongoClient,
+            collection_name=newcol_name, db_col_type=DB_Col_Type.PreferenceInfo)
+
+    def writeDB(self, info_str, config_status):
+        info_list = json.loads(info_str)
+        document_list = [{k.upper():v for k,v in x.items()} for x in info_list]
+        self.dbinterface.updateInfoDocument(document_list, config_status, 'PREF_ID')
+
+    def readDB(self):
+        liststatus_tuple = self.dbinterface.getInfoDocument('PREF_ID')
+        rawlist = liststatus_tuple.list
+        config_status = liststatus_tuple.config_status
+        # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
+        # switch key to lower case for transfer to client
+        info_list = [{k.lower():v for k,v in x.items()} for x in rawlist]
+        return _List_Status(info_list, config_status)

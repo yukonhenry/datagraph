@@ -19,10 +19,10 @@ class RRDBInterface:
     def writeDB(self, divinfo_str, config_status):
         divinfo_list = json.loads(divinfo_str)
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
-        self.dbinterface.updateInfoDocument(document_list, config_status)
+        self.dbinterface.updateInfoDocument(document_list, config_status, 'DIV_ID')
 
     def readDB(self):
-        liststatus_tuple = self.dbinterface.getInfoDocument()
+        liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
         divlist = liststatus_tuple.list
         config_status = liststatus_tuple.config_status
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python

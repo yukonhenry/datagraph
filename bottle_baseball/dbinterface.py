@@ -112,7 +112,7 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.collection.insert(document)
 
-    def updateInfoDocument(self, doc_list, config_status):
+    def updateInfoDocument(self, doc_list, config_status, id_str):
         # note $set operator only updates specified fields, not the entire document
         # change doc structure to be similar to the fielddb structure - separate
         # doc for each div_id, instead of putting it all as subdocuments under
@@ -125,7 +125,7 @@ class MongoDBInterface:
             # each doc should have a sched_type field
             doc[sched_type_CONST] = self.sched_type
             self.collection.update({sched_type_CONST:self.sched_type,
-                'DIV_ID':doc['DIV_ID']}, doc, upsert=True)
+                id_str:doc[id_str]}, doc, upsert=True)
 
 
     def updateSchedType_doc(self, updatedoc):
@@ -596,12 +596,12 @@ class MongoDBInterface:
                              if self.schedule_db[x].count() > 1 and self.schedule_db[x].find_one({sched_type_CONST:str(DB_Col_Type.ElimTourn)}) ]
         return schedcollect_list
 
-    def getInfoDocument(self):
+    def getInfoDocument(self, id_str):
         result = self.collection.find_one({sched_type_CONST:self.sched_type,
             sched_status_CONST:{"$exists":True}}, {'_id':0})
         config_status = result[config_status_CONST]
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
-            div_id_CONST:{"$exists":True}}, {'_id':0})
+            id_str:{"$exists":True}}, {'_id':0})
         # convert cursor to list
         info_list = [x for x in info_curs]
         return _List_Status(info_list, config_status)

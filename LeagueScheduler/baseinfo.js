@@ -168,6 +168,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					} else {
 						alert('check db_type and idproperty consistency');
 					}
+				} if (options_obj.db_type == 'prefdb') {
+					if (idproperty == 'pref_id') {
+						data_list = this.modifyserver_data(data_list);
+					} else {
+						alert('check db_type and idproperty consistency');
+					}
 				}
 				if (!this.server_interface) {
 					console.log("no server interface");

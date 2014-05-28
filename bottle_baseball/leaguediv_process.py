@@ -22,6 +22,7 @@ from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from schedmaster import SchedMaster
 from scheddbinterface import SchedDBInterface
+from prefdbinterface import PrefDBInterface
 from sched_exceptions import CodeLogicError
 
 dbInterface = MongoDBInterface(mongoClient)
@@ -247,6 +248,9 @@ def create_newdbcol(db_type, newcol_name):
         dbInterface.writeDB(info_data, config_status,
                             divstr_colname=divstr_colname,
                             divstr_db_type=divstr_db_type)
+    elif db_type == 'prefdb':
+        dbInterface = PrefDBInterface(mongoClient, newcol_name)
+        dbInterface.writeDB(info_data, config_status)
     else:
         raise CodeLogicError("leaguedivprocess:create_newdbcol: db_type not recognized db_type=%s" % (db_type,))
     _routelogic_obj.dbinterface_obj = dbInterface
@@ -380,6 +384,8 @@ def select_db_interface(db_type, colname):
         dbInterface = FieldDBInterface(mongoClient, colname)
     elif db_type == 'newscheddb':
         dbInterface = SchedDBInterface(mongoClient, colname)
+    elif db_type == 'prefdb':
+        dbInterface = PrefDBInterface(mongoClient, colname)
     else:
         raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
         dbInterface = None

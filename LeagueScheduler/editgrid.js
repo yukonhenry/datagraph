@@ -143,14 +143,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var server_path = this.server_path || "create_newdbcol/";
 				var server_key = this.server_key || "";
 				var server_key_obj = {};
+				var newlist = null;
 				if (this.idproperty == "field_id") {
-					var newlist = this.info_obj.modify_toserver_data(raw_result);
+					newlist = this.info_obj.modify_toserver_data(raw_result);
 					storedata_json = JSON.stringify(newlist);
 					divstr_obj = this.info_obj.getdivstr_obj();
 					// get colname and db_type for the divinfo obj attached to the
 					// current fieldinfo obj.
 					server_key_obj.divstr_colname = divstr_obj.colname;
 					server_key_obj.divstr_db_type = divstr_obj.db_type;
+				} else if (this.idproperty == "pref_id") {
+					newlist = this.info_obj.modify_toserver_data(raw_result);
+					storedata_json = JSON.stringify(newlist);
 				} else {
 					storedata_json = JSON.stringify(raw_result);
 				}

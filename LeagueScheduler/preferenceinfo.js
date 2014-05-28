@@ -64,18 +64,36 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				};
 				return columnsdef_obj;
 			},
-			// column definition for fixed (uneditable) grid used for schedule
-			// result grid
-			getfixedcolumnsdef_obj: function () {
-				var columnsdef_obj = {
-					div_id:"Div ID",
-					div_age:"Age Group",
-					div_gen:"Gender (or secondary field)",
-					totalteams:"Total #Teams",
-					totalgamedays:"Total # Games",
-					gameinterval:"Game Interval(min)"
-				};
-				return columnsdef_obj;
+			modifyserver_data: function(data_list) {
+				arrayUtil.forEach(data_list, function(item, index) {
+					// save date str to pass into start and end time calc
+					// (though it can be a dummy date)
+					var game_date_str = item.game_date;
+					var start_after_str = item.start_after;
+					var end_before_str = item.end_before;
+					item.game_date = new Date(game_date_str);
+					item.start_after = new Date(game_date_str+' '+start_after_str);
+					item.end_before = new Date(game_date_str+' '+end_before_str);
+				});
+				return data_list;
+			},
+			modify_toserver_data: function(raw_result) {
+				// modify store data before sending data to server
+				var newlist = new Array();
+				// similar to field data, for the pref grid data convert Data objects to str
+				// note we want to keep it as data objects inside of store to
+				// maintain direct compatibility with Date and TimeTextBox's
+				// and associated picker widgets.
+				raw_result.map(function(item) {
+					var newobj = lang.clone(item);
+					newobj.game_date = newobj.game_date.toLocaleDateString();
+					newobj.start_after = newobj.start_after.toLocaleTimeString();
+					newobj.end_before = newobj.end_before.toLocaleTimeString();
+					return newobj;
+				}).forEach(function(obj) {
+					newlist.push(obj);
+				});
+				return newlist;
 			},
 			initialize: function(newgrid_flag) {
 				var form_reg = registry.byId(constant.form_id);
