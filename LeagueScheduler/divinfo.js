@@ -1,13 +1,16 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
+	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
-		baseinfo, baseinfoSingleton, WidgetGen, put){
+		NumberTextBox, ValidationTextBox, baseinfo, baseinfoSingleton, WidgetGen,
+		put){
 		var constant = {
 			idproperty_str:'div_id', form_id:'div_form_id', dbname_id:'rrdbname_id',
 			inputnum_id:'divinputnum_id',
+			inputnum_str:'Number of Divisions',
 			dbname_str:'New Division List Name',
 			vtextbox_str:'Enter Division List Name',
 			ntextbox_str:'Enter Number of Divisions',
@@ -95,20 +98,52 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				return columnsdef_obj;
 			},
 			initialize: function(newgrid_flag) {
-				var form_name = "newdivinfo_form_id";
-				var form_reg = registry.byId(form_name);
-				var input_reg = registry.byId("newdivinfo_input_id");
-				var divnum_reg = registry.byId("divnum_input_id");
-				var tooltipconfig_list = [{connectId:['divnum_input_id'],
+				var form_reg = registry.byId(constant.form_id);
+				var form_node = form_reg.domNode;
+				var dbname_reg = null;
+				var inputnum_reg = null;
+				if (!dbname_node) {
+					put(form_node, "label.label_box[for=$]",
+						constant.dbname_id, constant.dbname_str);
+					var dbname_node = put(form_node,
+						"input[id=$][type=text][required=true]",
+						constant.dbname_id)
+					dbname_reg = new ValidationTextBox({
+						value:'',
+						regExp:'\\D[\\w]+',
+						style:'width:12em',
+						promptMessage:constant.vtextbox_str + '-start with letter or _, followed by alphanumeric or _',
+						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
+						missingMessage:constant.vtextbox_str
+					}, dbname_node);
+					put(form_node, "span.empty_smallgap");
+					put(form_node, "label.label_box[for=$]",
+						constant.inputnum_id, constant.inputnum_str);
+					var inputnum_node = put(form_node,
+						"input[id=$][type=text][required=true]",
+						constant.inputnum_id);
+					inputnum_reg = new NumberTextBox({
+						value:'1',
+						style:'width:5em',
+						constraints:{min:1, max:500},
+						promptMessage:constant.ntextbox_str,
+						invalidMessage:'Must be Non-zero integer',
+						missingMessage:constant.ntextbox_str+' (positive integer)'
+					}, inputnum_node);
+				} else {
+					dbname_reg = registry.byId(constant.dbname_id);
+					inputnum_reg = registry.byId(constant.inputnum_id);
+				}
+				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
 					label:"Specify Number of Divisions and press ENTER",
 					position:['below','after']},
-					{connectId:['newdivinfo_input_id'],
+					{connectId:[constant.dbname_id],
 					label:"Specify Schedule Name",
 					position:['below','after']}];
 				var args_obj = {
-					dbname_reg:input_reg,
+					dbname_reg:dbname_reg,
 					form_reg:form_reg,
-					entrynum_reg:divnum_reg,
+					entrynum_reg:inputnum_reg,
 					server_path:"create_newdbcol/",
 					server_key:'info_data',
 					text_node_str: constant.text_node_str,

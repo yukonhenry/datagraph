@@ -13,6 +13,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			vtextbox_str:'Enter Preference List Name',
 			ntextbox_str:'Enter Number of Preferences',
 			inputnum_id:'prefinputnum_id',
+			inputnum_str:'Number of Preferences',
 			text_node_str:'Preference List Name',
 			updatebtn_str:'Update Preference Info',
 			text_node_str: 'Preference List Name',
@@ -119,7 +120,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
-						constant.inputnum_id, "Number of Preferences");
+						constant.inputnum_id, constant.inputnum_str);
 					var inputnum_node = put(form_node,
 						"input[id=$][type=text][required=true]",
 						constant.inputnum_id);

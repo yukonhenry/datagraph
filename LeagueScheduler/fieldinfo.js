@@ -5,8 +5,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Select",
 	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
-	"dijit/form/Button", "dijit/form/Form", "dijit/form/ValidationTextBox",
-	"dijit/Tooltip",
+	"dijit/form/Button", "dijit/form/Form", "dijit/form/NumberTextBox",
+	"dijit/form/ValidationTextBox", "dijit/Tooltip",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
 	"dijit/TitlePane",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
@@ -14,7 +14,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton,
 		WidgetGen,
 		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
-		CheckBox, Button, Form, ValidationTextBox,
+		CheckBox, Button, Form, NumberTextBox, ValidationTextBox,
 		Tooltip, BorderContainer, ContentPane, TitlePane, put, Calendar){
 		var constant = {
 			idproperty_str:"field_id",
@@ -27,6 +27,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			vtextbox_str:'Enter Field List Name',
 			ntextbox_str:'Enter Number of Fields',
 			inputnum_id:'fieldinputnum_id',
+			inputnum_str:'Number of Fields',
 			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
 			league_select_id:"league_select_id",
@@ -132,21 +133,52 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				return columnsdef_obj;
 			},
 			initialize: function(newgrid_flag) {
-				var form_name = "fieldconfig_form_id";
-				var form_reg = registry.byId(form_name);
-				var input_name = "fieldlistname_input_id";
-				var input_reg = registry.byId(input_name);
-				var fieldnum_reg = registry.byId("fieldnum_input_id");
-				var tooltipconfig_list = [{connectId:['fieldnum_input_id'],
+				var form_reg = registry.byId(constant.form_id);
+				var form_node = form_reg.domNode;
+				var dbname_reg = null;
+				var inputnum_reg = null;
+				if (!dbname_node) {
+					put(form_node, "label.label_box[for=$]",
+						constant.dbname_id, constant.dbname_str);
+					var dbname_node = put(form_node,
+						"input[id=$][type=text][required=true]",
+						constant.dbname_id)
+					dbname_reg = new ValidationTextBox({
+						value:'',
+						regExp:'\\D[\\w]+',
+						style:'width:12em',
+						promptMessage:constant.vtextbox_str + '-start with letter or _, followed by alphanumeric or _',
+						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
+						missingMessage:constant.vtextbox_str
+					}, dbname_node);
+					put(form_node, "span.empty_smallgap");
+					put(form_node, "label.label_box[for=$]",
+						constant.inputnum_id, constant.inputnum_str);
+					var inputnum_node = put(form_node,
+						"input[id=$][type=text][required=true]",
+						constant.inputnum_id);
+					inputnum_reg = new NumberTextBox({
+						value:'1',
+						style:'width:5em',
+						constraints:{min:1, max:500},
+						promptMessage:constant.ntextbox_str,
+						invalidMessage:'Must be Non-zero integer',
+						missingMessage:constant.ntextbox_str+' (positive integer)'
+					}, inputnum_node);
+				} else {
+					dbname_reg = registry.byId(constant.dbname_id);
+					inputnum_reg = registry.byId(constant.inputnum_id);
+				}
+				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
 					label:"Specify Number of Fields and press ENTER",
 					position:['below','after']},
-					{connectId:['fieldlistname_input_id'],
+					{connectId:[constant.dbname_id],
 					label:"Specify Field List Name",
 					position:['below','after']}];
 				var args_obj = {
-					dbname_reg:input_reg,
+					dbname_reg:dbname_reg,
 					form_reg:form_reg,
-					entrynum_reg:fieldnum_reg,
+					entrynum_reg:inputnum_reg,
 					server_path:"create_newdbcol/",
 					server_key:'info_data',
 					text_node_str: constant.text_node_str,

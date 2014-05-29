@@ -8,6 +8,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			nfcpane_id:"numfieldcpane_id",
 			tcpane_id:"textbtncpane_id",
 			ndcpane_id:"numdivcpane_id",
+			ntcpane_id:"numtourndivcpane_id",
 			sdcpane_id:"scheddivcpane_id",
 			nscpane_id:"newschedcpane_id",
 			sccpane_id:"seasoncalendar_input",
@@ -43,7 +44,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'div_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
-					pane_id:constant.ndcpane_id});
+					pane_id:constant.ntcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				this.pstackmap_list.push({id:'sched_id', p_stage:'preconfig',

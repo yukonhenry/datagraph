@@ -23,11 +23,11 @@
         <script>
 			require(["dbootstrap", "dojo/dom", "LeagueScheduler/scheduler",
                 "dijit/layout/TabContainer", "dijit/layout/ContentPane", "dijit/layout/BorderContainer", "dijit/layout/StackContainer",
-                "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/NumberTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox","dijit/form/DropDownButton",
+                "dijit/TitlePane", "dijit/form/Select", "dijit/form/Form", "dijit/form/ValidationTextBox", "dijit/form/DateTextBox", "dijit/form/TimeTextBox","dijit/form/DropDownButton",
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem", "dijit/form/Button",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.22m";
+                var version_str = "v1.0.0.22o";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -149,29 +149,17 @@
                         <div id="infoBtnNode_id"></div>
                     </div>
                     <div id="numfieldcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <form data-dojo-type="dijit/form/Form" id="fieldconfig_form_id" data-dojo-id="fieldconfig_form_id">
-                            <label for="fieldlistname_input_id">Enter Field Collection Name</label>
-                            <input type="text" name="fieldlistname_input" id="fieldlistname_input_id" value="PHMSA" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Field Collection Name"
-                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter Field List name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter field list name'"/>
-                            <!--
-                            <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldlistname_input_id', position:['below','after']">Specify Field List Name</span></div> -->
-                            <label for="fieldnum_input_id">Number of Fields</label>
-                            <input type="text" name="fieldnum_input" id="fieldnum_input_id" value="1" required="true" data-dojo-type="dijit/form/NumberTextBox" title="Enter Number of Fields and press ENTER" style="width:6em"
-                            data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Fields', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Fields (positive ineteger)'"/>
-                            <!--
-                            <div class="dijitHidden"><span data-dojo-type="dijit/Tooltip" data-dojo-props="connectId:'fieldnum_input_id', position:['below','after']">Specify Number of Fields and press ENTER</span>
-                            </div> -->
+                        <form data-dojo-type="dijit/form/Form" id="field_form_id" data-dojo-id="field_form_id">
                         </form>
                     </div>
                     <div id="numdivcpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <!-- Division Info input form -->
-                        <form data-dojo-type="dijit/form/Form" id="newdivinfo_form_id" data-dojo-id="newdivinfo_form_id">
-                            <label for="newdivinfo_input_id">New Division List Name:</label>
-                            <input type="text" name="newdivinfo_input" id="newdivinfo_input_id" value="ph" required="true" data-dojo-type="dijit/form/ValidationTextBox" title="Enter Division List Name"
-                            data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter schedule name - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                            <label for="divnum_input_id">Number of Divisions</label>
-                            <input type="text" name="divnum_input" id="divnum_input_id" value="1" required="true" data-dojo-type="dijit/form/NumberTextBox" title="Enter Number of Divisions and press ENTER" style="width:6em"
-                            data-dojo-props="constraints:{min:1, max:1000}, promptMessage:'Enter Number of Divisions', invalidMessage:'Must be Non-zero integer', missingMessage:'Enter Number of Divisions (positive integer)'"/>
+                        <form data-dojo-type="dijit/form/Form" id="div_form_id" data-dojo-id="div_form_id">
+                        </form>
+                    </div>
+                    <div id="numtourndivcpane_id" data-dojo-type="dijit/layout/ContentPane">
+                        <!-- Division Info input form -->
+                        <form data-dojo-type="dijit/form/Form" id="tourndiv_form_id" data-dojo-id="tourndiv_form_id">
                         </form>
                     </div>
                     <div id="scheddivcpane_id" data-dojo-type="dijit/layout/ContentPane">
