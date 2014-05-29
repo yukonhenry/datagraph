@@ -93,24 +93,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								visibleRange: 'T01:00:00'
 							},
 						}, */
-						/*
-						set: function(item) {
-							if (this.columntype) {
-								var time_str = column_obj.toLocaleTimeString();
-								console.log("setitem="+time_str);
-								this.columntype = false;
-								return time_str;
-							}
-						},
-						renderCell: function(object, value) {
-							if (typeof value == "string")
-								return put("div", value);
-							else {
-								// if the type if a Date object (only type of obj) possible
-								// here, extract (local) timestring
-								return put("div", value?value.toLocaleTimeString():"");
-							}
-						} */
 					}, TimeTextBox),
 					end_time: editor({label:"End Time", autoSave:true,
 						columntype:false
@@ -401,11 +383,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// http://dojo-toolkit.33424.n3.nabble.com/dojo-store-Observable-Change-Request-td3286606.html
 						arrayUtil.forEach(this.calendarmapobj_list, function(item) {
 							var fieldevent_str = constant.default_fieldevent_str;
-							/*
-							var closed_list = null;
-							if ('closed_list' in item) {
-								closed_list = item.closed_list;
-							} */
 							this.populate_calendar_store(item.calendarmap_list,
 								item.field_id, fieldevent_str);
 						}, this);
