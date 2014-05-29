@@ -9,6 +9,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 		var constant = {
 			idproperty_str:'pref_id', grid_id:'prefinfogrid_id', db_type:'prefdb',
 			form_id:'pref_form_id', dbname_id:'prefdbname_id',
+			dbname_str:'New Preference List Name',
+			vtextbox_str:'Enter Preference List Name',
+			ntextbox_str:'Enter Number of Preferences',
 			inputnum_id:'prefinputnum_id',
 			text_node_str:'Preference List Name',
 			updatebtn_str:'Update Preference Info',
@@ -102,7 +105,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var inputnum_reg = null;
 				if (!dbname_node) {
 					put(form_node, "label.label_box[for=$]",
-						constant.dbname_id, "New Preference List Name");
+						constant.dbname_id, constant.dbname_str);
 					var dbname_node = put(form_node,
 						"input[id=$][type=text][required=true]",
 						constant.dbname_id)
@@ -110,9 +113,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						value:'',
 						regExp:'\\D[\\w]+',
 						style:'width:12em',
-						promptMessage:'Enter New Preference List -start with letter or _, followed by alphanumeric or _',
+						promptMessage:constant.vtextbox_str + '-start with letter or _, followed by alphanumeric or _',
 						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
-						missingMessage:'enter preference list name'
+						missingMessage:constant.vtextbox_str
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
@@ -124,9 +127,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						value:'1',
 						style:'width:5em',
 						constraints:{min:1, max:500},
-						promptMessage:'Enter Number of Preferences',
+						promptMessage:constant.ntextbox_str,
 						invalidMessage:'Must be Non-zero integer',
-						missingMessage:'Enter Number of Preferences (positive integer)'
+						missingMessage:constant.ntextbox_str+' (positive integer)'
 					}, inputnum_node);
 				} else {
 					dbname_reg = registry.byId(constant.dbname_id);

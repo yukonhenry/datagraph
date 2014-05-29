@@ -531,8 +531,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getdivselect_dropdown: function(idproperty, select_id) {
 				// first get the div information selected by
 				// league_select_value and current_db_type
-				select_value = this.league_select_value;
-				db_type = this.current_db_type;
+				var select_value = this.league_select_value;
+				var db_type = this.current_db_type;
 				// check if the divselect_reg divsion select drop-down
 				// for team id selection has been created; if it has not
 				// create the dropdown.
@@ -541,8 +541,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (divinfo_obj && divinfo_obj.infogrid_store &&
 					divinfo_obj.activegrid_colname == select_value) {
 					// if in store, get data and create dropdown
-					var data_list = divinfo_obj.infogrid_store.query();
-					this.createdivselect_dropdown(data_list, {idproperty:idproperty,
+					var data_obj = new Object();
+					data_obj.info_list = divinfo_obj.infogrid_store.query();
+					// need to create config status property for data_list
+					// before passing to createdivselect_dropdown as function
+					// depends on config_status being true to create dropdown
+					data_obj.config_status = divinfo_obj.config_status;
+					this.createdivselect_dropdown(data_obj, {idproperty:idproperty,
 						select_id:select_id});
 				} else {
 					// if not in store get from server
@@ -552,11 +557,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						{idproperty:idproperty, select_id:select_id});
 				}
 			},
-			createdivselect_dropdown:function(data_list, options_obj) {
+			createdivselect_dropdown:function(data_obj, options_obj) {
 				var idproperty = options_obj.idproperty;
 				var select_id = options_obj.select_id;
-				if (data_list.config_status == 1) {
-					var info_list = data_list.info_list;
+				if (data_obj.config_status == 1) {
+					var info_list = data_obj.info_list;
 					// compare against div dropdown function in schedutil
 					var option_list = [{label:"Select Division", value:"", selected:true, totalteams:0, div_age:"", div_gen:""}];
 					arrayUtil.forEach(info_list, function(item, index) {
