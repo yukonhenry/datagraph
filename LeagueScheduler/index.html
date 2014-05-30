@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.22s";
+                var version_str = "v1.0.0.22u";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -40,44 +40,12 @@
                 <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/DropDownMenu.html#dijit-dropdownmenu -->
                 <div data-dojo-type="dijit/form/DropDownButton" class="dijit dijitReset dijitInline primary dijitDropDownButton editsched" role="presentation">
                     <span>Select Configuration</span>
-                    <div data-dojo-type="dijit/DropDownMenu">
-                        <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Generate Schedule</span>
-                            <div data-dojo-type="dijit/DropDownMenu" id="newschedmenu_id">
-                                <div data-dojo-type="dijit/MenuItem" id="newsched_item">New Schedule Parameters</div>
-                            </div>
-                        </div>
+                    <div data-dojo-type="dijit/DropDownMenu" id="configmenu_id">
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Division Info</span>
-                            <div data-dojo-type="dijit/DropDownMenu">
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Round Robin Parameters</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="divmenu_id">
-                                        <div data-dojo-type="dijit/MenuItem" id="newdivinfo_item">New Division Info</div>
-                                    </div>
-                                </div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Tournament Parameters</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="tourndivmenu_id">
-                                        <div data-dojo-type="dijit/MenuItem" id="tournnewdivinfo_item">New Division Info</div>
-                                    </div>
-                                </div>
+                            <div data-dojo-type="dijit/DropDownMenu" id="configtopdivmenu_id">
                             </div> <!-- dropdownmenu -->
                         </div> <!-- popupmenuitem-->
-                        <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Specify Fields</span>
-                            <div data-dojo-type="dijit/DropDownMenu" id="fieldmenu_id">
-                                <div data-dojo-type="dijit/MenuItem" id="newfieldlist_item">New Field List</div>
-                            </div>
-                        </div>
-                        <div data-dojo-type="dijit/PopupMenuItem">
-                            <span>Scheduling Preferences</span>
-                            <div data-dojo-type="dijit/DropDownMenu" id="prefmenu_id">
-                                <div data-dojo-type="dijit/MenuItem" id="newpref_item">
-                                    New Preference List
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <!--reference on use of different kinds of id's:

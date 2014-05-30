@@ -185,8 +185,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("editPane"),"load",scrollTopEditPane);
 			//on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
-			//			on(registry.byId("newdivinfo_item"), "click",initNewDivInfo
-			//	);
+			/*
 			on(registry.byId("newdivinfo_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize, divinfo_obj));
 			on(registry.byId("tournnewdivinfo_item"), "click",
@@ -199,6 +198,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("newpref_item"), "click",
 				lang.hitch(uiStackManager, uiStackManager.check_initialize,
 					preferenceinfo_obj));
+			*/
 			//on(registry.byId("elimination2013"), "click", elimination2013);
 			//on(registry.byId("export_elimination2013"), "click", export_elim2013);
  		});

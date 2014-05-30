@@ -1,13 +1,37 @@
 // define observable store-related utility functions
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Observable","dojo/store/Memory","dijit/registry",
-	"dijit/DropDownMenu", "dijit/PopupMenuItem",
+	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"LeagueScheduler/baseinfoSingleton","put-selector/put",
 	"dojo/domReady!"],
-	function(dom, declare, lang, arrayUtil, Observable, Memory, registry, DropDownMenu, PopupMenuItem,
+	function(dom, declare, lang, arrayUtil, Observable, Memory, registry, DropDownMenu, PopupMenuItem, MenuItem,
 		baseinfoSingleton, put) {
 		var constant = {
-			submenu_list:[
+			idtopmenu_list:[
+				{id:'div_id', label_str:"Round Ropin Parameters",
+					parent_id:'configtopdivmenu_id'},
+				{id:'tourndiv_id', label_str:"Tournament Parameters",
+					parent_id:'configtopdivmenu_id'},
+				{id:'field_id', label_str:"Specify Fields",
+					parent_id:'configmenu_id'},
+				{id:'newsched_id', label_str:"Generate Schedule",
+					parent_id:'configmenu_id'},
+				{id:'pref_id', label_str:"Scheduling Preferences",
+					parent_id:'configmenu_id'}
+			],
+			initmenu_list:[
+				{id:'div_id', label_str:"Create Division Info",
+					parent_id:'divmenu_id'},
+				{id:'tourndiv_id', label_str:"Create Division Info",
+					parent_id:'tourndivmenu_id'},
+				{id:'field_id', label_str:"Create Field List",
+					parent_id:'fieldmenu_id'},
+				{id:'newsched_id', label_str:"Create Schedule Parameters",
+					parent_id:'newschedmenu_id'},
+				{id:'pref_id', label_str:"Create Preference List",
+					parent_id:'prefmenu_id'}
+			],
+			editmenu_list:[
 				{id:'div_id', db_type:'rrdb',
 					label_str:"Edit Division Info", parent_id:'divmenu_id'},
 				{id:'tourndiv_id', db_type:'tourndb',
@@ -20,7 +44,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				{id:'pref_id', db_type:'prefdb',
 					label_str:"Edit Preference List", parent_id:'prefmenu_id'}
 			],
-			delsubmenu_list:[
+			delmenu_list:[
 				{id:'div_id', db_type:'rrdb',
 					label_str:"Delete Division Info", parent_id:'divmenu_id'},
 				{id:'tourndiv_id', db_type:'tourndb',
@@ -89,7 +113,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}));
 			},
 			nodupdb_validate: function(colname, id) {
-				var match_obj = this.getmatch_obj(constant.submenu_list, 'id', id);
+				var match_obj = this.getmatch_obj(constant.editmenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				var dbselect_store = this.getselect_store(db_type);
 				if (dbselect_store) {
@@ -112,7 +136,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			},
 			// add entry to dbselect store
 			addtodb_store: function(colname, id, config_status) {
-				var match_obj = this.getmatch_obj(constant.submenu_list, 'id', id);
+				var match_obj = this.getmatch_obj(constant.editmenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				var dbselect_store = this.getselect_store(db_type);
 				var query_obj = {name:colname};
@@ -142,40 +166,56 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				dbselect_store.remove(item);
 			},
 			create_menu: function(id, info_obj, delflag) {
-				// get submenu names based on db_type
-				var match_obj = this.getmatch_obj(constant.submenu_list,
+				var match_obj = this.getmatch_obj(constant.idtopmenu_list,
 					'id', id);
-				var parent_ddown = registry.byId(match_obj.parent_id)
-				var smenu_reg = new DropDownMenu();
+				var parent_ddown_reg = registry.byId(match_obj.parent_id);
+				var idtop_ddown_reg = new DropDownMenu();
+				var idtop_popup_reg = new PopupMenuItem({
+					label:match_obj.label_str,
+					popup:idtop_ddown_reg
+				})
+				parent_ddown_reg.addChild(idtop_popup_reg);
+				// get create new info menu items
+				match_obj = this.getmatch_obj(constant.initmenu_list,
+					'id', id);
+				var menu_reg = new MenuItem({
+					label:match_obj.label_str,
+					onClick:lang.hitch(this.uistackmgr, this.uistackmgr.check_initialize, info_obj)
+				})
+				idtop_ddown_reg.addChild(menu_reg);
+				// get submenu names based on db_type
+				match_obj = this.getmatch_obj(constant.editmenu_list,
+					'id', id);
+				var ddownmenu_reg = new DropDownMenu();
 				var popup_reg = new PopupMenuItem({
 					label:match_obj.label_str,
-					popup:smenu_reg
+					popup:ddownmenu_reg
 				})
-				parent_ddown.addChild(popup_reg);
+				idtop_ddown_reg.addChild(popup_reg);
 				var db_type = match_obj.db_type;
 				// create respective db menu
 				var db_list = this.getfromdb_store_value(db_type, 'name');
-				this.schedutil_obj.generateDB_smenu(db_list, smenu_reg,
+				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_reg,
 					this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
 				if (delflag) {
-					match_obj = this.getmatch_obj(constant.delsubmenu_list,
+					match_obj = this.getmatch_obj(constant.delmenu_list,
 						'id', id);
 					// set up menus for delete if required
 					// ref http://dojotoolkit.org/reference-guide/1.9/dijit/form/DropDownButton.html#dijit-form-dropdownbutton
 					// http://dojotoolkit.org/reference-guide/1.9/dijit/Menu.html
 					// NOTE: example in ref above shows a 'popup' property, but the
 					// API spec for dijit/popupmenuitem does NOT have that property
-					//parent_ddown = registry.byId(match_obj.parent_id)
-					smenu_reg = new DropDownMenu();
+					//idtop_ddown_reg = registry.byId(match_obj.parent_id)
+					ddownmenu_reg = new DropDownMenu();
 					popup_reg = new PopupMenuItem({
 						label:match_obj.label_str,
-						popup:smenu_reg
+						popup:ddownmenu_reg
 					})
-					parent_ddown.addChild(popup_reg);
+					idtop_ddown_reg.addChild(popup_reg);
 					db_type = match_obj.db_type;
 					// create respective del db menu
-					this.schedutil_obj.generateDBCollection_smenu(smenu_reg,
+					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_reg,
 						db_list, this, this.delete_dbcollection,
 						{db_type:db_type, storeutil_obj:this});
 				}
@@ -211,7 +251,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var server_path = constant.delserver_path;
 				var db_type = options_obj.db_type
 				this.removefromdb_store(item, db_type);
-				var match_obj = this.getmatch_obj(constant.delsubmenu_list,
+				var match_obj = this.getmatch_obj(constant.delmenu_list,
 					'db_type', db_type);
 				var idproperty = match_obj.id;
 				this.uistackmgr.reset_cpane(idproperty);
