@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu","dijit/MenuItem", "dijit/PopupMenuItem",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.22o";
+                var version_str = "v1.0.0.22s";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -43,18 +43,8 @@
                     <div data-dojo-type="dijit/DropDownMenu">
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Generate Schedule</span>
-                            <div data-dojo-type="dijit/DropDownMenu">
+                            <div data-dojo-type="dijit/DropDownMenu" id="newschedmenu_id">
                                 <div data-dojo-type="dijit/MenuItem" id="newsched_item">New Schedule Parameters</div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Existing Schedule Parameters</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="newscheddbcollection_submenu">
-                                    </div>
-                                </div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Delete Schedule Parameters</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="delnewscheddbcollection_submenu">
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div data-dojo-type="dijit/PopupMenuItem">
@@ -62,69 +52,29 @@
                             <div data-dojo-type="dijit/DropDownMenu">
                                 <div data-dojo-type="dijit/PopupMenuItem">
                                     <span>Round Robin Parameters</span>
-                                    <div data-dojo-type="dijit/DropDownMenu">
+                                    <div data-dojo-type="dijit/DropDownMenu" id="divmenu_id">
                                         <div data-dojo-type="dijit/MenuItem" id="newdivinfo_item">New Division Info</div>
-                                        <div data-dojo-type="dijit/PopupMenuItem">
-                                            <span>Edit Division Info</span>
-                                            <div data-dojo-type="dijit/DropDownMenu" id="dbcollection_submenu">
-                                            </div>
-                                        </div>
-                                        <div data-dojo-type="dijit/PopupMenuItem">
-                                            <span>Delete Division Info</span>
-                                            <div data-dojo-type="dijit/DropDownMenu" id="deldbcollection_submenu">
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                                 <div data-dojo-type="dijit/PopupMenuItem">
                                     <span>Tournament Parameters</span>
-                                    <div data-dojo-type="dijit/DropDownMenu">
+                                    <div data-dojo-type="dijit/DropDownMenu" id="tourndivmenu_id">
                                         <div data-dojo-type="dijit/MenuItem" id="tournnewdivinfo_item">New Division Info</div>
-                                        <div data-dojo-type="dijit/PopupMenuItem">
-                                            <span>Edit Division Info</span>
-                                            <div data-dojo-type="dijit/DropDownMenu" id="tourndbcollection_submenu">
-                                            </div>
-                                        </div>
-                                        <div data-dojo-type="dijit/PopupMenuItem">
-                                            <span>Delete Division Info</span>
-                                            <div data-dojo-type="dijit/DropDownMenu" id="deltourndbcollection_submenu">
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div> <!-- dropdownmenu -->
                         </div> <!-- popupmenuitem-->
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Specify Fields</span>
-                            <div data-dojo-type="dijit/DropDownMenu">
+                            <div data-dojo-type="dijit/DropDownMenu" id="fieldmenu_id">
                                 <div data-dojo-type="dijit/MenuItem" id="newfieldlist_item">New Field List</div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Edit Field List</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="fielddb_submenu">
-                                    </div>
-                                </div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Delete Field List</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="delfielddb_submenu">
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div data-dojo-type="dijit/PopupMenuItem">
                             <span>Scheduling Preferences</span>
-                            <div data-dojo-type="dijit/DropDownMenu">
+                            <div data-dojo-type="dijit/DropDownMenu" id="prefmenu_id">
                                 <div data-dojo-type="dijit/MenuItem" id="newpref_item">
                                     New Preference List
-                                </div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Edit Preference List</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="prefdb_submenu">
-                                    </div>
-                                </div>
-                                <div data-dojo-type="dijit/PopupMenuItem">
-                                    <span>Delete Preference List</span>
-                                    <div data-dojo-type="dijit/DropDownMenu" id="delprefdb_submenu">
-                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -145,10 +145,9 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateDB_smenu: function(dbcollection_list, db_smenu_name, sched_context, serv_function, options_obj) {
+			generateDB_smenu: function(dbcollection_list, smenu_reg, sched_context, serv_function, options_obj) {
 				var options_obj = options_obj || {};
-				var dbcollection_smenu_reg = registry.byId(db_smenu_name);
-				// for checkinf if property exists in obj
+				// for checkinfg if property exists in obj
 				// http://www.nczonline.net/blog/2010/07/27/determining-if-an-object-property-exists/
 				// http://stackoverflow.com/questions/135448/how-do-i-check-to-see-if-an-object-has-a-property-in-javascript
 				// Need to test if it works when properties are methods
@@ -157,7 +156,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					var columnsdef_obj = options_obj.info_obj.getcolumnsdef_obj();
 					options_obj.columnsdef_obj = columnsdef_obj;
 				}
-				this.generateDBCollection_smenu(dbcollection_smenu_reg,dbcollection_list, sched_context, serv_function, options_obj);
+				this.generateDBCollection_smenu(smenu_reg, dbcollection_list, sched_context, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang

@@ -22,11 +22,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
-		var team_id_CONST = 'TEAM_ID';
-		var homeratio_CONST = 'HOMERATIO';
-		var earliest_count_CONST = 'EARLIEST_COUNT';
-		var latest_count_CONST = 'LATEST_COUNT';
-		var totalgames_CONST = 'TOTALGAMES'
 		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var gamesGrid = null; var divisionGrid = null;
 		var teamDataGrid = null; var fieldScheduleGrid = null;
@@ -107,59 +102,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 	        }).then(function(adata) {
 			});
 		}
-		var getTeamMetrics = function(evt) {
-			var division_id = registry.byId("divisionSelectForMetrics").get("value");
-    		script.get(constant.SERVER_PREFIX+"schedulemetrics/"+division_id,{
-    			jsonp:"callback"
-    		}).then(function(mdata){
-				var field_array = mdata.fields;
-				var metrics_array = mdata.metrics;
-				var metrics_columns = {};
-				metrics_columns[team_id_CONST] = "Team ID";
-				metrics_columns[totalgames_CONST] = "Total Games"
-				metrics_columns[homeratio_CONST] = "Home ratio";
-				arrayUtil.forEach(field_array, function(item, index) {
-					// fields names are keys to the column dictionary
-					metrics_columns[item] = '# games field '+item;
-				});
-				metrics_columns[earliest_count_CONST] = '# Earliest Games';
-				metrics_columns[latest_count_CONST] = '# Latest Games';
-
-				dom.byId("metricsHeader").innerHTML =
-					"Total game slots per team: <b>"+ldata_array[division_id-1].gamesperseason+"</b>";
-				// this will define number of columns (games per day)
-				if (metricsGrid) {
-					// clear grid by clearing dom node
-					dom.byId("metricsGrid").innerHTML = "";
-					delete metricsGrid;
-				}
-				var metricsGrid_list = new Array();
-				var listindex = 0;
-				arrayUtil.forEach(metrics_array, function(item,index) {
-					var team_id = item.TEAM_ID;
-					var totalgames = item.TOTALGAMES;
-					var homeratio = item.HOMERATIO;
-					var venue_count_array = item.VENUE_COUNT_LIST;
-					var metrics_grid_row = {};
-					// fill in the game day number and start time
-					metrics_grid_row[team_id_CONST] = team_id;
-					metrics_grid_row[totalgames_CONST] = totalgames;
-					metrics_grid_row[homeratio_CONST] = homeratio;
-					arrayUtil.forEach(venue_count_array, function(item2, index2) {
-						metrics_grid_row[item2.VENUE] = item2.VENUE_COUNT;
-					});
-					metrics_grid_row[earliest_count_CONST] = item.EARLIEST_COUNT;
-					metrics_grid_row[latest_count_CONST] = item.LATEST_COUNT;
-
-					metricsGrid_list[listindex] = metrics_grid_row;
-					listindex++;
-				});
-    			metricsGrid = new CustomGrid({
-    				columns:metrics_columns,
-    			},"metricsGrid");
-    			metricsGrid.renderArray(metricsGrid_list);
-    		});
-		};
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
 	        	jsonp:"callback"
