@@ -35,7 +35,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface});
 		var preferenceinfo_obj = new PreferenceInfo(
 			{server_interface:serverInterface});
-		var wizardlogic_obj = new WizardLogic();
 		//var schedinfo_obj = new schedinfo({server_interface:serverInterface});
 		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
@@ -99,6 +98,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			storeutil_obj.createdb_store(prefdb_list, 'prefdb');
 			storeutil_obj.create_menu('pref_id', preferenceinfo_obj, true,
 				parent_ddown_reg);
+			var wizardlogic_obj = new WizardLogic({storeutil_obj:storeutil_obj});
 			wizardlogic_obj.create();
 			console.log("load basic info complete");
 		}
@@ -124,23 +124,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 	        }).then(function(adata) {exp
 	        	//console.log("getalldiv schedule status"+adata.status);
 			});
-		}
-		// resize dgrid's if there is a show event on the content pane
-		// see https://github.com/SitePen/dgrid/issues/63
-		var resizeTeamsPaneGrids = function(evt) {
-			if (divisionGrid)
-				divisionGrid.resize();
-			if (teamDataGrid)
-				teamDataGrid.resize();
-		}
-		var resizeFieldsPaneGrids = function(evt) {
-			fieldInfoGrid.resize();
-			if (fieldScheduleGrid)
-				fieldScheduleGrid.resize();
-		}
-		var resizeMetricsPaneGrids = function(evt) {
-			if (metricsGrid)
-				metricsGrid.resize();
 		}
 		*/
 		var resizeEditPaneGrids = function(evt) {

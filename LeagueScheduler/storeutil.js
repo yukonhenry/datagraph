@@ -8,7 +8,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		baseinfoSingleton, put) {
 		var constant = {
 			idtopmenu_list:[
-				{id:'div_id', label_str:"Round Ropin Parameters"},
+				{id:'div_id', label_str:"Round Robin Parameters"},
 				{id:'tourndiv_id', label_str:"Tournament Parameters"},
 				{id:'field_id', label_str:"Specify Fields"},
 				{id:'newsched_id', label_str:"Generate Schedule"},
