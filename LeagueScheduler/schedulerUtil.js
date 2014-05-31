@@ -10,16 +10,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 	function(dbootstrap, dom, domConstruct, declare, lang, domClass, date,
 		arrayUtil,
 		registry, MenuItem, DivInfo, FieldInfo){
-		var calendarMapObj = {1:'Sept 7', 2:'Sept 14', 3:'Sept 21', 4:'Sept 28', 5:'Oct 5',
-			6:'Oct 12', 7:'Oct 19', 8:'Oct 26', 9:'Nov 2', 10:'Nov 9', 11:'Nov 16', 12:'Nov 23'};
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};
-		var fieldMapObj = {1:'Sequoia Elem 1', 2:'Sequoia Elem 2',3:'Pleasant Hill Elem 1',
-			4:'Pleasant Hill Elem 2',
-			5:'Pleasant Hill Elem 3', 6:'Golden Hills 1', 7:'Golden Hills 2',
-			8:'Mountain View Park', 9:'Pleasant Hill Middle 1', 10:'Pleasant Hill Middle 2',
-			11:'Pleasant Hill Middle 3', 12:'Nancy Boyd Park', 13:'Strandwood Elem',
-			14:'Sequoia Middle', 15:'Gregory Gardens Elem', 16:'Pleasant Hill Park',
-			17:'Sequoia Middle U14', 18:'Hidden Lakes', 19:'Waterfront', 20:'CP Turf'};
 		var status_dom = dom.byId("dbstatus_txt");
 		//var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
@@ -40,14 +31,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// new sched/generate menu list
 				this.nsdbmenureg_list = new Array();
 			},
-			getCalendarMap: function(gameday_id) {
-				return calendarMapObj[gameday_id];
-			},
 			getTournCalendarMap: function(gameday_id) {
 				return tournCalendarMapObj[gameday_id];
-			},
-			getFieldMap: function(field_id) {
-				return fieldMapObj[field_id];
 			},
 			tConvert: function(time) {
 				// courtesy http://stackoverflow.com/questions/13898423/javascript-convert-24-hour-time-of-day-string-to-12-hour-time-with-am-pm-and-no

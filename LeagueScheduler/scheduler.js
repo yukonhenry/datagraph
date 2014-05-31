@@ -15,19 +15,17 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/fieldinfo", "LeagueScheduler/baseinfoSingleton",
 		"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
 		"LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil",
-		"LeagueScheduler/tourndivinfo",
+		"LeagueScheduler/tourndivinfo", "LeagueScheduler/wizardlogic",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, Grid,
 		Selection, script, arrayUtil, request, schedulerUtil,
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
-		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo) {
+		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
-		var playdivSelectId, numberTeamsId, numberVenuesId;
 		var gamesGrid = null; var divisionGrid = null;
 		var teamDataGrid = null; var fieldScheduleGrid = null;
 		var metricsGrid = null;
 		var seedGrid = null;
-		var divisionGridHandle = null;
 		var ldata_array = null;
 		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
@@ -37,6 +35,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface});
 		var preferenceinfo_obj = new PreferenceInfo(
 			{server_interface:serverInterface});
+		var wizardlogic_obj = new WizardLogic();
 		//var schedinfo_obj = new schedinfo({server_interface:serverInterface});
 		var uiStackManager = null;
 		var CustomGrid = declare([ Grid, Selection ]);
@@ -58,15 +57,20 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// generate links for individual team schedules
 			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
+			var parent_ddown_reg = registry.byId("configmenu_id");
 			var rrdbcollection_list = ldata.rrdbcollection_list;
 			// fill initial store and create dropdown menu
 			storeutil_obj.createdb_store(rrdbcollection_list, 'rrdb');
-			storeutil_obj.create_menu('div_id', divinfo_obj, true);
+			//storeutil_obj.create_menu('div_id', divinfo_obj, true, parent_ddown_reg);
 			var tourndbcollection_list = ldata.tourndbcollection_list;
 			storeutil_obj.createdb_store(tourndbcollection_list, 'tourndb');
-			storeutil_obj.create_menu('tourndiv_id', tourndivinfo_obj, true);
+			//storeutil_obj.create_menu('tourndiv_id', tourndivinfo_obj, true);
+			var args_list = [{id:'div_id', info_obj:divinfo_obj},
+				{id:'tourndiv_id', info_obj:tourndivinfo_obj}]
+			var args_obj = {parent_ddown_reg:parent_ddown_reg,
+				args_list:args_list}
+			storeutil_obj.create_divmenu(args_obj);
 			// note we need to add delete to the schedule here by passing 'true'
-			//var dbcollection_list = rrdbcollection_list.concat(tourndbcollection_list)
 			//storeutil_obj.create_menu('sched_id', schedinfo_obj, false);
 			// generate dropdown for 'generate cup schedule'
 			/*
@@ -83,15 +87,19 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
 			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
-			storeutil_obj.create_menu('field_id', fieldinfo_obj, true);
+			storeutil_obj.create_menu('field_id', fieldinfo_obj, true,
+				parent_ddown_reg);
 			// load initial schedule db's for display under new schedule/generation
 			// submenu
 			var newscheddb_list = ldata.newscheddb_list;
 			storeutil_obj.createdb_store(newscheddb_list, 'newscheddb');
-			storeutil_obj.create_menu('newsched_id', newschedbase_obj, true);
+			storeutil_obj.create_menu('newsched_id', newschedbase_obj, true,
+				parent_ddown_reg);
 			var prefdb_list = ldata.prefdb_list;
 			storeutil_obj.createdb_store(prefdb_list, 'prefdb');
-			storeutil_obj.create_menu('pref_id', preferenceinfo_obj, true);
+			storeutil_obj.create_menu('pref_id', preferenceinfo_obj, true,
+				parent_ddown_reg);
+			wizardlogic_obj.create();
 			console.log("load basic info complete");
 		}
 /*
@@ -119,11 +127,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		}
 		// resize dgrid's if there is a show event on the content pane
 		// see https://github.com/SitePen/dgrid/issues/63
-		var resizeDivisionPaneGrids = function(evt) {
-			grid.resize();
-			if (gamesGrid)
-				gamesGrid.resize();
-		}
 		var resizeTeamsPaneGrids = function(evt) {
 			if (divisionGrid)
 				divisionGrid.resize();
@@ -185,20 +188,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
 			on(registry.byId("editPane"),"load",scrollTopEditPane);
 			//on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
-			/*
-			on(registry.byId("newdivinfo_item"), "click",
-				lang.hitch(uiStackManager, uiStackManager.check_initialize, divinfo_obj));
-			on(registry.byId("tournnewdivinfo_item"), "click",
-				lang.hitch(uiStackManager, uiStackManager.check_initialize, tourndivinfo_obj));
-			on(registry.byId("newfieldlist_item"), "click",
-				lang.hitch(uiStackManager, uiStackManager.check_initialize, fieldinfo_obj));
-			on(registry.byId("newsched_item"), "click",
-				lang.hitch(uiStackManager, uiStackManager.check_initialize,
-					newschedbase_obj));
-			on(registry.byId("newpref_item"), "click",
-				lang.hitch(uiStackManager, uiStackManager.check_initialize,
-					preferenceinfo_obj));
-			*/
 			//on(registry.byId("elimination2013"), "click", elimination2013);
 			//on(registry.byId("export_elimination2013"), "click", export_elim2013);
  		});

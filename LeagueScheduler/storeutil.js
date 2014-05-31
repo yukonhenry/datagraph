@@ -8,54 +8,37 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		baseinfoSingleton, put) {
 		var constant = {
 			idtopmenu_list:[
-				{id:'div_id', label_str:"Round Ropin Parameters",
-					parent_id:'configtopdivmenu_id'},
-				{id:'tourndiv_id', label_str:"Tournament Parameters",
-					parent_id:'configtopdivmenu_id'},
-				{id:'field_id', label_str:"Specify Fields",
-					parent_id:'configmenu_id'},
-				{id:'newsched_id', label_str:"Generate Schedule",
-					parent_id:'configmenu_id'},
-				{id:'pref_id', label_str:"Scheduling Preferences",
-					parent_id:'configmenu_id'}
+				{id:'div_id', label_str:"Round Ropin Parameters"},
+				{id:'tourndiv_id', label_str:"Tournament Parameters"},
+				{id:'field_id', label_str:"Specify Fields"},
+				{id:'newsched_id', label_str:"Generate Schedule"},
+				{id:'pref_id', label_str:"Scheduling Preferences"}
 			],
 			initmenu_list:[
-				{id:'div_id', label_str:"Create Division Info",
-					parent_id:'divmenu_id'},
-				{id:'tourndiv_id', label_str:"Create Division Info",
-					parent_id:'tourndivmenu_id'},
-				{id:'field_id', label_str:"Create Field List",
-					parent_id:'fieldmenu_id'},
-				{id:'newsched_id', label_str:"Create Schedule Parameters",
-					parent_id:'newschedmenu_id'},
-				{id:'pref_id', label_str:"Create Preference List",
-					parent_id:'prefmenu_id'}
+				{id:'div_id', label_str:"Create Division Info"},
+				{id:'tourndiv_id', label_str:"Create Division Info"},
+				{id:'field_id', label_str:"Create Field List"},
+				{id:'newsched_id', label_str:"Create Schedule Parameters"},
+				{id:'pref_id', label_str:"Create Preference List"}
 			],
 			editmenu_list:[
-				{id:'div_id', db_type:'rrdb',
-					label_str:"Edit Division Info", parent_id:'divmenu_id'},
+				{id:'div_id', db_type:'rrdb', label_str:"Edit Division Info"},
 				{id:'tourndiv_id', db_type:'tourndb',
-					label_str:"Edit Division Info", parent_id:'tourndivmenu_id'},
-				{id:'field_id', db_type:'fielddb',
-					label_str:"Edit Field List", parent_id:'fieldmenu_id'},
+					label_str:"Edit Division Info"},
+				{id:'field_id', db_type:'fielddb', label_str:"Edit Field List"},
 				{id:'newsched_id', db_type:'newscheddb',
-					label_str:"Edit Schedule Parameters",
-					parent_id:'newschedmenu_id'},
-				{id:'pref_id', db_type:'prefdb',
-					label_str:"Edit Preference List", parent_id:'prefmenu_id'}
+					label_str:"Edit Schedule Parameters"},
+				{id:'pref_id', db_type:'prefdb', label_str:"Edit Preference List"}
 			],
 			delmenu_list:[
-				{id:'div_id', db_type:'rrdb',
-					label_str:"Delete Division Info", parent_id:'divmenu_id'},
+				{id:'div_id', db_type:'rrdb', label_str:"Delete Division Info"},
 				{id:'tourndiv_id', db_type:'tourndb',
-					label_str:"Delete Division Info", parent_id:'tourndivmenu_id'},
+					label_str:"Delete Division Info"},
 				{id:'field_id', db_type:'fielddb',
-					label_str:"Delete Field List", parent_id:'fieldmenu_id'},
+					label_str:"Delete Field List"},
 				{id:'newsched_id', db_type:'newscheddb',
-					label_str:"Delete Schedule Parameters",
-					parent_id:'newschedmenu_id'},
-				{id:'pref_id', db_type:'prefdb',
-					label_str:"Delete Preference List", parent_id:'prefmenu_id'}
+					label_str:"Delete Schedule Parameters"},
+				{id:'pref_id', db_type:'prefdb', label_str:"Delete Preference List"}
 			],
 			delserver_path:"delete_dbcol/"
 		};
@@ -165,16 +148,30 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var dbselect_store = this.getselect_store(db_type);
 				dbselect_store.remove(item);
 			},
-			create_menu: function(id, info_obj, delflag) {
+			create_divmenu: function(args_obj) {
+				// programmatic instantiation of submenus for divinfo and
+				// tourndivinfo menu info
+				var parent_ddown_reg = args_obj.parent_ddown_reg;
+				var args_list = args_obj.args_list;
+				var div_ddown_reg = new DropDownMenu();
+				var div_popup_reg = new PopupMenuItem({
+					label:"Division Info",
+					popup:div_ddown_reg
+				})
+				parent_ddown_reg.addChild(div_popup_reg);
+				arrayUtil.forEach(args_list, function(item) {
+					this.create_menu(item.id, item.info_obj, true, div_ddown_reg)
+				}, this)
+			},
+			create_menu: function(id, info_obj, delflag, ddown_reg) {
 				var match_obj = this.getmatch_obj(constant.idtopmenu_list,
 					'id', id);
-				var parent_ddown_reg = registry.byId(match_obj.parent_id);
 				var idtop_ddown_reg = new DropDownMenu();
 				var idtop_popup_reg = new PopupMenuItem({
 					label:match_obj.label_str,
 					popup:idtop_ddown_reg
 				})
-				parent_ddown_reg.addChild(idtop_popup_reg);
+				ddown_reg.addChild(idtop_popup_reg);
 				// get create new info menu items
 				match_obj = this.getmatch_obj(constant.initmenu_list,
 					'id', id);
