@@ -98,7 +98,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			storeutil_obj.createdb_store(prefdb_list, 'prefdb');
 			storeutil_obj.create_menu('pref_id', preferenceinfo_obj, true,
 				parent_ddown_reg);
-			var wizardlogic_obj = new WizardLogic({storeutil_obj:storeutil_obj});
+			var wizardlogic_obj = new WizardLogic({storeutil_obj:storeutil_obj,
+				server_interface:serverInterface});
 			wizardlogic_obj.create();
 			console.log("load basic info complete");
 		}
