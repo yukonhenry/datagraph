@@ -1,11 +1,11 @@
 // define observable store-related utility functions
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dojox/widget/Wizard", "dojox/widget/WizardPane",
-	"dijit/DropDownMenu", "dijit/form/DropDownButton",
+	"dijit/DropDownMenu", "dijit/form/DropDownButton", "dijit/form/Button",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
-		DropDownMenu, DropDownButton,
+		DropDownMenu, DropDownButton, Button,
 		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
 			radio1_id:'wizradio1_id', radio2_id:'wizradio2_id',
@@ -13,6 +13,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
+			newdivbtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -29,7 +30,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					title:"Scheduling Wizard",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
-					style:"width:500px; height:200px"
+					style:"width:600px; height:400px",
 					//nextButtonLabel:"Configure Divisions"
 				});
 				//wizard_cpane.addChild(wizard_reg);
@@ -56,11 +57,28 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					this, this.radio1_callback, this.radio2_callback,
 					constant.select_id);
 				/*
+				var newdivbtn_node = put(topdiv_node, "button[type=button]");
+				this.newdivbtn_widget = new Button({
+					label:"New Division", class:"primary"
+				}, newdivbtn_node);
+				var newdivddown_node = put(topdiv_node, "div");
+				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
 				var divinfo_ddownmenu = new DropDownMenu({
 					title:"Select Division Configuration",
 				});
+				this.storeutil_obj.create_menu('div_id', divinfo_obj, true, divinfo_ddownmenu);
+				this.newdivddown_widget = new DropDownButton({
+					label: "Edit Division Configuration",
+					class:"primary",
+					dropDown:divinfo_ddownmenu,
+				}, newdivddown_node);
+				var divinfo_ddownmenu = new DropDownMenu({
+					title:"Select Division Configuration",
+				});  */
 				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
-				this.storeutil_obj.create_menu('div_id', divinfo_obj, true, divinfo_ddownmenu)
+				var menubar_node = put(topdiv_node, "div");
+				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
+				/*
 				var ddown_btn = new DropDownButton({
 					label: "hello!",
 					class:"primary",
@@ -70,7 +88,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					style:"width:500px; height:400px; border:1px solid red"
-
 				})
 				wizard_reg.addChild(divinfo_wpane);
 				wizard_reg.startup();

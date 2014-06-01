@@ -2,9 +2,13 @@
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Observable","dojo/store/Memory","dijit/registry",
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
+	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
+	"dijit/Tooltip",
 	"LeagueScheduler/baseinfoSingleton","put-selector/put",
 	"dojo/domReady!"],
-	function(dom, declare, lang, arrayUtil, Observable, Memory, registry, DropDownMenu, PopupMenuItem, MenuItem,
+	function(dom, declare, lang, arrayUtil, Observable, Memory, registry,
+		DropDownMenu, PopupMenuItem, MenuItem,
+		MenuBar, MenuBarItem, PopupMenuBarItem, Tooltip,
 		baseinfoSingleton, put) {
 		var constant = {
 			idtopmenu_list:[
@@ -15,30 +19,45 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				{id:'pref_id', label_str:"Scheduling Preferences"}
 			],
 			initmenu_list:[
-				{id:'div_id', label_str:"Create Division Info"},
-				{id:'tourndiv_id', label_str:"Create Division Info"},
-				{id:'field_id', label_str:"Create Field List"},
-				{id:'newsched_id', label_str:"Create Schedule Parameters"},
-				{id:'pref_id', label_str:"Create Preference List"}
+				{id:'div_id', label_str:"Create New Division List",
+					help_str:"Enter Information about League Divisions, Click Here"},
+				{id:'tourndiv_id', label_str:"Create New Division List",
+					help_str:"Enter Information about Tournament Divisions, Click Here"},
+				{id:'field_id', label_str:"Create Field List",
+					help_str:"Enter Information about Fields - Name, Dates/Times Open, which divisions play there - Click Here"},
+				{id:'newsched_id', label_str:"Generate Schedule",
+					help_str:"Select Parameters to Generate Schedule, and Generate"},
+				{id:'pref_id', label_str:"Create Preference List",
+					help_str:"Enter Scheduling Preferences, if any - Click Here"}
 			],
 			editmenu_list:[
-				{id:'div_id', db_type:'rrdb', label_str:"Edit Division Info"},
+				{id:'div_id', db_type:'rrdb', label_str:"Edit Division Info",
+					help_str:"Edit or confirm previously configured division list information that had been saved"},
 				{id:'tourndiv_id', db_type:'tourndb',
-					label_str:"Edit Division Info"},
-				{id:'field_id', db_type:'fielddb', label_str:"Edit Field List"},
+					label_str:"Edit Division Info",
+					help_str:"Edit or confirm previously configured tournament division list information that had been saved"},
+				{id:'field_id', db_type:'fielddb', label_str:"Edit Field List",
+					help_str:"Edit or confirm previously configured field-related information that had been saved"},
 				{id:'newsched_id', db_type:'newscheddb',
-					label_str:"Edit Schedule Parameters"},
-				{id:'pref_id', db_type:'prefdb', label_str:"Edit Preference List"}
+					label_str:"Regenerate Schedule",
+					help_str:"Regenerate Schedule using previously created scheduling parameters"},
+				{id:'pref_id', db_type:'prefdb', label_str:"Edit Preference List",
+					help:str:"Edit or confirm previously configured scheduling preferences"}
 			],
 			delmenu_list:[
-				{id:'div_id', db_type:'rrdb', label_str:"Delete Division Info"},
+				{id:'div_id', db_type:'rrdb', label_str:"Delete Division Info",
+					help_str:"Select and delete previously saved division information"},
 				{id:'tourndiv_id', db_type:'tourndb',
-					label_str:"Delete Division Info"},
+					label_str:"Delete Division Info",
+					help_str:"Select and delete previously saved tournament division information"},
 				{id:'field_id', db_type:'fielddb',
-					label_str:"Delete Field List"},
+					label_str:"Delete Field List",
+					help_str:"Select and delete previously saved field information"},
 				{id:'newsched_id', db_type:'newscheddb',
-					label_str:"Delete Schedule Parameters"},
-				{id:'pref_id', db_type:'prefdb', label_str:"Delete Preference List"}
+					label_str:"Delete Schedule Parameters",
+					help_str:"Select and delete previously saved scheduling parameters"},
+				{id:'pref_id', db_type:'prefdb', label_str:"Delete Preference List",
+					help_str:"Select and delete previously saved scheduling preference list"}
 			],
 			delserver_path:"delete_dbcol/"
 		};
@@ -213,6 +232,65 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					db_type = match_obj.db_type;
 					// create respective del db menu
 					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_reg,
+						db_list, this, this.delete_dbcollection,
+						{db_type:db_type, storeutil_obj:this});
+				}
+			},
+			create_menubar: function(id, info_obj, delflag, mbar_node) {
+				// Similar to create_menu, except create a horizontal menubar instead
+				var mbar_widget = new MenuBar({class:"primary"}, mbar_node);
+				// Create MenuBarItem that supports click to create new info item
+				match_obj = this.getmatch_obj(constant.initmenu_list,
+					'id', id);
+				var mbaritem_widget = new MenuBarItem({
+					id:"mbaritem_id",
+					label:match_obj.label_str,
+					style:"color:green; font:bond",
+					onClick:lang.hitch(this.uistackmgr, this.uistackmgr.check_initialize, info_obj)
+				})
+				 var tooltipconfig = {
+				 	connectId:[mbaritem_widget.domNode],
+				 	label:"Create New Division List by clicking here",
+				 	position:['below','after']};
+				var tooltip = new Tooltip(tooltipconfig);
+				mbar_widget.addChild(mbaritem_widget);
+				// get submenu names based on db_type
+				match_obj = this.getmatch_obj(constant.editmenu_list,
+					'id', id);
+				var ddownmenu_widget = new DropDownMenu();
+				var popmbaritem_widget = new PopupMenuBarItem({
+					label:match_obj.label_str,
+					style:"color:green; font:bond",
+					popup:ddownmenu_widget
+				})
+				tooltipconfig.connectId[0] = popmbaritem_widget.domNode;
+				mbar_widget.addChild(popmbaritem_widget);
+				var db_type = match_obj.db_type;
+				// create respective db menu
+				var db_list = this.getfromdb_store_value(db_type, 'name');
+				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
+					this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
+					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
+				// add delete menu items
+				if (delflag) {
+					match_obj = this.getmatch_obj(constant.delmenu_list,
+						'id', id);
+					// set up menus for delete if required
+					// ref http://dojotoolkit.org/reference-guide/1.9/dijit/form/DropDownButton.html#dijit-form-dropdownbutton
+					// http://dojotoolkit.org/reference-guide/1.9/dijit/Menu.html
+					// NOTE: example in ref above shows a 'popup' property, but the
+					// API spec for dijit/popupmenuitem does NOT have that property
+					//idtop_ddown_reg = registry.byId(match_obj.parent_id)
+					ddownmenu_widget = new DropDownMenu();
+					popmbaritem_widget = new PopupMenuBarItem({
+						label:match_obj.label_str,
+						popup:ddownmenu_widget,
+						style:"color:orange; font:bond",
+					})
+					mbar_widget.addChild(popmbaritem_widget);
+					db_type = match_obj.db_type;
+					// create respective del db menu
+					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
 						db_list, this, this.delete_dbcollection,
 						{db_type:db_type, storeutil_obj:this});
 				}

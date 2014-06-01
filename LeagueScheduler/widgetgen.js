@@ -4,10 +4,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "dojo/_base/array", "dojo/Stateful", "dojo/store/Memory", "dojo/date",
     "dijit/registry", "dijit/form/Button", "dijit/form/RadioButton",
     "dijit/form/Select", "dijit/form/NumberSpinner", "dijit/form/DateTextBox",
+    "dijit/Tooltip",
     "put-selector/put", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
     function(dbootstrap, dom, declare, lang, arrayUtil, Stateful, Memory, date,
         registry, Button, RadioButton, Select, NumberSpinner, DateTextBox,
-        put, baseinfoSingleton) {
+        Tooltip, put, baseinfoSingleton) {
         var Watch_class = declare([Stateful], {
             db_type:null
         });
