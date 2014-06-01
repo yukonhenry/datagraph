@@ -24,6 +24,28 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 		};
+		var wizconstant = {
+			// param stack id's
+			pstackcontainer_id:"wizparamStackContainer_id",
+			nfcpane_id:"wiznumfieldcpane_id",
+			tcpane_id:"wiztextbtncpane_id",
+			ndcpane_id:"wiznumdivcpane_id",
+			ntcpane_id:"wiznumtourndivcpane_id",
+			sdcpane_id:"wizscheddivcpane_id",
+			nscpane_id:"wiznewschedcpane_id",
+			sccpane_id:"wizseasoncalendar_input",
+			ppcpane_id:"wizprefparamcpane_id",
+			// grid stack id's
+			gstackcontainer_id:"wizgridContainer_id",
+			divcpane_id:"wizdivinfocpane_id",
+			tourndivcpane_id:"wiztourndivinfocpane_id",
+			schedcpane_id:"wizschedinfocpane_id",
+			fieldcpane_id:"wizfieldinfocpane_id",
+			blankcpane_id:"wizblankcpane_id",
+			prefcpane_id:"wizprefinfocpane_id",
+			// entry_pt id's
+			init:"init", fromdb:"fromdb", fromdel:"fromdel",
+		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
 			gstackcontainer_reg:null, gstackmap_list:null,

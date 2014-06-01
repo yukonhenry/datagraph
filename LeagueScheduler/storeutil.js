@@ -12,52 +12,56 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		baseinfoSingleton, put) {
 		var constant = {
 			idtopmenu_list:[
-				{id:'div_id', label_str:"Round Robin Parameters"},
-				{id:'tourndiv_id', label_str:"Tournament Parameters"},
-				{id:'field_id', label_str:"Specify Fields"},
-				{id:'newsched_id', label_str:"Generate Schedule"},
-				{id:'pref_id', label_str:"Scheduling Preferences"}
+				{id:'div_id', label_str:"Round Robin Parameters",
+					help_str:"Configure Division/Fields for Round Robin League Schedule"},
+				{id:'tourndiv_id', label_str:"Tournament Parameters",
+					help_str:"Configure Division/Fields for Tournament Schedule"},
+				{id:'field_id', label_str:"Specify Fields",
+					help_str:"Configure Field Information"},
+				{id:'newsched_id', label_str:"Generate Schedule",
+					help_str:"Configure Final Set of Parameters and Generate"},
+				{id:'pref_id', label_str:"Scheduling Preferences",
+					help_str:"Configure Preferences List"}
 			],
 			initmenu_list:[
-				{id:'div_id', label_str:"Create New Division List",
-					help_str:"Enter Information about League Divisions, Click Here"},
-				{id:'tourndiv_id', label_str:"Create New Division List",
-					help_str:"Enter Information about Tournament Divisions, Click Here"},
+				{id:'div_id', label_str:"Create New League Division List",
+					help_str:"To Create, Click"},
+				{id:'tourndiv_id', label_str:"Create New Tournament Division List",
+					help_str:"To Create, Click"},
 				{id:'field_id', label_str:"Create Field List",
-					help_str:"Enter Information about Fields - Name, Dates/Times Open, which divisions play there - Click Here"},
+					help_str:"To Create, Click Here"},
 				{id:'newsched_id', label_str:"Generate Schedule",
-					help_str:"Select Parameters to Generate Schedule, and Generate"},
+					help_str:"To Create Schedule Paramenters and Generate, Click"},
 				{id:'pref_id', label_str:"Create Preference List",
-					help_str:"Enter Scheduling Preferences, if any - Click Here"}
+					help_str:"To Create Preferences, Click Here"}
 			],
 			editmenu_list:[
 				{id:'div_id', db_type:'rrdb', label_str:"Edit Division Info",
-					help_str:"Edit or confirm previously configured division list information that had been saved"},
+					help_str:"To Edit, Click and Select Previously Saved Division List Name"},
 				{id:'tourndiv_id', db_type:'tourndb',
 					label_str:"Edit Division Info",
-					help_str:"Edit or confirm previously configured tournament division list information that had been saved"},
+					help_str:"To Edit, Click and Select Previously Saved Division List Name"},
 				{id:'field_id', db_type:'fielddb', label_str:"Edit Field List",
-					help_str:"Edit or confirm previously configured field-related information that had been saved"},
+					help_str:"To Edit, Click and Select Previously Saved Field List Name"},
 				{id:'newsched_id', db_type:'newscheddb',
 					label_str:"Regenerate Schedule",
-					help_str:"Regenerate Schedule using previously created scheduling parameters"},
+					help_str:"To Regenerate, Click and Select Previously Saved Schedule Name"},
 				{id:'pref_id', db_type:'prefdb', label_str:"Edit Preference List",
-					help:str:"Edit or confirm previously configured scheduling preferences"}
+					help_str:"To Edit, Click and Select Previously Saved Preference List Name"}
 			],
 			delmenu_list:[
 				{id:'div_id', db_type:'rrdb', label_str:"Delete Division Info",
-					help_str:"Select and delete previously saved division information"},
+					help_str:"To Delete, Click and Select Previously Saved Division List Name"},
 				{id:'tourndiv_id', db_type:'tourndb',
 					label_str:"Delete Division Info",
-					help_str:"Select and delete previously saved tournament division information"},
-				{id:'field_id', db_type:'fielddb',
-					label_str:"Delete Field List",
-					help_str:"Select and delete previously saved field information"},
+					help_str:"To Delete, Click and Select Previously Saved Division List Name"},
+				{id:'field_id', db_type:'fielddb', label_str:"Delete Field List",
+					help_str:"To Delete, Click and Select Previously Saved Field List Name"},
 				{id:'newsched_id', db_type:'newscheddb',
-					label_str:"Delete Schedule Parameters",
-					help_str:"Select and delete previously saved scheduling parameters"},
+					label_str:"Delete Schedule",
+					help_str:"To Delete, Click and Select Previously Saved Schedule Name"},
 				{id:'pref_id', db_type:'prefdb', label_str:"Delete Preference List",
-					help_str:"Select and delete previously saved scheduling preference list"}
+					help_str:"To Delete, Click and Select Previously Saved Preference List Name"}
 			],
 			delserver_path:"delete_dbcol/"
 		};
@@ -238,8 +242,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			},
 			create_menubar: function(id, info_obj, delflag, mbar_node) {
 				// Similar to create_menu, except create a horizontal menubar instead
+				var tooltipconfig_list = new Array();
+				// Create horizontal menubar
 				var mbar_widget = new MenuBar({class:"primary"}, mbar_node);
-				// Create MenuBarItem that supports click to create new info item
+				//-----------------------------//
+				// Create first element, which is a MenuBarItem that supports click to create new info item
 				match_obj = this.getmatch_obj(constant.initmenu_list,
 					'id', id);
 				var mbaritem_widget = new MenuBarItem({
@@ -248,13 +255,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					style:"color:green; font:bond",
 					onClick:lang.hitch(this.uistackmgr, this.uistackmgr.check_initialize, info_obj)
 				})
-				 var tooltipconfig = {
-				 	connectId:[mbaritem_widget.domNode],
-				 	label:"Create New Division List by clicking here",
-				 	position:['below','after']};
-				var tooltip = new Tooltip(tooltipconfig);
+				// create tooltip config info for menubaritem
+				tooltipconfig_list.push({
+					connect_node:mbaritem_widget.domNode,
+					label_str:match_obj.help_str});
 				mbar_widget.addChild(mbaritem_widget);
-				// get submenu names based on db_type
+				//-----------------------------//
+				// Create second element, which is the edit menu
 				match_obj = this.getmatch_obj(constant.editmenu_list,
 					'id', id);
 				var ddownmenu_widget = new DropDownMenu();
@@ -263,14 +270,17 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					style:"color:green; font:bond",
 					popup:ddownmenu_widget
 				})
-				tooltipconfig.connectId[0] = popmbaritem_widget.domNode;
+				tooltipconfig_list.push({
+					connect_node:popmbaritem_widget.domNode,
+					label_str:match_obj.help_str});
 				mbar_widget.addChild(popmbaritem_widget);
 				var db_type = match_obj.db_type;
-				// create respective db menu
+				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
 				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
 					this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
+				//----------------------------------------//
 				// add delete menu items
 				if (delflag) {
 					match_obj = this.getmatch_obj(constant.delmenu_list,
@@ -287,6 +297,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						popup:ddownmenu_widget,
 						style:"color:orange; font:bond",
 					})
+					tooltipconfig_list.push({
+						connect_node:popmbaritem_widget.domNode,
+						label_str:match_obj.help_str});
 					mbar_widget.addChild(popmbaritem_widget);
 					db_type = match_obj.db_type;
 					// create respective del db menu
@@ -294,6 +307,15 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						db_list, this, this.delete_dbcollection,
 						{db_type:db_type, storeutil_obj:this});
 				}
+				var tooltip = null;
+				var tooltipconfig = null;
+				arrayUtil.forEach(tooltipconfig_list, function(item) {
+					tooltipconfig = {
+						connectId:[item.connect_node],
+						label:item.label_str,
+						position:['below','after']};
+					tooltip = new Tooltip(tooltipconfig);
+				})
 			},
 			getmatch_obj: function(list, key, value) {
 				var match_list = arrayUtil.filter(list,

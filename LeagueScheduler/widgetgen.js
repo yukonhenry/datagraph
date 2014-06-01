@@ -57,6 +57,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var div1_radio_node = dom.byId(div1_radio_id);
                 var div1_radio = null;
                 if (!div1_radio_node) {
+                    topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, minimum</i><br>";
+                    //put(topdiv_node, "div.descrption_format","In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, minimum/maximum amount of time that should lapse between games.")
                     put(topdiv_node, "span", "Select Schedule Type:");
                     div1_radio_node = put(topdiv_node,
                         "div[id=$]", div1_radio_id);
