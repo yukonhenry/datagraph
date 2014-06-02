@@ -13,20 +13,24 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		var constant = {
 			idtopmenu_list:[
 				{id:'div_id', label_str:"Round Robin Parameters",
-					help_str:"Configure Division/Fields for Round Robin League Schedule"},
+					help_str:"Configure Division/Fields for Round Robin League Schedule", mbaritem_id:"divmbaritem_id"},
 				{id:'tourndiv_id', label_str:"Tournament Parameters",
-					help_str:"Configure Division/Fields for Tournament Schedule"},
+					help_str:"Configure Division/Fields for Tournament Schedule",
+					mbaritem_id:"tourndivmbaritem_id"},
 				{id:'field_id', label_str:"Specify Fields",
-					help_str:"Configure Field Information"},
+					help_str:"Configure Field Information",
+					mbaritem_id:"fieldmbaritem_id"},
 				{id:'newsched_id', label_str:"Generate Schedule",
-					help_str:"Configure Final Set of Parameters and Generate"},
+					help_str:"Configure Final Set of Parameters and Generate",
+					mbaritem_id:"newschedmbaritem_id"},
 				{id:'pref_id', label_str:"Scheduling Preferences",
-					help_str:"Configure Preferences List"}
+					help_str:"Configure Preferences List",
+					mbaritem_id:"prefmbaritem_id"}
 			],
 			initmenu_list:[
-				{id:'div_id', label_str:"Create New League Division List",
+				{id:'div_id', label_str:"Create League Division Info",
 					help_str:"To Create, Click"},
-				{id:'tourndiv_id', label_str:"Create New Tournament Division List",
+				{id:'tourndiv_id', label_str:"Create New Tournament Division Info",
 					help_str:"To Create, Click"},
 				{id:'field_id', label_str:"Create Field List",
 					help_str:"To Create, Click Here"},
@@ -244,13 +248,14 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// Similar to create_menu, except create a horizontal menubar instead
 				var tooltipconfig_list = new Array();
 				// Create horizontal menubar
-				var mbar_widget = new MenuBar({class:"primary"}, mbar_node);
+				var mbar_widget = new MenuBar({
+					style:"width:500px; height:auto"}, mbar_node);
 				//-----------------------------//
 				// Create first element, which is a MenuBarItem that supports click to create new info item
 				match_obj = this.getmatch_obj(constant.initmenu_list,
 					'id', id);
 				var mbaritem_widget = new MenuBarItem({
-					id:"mbaritem_id",
+					id:match_obj.mbaritem_id,
 					label:match_obj.label_str,
 					style:"color:green; font:bond",
 					onClick:lang.hitch(this.uistackmgr, this.uistackmgr.check_initialize, info_obj)
@@ -359,7 +364,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
 				this.server_interface.getServerData(server_path+db_type+'/'+item,
 					this.server_interface.server_ack);
-			},
+			}
 		})
 	}
 );

@@ -280,7 +280,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			create_widgets: function(divdb_type, divcol_name, fieldcol_name) {
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
-				this.newsched_dom = dom.byId("newsched_text");
+				this.newsched_dom = dom.byId("newschedtxt_id");
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen = new WidgetGen({
 					storeutil_obj:this.storeutil_obj,

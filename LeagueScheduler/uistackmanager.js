@@ -1,9 +1,12 @@
 /* manage UI content pane structure, especially switching stack container panes */
 define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
-	"dijit/registry", "dojo/domReady!"],
-	function(declare, lang, arrayUtil, dom, registry) {
+	"dijit/registry", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
+	"dijit/layout/BorderContainer", "dijit/form/Form", "put-selector/put", "dojo/domReady!"],
+	function(declare, lang, arrayUtil, dom, registry, StackContainer, ContentPane,
+		BorderContainer, Form, put) {
 		var constant = {
 			// param stack id's
+			dummy_id:"dummy_id",
 			pstackcontainer_id:"paramStackContainer_id",
 			nfcpane_id:"numfieldcpane_id",
 			tcpane_id:"textbtncpane_id",
@@ -18,33 +21,26 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			divcpane_id:"divinfocpane_id",
 			tourndivcpane_id:"tourndivinfocpane_id",
 			schedcpane_id:"schedinfocpane_id",
+			fieldbcontainer_id:"fieldinfobcontainer_id",
 			fieldcpane_id:"fieldinfocpane_id",
 			blankcpane_id:"blankcpane_id",
 			prefcpane_id:"prefinfocpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
-		};
-		var wizconstant = {
-			// param stack id's
-			pstackcontainer_id:"wizparamStackContainer_id",
-			nfcpane_id:"wiznumfieldcpane_id",
-			tcpane_id:"wiztextbtncpane_id",
-			ndcpane_id:"wiznumdivcpane_id",
-			ntcpane_id:"wiznumtourndivcpane_id",
-			sdcpane_id:"wizscheddivcpane_id",
-			nscpane_id:"wiznewschedcpane_id",
-			sccpane_id:"wizseasoncalendar_input",
-			ppcpane_id:"wizprefparamcpane_id",
-			// grid stack id's
-			gstackcontainer_id:"wizgridContainer_id",
-			divcpane_id:"wizdivinfocpane_id",
-			tourndivcpane_id:"wiztourndivinfocpane_id",
-			schedcpane_id:"wizschedinfocpane_id",
-			fieldcpane_id:"wizfieldinfocpane_id",
-			blankcpane_id:"wizblankcpane_id",
-			prefcpane_id:"wizprefinfocpane_id",
-			// entry_pt id's
-			init:"init", fromdb:"fromdb", fromdel:"fromdel",
+			// form and span id's
+			nscform_id:"newsched_form_id",
+			nsctxt_id:"newschedtxt_id",
+			infotxt_id:"infotxt_id",
+			infobtn_id:"infobtn_id",
+			fform_id:"field_form_id",
+			dform_id:"div_form_id",
+			tdform_id:"tourndiv_form_id",
+			pform_id:"pref_form_id",
+			// grid hosting div id's
+			divgrid_id:"divinfogrid_id",
+			tourndivgrid_id:"tourndivinfogrid_id",
+			prefgrid_id:"prefinfogrid_id",
+			fieldgrid_id:"fieldinfogrid_id"
 		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
@@ -89,7 +85,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					{id:'div_id', pane_id:constant.divcpane_id},
 					{id:'tourndiv_id', pane_id:constant.tourndivcpane_id},
 					{id:'sched_id', pane_id:constant.schedcpane_id},
-					{id:'field_id', pane_id:constant.fieldcpane_id},
+					{id:'field_id', pane_id:constant.fieldbcontainer_id},
 					{id:'pref_id', pane_id:constant.prefcpane_id}];
 				this.cpanestate_list = new Array();
 				this.null_cpanestate = {
@@ -130,7 +126,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			},
 			reset_cpane: function(idproperty) {
 				// reset pstackcpane for idproperty to quiscent/initial state
-				this.pstackcontainer_reg.selectChild('dummy_id');
+				this.pstackcontainer_reg.selectChild(constant.dummy_id);
 				var match_obj = this.get_cpanestate(idproperty).match_obj;
 				lang.mixin(match_obj, this.null_cpanestate);
 				this.gstackcontainer_reg.selectChild(constant.blankcpane_id);
@@ -417,6 +413,133 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// seems like scrolling to top only works if it works off of onLoad and not onShow
 				var pane_dom = dom.byId("editPane");
 				pane_dom.scrollTop = 0;
+			},
+			create_paramcpane_stack: function(container_cpane) {
+				// programmatically create parameter config cpane stack
+				// reference on use of different kinds of id's:
+				// http://dojotoolkit.org/reference-guide/1.9/dijit/registry.html#data-dojo-id-jsid-before-dojo-1-6
+				// http://stackoverflow.com/questions/12469140/difference-between-id-and-data-dojo-id
+				var param_scontainer = new StackContainer({
+					id:constant.pstackcontainer_id,
+					doLayout:false,
+					style:"float:left; width:80%"
+				})
+				this.pstackcontainer_reg = param_scontainer;
+				container_cpane.addChild(param_scontainer);
+				// create dummy blank pane
+				var dummy_cpane = new ContentPane({
+					id:constant.dummy_id
+				})
+				param_scontainer.addChild(dummy_cpane);
+				// add newscheduler config cpane
+				var newsched_cpane = new ContentPane({
+					id:constant.nscpane_id
+				})
+				var newsched_form = new Form({
+					id:constant.nscform_id
+				});
+				newsched_cpane.addChild(newsched_form);
+				param_scontainer.addChild(newsched_cpane)
+				// add season calendar input cpane
+				var scinput_cpane = new ContentPane({
+					id:constant.sccpane_id
+				})
+				put(scinput_cpane.containerNode, "span[id=$]",constant.nsctxt_id)
+				param_scontainer.addChild(scinput_cpane)
+				// add txt + button cpane
+				var txtbtn_cpane = new ContentPane({
+					id:constant.tcpane_id
+				})
+				put(txtbtn_cpane.containerNode, "span[id=$]", constant.infotxt_id);
+				put(txtbtn_cpane.containerNode, "div[id=$]", constant.infobtn_id);
+				param_scontainer.addChild(txtbtn_cpane);
+				// add field config (number) cpane
+				var field_cpane = new ContentPane({
+					id:constant.nfcpane_id
+				});
+				var field_form = new Form({
+					id:constant.fform_id
+				})
+				field_cpane.addChild(field_form);
+				param_scontainer.addChild(field_cpane);
+				// add div config (number) cpane
+				var div_cpane = new ContentPane({
+					id:constant.ndcpane_id
+				})
+				var div_form = new Form({
+					id:constant.dform_id
+				})
+				div_cpane.addChild(div_form);
+				param_scontainer.addChild(div_cpane);
+				// add tourndiv config (number) cpane
+				var tdiv_cpane = new ContentPane({
+					id:constant.ntcpane_id
+				})
+				var tdiv_form = new Form({
+					id:constant.tdform_id
+				})
+				tdiv_cpane.addChild(tdiv_form);
+				param_scontainer.addChild(tdiv_cpane);
+				// add preference config
+				var pref_cpane = new ContentPane({
+					id:constant.ppcpane_id
+				})
+				var pref_form = new Form({
+					id:constant.pform_id
+				})
+				pref_cpane.addChild(pref_form);
+				param_scontainer.addChild(pref_cpane)
+			},
+			create_grid_stack: function(container_cpane) {
+				// programmatically create grid stack
+				// manage switching between grids by using content panes embedded in stack container
+				// note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance
+				// http://css.maxdesign.com.au/floatutorial/
+				var grid_scontainer = new StackContainer({
+					id:constant.gstackcontainer_id,
+					doLayout:false,
+					style:"clear:left"
+				})
+				this.gstackcontainer_reg = grid_scontainer;
+				container_cpane.addChild(grid_scontainer);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:constant.blankcpane_id
+				})
+				grid_scontainer.addChild(blank_cpane);
+				// add divinfo cpane and grid div
+				var div_cpane = new ContentPane({
+					id:constant.divcpane_id
+				})
+				put(div_cpane.containerNode, "div[id=$]", constant.divgrid_id);
+				grid_scontainer.addChild(div_cpane);
+				// add tournament divinfo cpane and grid div
+				var tdiv_cpane = new ContentPane({
+					id:constant.tourndivcpane_id
+				})
+				put(tdiv_cpane.containerNode, "div[id=$]", constant.tourndivgrid_id);
+				grid_scontainer.addChild(tdiv_cpane);
+				// add preference info cpane and grid div
+				var pdiv_cpane = new ContentPane({
+					id:constant.prefcpane_id
+				})
+				put(pdiv_cpane.containerNode, "div[id=$]", constant.prefgrid_id);
+				grid_scontainer.addChild(pdiv_cpane);
+				// add field info border container, inside cpane and grid div
+				var field_bcontainer = new BorderContainer({
+					id:constant.fieldbcontainer_id,
+					design:'headline', gutters:true, liveSplitters:true,
+					style:"height:800px; width:100%"
+				})
+				var field_cpane = new ContentPane({
+					id:constant.fieldcpane_id,
+					region:'top',
+					style:"height:300px; width:100%"
+				})
+				put(field_cpane.containerNode, "div[id=$]",
+					constant.fieldgrid_id);
+				field_bcontainer.addChild(field_cpane);
+				grid_scontainer.addChild(field_bcontainer);
 			}
 		});
 	}

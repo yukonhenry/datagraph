@@ -9,8 +9,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		registry, Tooltip, Button, RadioButton, EditGrid, baseinfoSingleton,
 		put) {
 		var constant = {
-			infobtn_id:"infoBtnNode_id",
-			text_id:"infoTextNode_id",
+			infobtn_id:"infobtn_id",
+			text_id:"infotxt_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};

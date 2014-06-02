@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.24e";
+                var version_str = "v1.0.0.24i";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -36,9 +36,10 @@
 			});
 		</script>
         <!-- Note doLayout:false sets size of container to that of the child panes http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html#dijit-layout-stackcontainer -->
+        <!-- NOTE adding doLayout:false at the toplevel tabcontainer_id, has effect
+        on size of the cpane display for both wizard and advanced.  Need to experiment more -->
 		<div data-dojo-type="dijit/layout/TabContainer" id="tabcontainer_id" style="height:100%; width:100%" data-dojo-props="doLayout:false">
             <div data-dojo-type="dijit/layout/ContentPane" title="Advanced" id="editPane" data-dojo-props="doLayout:false">
-                <!-- http://dojotoolkit.org/reference-guide/1.9/dijit/DropDownMenu.html#dijit-dropdownmenu -->
                 <div data-dojo-type="dijit/form/DropDownButton" class="dijit dijitReset dijitInline primary dijitDropDownButton editsched" role="presentation">
                     <span>Select Configuration</span>
                     <div data-dojo-type="dijit/DropDownMenu" id="configmenu_id">
@@ -56,23 +57,21 @@
                         </form>
                     </div>
                     <div id="seasoncalendar_input" data-dojo-type="dijit/layout/ContentPane">
-                        <span id="newsched_text"></span><br>
+                        <span id="newschedtxt_id"></span><br>
                     </div>
                     <div id="textbtncpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <span id="infoTextNode_id"></span>
-                        <div id="infoBtnNode_id"></div>
+                        <span id="infotxt_id"></span>
+                        <div id="infobtn_id"></div>
                     </div>
                     <div id="numfieldcpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <form data-dojo-type="dijit/form/Form" id="field_form_id" data-dojo-id="field_form_id">
                         </form>
                     </div>
                     <div id="numdivcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <!-- Division Info input form -->
                         <form data-dojo-type="dijit/form/Form" id="div_form_id" data-dojo-id="div_form_id">
                         </form>
                     </div>
                     <div id="numtourndivcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <!-- Division Info input form -->
                         <form data-dojo-type="dijit/form/Form" id="tourndiv_form_id" data-dojo-id="tourndiv_form_id">
                         </form>
                     </div>
@@ -87,7 +86,8 @@
                     </div>
                 </div>
                 <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
-                <div id="divisionInfoInputGridErrorNode" class="style_none"></div>
+                <div id="divisionInfoInputGridErrorNode" class="style_none">
+                </div>
                 <!-- manage switching between grids by using content panes embedded in stack container -->
                 <!-- note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance -->
                 <!-- http://css.maxdesign.com.au/floatutorial/-->
@@ -106,8 +106,8 @@
                     <div id="prefinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <div id="prefinfogrid_id"></div>
                     </div>
-                    <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:true, liveSplitters:true" style="height:800px;width: 100%">
-                        <div id="fieldinfocpane_inner_id" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'" style="height:300px; width: 100%">
+                    <div id="fieldinfobcontainer_id" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:true, liveSplitters:true" style="height:800px;width: 100%">
+                        <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'" style="height:300px; width: 100%">
                             <div id="fieldinfogrid_id" ></div>
                         </div>
                         <!--
@@ -146,8 +146,9 @@
                             <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
                                 <div id="calendarGrid_id"></div>
                             </div>
-                        </div>  -->
-                    </div> <!---outer bordercontainer as one of content panes-->
+                        </div>
+                        -->
+                    </div>
                 </div> <!--stackcontainer-->
             </div>
     	</div>

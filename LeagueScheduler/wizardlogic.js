@@ -2,18 +2,23 @@
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dojox/widget/Wizard", "dojox/widget/WizardPane",
 	"dijit/DropDownMenu", "dijit/form/DropDownButton", "dijit/form/Button",
+	"dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
-		DropDownMenu, DropDownButton, Button,
+		DropDownMenu, DropDownButton, Button, ContentPane,
 		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
-			radio1_id:'wizradio1_id', radio2_id:'wizradio2_id',
-			select_id:'wizselect_id'
+			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
+			divselect_id:'wizdivselect_id',
+			fradio1_id:'wizfradio1_id', fradio2_id:'wizfradio2_id',
+			fselect_id:'wizfselect_id',
+			prefradio1_id:'wizprefradio1_id', prefradio2_id:'wizprefradio2_id',
+			prefselect_id:'wizprefselect_id',
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
-			newdivbtn_widget:null,
+			newdivbtn_widget:null, uistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -24,27 +29,32 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
 				var tabcontainer = registry.byId("tabcontainer_id");
+				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto'});
+				tabcontainer.addChild(container_cpane, 0);
 				// ref http://archive.dojotoolkit.org/nightly/checkout/dijit/tests/layout/test_TabContainer_noLayout.html
 				// for doLayout:false effects
 				var wizard_reg = new Wizard({
-					title:"Scheduling Wizard",
+					title:"Scheduling Wizard/Start Here",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
+					//class:'allauto'
 					style:"width:600px; height:400px",
 					//nextButtonLabel:"Configure Divisions"
 				});
 				//wizard_cpane.addChild(wizard_reg);
-				tabcontainer.addChild(wizard_reg, 0);
+				container_cpane.addChild(wizard_reg);
 				//--------------------//
 				// Create informational starting pane
 				var content_str = "Gather Information for the League:<br>Get basic information for the league such as the number of divisions, number of teams in each division."
 				var intro_wpane = new WizardPane({
 					content:content_str,
-					style:"width:100px; height:100px"
+					//class:'allauto'
+					//style:"width:100px; height:100px"
 				})
 				wizard_reg.addChild(intro_wpane);
 				//---------------------//
 				var topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
 				// get/create widgetgen obj
 				if (!this.widgetgen_obj) {
 					this.widgetgen_obj = new WidgetGen({
@@ -53,45 +63,55 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					});
 				}
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.radio1_id, constant.radio2_id, "rrdb",
+					constant.divradio1_id, constant.divradio2_id, "rrdb",
 					this, this.radio1_callback, this.radio2_callback,
-					constant.select_id);
-				/*
-				var newdivbtn_node = put(topdiv_node, "button[type=button]");
-				this.newdivbtn_widget = new Button({
-					label:"New Division", class:"primary"
-				}, newdivbtn_node);
-				var newdivddown_node = put(topdiv_node, "div");
-				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
-				var divinfo_ddownmenu = new DropDownMenu({
-					title:"Select Division Configuration",
-				});
-				this.storeutil_obj.create_menu('div_id', divinfo_obj, true, divinfo_ddownmenu);
-				this.newdivddown_widget = new DropDownButton({
-					label: "Edit Division Configuration",
-					class:"primary",
-					dropDown:divinfo_ddownmenu,
-				}, newdivddown_node);
-				var divinfo_ddownmenu = new DropDownMenu({
-					title:"Select Division Configuration",
-				});  */
+					constant.divselect_id);
 				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
 				var menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
-				/*
-				var ddown_btn = new DropDownButton({
-					label: "hello!",
-					class:"primary",
-					dropDown:divinfo_ddownmenu,
-				}, topdiv_node);
-				*/
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
-					style:"width:500px; height:400px; border:1px solid red"
+					//class:'allauto'
+					//style:"width:500px; height:400px; border:1px solid red"
 				})
 				wizard_reg.addChild(divinfo_wpane);
-				wizard_reg.startup();
-
+				//-------------------------//
+				topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
+				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
+					constant.fradio1_id, constant.fradio2_id, "rrdb",
+					this, this.radio1_callback, this.radio2_callback,
+					constant.fselect_id);
+				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
+				menubar_node = put(topdiv_node, "div");
+				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
+				var fieldinfo_wpane = new WizardPane({
+					content:topdiv_node,
+					//class:'allauto'
+					//style:"width:500px; height:400px; border:1px solid red"
+				})
+				wizard_reg.addChild(fieldinfo_wpane);
+				//-------------------------//
+				topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
+				var prefinfo_obj = baseinfoSingleton.get_obj('pref_id');
+				menubar_node = put(topdiv_node, "div");
+				this.storeutil_obj.create_menubar('pref_id', fieldinfo_obj, true, menubar_node);
+				var prefinfo_wpane = new WizardPane({
+					content:topdiv_node,
+					//class:'allauto'
+					//style:"width:500px; height:400px; border:1px solid red"
+				})
+				wizard_reg.addChild(prefinfo_wpane);
+				//wizard_reg.startup();
+				//-----------------//
+				//Add parameter stack container panes
+				/*
+				this.uistackmgr.create_paramcpane_stack(container_cpane);
+				// we might not need the error node beow
+				put(container_cpane.domNode, "div.style_none#divisionInfoInputGridErrorNode")
+				this.uistackmgr.create_grid_stack(container_cpane);
+				*/
 			},
 			radio1_callback: function(select_id, event) {
 

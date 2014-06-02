@@ -227,7 +227,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// if it doesn't exist, then we need to create it
 					// first get the top-level cpane widget (which is also a
 					// bordercontainer)
-					var fieldinfocpane = registry.byId("fieldinfocpane_id");
+					var fieldinfocpane = registry.byId("fieldinfobcontainer_id");
 					// created border container
 					var detailed_bordercontainer = new BorderContainer({
 						region:'center', design:'sidebar', gutters:true,
