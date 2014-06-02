@@ -4,10 +4,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/DropDownMenu", "dijit/form/DropDownButton", "dijit/form/Button",
 	"dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
+	"LeagueScheduler/wizuistackmanager",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
 		DropDownMenu, DropDownButton, Button, ContentPane,
-		baseinfoSingleton, WidgetGen, put) {
+		baseinfoSingleton, WidgetGen, WizUIStackManager, put) {
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
 			divselect_id:'wizdivselect_id',
@@ -18,7 +19,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
-			newdivbtn_widget:null, uistackmgr:null,
+			newdivbtn_widget:null, wizuistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -28,9 +29,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//wizard documentation:
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
+				var wizuistackmgr = new WizUIStackManager();
 				var tabcontainer = registry.byId("tabcontainer_id");
 				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto'});
 				tabcontainer.addChild(container_cpane, 0);
+				tabcontainer.selectChild(container_cpane);
 				// ref http://archive.dojotoolkit.org/nightly/checkout/dijit/tests/layout/test_TabContainer_noLayout.html
 				// for doLayout:false effects
 				var wizard_reg = new Wizard({
@@ -69,6 +72,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
 				var menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
+				var container_node = put(topdiv_node, "div")
+				this.wizuistackmgr.initstacks('div_id');
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'

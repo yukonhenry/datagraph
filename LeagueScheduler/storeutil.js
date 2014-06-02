@@ -318,7 +318,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					tooltipconfig = {
 						connectId:[item.connect_node],
 						label:item.label_str,
-						position:['below','after']};
+						position:['above','after']};
 					tooltip = new Tooltip(tooltipconfig);
 				})
 			},
