@@ -211,6 +211,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
+			create_wizardcontrol: function(containerdiv_node) {
+				// create cpane control for divinfo wizard pane under menubar
+			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than
