@@ -29,7 +29,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//wizard documentation:
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
-				//var wizuistackmgr = new WizUIStackManager();
+				this.wizuistackmgr = new WizUIStackManager();
 				var tabcontainer = registry.byId("tabcontainer_id");
 				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto'});
 				tabcontainer.addChild(container_cpane, 0);
@@ -71,9 +71,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					constant.divselect_id);
 				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
 				var menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
-				var containerdiv_node = put(topdiv_node, "div")
-				divinfo_obj.create_wizardcontrol(containerdiv_node);
+				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node, this.wizuistackmgr);
+				var pcontainerdiv_node = put(topdiv_node, "div")
+				var gcontainerdiv_node = put(topdiv_node, "div")
+				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
+					gcontainerdiv_node);
 				//this.wizuistackmgr.initstacks('div_id');
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
@@ -90,7 +92,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					constant.fselect_id);
 				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
+				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node, this.wizuistackmgr);
 				var fieldinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'
@@ -102,7 +104,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
 				var prefinfo_obj = baseinfoSingleton.get_obj('pref_id');
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('pref_id', fieldinfo_obj, true, menubar_node);
+				this.storeutil_obj.create_menubar('pref_id', fieldinfo_obj, true, menubar_node, this.wizuistackmgr);
 				var prefinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'

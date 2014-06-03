@@ -1,11 +1,12 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
-	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
+	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
+	"dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
-		NumberTextBox, ValidationTextBox, baseinfo, baseinfoSingleton, WidgetGen,
+		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane, baseinfo, baseinfoSingleton, WidgetGen,
 		put){
 		var constant = {
 			idproperty_str:'div_id', form_id:'div_form_id', dbname_id:'rrdbname_id',
@@ -23,6 +24,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			weeksspinner_id:'sl_spinner_id',
 			seasondates_btn_id:'sdbtn_id',
 			numweeks:12
+		};
+		var wizconstant = {
+			divreset_cpane_id:"divreset_cpane_id",
+			tcpane_id:"wiztextbtncpane_id",
+			ndcpane_id:"wiznumdivcpane_id",
+			divcpane_id:"wizdivinfocpane_id",
+			blankcpane_id:"wizblankcpane_id",
+			infotxt_id:"wizinfotxt_id",
+			infobtn_id:"wizinfobtn_id",
+			dform_id:"wizdiv_form_id",
+			// grid hosting div id's
+			divgrid_id:"wizdivinfogrid_id",
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
@@ -211,8 +224,51 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
-			create_wizardcontrol: function(containerdiv_node) {
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
+				this.pstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%"
+				}, pcontainerdiv_node);
+				// reset pane for initialization and after delete
+				var reset_cpane = new ContentPane({
+					id:wizconstant.divreset_cpane_id
+				})
+				this.pstackcontainer.addChild(reset_cpane)
+				// add div config (number) cpane
+				var div_cpane = new ContentPane({
+					id:wizconstant.ndcpane_id
+				})
+				var div_form = new Form({
+					id:wizconstant.dform_id
+				})
+				div_cpane.addChild(div_form);
+				this.pstackcontainer.addChild(div_cpane);
+				// add txt + button cpane
+				var txtbtn_cpane = new ContentPane({
+					id:wizconstant.tcpane_id
+				})
+				put(txtbtn_cpane.containerNode, "span[id=$]",
+					wizconstant.infotxt_id);
+				put(txtbtn_cpane.containerNode, "div[id=$]",
+					wizconstant.infobtn_id);
+				this.pstackcontainer.addChild(txtbtn_cpane)
+				// create grid stack container and grid
+				this.gstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"clear:left"
+				}, gcontainerdiv_node);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:wizconstant.blankcpane_id
+				})
+				this.gstackcontainer.addChild(blank_cpane);
+				// add divinfo cpane and grid div
+				var div_cpane = new ContentPane({
+					id:wizconstant.divcpane_id
+				})
+				put(div_cpane.containerNode, "div[id=$]", wizconstant.divgrid_id);
+				this.gstackcontainer.addChild(div_cpane);
 			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.

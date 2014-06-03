@@ -71,7 +71,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(null, {
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
-			server_interface:null, dbstore_list:null,
+			server_interface:null, dbstore_list:null, wizuistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.dbstore_list = new Array();
@@ -244,7 +244,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						{db_type:db_type, storeutil_obj:this});
 				}
 			},
-			create_menubar: function(id, info_obj, delflag, mbar_node) {
+			create_menubar: function(id, info_obj, delflag, mbar_node, wizuistackmgr) {
 				// Similar to create_menu, except create a horizontal menubar instead
 				var tooltipconfig_list = new Array();
 				// Create horizontal menubar
@@ -257,8 +257,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var mbaritem_widget = new MenuBarItem({
 					id:match_obj.mbaritem_id,
 					label:match_obj.label_str,
-					style:"color:green; font:bond",
-					onClick:lang.hitch(this.uistackmgr, this.uistackmgr.check_initialize, info_obj)
+					style:"color:green; font:bold",
+					onClick:lang.hitch(wizuistackmgr, wizuistackmgr.check_initialize, info_obj)
+					//onClick:lang.hitch(info_obj, info_obj.wizinitialize)
 				})
 				// create tooltip config info for menubaritem
 				tooltipconfig_list.push({
@@ -283,7 +284,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
 				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
-					this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
+					wizuistackmgr, wizuistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
 				//----------------------------------------//
 				// add delete menu items
