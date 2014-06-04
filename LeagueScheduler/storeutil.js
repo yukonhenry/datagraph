@@ -123,7 +123,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}));
 			},
 			nodupdb_validate: function(colname, id) {
-				var match_obj = this.getmatch_obj(constant.editmenu_list, 'id', id);
+				var match_obj = this.getuniquematch_obj(constant.editmenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				var dbselect_store = this.getselect_store(db_type);
 				if (dbselect_store) {
@@ -146,7 +146,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			},
 			// add entry to dbselect store
 			addtodb_store: function(colname, id, config_status) {
-				var match_obj = this.getmatch_obj(constant.editmenu_list, 'id', id);
+				var match_obj = this.getuniquematch_obj(constant.editmenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				var dbselect_store = this.getselect_store(db_type);
 				var query_obj = {name:colname};
@@ -191,7 +191,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}, this)
 			},
 			create_menu: function(id, info_obj, delflag, ddown_reg) {
-				var match_obj = this.getmatch_obj(constant.idtopmenu_list,
+				var match_obj = this.getuniquematch_obj(constant.idtopmenu_list,
 					'id', id);
 				var idtop_ddown_reg = new DropDownMenu();
 				var idtop_popup_reg = new PopupMenuItem({
@@ -200,7 +200,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				ddown_reg.addChild(idtop_popup_reg);
 				// get create new info menu items
-				match_obj = this.getmatch_obj(constant.initmenu_list,
+				match_obj = this.getuniquematch_obj(constant.initmenu_list,
 					'id', id);
 				var menu_reg = new MenuItem({
 					label:match_obj.label_str,
@@ -208,7 +208,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				idtop_ddown_reg.addChild(menu_reg);
 				// get submenu names based on db_type
-				match_obj = this.getmatch_obj(constant.editmenu_list,
+				match_obj = this.getuniquematch_obj(constant.editmenu_list,
 					'id', id);
 				var ddownmenu_reg = new DropDownMenu();
 				var popup_reg = new PopupMenuItem({
@@ -221,9 +221,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_list = this.getfromdb_store_value(db_type, 'name');
 				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_reg,
 					this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
-					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
+					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
+						op_type:"advance"});
 				if (delflag) {
-					match_obj = this.getmatch_obj(constant.delmenu_list,
+					match_obj = this.getuniquematch_obj(constant.delmenu_list,
 						'id', id);
 					// set up menus for delete if required
 					// ref http://dojotoolkit.org/reference-guide/1.9/dijit/form/DropDownButton.html#dijit-form-dropdownbutton
@@ -241,7 +242,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// create respective del db menu
 					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_reg,
 						db_list, this, this.delete_dbcollection,
-						{db_type:db_type, storeutil_obj:this});
+						{db_type:db_type, storeutil_obj:this, op_type:"advance"});
 				}
 			},
 			create_menubar: function(id, info_obj, delflag, mbar_node, wizuistackmgr) {
@@ -252,7 +253,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					style:"width:500px; height:auto"}, mbar_node);
 				//-----------------------------//
 				// Create first element, which is a MenuBarItem that supports click to create new info item
-				match_obj = this.getmatch_obj(constant.initmenu_list,
+				match_obj = this.getuniquematch_obj(constant.initmenu_list,
 					'id', id);
 				var mbaritem_widget = new MenuBarItem({
 					id:match_obj.mbaritem_id,
@@ -268,7 +269,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				mbar_widget.addChild(mbaritem_widget);
 				//-----------------------------//
 				// Create second element, which is the edit menu
-				match_obj = this.getmatch_obj(constant.editmenu_list,
+				match_obj = this.getuniquematch_obj(constant.editmenu_list,
 					'id', id);
 				var ddownmenu_widget = new DropDownMenu();
 				var popmbaritem_widget = new PopupMenuBarItem({
@@ -285,11 +286,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_list = this.getfromdb_store_value(db_type, 'name');
 				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
 					wizuistackmgr, wizuistackmgr.check_getServerDBInfo,
-					{db_type:db_type, info_obj:info_obj, storeutil_obj:this});
+					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
+						op_type:"wizard"});
 				//----------------------------------------//
 				// add delete menu items
 				if (delflag) {
-					match_obj = this.getmatch_obj(constant.delmenu_list,
+					match_obj = this.getuniquematch_obj(constant.delmenu_list,
 						'id', id);
 					// set up menus for delete if required
 					// ref http://dojotoolkit.org/reference-guide/1.9/dijit/form/DropDownButton.html#dijit-form-dropdownbutton
@@ -311,7 +313,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// create respective del db menu
 					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
 						db_list, this, this.delete_dbcollection,
-						{db_type:db_type, storeutil_obj:this});
+						{db_type:db_type, storeutil_obj:this, op_type:"wizard"});
 				}
 				var tooltip = null;
 				var tooltipconfig = null;
@@ -323,7 +325,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					tooltip = new Tooltip(tooltipconfig);
 				})
 			},
-			getmatch_obj: function(list, key, value) {
+			getuniquematch_obj: function(list, key, value) {
 				var match_list = arrayUtil.filter(list,
 					function(item) {
 						return item[key] == value;
@@ -354,10 +356,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var server_path = constant.delserver_path;
 				var db_type = options_obj.db_type
 				this.removefromdb_store(item, db_type);
-				var match_obj = this.getmatch_obj(constant.delmenu_list,
+				var match_obj = this.getuniquematch_obj(constant.delmenu_list,
 					'db_type', db_type);
 				var idproperty = match_obj.id;
-				this.uistackmgr.reset_cpane(idproperty);
+				var uistackmgr = (options_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
+				uistackmgr.reset_cpane(idproperty);
 				/*
 				this.uistackmgr.switch_pstackcpane(
 					{idproperty:idproperty, p_stage:"preconfig",

@@ -26,16 +26,27 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			numweeks:12
 		};
 		var wizconstant = {
-			divreset_cpane_id:"divreset_cpane_id",
+			form_id:'wizdiv_form_id', dbname_id:'wizrrdbname_id',
+			inputnum_id:'wizdivinputnum_id',
+			resetcpane_id:"resetcpane_id",
 			tcpane_id:"wiztextbtncpane_id",
 			ndcpane_id:"wiznumdivcpane_id",
 			divcpane_id:"wizdivinfocpane_id",
-			blankcpane_id:"wizblankcpane_id",
-			infotxt_id:"wizinfotxt_id",
-			infobtn_id:"wizinfobtn_id",
+			blankcpane_id:"blankcpane_id",
+			infotxt_id:"wizdivinfotxt_id",
+			infobtn_id:"wizdivinfobtn_id",
 			dform_id:"wizdiv_form_id",
 			// grid hosting div id's
-			divgrid_id:"wizdivinfogrid_id",
+			grid_id:"wizdivinfogrid_id",
+			id_stem:"div_",
+			wizid_stem:"wizdiv_",
+			pcontainer_suffix_str:"pcontainer_id",
+			gcontainer_suffix_str:"gcontainer_id",
+			start_datebox_id:'wizstart_dtbox_id',
+			end_datebox_id:'wizend_dtbox_id',
+			weeksspinner_id:'wizsl_spinner_id',
+			seasondates_btn_id:'wizsdbtn_id',
+			numweeks:12
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
@@ -110,17 +121,33 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				};
 				return columnsdef_obj;
 			},
-			initialize: function(newgrid_flag) {
-				var form_reg = registry.byId(constant.form_id);
+			initialize: function(newgrid_flag, op_type) {
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				var form_id = "";
+				var dbname_id = "";
+				var inputnum_id = "";
+				if (op_type == "wizard") {
+					form_id = wizconstant.form_id;
+					dbname_id = wizconstant.dbname_id;
+					inputnum_id = wizconstant.inputnum_id;
+					grid_id = wizconstant.grid_id;
+				} else {
+					form_id = constant.form_id;
+					dbname_id = constant.dbname_id;
+					inputnum_id = constant.inputnum_id;
+					grid_id = constant.grid_id;
+				}
+				var form_reg = registry.byId(form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = null;
 				var inputnum_reg = null;
+				var dbname_node = dom.byId(dbname_id);
 				if (!dbname_node) {
 					put(form_node, "label.label_box[for=$]",
-						constant.dbname_id, constant.dbname_str);
-					var dbname_node = put(form_node,
+						dbname_id, constant.dbname_str);
+					dbname_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.dbname_id)
+						dbname_id)
 					dbname_reg = new ValidationTextBox({
 						value:'',
 						regExp:'\\D[\\w]+',
@@ -131,10 +158,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
-						constant.inputnum_id, constant.inputnum_str);
+						inputnum_id, constant.inputnum_str);
 					var inputnum_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.inputnum_id);
+						inputnum_id);
 					inputnum_reg = new NumberTextBox({
 						value:'1',
 						style:'width:5em',
@@ -144,13 +171,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						missingMessage:constant.ntextbox_str+' (positive integer)'
 					}, inputnum_node);
 				} else {
-					dbname_reg = registry.byId(constant.dbname_id);
-					inputnum_reg = registry.byId(constant.inputnum_id);
+					dbname_reg = registry.byId(dbname_id);
+					inputnum_reg = registry.byId(inputnum_id);
 				}
-				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
+				var tooltipconfig_list = [{connectId:[inputnum_id],
 					label:"Specify Number of Divisions and press ENTER",
 					position:['below','after']},
-					{connectId:[constant.dbname_id],
+					{connectId:[dbname_id],
 					label:"Specify Schedule Name",
 					position:['below','after']}];
 				var args_obj = {
@@ -160,11 +187,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					server_path:"create_newdbcol/",
 					server_key:'info_data',
 					text_node_str: constant.text_node_str,
-					grid_id:constant.grid_id,
+					grid_id:grid_id,
 					updatebtn_str:constant.updatebtn_str,
 					tooltipconfig_list:tooltipconfig_list,
 					newgrid_flag:newgrid_flag,
-					cellselect_flag:false
+					cellselect_flag:false,
+					op_type:op_type
 				}
 				this.showConfig(args_obj);
 			},
@@ -205,8 +233,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.infogrid_store.put(obj);
 				}))
 			},
-			create_calendar_input: function() {
-				var divinfogrid_node = dom.byId(constant.grid_id);
+			create_calendar_input: function(op_type) {
+				var constant_obj = (op_type == 'wizard')?wizconstant:constant;
+				var divinfogrid_node = dom.byId(constant_obj.grid_id);
 				var topdiv_node = put(divinfogrid_node, "-div");
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
@@ -214,30 +243,33 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						server_interface:this.server_interface
 					});
 				}
-				args_obj = {
+				var args_obj = {
 					topdiv_node:topdiv_node,
-					start_datebox_id:constant.start_datebox_id,
-					end_datebox_id:constant.end_datebox_id,
-					spinner_id:constant.weeksspinner_id,
-					numweeks:constant.numweeks,
-					seasondates_btn_id:constant.seasondates_btn_id
+					start_datebox_id:constant_obj.start_datebox_id,
+					end_datebox_id:constant_obj.end_datebox_id,
+					spinner_id:constant_obj.weeksspinner_id,
+					numweeks:constant_obj.numweeks,
+					seasondates_btn_id:constant_obj.seasondates_btn_id
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
-			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node, wizuistackmgr) {
+				this.wizuistackmgr = wizuistackmgr;
 				// create cpane control for divinfo wizard pane under menubar
+				var pcontainer_id = wizconstant.id_stem+wizconstant.pcontainer_suffix_str;
 				this.pstackcontainer = new StackContainer({
 					doLayout:false,
-					style:"float:left; width:80%"
+					style:"float:left; width:80%",
+					id:pcontainer_id,
 				}, pcontainerdiv_node);
 				// reset pane for initialization and after delete
 				var reset_cpane = new ContentPane({
-					id:wizconstant.divreset_cpane_id
+					id:wizconstant.wizid_stem+wizconstant.resetcpane_id,
 				})
 				this.pstackcontainer.addChild(reset_cpane)
 				// add div config (number) cpane
 				var div_cpane = new ContentPane({
-					id:wizconstant.ndcpane_id
+					id:wizconstant.ndcpane_id,
 				})
 				var div_form = new Form({
 					id:wizconstant.dform_id
@@ -246,28 +278,30 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.pstackcontainer.addChild(div_cpane);
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
-					id:wizconstant.tcpane_id
+					id:wizconstant.tcpane_id,
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]",
 					wizconstant.infotxt_id);
-				put(txtbtn_cpane.containerNode, "div[id=$]",
+				put(txtbtn_cpane.containerNode, "button[id=$]",
 					wizconstant.infobtn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
+				var gcontainer_id = wizconstant.id_stem+wizconstant.gcontainer_suffix_str;
 				this.gstackcontainer = new StackContainer({
 					doLayout:false,
-					style:"clear:left"
+					style:"clear:left",
+					id:gcontainer_id
 				}, gcontainerdiv_node);
 				// add blank pane (for resetting)
 				var blank_cpane = new ContentPane({
-					id:wizconstant.blankcpane_id
+					id:wizconstant.wizid_stem+wizconstant.blankcpane_id,
 				})
 				this.gstackcontainer.addChild(blank_cpane);
 				// add divinfo cpane and grid div
 				var div_cpane = new ContentPane({
-					id:wizconstant.divcpane_id
+					id:wizconstant.divcpane_id,
 				})
-				put(div_cpane.containerNode, "div[id=$]", wizconstant.divgrid_id);
+				put(div_cpane.containerNode, "div[id=$]", wizconstant.grid_id);
 				this.gstackcontainer.addChild(div_cpane);
 			},
 			checkconfig_status: function(raw_result){

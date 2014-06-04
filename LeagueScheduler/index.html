@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.24m";
+                var version_str = "v1.0.0.25b";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -61,7 +61,7 @@
                     </div>
                     <div id="textbtncpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <span id="infotxt_id"></span>
-                        <div id="infobtn_id"></div>
+                        <button id="infobtn_id"></button>
                     </div>
                     <div id="numfieldcpane_id" data-dojo-type="dijit/layout/ContentPane">
                         <form data-dojo-type="dijit/form/Form" id="field_form_id" data-dojo-id="field_form_id">
@@ -85,9 +85,9 @@
                         </form>
                     </div>
                 </div>
-                <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/ -->
+                <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/
                 <div id="divisionInfoInputGridErrorNode" class="style_none">
-                </div>
+                </div> -->
                 <!-- manage switching between grids by using content panes embedded in stack container -->
                 <!-- note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance -->
                 <!-- http://css.maxdesign.com.au/floatutorial/-->

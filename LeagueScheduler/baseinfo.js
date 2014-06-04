@@ -16,14 +16,19 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		};
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
-			storeutil_obj:null, text_node:null,
+			storeutil_obj:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
 			schedutil_obj:null, activegrid_colname:"",
-			config_status:0,
+			config_status:0, wizuistackmgr:null,
+			btntxtid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.text_node = dom.byId(constant.text_id);
 				this.tooltip_list = new Array();
+				this.btntxtid_list = new Array();
+				this.btntxtid_list.push({op_type:"advance", btn_id:"infobtn_id",
+					text_id:"infotxt_id"});
+				this.btntxtid_list.push({op_type:"wizard", id:"div_id",
+					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id"})
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -36,9 +41,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						this.tooltip_list.push(new Tooltip(item));
 					}, this);
 				}
-				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+				var uistackmgr = (args_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
+				uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage: "preconfig", entry_pt:constant.init});
-				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
+				// switch to blank cpane
+				uistackmgr.switch_gstackcpane(this.idproperty, true);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input, args_obj));
@@ -56,6 +63,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var cellselect_flag = args_obj.cellselect_flag;
 					var text_node_str = args_obj.text_node_str;
 					var updatebtn_str = args_obj.updatebtn_str;
+					var op_type = args_obj.op_type;
+					var uistackmgr = (args_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
 					if (form_reg.validate()) {
 						confirm('Input format is Valid, creating new DB');
 						this.activegrid_colname = dbname_reg.get("value")
@@ -75,7 +84,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// field_id-specific UI above grid
 							this.initabovegrid_UI();
 						} else if (this.idproperty == 'div_id') {
-							this.create_calendar_input();
+							this.create_calendar_input(op_type);
 						}
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
@@ -83,13 +92,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								colname:this.activegrid_colname,
 								server_interface:this.server_interface,
 								grid_id:grid_id,
-								error_node:dom.byId("divisionInfoInputGridErrorNode"),
+								//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 								idproperty:this.idproperty,
 								server_path:server_path,
 								server_key:server_key,
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
-								uistackmgr:this.uistackmgr,
+								uistackmgr:uistackmgr,
 								storeutil_obj:this.storeutil_obj,
 								db_type:this.db_type});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
@@ -113,6 +122,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							}
 						}
 						args_obj.entry_pt = constant.init;
+						args_obj.op_type = op_type;
 						this.reconfig_infobtn(args_obj);
 					} else {
 						alert('Input name is Invalid, please correct');
@@ -179,18 +189,19 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					console.log("no server interface");
 					alert("no server interface, check if service running");
 				}
+				var uistackmgr = (options_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
 				if (options_obj.newgrid_flag) {
 					this.editgrid = new EditGrid({griddata_list:data_list,
 						colname:this.activegrid_colname,
 						server_interface:this.server_interface,
 						grid_id:options_obj.grid_id,
-						error_node:dom.byId("divisionInfoInputGridErrorNode"),
+						//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						idproperty:idproperty,
 						server_path:options_obj.server_path,
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:this,
-						uistackmgr:this.uistackmgr,
+						uistackmgr:uistackmgr,
 						storeutil_obj:this.storeutil_obj,
 						db_type:this.db_type});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
@@ -221,17 +232,23 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var swapcpane_flag = args_obj.swapcpane_flag;
 				var newgrid_flag = args_obj.newgrid_flag;
 				var entry_pt = args_obj.entry_pt;
-
+				var op_type = args_obj.op_type;
+				var btntxtid_obj = this.getbtntxtid_obj(op_type, idproperty);
+				var text_id = btntxtid_obj.text_id;
+				var btn_id = btntxtid_obj.btn_id;
+				var text_node = dom.byId(text_id);
 				var text_str = text_node_str + ": <b>"+this.activegrid_colname+"</b>";
-				this.text_node.innerHTML = text_str;
+				text_node.innerHTML = text_str;
 				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
-					idproperty);
-				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendStoreInfoToServer);
+					idproperty, btn_id);
+				// get status line node; also pass it to callback, callback in turn calls update_configdone
+				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget, op_type, idproperty);
+				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendStoreInfoToServer, gridstatus_node);
 				updatebtn_widget.set("onClick", btn_callback);
-				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
-				this.update_configdone(-1); // reset
+				this.update_configdone(-1, gridstatus_node); // reset
 				if (swapcpane_flag) {
-					this.uistackmgr.switch_pstackcpane({idproperty:idproperty,
+					var uistackmgr = (op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
+					uistackmgr.switch_pstackcpane({idproperty:idproperty,
 						p_stage:"config", entry_pt:entry_pt,
 						text_str:text_str, btn_callback: btn_callback,
 						updatebtn_str:updatebtn_str});
@@ -239,24 +256,31 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// also swap grid if we are not generating a new one
 						// if we are generating a new grid, switchgstack is called
 						// from within editgrid
-						this.uistackmgr.switch_gstackcpane(idproperty, false,
+						uistackmgr.switch_gstackcpane(idproperty, false,
 							this.editgrid.schedInfoGrid);
 					}
 				}
 			},
 			reconfig_infobtn_fromuistack: function(args_obj) {
 				// parse args object
-				this.text_node.innerHTML = args_obj.text_str;
+				var op_type = args_obj.op_type;
+				var idproperty = args_obj.idproperty;
+				var btntxtid_obj = this.getbtntxtid_obj(op_type, idproperty);
+				var text_id = btntxtid_obj.text_id;
+				var btn_id = btntxtid_obj.btn_id;
+				var text_node = dom.byId(text_id);
+				text_node.innerHTML = args_obj.text_str;
 				var updatebtn_str = args_obj.updatebtn_str;
 				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
-					args_obj.idproperty);
+					idproperty, btn_id);
 				var btn_callback = args_obj.btn_callback;
 				updatebtn_widget.set("onClick", btn_callback);
-				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget);
-				this.update_configdone(-1); // reset
+				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget,
+					op_type, idproperty);
+				this.update_configdone(-1, gridstatus_node); // reset
 			},
-			getInfoBtn_widget: function(label_str, idproperty_str) {
-				var infobtn_widget = registry.byId(constant.infobtn_id);
+			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
+				var infobtn_widget = registry.byId(infobtn_id);
 				if (infobtn_widget) {
 					var info_type = infobtn_widget.get('info_type');
 					if (info_type != idproperty_str) {
@@ -269,22 +293,22 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						type:"button",
 						class:"primary",
 						info_type:idproperty_str
-					}, constant.infobtn_id);
+					}, infobtn_id);
 					infobtn_widget.startup();
 				}
 				return infobtn_widget;
 			},
-			get_gridstatus_node: function(updatebtn_widget) {
-				var gridstatus_node = dom.byId('gridstatus_span');
+			get_gridstatus_node: function(updatebtn_widget, op_type, idproperty) {
+				var gridstatus_id = op_type+idproperty+'gridstatus_span';
+				var gridstatus_node = dom.byId(gridstatus_id);
 				if (!gridstatus_node) {
 					gridstatus_node = put(updatebtn_widget.domNode,
-						"+span.empty_smallgap_color#gridstatus_span");
+						"+span.empty_smallgap_color[id=$]", gridstatus_id);
 					//gridstatus_node.innerHTML = 'test span';
 				}
 				return gridstatus_node;
 			},
-			update_configdone: function(config_status) {
-				var gridstatus_node = dom.byId('gridstatus_span');
+			update_configdone: function(config_status, gridstatus_node) {
 				if (config_status == 1) {
 					gridstatus_node.style.color = 'green';
 					gridstatus_node.innerHTML = "Config Complete";
@@ -343,6 +367,36 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					config_status = 1;
 				}
 				return config_status;
+			},
+			getuniquematch_obj: function(list, key, value) {
+				var match_list = arrayUtil.filter(list,
+					function(item) {
+						return item[key] == value;
+					});
+				return match_list[0];
+			},
+			getmatch_list: function(list, key, value) {
+				var match_list = arrayUtil.filter(list,
+					function(item) {
+						return item[key] == value;
+					});
+				return match_list;
+			},
+			getbtntxtid_obj: function (op_type, idproperty) {
+				var text_id = null;
+				var btn_id = null;
+				var idmatch_list = this.getmatch_list(this.btntxtid_list,
+					'op_type', op_type)
+				if (op_type == "advance") {
+					text_id = idmatch_list[0].text_id;
+					btn_id = idmatch_list[0].btn_id;
+				} else  {
+					var idmatch_obj = this.getuniquematch_obj(idmatch_list, 'id',
+						idproperty);
+					text_id = idmatch_obj.text_id;
+					btn_id = idmatch_obj.btn_id;
+				}
+				return {text_id:text_id, btn_id:btn_id}
 			},
 			cleanup:function() {
 				arrayUtil.forEach(this.tooltip_list, function(item) {

@@ -6,19 +6,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		BorderContainer, Form, put) {
 		var constant = {
 			// parameter stack container id's
-			divparamcontainer_id:"divparamcontainer_id",
-			fieldparamcontainer_id:"fieldparamcontainer_id",
-			tourndivparamcontainer_id:"tourndivparamcontainer_id",
-			newschedparamcontainer_id:"newschedparamcontainer_id",
-			prefparamcontainer_id:"prefparamcontainer_id",
-			// grid stack container id's
-			divgridcontainer_id:"divgridcontainer_id",
-			fieldgridcontainer_id:"fieldgridcontainer_id",
-			tourndivgridcontainer_id:"tourndivgridcontainer_id",
-			newschedgridcontainer_id:"newschedgridcontainer_id",
-			prefgridcontainer_id:"prefgridcontainer_id",
+			pcontainer_suffix_str:"pcontainer_id",
+			gcontainer_suffix_str:"gcontainer_id",
+			// reset param and grid cpane id's
+			resetcpane_id:"resetcpane_id",
+			blankcpane_id:"blankcpane_id",
 			// param stack  cpaneid's
-			dummy_id:"wizdummy_id",
 			nfcpane_id:"wiznumfieldcpane_id",
 			tcpane_id:"wiztextbtncpane_id",
 			ndcpane_id:"wiznumdivcpane_id",
@@ -27,20 +20,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			sccpane_id:"wizseasoncalendar_input",
 			ppcpane_id:"wizprefparamcpane_id",
 			// grid stack id's
-			gstackcontainer_id:"wizgridContainer_id",
 			divcpane_id:"wizdivinfocpane_id",
 			tourndivcpane_id:"wiztourndivinfocpane_id",
 			fieldbcontainer_id:"wizfieldinfobcontainer_id",
 			fieldcpane_id:"wizfieldinfocpane_id",
-			blankcpane_id:"wizblankcpane_id",
 			prefcpane_id:"wizprefinfocpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 			// form and span id's
 			nscform_id:"wiznewsched_form_id",
 			nsctxt_id:"wiznewschedtxt_id",
-			infotxt_id:"wizinfotxt_id",
-			infobtn_id:"wizinfobtn_id",
 			fform_id:"wizfield_form_id",
 			dform_id:"wizdiv_form_id",
 			tdform_id:"wiztourndiv_form_id",
@@ -63,28 +52,23 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// panes will be limited to switching cpanes within the wizard
 				// pane.
 				this.pstackcontainer_list = new Array();
-				this.pstackcontainer_list.push({id:'field_id',
-					container_id:constant.fieldparamcontainer_id});
-				this.pstackcontainer_list.push({id:'div_id',
-					container_id:constant.divparamcontainer_id});
-				this.pstackcontainer_list.push({id:'tourndiv_id',
-					container_id:constant.tourndivparamcontainer_id});
-				this.pstackcontainer_list.push({id:'newsched_id',
-					container_id:constant.newschedparamcontainer_id});
-				this.pstackcontainer_list.push({id:'pref_id',
-					container_id:constant.prefparamcontainer_id});
-				// initialized grid stack container list
 				this.gstackcontainer_list = new Array();
-				this.gstackcontainer_list.push({id:'field_id',
-					container_id:constant.fieldgridcontainer_id});
-				this.gstackcontainer_list.push({id:'div_id',
-					container_id:constant.divgridcontainer_id});
-				this.gstackcontainer_list.push({id:'tourndiv_id',
-					container_id:constant.tourndivgridcontainer_id});
-				this.gstackcontainer_list.push({id:'newsched_id',
-					container_id:constant.newschedgridcontainer_id});
-				this.gstackcontainer_list.push({id:'pref_id',
-					container_id:constant.prefgridcontainer_id});
+				this.resetcpane_list = new Array()
+				this.blankcpane_list = new Array();
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
+				arrayUtil.forEach(id_list, function(item) {
+					// strip off the 'id' suffix portion
+					var len = item.length;
+					var item_stem = item.substring(0,len-2)
+					var container_id_str = item_stem+constant.pcontainer_suffix_str;
+					this.pstackcontainer_list.push({id:item, container_id:container_id_str})
+					container_id_str = item_stem+constant.gcontainer_suffix_str;
+					this.gstackcontainer_list.push({id:item, container_id:container_id_str})
+					this.resetcpane_list.push({id:item,
+						cpane_id:'wiz'+item_stem+constant.resetcpane_id})
+					this.blankcpane_list.push({id:item,
+						cpane_id:"wiz"+item_stem+constant.blankcpane_id})
+				}, this)
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();
@@ -111,17 +95,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// define mapping object for the grid content pane
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
-				this.gstackmap_list = [{id:'newsched_id', pane_id:constant.blankcpane_id},
+				var newsched_blankcpane_id = this.getuniquematch_obj(
+					this.blankcpane_list, 'id', 'newsched_id').cpane_id;
+				this.gstackmap_list = [
+					{id:'newsched_id', pane_id:newsched_blankcpane_id},
 					{id:'div_id', pane_id:constant.divcpane_id},
 					{id:'tourndiv_id', pane_id:constant.tourndivcpane_id},
 					{id:'field_id', pane_id:constant.fieldbcontainer_id},
 					{id:'pref_id', pane_id:constant.prefcpane_id}];
 				this.cpanestate_list = new Array();
-				this.null_cpanestate = {
-						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:constant.blankcpane_id,
-						text_str:"", btn_callback:null, updatebtn_str:"",
-						active_flag:false};
 				arrayUtil.forEach(this.gstackmap_list, function(item, index) {
 					/* cpanestate_list tracks current configuration state for each
 					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
@@ -129,14 +111,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					parameters, active_flag:boolean whether idprop is currently
 					active or not.
 					*/
+					var blankcpane_id = this.getuniquematch_obj(
+						this.blankcpane_list, 'id', item.id).cpane_id;
 					this.cpanestate_list.push({id:item.id,
 						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:constant.blankcpane_id,
+						g_pane:blankcpane_id,
 						text_str:"", btn_callback:null, updatebtn_str:"",
 						active_flag:false});
 				}, this);
 			},
-			getmatch_obj: function(list, key, value) {
+			getuniquematch_obj: function(list, key, value) {
 				var match_list = arrayUtil.filter(list,
 					function(item) {
 						return item[key] == value;
@@ -147,7 +131,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				id = args_obj.idproperty;
 				p_stage = args_obj.p_stage;
 				var select_pane = this.getp_pane(id, p_stage);
-				this.pstackcontainer_reg.selectChild(select_pane);
+				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', id).container_id;
+				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
+				pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index
 				var state_obj = this.get_cpanestate(id);
 				var match_obj = state_obj.match_obj;
@@ -161,17 +147,37 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				//this.cpanestate_list[index] = match_obj;
 			},
 			reset_cpane: function(idproperty) {
+				// reset cpanes for both param and grid to quiescent state
+				// first get parame container id and widget correspdnding to current idprop
+				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', idproperty).container_id;
+				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
+				var reset_cpane_id = this.getuniquematch_obj(this.resetcpane_list, 'id', idproperty).cpane_id;
 				// reset pstackcpane for idproperty to quiscent/initial state
-				this.pstackcontainer_reg.selectChild(constant.dummy_id);
+				pstackcontainer_reg.selectChild(reset_cpane_id);
 				var match_obj = this.get_cpanestate(idproperty).match_obj;
-				lang.mixin(match_obj, this.null_cpanestate);
-				this.gstackcontainer_reg.selectChild(constant.blankcpane_id);
+				var null_cpanestate = this.get_null_cpanestate(idproperty);
+				lang.mixin(match_obj, null_cpanestate);
+				var gstackcontainer_id = this.getuniquematch_obj(this.gstackcontainer_list, 'id', idproperty).container_id;
+				var gstackcontainer_reg = registry.byId(gstackcontainer_id);
+				gstackcontainer_reg.selectChild(null_cpanestate.g_pane);
 				this.reset_cpanestate_active();
 			},
 			swapactive_pgstackcpane: function(match_obj) {
 				this.pstackcontainer_reg.selectChild(match_obj.p_pane);
 				this.gstackcontainer_reg.selectChild(match_obj.g_pane);
 				this.setreset_cpanestate_active(match_obj);
+			},
+			get_null_cpanestate: function(idproperty) {
+				// get initialization version of cpanestate which is specific for
+				// the idproperty
+				var blankcpane_id = this.getuniquematch_obj(
+					this.blankcpane_list, 'id', idproperty).cpane_id;
+				var null_cpanestate = {
+						p_pane:null, p_stage:null, entry_pt:null,
+						g_pane:blankcpane_id,
+						text_str:"", btn_callback:null, updatebtn_str:"",
+						active_flag:false};
+				return null_cpanestate;
 			},
 			get_cpanestate: function(id) {
 				var idmatch_list = arrayUtil.filter(this.cpanestate_list,
@@ -224,7 +230,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var blankcpane_flag = (typeof blankcpane_flag === "undefined") ? false:blankcpane_flag;
 				var select_pane = "";
 				if (blankcpane_flag) {
-					select_pane = constant.blankcpane_id;
+					select_pane = this.getuniquematch_obj(
+						this.blankcpane_list, 'id', id).cpane_id;
 				} else {
 					var idmatch_list = arrayUtil.filter(this.gstackmap_list,
 						function(item, index) {
@@ -234,7 +241,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.current_grid = current_grid;
 					//this.current_grid.resize();
 				}
-				this.gstackcontainer_reg.selectChild(select_pane);
+				var gstackcontainer_id = this.getuniquematch_obj(this.gstackcontainer_list, 'id', id).container_id;
+				var gstackcontainer_reg = registry.byId(gstackcontainer_id);
+				gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state
 				var state_obj = this.get_cpanestate(id);
 				var match_obj = state_obj.match_obj;
@@ -276,7 +285,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						} else {
 							// remaining pstage is 'config', switch to preconfig
 							// get the preconfig pane
-							info_obj.initialize(newgrid_flag);
+							info_obj.initialize(newgrid_flag, "wizard");
 						}
 					} else {
 						// this should not happen since active_flag was on
@@ -297,11 +306,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						} else {
 							// else if previous match for idprop was from server
 							// then call init
-							info_obj.initialize(newgrid_flag);
+							info_obj.initialize(newgrid_flag, "wizard");
 						}
 					} else {
 						// if no p_stage with matched obj, then initialize
-						info_obj.initialize(newgrid_flag);
+						info_obj.initialize(newgrid_flag, "wizard");
 					}
 				}
 			},

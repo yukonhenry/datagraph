@@ -19,7 +19,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
-			newdivbtn_widget:null, wizuistackmgr:null,
+			newdivbtn_widget:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -29,11 +29,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//wizard documentation:
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
-				this.wizuistackmgr = new WizUIStackManager();
+				var wizuistackmgr = new WizUIStackManager();
+				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
 				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto'});
 				tabcontainer.addChild(container_cpane, 0);
-				tabcontainer.selectChild(container_cpane);
+				//tabcontainer.selectChild(container_cpane);
+				//container_cpane.resize();
 				// ref http://archive.dojotoolkit.org/nightly/checkout/dijit/tests/layout/test_TabContainer_noLayout.html
 				// for doLayout:false effects
 				var wizard_reg = new Wizard({
@@ -41,11 +43,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
 					//class:'allauto'
-					style:"width:600px; height:400px",
+					style:"width:600px; height:800px",
 					//nextButtonLabel:"Configure Divisions"
 				});
-				//wizard_cpane.addChild(wizard_reg);
 				container_cpane.addChild(wizard_reg);
+
 				//--------------------//
 				// Create informational starting pane
 				var content_str = "Gather Information for the League:<br>Get basic information for the league such as the number of divisions, number of teams in each division."
@@ -71,11 +73,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					constant.divselect_id);
 				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
 				var menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node, this.wizuistackmgr);
+				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node, wizuistackmgr);
 				var pcontainerdiv_node = put(topdiv_node, "div")
 				var gcontainerdiv_node = put(topdiv_node, "div")
 				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
-					gcontainerdiv_node);
+					gcontainerdiv_node, wizuistackmgr);
 				//this.wizuistackmgr.initstacks('div_id');
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
@@ -111,7 +113,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//style:"width:500px; height:400px; border:1px solid red"
 				})
 				wizard_reg.addChild(prefinfo_wpane);
-				//wizard_reg.startup();
+				wizard_reg.startup();
+				wizard_reg.resize();
+				container_cpane.resize();
 				//-----------------//
 				//Add parameter stack container panes
 				/*

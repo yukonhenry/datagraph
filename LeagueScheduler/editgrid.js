@@ -77,11 +77,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// IMPORTANT: call to colname_obj.set needs to be later than
 				// setting info_obj.infogrid_store above as colname_obj watch
 				// function utilizes infogrid_store (for div_id idprop)
+				/*
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
 					console.log("dgrid error fired");
 					this.error_node.className = "message error";
 					this.error_node.innerHTML = event.error.message;
-				});
+				}); */
 				if (this.datachangeHandle)
 					this.datachangeHandle.remove();
 				//this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
@@ -135,10 +136,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					}
 				}
 			},
-			sendStoreInfoToServer: function(event) {
+			sendStoreInfoToServer: function(gridstatus_node, event) {
 				var raw_result = this.schedInfoStore.query();
 				var config_status = this.info_obj.checkconfig_status(raw_result);
-				this.info_obj.update_configdone(config_status);
+				this.info_obj.update_configdone(config_status, gridstatus_node);
 				var storedata_json = null;
 				var server_path = this.server_path || "create_newdbcol/";
 				var server_key = this.server_key || "";
