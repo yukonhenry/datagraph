@@ -35,7 +35,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			tdform_id:"wiztourndiv_form_id",
 			pform_id:"wizpref_form_id",
 			// grid hosting div id's
-			divgrid_id:"wizdivinfogrid_id",
+			divgrid_id:"wizdiv_infogrid_id",
 			tourndivgrid_id:"wiztourndivinfogrid_id",
 			prefgrid_id:"wizprefinfogrid_id",
 			fieldgrid_id:"wizfieldinfogrid_id"

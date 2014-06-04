@@ -37,7 +37,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			infobtn_id:"wizdivinfobtn_id",
 			dform_id:"wizdiv_form_id",
 			// grid hosting div id's
-			grid_id:"wizdivinfogrid_id",
+			grid_id:"infogrid_id",
 			id_stem:"div_",
 			wizid_stem:"wizdiv_",
 			pcontainer_suffix_str:"pcontainer_id",
@@ -130,7 +130,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					form_id = wizconstant.form_id;
 					dbname_id = wizconstant.dbname_id;
 					inputnum_id = wizconstant.inputnum_id;
-					grid_id = wizconstant.grid_id;
+					grid_id = wizconstant.wizid_stem+wizconstant.grid_id;
 				} else {
 					form_id = constant.form_id;
 					dbname_id = constant.dbname_id;
@@ -203,13 +203,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
+				var op_type = ('op_type' in options_obj)?options_obj.op_type:"advance";
+				var grid_id = (op_type == "wizard")?wizconstant.wizid_stem+wizconstant.grid_id:constant.grid_id;
 				options_obj.serverdata_key = 'info_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'info_data';
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
-				options_obj.grid_id = constant.grid_id;
+				options_obj.grid_id = grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
 				options_obj.db_type = constant.db_type;

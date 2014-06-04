@@ -43,7 +43,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
 					//class:'allauto'
-					style:"width:600px; height:800px",
+					style:"width:600px; height:500px",
 					//nextButtonLabel:"Configure Divisions"
 				});
 				container_cpane.addChild(wizard_reg);
