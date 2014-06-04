@@ -27,7 +27,7 @@
                 "dijit/DropDownMenu",
                 "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.25c";
+                var version_str = "v1.0.0.25f";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -40,7 +40,7 @@
         on size of the cpane display for both wizard and advanced.  Need to experiment more -->
 		<div data-dojo-type="dijit/layout/TabContainer" id="tabcontainer_id" style="height:100%; width:100%" data-dojo-props="doLayout:false">
             <div data-dojo-type="dijit/layout/ContentPane" title="Advanced" id="editPane" data-dojo-props="doLayout:false">
-                <div data-dojo-type="dijit/form/DropDownButton" class="dijit dijitReset dijitInline primary dijitDropDownButton editsched" role="presentation">
+                <div data-dojo-type="dijit/form/DropDownButton" class="primary editsched">
                     <span>Select Configuration</span>
                     <div data-dojo-type="dijit/DropDownMenu" id="configmenu_id">
                     </div>

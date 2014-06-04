@@ -32,7 +32,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var wizuistackmgr = new WizUIStackManager();
 				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
-				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto'});
+				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:"wiztop_cpane_id"});
 				tabcontainer.addChild(container_cpane, 0);
 				//tabcontainer.selectChild(container_cpane);
 				//container_cpane.resize();
@@ -86,6 +86,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				wizard_reg.addChild(divinfo_wpane);
 				//-------------------------//
+				// Field Config Pane
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
@@ -94,7 +95,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					constant.fselect_id);
 				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node, this.wizuistackmgr);
+				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node, wizuistackmgr);
 				var fieldinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'
@@ -106,7 +107,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
 				var prefinfo_obj = baseinfoSingleton.get_obj('pref_id');
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('pref_id', fieldinfo_obj, true, menubar_node, this.wizuistackmgr);
+				this.storeutil_obj.create_menubar('pref_id', fieldinfo_obj, true, menubar_node, wizuistackmgr);
 				var prefinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'

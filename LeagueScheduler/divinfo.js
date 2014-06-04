@@ -38,10 +38,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			dform_id:"wizdiv_form_id",
 			// grid hosting div id's
 			grid_id:"infogrid_id",
-			id_stem:"div_",
 			wizid_stem:"wizdiv_",
-			pcontainer_suffix_str:"pcontainer_id",
-			gcontainer_suffix_str:"gcontainer_id",
+			pcontainer_suffix_id:"pcontainer_id",
+			gcontainer_suffix_id:"gcontainer_id",
 			start_datebox_id:'wizstart_dtbox_id',
 			end_datebox_id:'wizend_dtbox_id',
 			weeksspinner_id:'wizsl_spinner_id',
@@ -205,6 +204,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// at the server)
 				var op_type = ('op_type' in options_obj)?options_obj.op_type:"advance";
 				var grid_id = (op_type == "wizard")?wizconstant.wizid_stem+wizconstant.grid_id:constant.grid_id;
+				// write op_type back to options_obj in case it did not exist
+				options_obj.op_type = op_type;
 				options_obj.serverdata_key = 'info_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'info_data';
@@ -236,8 +237,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}))
 			},
 			create_calendar_input: function(op_type) {
-				var constant_obj = (op_type == 'wizard')?wizconstant:constant;
-				var divinfogrid_node = dom.byId(constant_obj.grid_id);
+				var divinfogrid_id = (op_type == 'wizard')?wizconstant.wizid_stem+wizconstant.grid_id:constant.grid_id;
+				var divinfogrid_node = dom.byId(divinfogrid_id);
 				var topdiv_node = put(divinfogrid_node, "-div");
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
@@ -245,6 +246,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						server_interface:this.server_interface
 					});
 				}
+				var constant_obj = (op_type == 'wizard')?wizconstant:constant;
 				var args_obj = {
 					topdiv_node:topdiv_node,
 					start_datebox_id:constant_obj.start_datebox_id,
@@ -258,7 +260,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node, wizuistackmgr) {
 				this.wizuistackmgr = wizuistackmgr;
 				// create cpane control for divinfo wizard pane under menubar
-				var pcontainer_id = wizconstant.id_stem+wizconstant.pcontainer_suffix_str;
+				var pcontainer_id = wizconstant.wizid_stem+wizconstant.pcontainer_suffix_id;
 				this.pstackcontainer = new StackContainer({
 					doLayout:false,
 					style:"float:left; width:80%",
@@ -288,7 +290,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					wizconstant.infobtn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
-				var gcontainer_id = wizconstant.id_stem+wizconstant.gcontainer_suffix_str;
+				var gcontainer_id = wizconstant.wizid_stem+wizconstant.gcontainer_suffix_id;
 				this.gstackcontainer = new StackContainer({
 					doLayout:false,
 					style:"clear:left",
@@ -303,7 +305,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var div_cpane = new ContentPane({
 					id:wizconstant.divcpane_id,
 				})
-				put(div_cpane.containerNode, "div[id=$]", wizconstant.grid_id);
+				put(div_cpane.containerNode, "div[id=$]",
+					wizconstant.wizid_stem+wizconstant.grid_id);
 				this.gstackcontainer.addChild(div_cpane);
 			},
 			checkconfig_status: function(raw_result){

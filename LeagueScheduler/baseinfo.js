@@ -217,6 +217,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					newgrid_flag:options_obj.newgrid_flag
 				}
 				args_obj.entry_pt = constant.fromdb;
+				args_obj.op_type = options_obj.op_type;
 				this.reconfig_infobtn(args_obj);
 				// add config status text next to update btn
 				this.update_configdone(config_status);
@@ -263,7 +264,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			},
 			reconfig_infobtn_fromuistack: function(args_obj) {
 				// parse args object
-				var op_type = args_obj.op_type;
+				var op_type = ('op_type' in args_obj)?args_obj.op_type:"advance";
 				var idproperty = args_obj.idproperty;
 				var btntxtid_obj = this.getbtntxtid_obj(op_type, idproperty);
 				var text_id = btntxtid_obj.text_id;
@@ -292,6 +293,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						label:label_str,
 						type:"button",
 						class:"primary",
+						//style:"margin-left:25px",
 						info_type:idproperty_str
 					}, infobtn_id);
 					infobtn_widget.startup();

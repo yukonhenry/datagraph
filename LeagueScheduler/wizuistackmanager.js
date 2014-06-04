@@ -6,8 +6,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		BorderContainer, Form, put) {
 		var constant = {
 			// parameter stack container id's
-			pcontainer_suffix_str:"pcontainer_id",
-			gcontainer_suffix_str:"gcontainer_id",
+			pcontainer_suffix_id:"pcontainer_id",
+			gcontainer_suffix_id:"gcontainer_id",
 			// reset param and grid cpane id's
 			resetcpane_id:"resetcpane_id",
 			blankcpane_id:"blankcpane_id",
@@ -59,15 +59,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				arrayUtil.forEach(id_list, function(item) {
 					// strip off the 'id' suffix portion
 					var len = item.length;
-					var item_stem = item.substring(0,len-2)
-					var container_id_str = item_stem+constant.pcontainer_suffix_str;
+					var item_stem = 'wiz'+item.substring(0,len-2)
+					var container_id_str = item_stem+constant.pcontainer_suffix_id;
 					this.pstackcontainer_list.push({id:item, container_id:container_id_str})
-					container_id_str = item_stem+constant.gcontainer_suffix_str;
+					container_id_str = item_stem+constant.gcontainer_suffix_id;
 					this.gstackcontainer_list.push({id:item, container_id:container_id_str})
 					this.resetcpane_list.push({id:item,
-						cpane_id:'wiz'+item_stem+constant.resetcpane_id})
+						cpane_id:item_stem+constant.resetcpane_id})
 					this.blankcpane_list.push({id:item,
-						cpane_id:"wiz"+item_stem+constant.blankcpane_id})
+						cpane_id:item_stem+constant.blankcpane_id})
 				}, this)
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
@@ -302,6 +302,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 							this.swapactive_pgstackcpane(match_obj);
 							if (new_idproperty != 'newsched_id')
 								// newsched_id does not have reconfig... method
+								match_obj.op_type = "wizard";
 								info_obj.reconfig_infobtn_fromuistack(match_obj);
 						} else {
 							// else if previous match for idprop was from server
@@ -371,7 +372,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 											idproperty:new_idproperty,
 											swapcpane_flag:true,
 											newgrid_flag:false,
-											entry_pt:constant.fromdb
+											entry_pt:constant.fromdb,
+											op_type:"wizard"
 										}
 										info_obj.reconfig_infobtn(args_obj);
 									} else {
@@ -433,7 +435,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 									idproperty:new_idproperty,
 									swapcpane_flag:true,
 									newgrid_flag:false,
-									entry_pt:constant.fromdb
+									entry_pt:constant.fromdb,
+									op_type:"wizard"
 								}
 								info_obj.reconfig_infobtn(args_obj);
 							} else {
@@ -456,7 +459,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 				// ensure edit pane scroll resets to top
 				// seems like scrolling to top only works if it works off of onLoad and not onShow
-				var pane_dom = dom.byId("editPane");
+				var pane_dom = dom.byId("wiztop_cpane_id");
 				pane_dom.scrollTop = 0;
 			},
 		});
