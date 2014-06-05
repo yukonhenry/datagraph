@@ -70,6 +70,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						server_interface:this.server_interface
 					});
 				}
+				// radio button to choose between rrd and tourndb
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
 					constant.divradio1_id, constant.divradio2_id, "rrdb",
 					this, this.radio1_callback, this.radio2_callback,
@@ -91,7 +92,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//style:"width:500px; height:400px; border:1px solid red"
 				})
 				wizard_reg.addChild(divinfo_wpane);
-				//-------------------------//
+				//--------------------------------------//
 				// Field Config Pane
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
@@ -106,6 +107,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
+				pcontainerdiv_node = put(topdiv_node, "div")
+				gcontainerdiv_node = put(topdiv_node, "div")
+				fieldinfo_obj.create_wizardcontrol(pcontainerdiv_node,
+					gcontainerdiv_node);
 				var fieldinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'

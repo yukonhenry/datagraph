@@ -215,9 +215,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				args_obj.entry_pt = constant.fromdb;
 				args_obj.op_type = options_obj.op_type;
-				this.reconfig_infobtn(args_obj);
+				var gridstatus_node = this.reconfig_infobtn(args_obj);
 				// add config status text next to update btn
-				this.update_configdone(config_status);
+				this.update_configdone(config_status, gridstatus_node);
 			},
 			// function to reassign infobtn_update with title string and callback
 			// function.  Also update pstack/gstack_cpane.
@@ -257,6 +257,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.editgrid.schedInfoGrid);
 					}
 				}
+				return gridstatus_node
 			},
 			reconfig_infobtn_fromuistack: function(args_obj) {
 				// parse args object

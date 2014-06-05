@@ -4,10 +4,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
-	"LeagueScheduler/widgetgen", "put-selector/put", "dojo/domReady!"],
+	"LeagueScheduler/widgetgen", "LeagueScheduler/idmgrSingleton",
+	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
-		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane, baseinfo, baseinfoSingleton, WidgetGen,
-		put){
+		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
+		baseinfo, baseinfoSingleton, WidgetGen, idmgrSingleton, put){
 		var constant = {
 			idproperty_str:'div_id', form_id:'div_form_id', dbname_id:'rrdbname_id',
 			inputnum_id:'divinputnum_id',
@@ -26,21 +27,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			numweeks:12
 		};
 		var wizconstant = {
-			form_id:'wizdiv_form_id', dbname_id:'wizrrdbname_id',
-			inputnum_id:'wizdivinputnum_id',
-			resetcpane_id:"resetcpane_id",
 			tcpane_id:"wiztextbtncpane_id",
 			ndcpane_id:"wiznumdivcpane_id",
 			divcpane_id:"wizdivinfocpane_id",
-			blankcpane_id:"blankcpane_id",
 			infotxt_id:"wizdivinfotxt_id",
 			infobtn_id:"wizdivinfobtn_id",
-			dform_id:"wizdiv_form_id",
 			// grid hosting div id's
-			grid_id:"infogrid_id",
-			wizid_stem:"wizdiv_",
-			pcontainer_suffix_id:"pcontainer_id",
-			gcontainer_suffix_id:"gcontainer_id",
 			start_datebox_id:'wizstart_dtbox_id',
 			end_datebox_id:'wizend_dtbox_id',
 			weeksspinner_id:'wizsl_spinner_id',
@@ -50,10 +42,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
-			base_numweeks:0, widgetgen:null,
+			base_numweeks:0, widgetgen:null, idmgr_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
+				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -122,21 +116,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			},
 			initialize: function(newgrid_flag, op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
-				var form_id = "";
-				var dbname_id = "";
-				var inputnum_id = "";
-				var grid_id = "";
-				if (op_type == "wizard") {
-					form_id = wizconstant.form_id;
-					dbname_id = wizconstant.dbname_id;
-					inputnum_id = wizconstant.inputnum_id;
-					grid_id = wizconstant.wizid_stem+wizconstant.grid_id;
-				} else {
-					form_id = constant.form_id;
-					dbname_id = constant.dbname_id;
-					inputnum_id = constant.inputnum_id;
-					grid_id = constant.grid_id;
-				}
+				var form_id = this.idmgr_obj.form_id;
+				var dbname_id = this.idmgr_obj.dbname_id;
+				var inputnum_id = this.idmgr_obj.inputnum_id;
+				var grid_id = this.idmgr_obj.grid_id;
 				var form_reg = registry.byId(form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = null;
@@ -204,7 +187,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var op_type = ('op_type' in options_obj)?options_obj.op_type:"advance";
-				var grid_id = (op_type == "wizard")?wizconstant.wizid_stem+wizconstant.grid_id:constant.grid_id;
 				// write op_type back to options_obj in case it did not exist
 				options_obj.op_type = op_type;
 				options_obj.serverdata_key = 'info_list';
@@ -213,7 +195,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
-				options_obj.grid_id = grid_id;
+				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
 				options_obj.db_type = constant.db_type;
@@ -238,8 +220,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}))
 			},
 			create_calendar_input: function(op_type) {
-				var divinfogrid_id = (op_type == 'wizard')?wizconstant.wizid_stem+wizconstant.grid_id:constant.grid_id;
-				var divinfogrid_node = dom.byId(divinfogrid_id);
+				var divinfogrid_node = dom.byId(this.idmgr_obj.grid_id);
 				var topdiv_node = put(divinfogrid_node, "-div");
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
@@ -261,15 +242,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
-				var pcontainer_id = wizconstant.wizid_stem+wizconstant.pcontainer_suffix_id;
 				this.pstackcontainer = new StackContainer({
 					doLayout:false,
 					style:"float:left; width:80%",
-					id:pcontainer_id,
+					id:this.idmgr_obj.pcontainer_id
 				}, pcontainerdiv_node);
 				// reset pane for initialization and after delete
 				var reset_cpane = new ContentPane({
-					id:wizconstant.wizid_stem+wizconstant.resetcpane_id,
+					id:this.idmgr_obj.resetcpane_id
 				})
 				this.pstackcontainer.addChild(reset_cpane)
 				// add div config (number) cpane
@@ -277,7 +257,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					id:wizconstant.ndcpane_id,
 				})
 				var div_form = new Form({
-					id:wizconstant.dform_id
+					id:this.idmgr_obj.form_id
 				})
 				div_cpane.addChild(div_form);
 				this.pstackcontainer.addChild(div_cpane);
@@ -291,15 +271,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					wizconstant.infobtn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
-				var gcontainer_id = wizconstant.wizid_stem+wizconstant.gcontainer_suffix_id;
 				this.gstackcontainer = new StackContainer({
 					doLayout:false,
 					style:"clear:left",
-					id:gcontainer_id
+					id:this.idmgr_obj.gcontainer_id
 				}, gcontainerdiv_node);
 				// add blank pane (for resetting)
 				var blank_cpane = new ContentPane({
-					id:wizconstant.wizid_stem+wizconstant.blankcpane_id,
+					id:this.idmgr_obj.blankcpane_id
 				})
 				this.gstackcontainer.addChild(blank_cpane);
 				// add divinfo cpane and grid div
@@ -307,7 +286,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					id:wizconstant.divcpane_id,
 				})
 				put(div_cpane.containerNode, "div[id=$]",
-					wizconstant.wizid_stem+wizconstant.grid_id);
+					this.idmgr_obj.grid_id);
 				this.gstackcontainer.addChild(div_cpane);
 			},
 			checkconfig_status: function(raw_result){

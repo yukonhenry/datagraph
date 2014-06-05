@@ -58,7 +58,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.today = new Date();
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:'field_id', op_type:this.op_type});
+					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -1287,6 +1287,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
         				lw_list, dayweekint_list).length;
         		}
         		return totalfielddays;
+			},
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
+
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

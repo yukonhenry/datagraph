@@ -1,16 +1,11 @@
 /* manage UI content pane structure, especially switching stack container panes */
 define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 	"dijit/registry", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
-	"dijit/layout/BorderContainer", "dijit/form/Form", "put-selector/put", "dojo/domReady!"],
+	"dijit/layout/BorderContainer", "dijit/form/Form", "put-selector/put",
+	"LeagueScheduler/idmgrSingleton", "dojo/domReady!"],
 	function(declare, lang, arrayUtil, dom, registry, StackContainer, ContentPane,
-		BorderContainer, Form, put) {
+		BorderContainer, Form, put, idmgrSingleton) {
 		var constant = {
-			// parameter stack container id's
-			pcontainer_suffix_id:"pcontainer_id",
-			gcontainer_suffix_id:"gcontainer_id",
-			// reset param and grid cpane id's
-			resetcpane_id:"resetcpane_id",
-			blankcpane_id:"blankcpane_id",
 			// param stack  cpaneid's
 			nfcpane_id:"wiznumfieldcpane_id",
 			tcpane_id:"wiztextbtncpane_id",
@@ -30,13 +25,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			// form and span id's
 			nscform_id:"wiznewsched_form_id",
 			nsctxt_id:"wiznewschedtxt_id",
-			dform_id:"wizdiv_form_id",
 			tdform_id:"wiztourndiv_form_id",
 			pform_id:"wizpref_form_id",
-			// grid hosting div id's
-			divgrid_id:"wizdiv_infogrid_id",
-			tourndivgrid_id:"wiztourndivinfogrid_id",
-			prefgrid_id:"wizprefinfogrid_id",
 		};
 		return declare(null, {
 			pstackcontainer_list:null, pstackmap_list:null,
@@ -56,16 +46,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
 				arrayUtil.forEach(id_list, function(item) {
 					// strip off the 'id' suffix portion
-					var len = item.length;
-					var item_stem = 'wiz'+item.substring(0,len-2)
-					var container_id_str = item_stem+constant.pcontainer_suffix_id;
-					this.pstackcontainer_list.push({id:item, container_id:container_id_str})
-					container_id_str = item_stem+constant.gcontainer_suffix_id;
-					this.gstackcontainer_list.push({id:item, container_id:container_id_str})
+					var idmgr_obj = idmgrSingleton.get_idmgr_obj({id:item,
+						op_type:"wizard"})
+					this.pstackcontainer_list.push({id:item,
+						container_id:idmgr_obj.pcontainer_id})
+					this.gstackcontainer_list.push({id:item,
+						container_id:idmgr_obj.gcontainer_id})
 					this.resetcpane_list.push({id:item,
-						cpane_id:item_stem+constant.resetcpane_id})
+						cpane_id:idmgr_obj.resetcpane_id})
 					this.blankcpane_list.push({id:item,
-						cpane_id:item_stem+constant.blankcpane_id})
+						cpane_id:idmgr_obj.blankcpane_id})
 				}, this)
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
@@ -149,9 +139,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// first get parame container id and widget correspdnding to current idprop
 				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', idproperty).container_id;
 				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
-				var reset_cpane_id = this.getuniquematch_obj(this.resetcpane_list, 'id', idproperty).cpane_id;
+				var resetcpane_id = this.getuniquematch_obj(this.resetcpane_list, 'id', idproperty).cpane_id;
 				// reset pstackcpane for idproperty to quiscent/initial state
-				pstackcontainer_reg.selectChild(reset_cpane_id);
+				pstackcontainer_reg.selectChild(resetcpane_id);
 				var match_obj = this.get_cpanestate(idproperty).match_obj;
 				var null_cpanestate = this.get_null_cpanestate(idproperty);
 				lang.mixin(match_obj, null_cpanestate);

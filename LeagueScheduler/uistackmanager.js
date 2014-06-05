@@ -8,7 +8,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		var constant = {
 			// param stack id's
 			dummy_id:"dummy_id",
-			pstackcontainer_id:"paramStackContainer_id",
 			nfcpane_id:"numfieldcpane_id",
 			tcpane_id:"textbtncpane_id",
 			ndcpane_id:"numdivcpane_id",
@@ -18,7 +17,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			sccpane_id:"seasoncalendar_input",
 			ppcpane_id:"prefparamcpane_id",
 			// grid stack id's
-			gstackcontainer_id:"gridContainer_id",
 			divcpane_id:"divinfocpane_id",
 			tourndivcpane_id:"tourndivinfocpane_id",
 			schedcpane_id:"schedinfocpane_id",
@@ -46,6 +44,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			gstackcontainer_reg:null, gstackmap_list:null,
 			cpanestate_list:null, updatebtn_widget:null,
 			current_grid:null, null_cpanestate:null,
+			advanceid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				//this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
@@ -105,6 +104,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						text_str:"", btn_callback:null, updatebtn_str:"",
 						active_flag:false});
 				}, this);
+				// get id list for 'advance'
+				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type', 'advance');
 			},
 			switch_pstackcpane: function(args_obj) {
 				id = args_obj.idproperty;
@@ -463,11 +464,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				field_cpane.addChild(field_form);
 				this.pstackcontainer_reg.addChild(field_cpane);
 				// add div config (number) cpane
+				// get id list corresponding to div_id
+				idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:'div_id', op_type:"advance"});
 				var div_cpane = new ContentPane({
 					id:constant.ndcpane_id
 				})
 				var div_form = new Form({
-					id:constant.dform_id
+					id:idmgr_obj.form_id
 				})
 				div_cpane.addChild(div_form);
 				this.pstackcontainer_reg.addChild(div_cpane);
@@ -506,10 +510,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				this.gstackcontainer_reg.addChild(blank_cpane);
 				// add divinfo cpane and grid div
+				var idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:'div_id', op_type:"advance"});
 				var div_cpane = new ContentPane({
 					id:constant.divcpane_id
 				})
-				put(div_cpane.containerNode, "div[id=$]", constant.divgrid_id);
+				put(div_cpane.containerNode, "div[id=$]", idmgr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(div_cpane);
 				// add tournament divinfo cpane and grid div
 				var tdiv_cpane = new ContentPane({
@@ -524,7 +530,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(pdiv_cpane.containerNode, "div[id=$]", constant.prefgrid_id);
 				this.gstackcontainer_reg.addChild(pdiv_cpane);
 				// add field info border container, inside cpane and grid div
-				var idmgr_obj = idmgrSingleton.get_idmgr_obj({
+				idmgr_obj = idmgrSingleton.get_idmgr_obj({
 					id:'field_id', op_type:"advance"});
 				var field_bcontainer = new BorderContainer({
 					id:constant.fieldbcontainer_id,

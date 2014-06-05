@@ -6,9 +6,12 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 		var suffix_obj = {form_id:"form_id", dbname_id:"dbname_id",
 			inputnum_id:"inputnum_id",
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
-			grid_id:"infogrid_id", league_select_id:"league_select_id"};
+			grid_id:"infogrid_id", league_select_id:"league_select_id",
+			pcontainer_id:"pcontainer_id", gcontainer_id:"gcontainer_id",
+			blankcpane_id:"blankcpane_id", resetcpane_id:"resetcpane_id"};
 		var op_type_list = ['advance', 'wizard'];
-		var id_list = ['div_id', 'tourndiv_id', 'field_id']
+		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
+			'pref_id']
 		var idmgrSingleton = declare(null, {
 			idmgr_list:null,
 			constructor: function() {
@@ -35,8 +38,14 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				function(item) {
 					return item.op_type == op_type && item.id == id;
 				})[0]
-				console.log("optype="+op_type+" id="+id+" obj="+match_obj.idstr_obj)
 				return match_obj.idstr_obj;
+			},
+			get_idmgr_list: function(key, value) {
+				var match_list = arrayUtil.filter(this.idmgr_list,
+				function(item) {
+					return item[key] == value;
+				})
+				return match_list;
 			}
 		});
 		if (!_instance) {
