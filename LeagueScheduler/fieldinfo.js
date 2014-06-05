@@ -2,7 +2,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
-	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
+	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/idmgrSingleton",
+	"LeagueScheduler/widgetgen",
 	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Select",
 	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
 	"dijit/form/Button", "dijit/form/Form", "dijit/form/NumberTextBox",
@@ -11,7 +12,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/TitlePane",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
-		arrayUtil, registry, editor, baseinfo, baseinfoSingleton,
+		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, idmgrSingleton,
 		WidgetGen,
 		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
 		CheckBox, Button, Form, NumberTextBox, ValidationTextBox,
@@ -19,18 +20,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		var constant = {
 			idproperty_str:"field_id",
 			updatebtn_str:"Update Field Info",
-			grid_id:"fieldinfogrid_id",
+			//grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
 			db_type:'fielddb',
-			form_id:'field_form_id', dbname_id:'fielddbname_id',
+			//form_id:'field_form_id', dbname_id:'fielddbname_id',
 			dbname_str:'New Field List Name',
 			vtextbox_str:'Enter Field List Name',
 			ntextbox_str:'Enter Number of Fields',
-			inputnum_id:'fieldinputnum_id',
+			//inputnum_id:'fieldinputnum_id',
 			inputnum_str:'Number of Fields',
 			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
-			league_select_id:"league_select_id",
+			//radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
+			//league_select_id:"league_select_id",
 			default_fieldevent_str:"Sports"
 		};
 		return declare(baseinfo, {
@@ -48,7 +49,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			infogrid_store:null, calendarmapobj_list:null,
 			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
-			delta_store:null,
+			delta_store:null, idmgr_obj:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -56,6 +57,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				lang.mixin(this, args);
 				this.today = new Date();
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
+				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:'field_id', op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -116,16 +119,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			initialize: function(newgrid_flag, op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
-				var form_reg = registry.byId(constant.form_id);
+				var form_reg = registry.byId(this.idmgr_obj.form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = null;
 				var inputnum_reg = null;
 				if (!dbname_node) {
 					put(form_node, "label.label_box[for=$]",
-						constant.dbname_id, constant.dbname_str);
+						this.idmgr_obj.dbname_id, constant.dbname_str);
 					var dbname_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.dbname_id)
+						this.idmgr_obj.dbname_id)
 					dbname_reg = new ValidationTextBox({
 						value:'',
 						regExp:'\\D[\\w]+',
@@ -136,10 +139,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
-						constant.inputnum_id, constant.inputnum_str);
+						this.idmgr_obj.inputnum_id, constant.inputnum_str);
 					var inputnum_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.inputnum_id);
+						this.idmgr_obj.inputnum_id);
 					inputnum_reg = new NumberTextBox({
 						value:'1',
 						style:'width:5em',
@@ -149,13 +152,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						missingMessage:constant.ntextbox_str+' (positive integer)'
 					}, inputnum_node);
 				} else {
-					dbname_reg = registry.byId(constant.dbname_id);
-					inputnum_reg = registry.byId(constant.inputnum_id);
+					dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
+					inputnum_reg = registry.byId(this.idmgr_obj.inputnum_id);
 				}
-				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
+				var tooltipconfig_list = [{connectId:[this.idmgr_obj.inputnum_id],
 					label:"Specify Number of Fields and press ENTER",
 					position:['below','after']},
-					{connectId:[constant.dbname_id],
+					{connectId:[this.idmgr_obj.dbname_id],
 					label:"Specify Field List Name",
 					position:['below','after']}];
 				var args_obj = {
@@ -165,7 +168,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					server_path:"create_newdbcol/",
 					server_key:'info_data',
 					text_node_str: constant.text_node_str,
-					grid_id:constant.grid_id,
+					grid_id:this.idmgr_obj.grid_id,
 					updatebtn_str:constant.updatebtn_str,
 					tooltipconfig_list:tooltipconfig_list,
 					newgrid_flag:newgrid_flag,
@@ -194,7 +197,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server
 				options_obj.serverdata_key = 'info_list';
-				options_obj.grid_id = constant.grid_id;
+				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/';
 				options_obj.db_type = constant.db_type;
@@ -1034,7 +1037,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var init_colname = init_colname || "";
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
-				var fieldinfogrid_node = dom.byId(constant.grid_id);
+				var fieldinfogrid_node = dom.byId(this.idmgr_obj.grid_id);
 				var topdiv_node = put(fieldinfogrid_node, "-div");
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
@@ -1192,8 +1195,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// to the client, use those to set up the radio buttons.  Otherwise
 				// use default values.
 				if (this.divstr_colname && this.divstr_db_type) {
-					this.create_dbselect_radiobtnselect(constant.radiobtn1_id,
-						constant.radiobtn2_id, constant.league_select_id,
+					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
+						this.idmgr_obj.radiobtn2_id, this.idmgr_obj.league_select_id,
 						this.divstr_db_type, this.divstr_colname);
 				} else {
 					this.initabovegrid_UI();
@@ -1238,8 +1241,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			initabovegrid_UI: function() {
 				this.create_dbselect_radiobtnselect(
-					constant.radiobtn1_id, constant.radiobtn2_id,
-					constant.league_select_id);
+					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
+					this.idmgr_obj.league_select_id);
 			},
 			calc_totalfielddays: function(item) {
 				// calculate # of totalfielddays based on current grid

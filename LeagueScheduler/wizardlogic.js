@@ -95,10 +95,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// Field Config Pane
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
+				/*
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
 					constant.fradio1_id, constant.fradio2_id, "rrdb",
 					this, this.radio1_callback, this.radio2_callback,
-					constant.fselect_id);
+					constant.fselect_id); */
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,

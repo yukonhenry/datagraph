@@ -1,9 +1,10 @@
 /* manage UI content pane structure, especially switching stack container panes */
 define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 	"dijit/registry", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
-	"dijit/layout/BorderContainer", "dijit/form/Form", "put-selector/put", "dojo/domReady!"],
+	"dijit/layout/BorderContainer", "dijit/form/Form", "put-selector/put",
+	"LeagueScheduler/idmgrSingleton", "dojo/domReady!"],
 	function(declare, lang, arrayUtil, dom, registry, StackContainer, ContentPane,
-		BorderContainer, Form, put) {
+		BorderContainer, Form, put, idmgrSingleton) {
 		var constant = {
 			// param stack id's
 			dummy_id:"dummy_id",
@@ -32,7 +33,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			nsctxt_id:"newschedtxt_id",
 			infotxt_id:"infotxt_id",
 			infobtn_id:"infobtn_id",
-			fform_id:"field_form_id",
 			dform_id:"div_form_id",
 			tdform_id:"tourndiv_form_id",
 			pform_id:"pref_form_id",
@@ -40,7 +40,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			divgrid_id:"divinfogrid_id",
 			tourndivgrid_id:"tourndivinfogrid_id",
 			prefgrid_id:"prefinfogrid_id",
-			fieldgrid_id:"fieldinfogrid_id"
 		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
@@ -453,11 +452,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(txtbtn_cpane.containerNode, "button[id=$]", constant.infobtn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// add field config (number) cpane
+				var idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:'field_id', op_type:"advance"});
 				var field_cpane = new ContentPane({
 					id:constant.nfcpane_id
 				});
 				var field_form = new Form({
-					id:constant.fform_id
+					id:idmgr_obj.form_id
 				})
 				field_cpane.addChild(field_form);
 				this.pstackcontainer_reg.addChild(field_cpane);
@@ -523,6 +524,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(pdiv_cpane.containerNode, "div[id=$]", constant.prefgrid_id);
 				this.gstackcontainer_reg.addChild(pdiv_cpane);
 				// add field info border container, inside cpane and grid div
+				var idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:'field_id', op_type:"advance"});
 				var field_bcontainer = new BorderContainer({
 					id:constant.fieldbcontainer_id,
 					design:'headline', gutters:true, liveSplitters:true,
@@ -534,7 +537,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					style:"height:300px; width:100%"
 				})
 				put(field_cpane.containerNode, "div[id=$]",
-					constant.fieldgrid_id);
+					idmgr_obj.grid_id);
 				field_bcontainer.addChild(field_cpane);
 				this.gstackcontainer_reg.addChild(field_bcontainer);
 			}

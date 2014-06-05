@@ -30,7 +30,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			// form and span id's
 			nscform_id:"wiznewsched_form_id",
 			nsctxt_id:"wiznewschedtxt_id",
-			fform_id:"wizfield_form_id",
 			dform_id:"wizdiv_form_id",
 			tdform_id:"wiztourndiv_form_id",
 			pform_id:"wizpref_form_id",
@@ -38,7 +37,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			divgrid_id:"wizdiv_infogrid_id",
 			tourndivgrid_id:"wiztourndivinfogrid_id",
 			prefgrid_id:"wizprefinfogrid_id",
-			fieldgrid_id:"wizfieldinfogrid_id"
 		};
 		return declare(null, {
 			pstackcontainer_list:null, pstackmap_list:null,
