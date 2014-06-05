@@ -49,7 +49,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_
 					this.info_list = data.info_list;
 					if (!this.select_reg) {
 						this.select_reg = registry.byId("schedDBDivisionSelect");
-						//baseinfoSingleton.set_select_reg(this.select_reg);
 						this.schedutil_obj.generateDivSelectDropDown(this.select_reg, this.info_list);
 					}
 					options_obj.serverdata_key = 'game_list';

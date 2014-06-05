@@ -239,7 +239,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
                     info_obj.setdivstr_obj(colname, db_type);
-                    baseinfoSingleton.watch_obj.set('divstr_list', divstr_list);
+                    baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
+                        info_obj.op_type);
                 }
             },
             // create calendar inputs for season start/end dates
@@ -254,6 +255,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var sl_spinner_id = args_obj.spinner_id;
                 var default_numweeks = args_obj.numweeks;
                 var sdbtn_id = args_obj.seasondates_btn_id;
+                var op_type = args_obj.op_type;
                 var today = new Date();
                 var start_dtbox_node = dom.byId(start_datebox_id);
                 if (!start_dtbox_node) {
@@ -366,10 +368,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     sdbtn = new Button({
                         label:"Transfer Dates Info",
                         class:"primary",
-                        onClick: lang.hitch(this, function(evt) {
-                            //sdbtn_status_span.innerHTML = "Season Dates Saved";
-                            this.getSeasonDatesFromInput(evt);
-                        })
+                        onClick: lang.hitch(this, this.getSeasonDatesFromInput,
+                            op_type)
                     }, sdbtn_node);
                     sdbtn.startup();
                     put(topdiv_node, "br, br");
@@ -377,11 +377,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     sdbtn = registry.byNode(sdbtn_node);
                 }
             },
-            getSeasonDatesFromInput: function(event) {
+            getSeasonDatesFromInput: function(op_type, event) {
                 var seasonstart_date = this.start_dtbox.get("value");
                 var seasonend_date = this.end_dtbox.get("value");
                 var season_len = this.sl_spinner.get("value");
-                baseinfoSingleton.watch_obj.set('numweeks', season_len);
+                baseinfoSingleton.set_watch_obj('numweeks', season_len, op_type);
             },
         })
     })

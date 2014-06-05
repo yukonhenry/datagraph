@@ -4,11 +4,14 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/DropDownMenu", "dijit/form/DropDownButton", "dijit/form/Button",
 	"dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
-	"LeagueScheduler/wizuistackmanager",
+	"LeagueScheduler/wizuistackmanager", "LeagueScheduler/divinfo",
+	"LeagueScheduler/tourndivinfo", "LeagueScheduler/fieldinfo",
+	"LeagueScheduler/preferenceinfo", "LeagueScheduler/newschedulerbase",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
 		DropDownMenu, DropDownButton, Button, ContentPane,
-		baseinfoSingleton, WidgetGen, WizUIStackManager, put) {
+		baseinfoSingleton, WidgetGen, WizUIStackManager, divinfo, tourndivinfo,
+		fieldinfo, preferenceinfo, newschedulerbase, put) {
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
 			divselect_id:'wizdivselect_id',
@@ -32,8 +35,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var wizuistackmgr = new WizUIStackManager();
 				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
-				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:"wiztop_cpane_id"});
-				tabcontainer.addChild(container_cpane, 0);
+				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', doLayout:false, id:"wiztop_cpane_id"});
+				tabcontainer.addChild(container_cpane);
 				//tabcontainer.selectChild(container_cpane);
 				//container_cpane.resize();
 				// ref http://archive.dojotoolkit.org/nightly/checkout/dijit/tests/layout/test_TabContainer_noLayout.html
@@ -42,8 +45,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					title:"Scheduling Wizard/Start Here",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
-					//class:'allauto'
-					style:"width:600px; height:500px",
+					class:'allauto'
+					//style:"width:600px; height:500px",
 					//nextButtonLabel:"Configure Divisions"
 				});
 				container_cpane.addChild(wizard_reg);
@@ -53,7 +56,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var content_str = "Gather Information for the League:<br>Get basic information for the league such as the number of divisions, number of teams in each division."
 				var intro_wpane = new WizardPane({
 					content:content_str,
-					//class:'allauto'
+					//class:'allonehundred'
 					//style:"width:100px; height:100px"
 				})
 				wizard_reg.addChild(intro_wpane);
@@ -71,13 +74,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					constant.divradio1_id, constant.divradio2_id, "rrdb",
 					this, this.radio1_callback, this.radio2_callback,
 					constant.divselect_id);
-				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
+				var divinfo_obj = new divinfo({
+					server_interface:this.server_interface,
+					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					op_type:"wizard"});
 				var menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node, wizuistackmgr);
+				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
 				var pcontainerdiv_node = put(topdiv_node, "div")
 				var gcontainerdiv_node = put(topdiv_node, "div")
 				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
-					gcontainerdiv_node, wizuistackmgr);
+					gcontainerdiv_node);
 				//this.wizuistackmgr.initstacks('div_id');
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
@@ -93,9 +99,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					constant.fradio1_id, constant.fradio2_id, "rrdb",
 					this, this.radio1_callback, this.radio2_callback,
 					constant.fselect_id);
-				var fieldinfo_obj = baseinfoSingleton.get_obj('field_id');
+				var fieldinfo_obj = new fieldinfo({
+					server_interface:this.server_interface,
+					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node, wizuistackmgr);
+				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
 				var fieldinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'
@@ -105,9 +114,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//-------------------------//
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
-				var prefinfo_obj = baseinfoSingleton.get_obj('pref_id');
+				var prefinfo_obj = new preferenceinfo({
+					server_interface:this.server_interface,
+					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('pref_id', fieldinfo_obj, true, menubar_node, wizuistackmgr);
+				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
 				var prefinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'

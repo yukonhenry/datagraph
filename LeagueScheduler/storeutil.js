@@ -3,12 +3,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Observable","dojo/store/Memory","dijit/registry",
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
-	"dijit/Tooltip",
+	"dijit/Tooltip", "dijit/form/DropDownButton", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfoSingleton","put-selector/put",
 	"dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, Observable, Memory, registry,
-		DropDownMenu, PopupMenuItem, MenuItem,
-		MenuBar, MenuBarItem, PopupMenuBarItem, Tooltip,
+		DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
+		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane,
 		baseinfoSingleton, put) {
 		var constant = {
 			idtopmenu_list:[
@@ -103,22 +103,30 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// http://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
 				var dbtype_result = dbselect_store.query();
 				dbtype_result.observe(lang.hitch(this, function(object, removeIndex, insertIndex) {
-					var newsched_obj = baseinfoSingleton.get_obj('newsched_id');
+					var newsched_obj_list = baseinfoSingleton.get_obj_list('newsched_id');
 					if (removeIndex > -1) {
 						// note removing by index only may not be reliable
 						// other option is to pass in the object and then search
 						// the reg children to find a math on the label
 						this.schedutil_obj.regenDelDBCollection_smenu(removeIndex, db_type);
-						if (newsched_obj && newsched_obj.selectexists_flag) {
-							newsched_obj.removefrom_select(db_type, removeIndex);
-						}
+						arrayUtil.forEach(newsched_obj_list,
+						function(newsched_obj) {
+							if (newsched_obj && newsched_obj.selectexists_flag) {
+								newsched_obj.removefrom_select(db_type,
+									removeIndex);
+							}
+						})
 					}
 					if (insertIndex > -1) {
 						this.schedutil_obj.regenAddDBCollection_smenu(insertIndex,
 							object, db_type);
-						if (newsched_obj && newsched_obj.selectexists_flag) {
-							newsched_obj.addto_select(db_type, object.name, insertIndex);
-						}
+						arrayUtil.forEach(newsched_obj_list,
+						function(newsched_obj) {
+							if (newsched_obj && newsched_obj.selectexists_flag) {
+								newsched_obj.addto_select(db_type, object.name,
+									insertIndex);
+							}
+						})
 					}
 				}));
 			},
@@ -175,6 +183,61 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var dbselect_store = this.getselect_store(db_type);
 				dbselect_store.remove(item);
 			},
+			store_init_data: function(data_list) {
+				arrayUtil.forEach(data_list, function(item) {
+					this.createdb_store(item.db_list, item.db_type)
+				}, this)
+			},
+			init_advanced_UI: function(info_obj_list) {
+				// save data to local db and create menu structure for advanced
+				// pane
+				var args_list = new Array();
+				//var editpane = registry.byId("editPane");
+				var tabcontainer = registry.byId("tabcontainer_id")
+				var advanced_cpane = new ContentPane({
+					title:"Advanced",
+					id:"editPane",
+					doLayout:false,
+				})
+				advanced_cpane.on("show", lang.hitch(this, function(evt) {
+					console.log("advanced onshow");
+					if (this.uistackmgr && this.uistackmgr.current_grid) {
+						this.uistackmgr.current_grid.resize();
+					}
+					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
+						this.wizuistackmgr.current_grid.resize();
+					}
+					advanced_cpane.domNode.scrollTop = 0;
+				}))
+				advanced_cpane.on("load", function(evt) {
+					console.log("advanced onload");
+					advanced_cpane.domNode.scrollTop = 0;
+				})
+				tabcontainer.addChild(advanced_cpane)
+				var editddown_menu = new DropDownMenu({
+				})
+				var editddown_btn = new DropDownButton({
+					class:"primary editsched",
+					label:"Select Configuration",
+					dropDown:editddown_menu
+				})
+				advanced_cpane.addChild(editddown_btn);
+				//var parent_ddown_reg = registry.byId("configmenu_id");
+				arrayUtil.forEach(info_obj_list, function(item) {
+					var id = item.id;
+					if (id == 'div_id' || id == 'tourndiv_id') {
+						args_list.push({id:id, info_obj:item.info_obj})
+					} else {
+						this.create_menu(id, item.info_obj, true, editddown_menu);
+					}
+				}, this)
+				var args_obj = {parent_ddown_reg:editddown_menu,
+					args_list:args_list}
+				this.create_divmenu(args_obj);
+				// create other cpane stacks
+				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
+				this.uistackmgr.create_grid_stack(advanced_cpane);
+			},
 			create_divmenu: function(args_obj) {
 				// programmatic instantiation of submenus for divinfo and
 				// tourndivinfo menu info
@@ -185,7 +248,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					label:"Division Info",
 					popup:div_ddown_reg
 				})
-				parent_ddown_reg.addChild(div_popup_reg);
+				parent_ddown_reg.addChild(div_popup_reg, 0);
 				arrayUtil.forEach(args_list, function(item) {
 					this.create_menu(item.id, item.info_obj, true, div_ddown_reg)
 				}, this)
@@ -245,7 +308,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						{db_type:db_type, storeutil_obj:this, op_type:"advance"});
 				}
 			},
-			create_menubar: function(id, info_obj, delflag, mbar_node, wizuistackmgr) {
+			create_menubar: function(id, info_obj, delflag, mbar_node) {
 				// Similar to create_menu, except create a horizontal menubar instead
 				var tooltipconfig_list = new Array();
 				// Create horizontal menubar
@@ -259,7 +322,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					id:match_obj.mbaritem_id,
 					label:match_obj.label_str,
 					style:"color:green; font:bold",
-					onClick:lang.hitch(wizuistackmgr, wizuistackmgr.check_initialize, info_obj)
+					onClick:lang.hitch(this.wizuistackmgr, this.wizuistackmgr.check_initialize, info_obj)
 					//onClick:lang.hitch(info_obj, info_obj.wizinitialize)
 				})
 				// create tooltip config info for menubaritem
@@ -285,7 +348,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
 				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
-					wizuistackmgr, wizuistackmgr.check_getServerDBInfo,
+					this.wizuistackmgr, this.wizuistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
 						op_type:"wizard"});
 				//----------------------------------------//

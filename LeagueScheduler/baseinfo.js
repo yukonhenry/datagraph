@@ -19,8 +19,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			storeutil_obj:null,
 			keyup_handle:null, tooltip_list:null, rownum:0,
 			schedutil_obj:null, activegrid_colname:"",
-			config_status:0, wizuistackmgr:null,
-			btntxtid_list:null,
+			config_status:0,
+			btntxtid_list:null, op_type:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
@@ -41,11 +41,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						this.tooltip_list.push(new Tooltip(item));
 					}, this);
 				}
-				var uistackmgr = (args_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
-				uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage: "preconfig", entry_pt:constant.init});
 				// switch to blank cpane
-				uistackmgr.switch_gstackcpane(this.idproperty, true);
+				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input, args_obj));
@@ -64,7 +63,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var text_node_str = args_obj.text_node_str;
 					var updatebtn_str = args_obj.updatebtn_str;
 					var op_type = args_obj.op_type;
-					var uistackmgr = (args_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
 					if (form_reg.validate()) {
 						confirm('Input format is Valid, creating new DB');
 						this.activegrid_colname = dbname_reg.get("value")
@@ -98,7 +96,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								server_key:server_key,
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
-								uistackmgr:uistackmgr,
+								uistackmgr:this.uistackmgr,
 								storeutil_obj:this.storeutil_obj,
 								db_type:this.db_type});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
@@ -178,7 +176,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					} else {
 						alert('check db_type and idproperty consistency');
 					}
-				} if (options_obj.db_type == 'prefdb') {
+				} else if (options_obj.db_type == 'prefdb') {
 					if (idproperty == 'pref_id') {
 						data_list = this.modifyserver_data(data_list);
 					} else {
@@ -189,7 +187,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					console.log("no server interface");
 					alert("no server interface, check if service running");
 				}
-				var uistackmgr = (options_obj.op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
 				if (options_obj.newgrid_flag) {
 					this.editgrid = new EditGrid({griddata_list:data_list,
 						colname:this.activegrid_colname,
@@ -201,7 +198,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:this,
-						uistackmgr:uistackmgr,
+						uistackmgr:this.uistackmgr,
 						storeutil_obj:this.storeutil_obj,
 						db_type:this.db_type});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
@@ -227,13 +224,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			reconfig_infobtn: function(args_obj) {
 				// parse args object
 				this.activegrid_colname = args_obj.colname;
+				var op_type = ('op_type' in args_obj)?args_obj.op_type:"advance";
 				var text_node_str = args_obj.text_node_str;
 				var updatebtn_str = args_obj.updatebtn_str;
 				var idproperty = args_obj.idproperty;
 				var swapcpane_flag = args_obj.swapcpane_flag;
 				var newgrid_flag = args_obj.newgrid_flag;
 				var entry_pt = args_obj.entry_pt;
-				var op_type = args_obj.op_type;
 				var btntxtid_obj = this.getbtntxtid_obj(op_type, idproperty);
 				var text_id = btntxtid_obj.text_id;
 				var btn_id = btntxtid_obj.btn_id;
@@ -248,8 +245,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				updatebtn_widget.set("onClick", btn_callback);
 				this.update_configdone(-1, gridstatus_node); // reset
 				if (swapcpane_flag) {
-					var uistackmgr = (op_type == "wizard") ? this.wizuistackmgr:this.uistackmgr;
-					uistackmgr.switch_pstackcpane({idproperty:idproperty,
+					this.uistackmgr.switch_pstackcpane({idproperty:idproperty,
 						p_stage:"config", entry_pt:entry_pt,
 						text_str:text_str, btn_callback: btn_callback,
 						updatebtn_str:updatebtn_str});
@@ -257,7 +253,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// also swap grid if we are not generating a new one
 						// if we are generating a new grid, switchgstack is called
 						// from within editgrid
-						uistackmgr.switch_gstackcpane(idproperty, false,
+						this.uistackmgr.switch_gstackcpane(idproperty, false,
 							this.editgrid.schedInfoGrid);
 					}
 				}
@@ -293,7 +289,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						label:label_str,
 						type:"button",
 						class:"primary",
-						//style:"margin-left:25px",
+						style:"margin-left:20px",
 						info_type:idproperty_str
 					}, infobtn_id);
 					infobtn_widget.startup();
@@ -332,10 +328,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					return true;
 				else
 					return (this.editgrid.schedInfoGrid)?false:true;
-			},
-			set_obj: function(schedutil_obj, storeutil_obj) {
-				this.schedutil_obj = schedutil_obj;
-				this.storeutil_obj = storeutil_obj;
 			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.

@@ -49,7 +49,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			current_grid:null, null_cpanestate:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
+				//this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();
@@ -78,7 +78,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				// define mapping object for the grid content pane
-				this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
+				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
 				this.gstackmap_list = [{id:'newsched_id', pane_id:constant.blankcpane_id},
@@ -419,18 +419,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// reference on use of different kinds of id's:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/registry.html#data-dojo-id-jsid-before-dojo-1-6
 				// http://stackoverflow.com/questions/12469140/difference-between-id-and-data-dojo-id
-				var param_scontainer = new StackContainer({
-					id:constant.pstackcontainer_id,
+				this.pstackcontainer_reg = new StackContainer({
 					doLayout:false,
 					style:"float:left; width:80%"
 				})
-				this.pstackcontainer_reg = param_scontainer;
-				container_cpane.addChild(param_scontainer);
+				container_cpane.addChild(this.pstackcontainer_reg);
 				// create dummy blank pane
 				var dummy_cpane = new ContentPane({
 					id:constant.dummy_id
 				})
-				param_scontainer.addChild(dummy_cpane);
+				this.pstackcontainer_reg.addChild(dummy_cpane);
 				// add newscheduler config cpane
 				var newsched_cpane = new ContentPane({
 					id:constant.nscpane_id
@@ -439,20 +437,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.nscform_id
 				});
 				newsched_cpane.addChild(newsched_form);
-				param_scontainer.addChild(newsched_cpane)
+				this.pstackcontainer_reg.addChild(newsched_cpane)
 				// add season calendar input cpane
 				var scinput_cpane = new ContentPane({
 					id:constant.sccpane_id
 				})
 				put(scinput_cpane.containerNode, "span[id=$]",constant.nsctxt_id)
-				param_scontainer.addChild(scinput_cpane)
+				put(scinput_cpane.containerNode, "br");
+				this.pstackcontainer_reg.addChild(scinput_cpane)
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
 					id:constant.tcpane_id
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]", constant.infotxt_id);
-				put(txtbtn_cpane.containerNode, "div[id=$]", constant.infobtn_id);
-				param_scontainer.addChild(txtbtn_cpane);
+				put(txtbtn_cpane.containerNode, "button[id=$]", constant.infobtn_id);
+				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// add field config (number) cpane
 				var field_cpane = new ContentPane({
 					id:constant.nfcpane_id
@@ -461,7 +460,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.fform_id
 				})
 				field_cpane.addChild(field_form);
-				param_scontainer.addChild(field_cpane);
+				this.pstackcontainer_reg.addChild(field_cpane);
 				// add div config (number) cpane
 				var div_cpane = new ContentPane({
 					id:constant.ndcpane_id
@@ -470,7 +469,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.dform_id
 				})
 				div_cpane.addChild(div_form);
-				param_scontainer.addChild(div_cpane);
+				this.pstackcontainer_reg.addChild(div_cpane);
 				// add tourndiv config (number) cpane
 				var tdiv_cpane = new ContentPane({
 					id:constant.ntcpane_id
@@ -479,7 +478,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.tdform_id
 				})
 				tdiv_cpane.addChild(tdiv_form);
-				param_scontainer.addChild(tdiv_cpane);
+				this.pstackcontainer_reg.addChild(tdiv_cpane);
 				// add preference config
 				var pref_cpane = new ContentPane({
 					id:constant.ppcpane_id
@@ -488,43 +487,41 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.pform_id
 				})
 				pref_cpane.addChild(pref_form);
-				param_scontainer.addChild(pref_cpane)
+				this.pstackcontainer_reg.addChild(pref_cpane)
 			},
 			create_grid_stack: function(container_cpane) {
 				// programmatically create grid stack
 				// manage switching between grids by using content panes embedded in stack container
 				// note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance
 				// http://css.maxdesign.com.au/floatutorial/
-				var grid_scontainer = new StackContainer({
-					id:constant.gstackcontainer_id,
+				this.gstackcontainer_reg = new StackContainer({
 					doLayout:false,
 					style:"clear:left"
 				})
-				this.gstackcontainer_reg = grid_scontainer;
-				container_cpane.addChild(grid_scontainer);
+				container_cpane.addChild(this.gstackcontainer_reg);
 				// add blank pane (for resetting)
 				var blank_cpane = new ContentPane({
 					id:constant.blankcpane_id
 				})
-				grid_scontainer.addChild(blank_cpane);
+				this.gstackcontainer_reg.addChild(blank_cpane);
 				// add divinfo cpane and grid div
 				var div_cpane = new ContentPane({
 					id:constant.divcpane_id
 				})
 				put(div_cpane.containerNode, "div[id=$]", constant.divgrid_id);
-				grid_scontainer.addChild(div_cpane);
+				this.gstackcontainer_reg.addChild(div_cpane);
 				// add tournament divinfo cpane and grid div
 				var tdiv_cpane = new ContentPane({
 					id:constant.tourndivcpane_id
 				})
 				put(tdiv_cpane.containerNode, "div[id=$]", constant.tourndivgrid_id);
-				grid_scontainer.addChild(tdiv_cpane);
+				this.gstackcontainer_reg.addChild(tdiv_cpane);
 				// add preference info cpane and grid div
 				var pdiv_cpane = new ContentPane({
 					id:constant.prefcpane_id
 				})
 				put(pdiv_cpane.containerNode, "div[id=$]", constant.prefgrid_id);
-				grid_scontainer.addChild(pdiv_cpane);
+				this.gstackcontainer_reg.addChild(pdiv_cpane);
 				// add field info border container, inside cpane and grid div
 				var field_bcontainer = new BorderContainer({
 					id:constant.fieldbcontainer_id,
@@ -539,7 +536,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(field_cpane.containerNode, "div[id=$]",
 					constant.fieldgrid_id);
 				field_bcontainer.addChild(field_cpane);
-				grid_scontainer.addChild(field_bcontainer);
+				this.gstackcontainer_reg.addChild(field_bcontainer);
 			}
 		});
 	}

@@ -114,7 +114,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				};
 				return columnsdef_obj;
 			},
-			initialize: function(newgrid_flag) {
+			initialize: function(newgrid_flag, op_type) {
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
 				var form_reg = registry.byId(constant.form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = null;
@@ -168,7 +169,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					updatebtn_str:constant.updatebtn_str,
 					tooltipconfig_list:tooltipconfig_list,
 					newgrid_flag:newgrid_flag,
-					cellselect_flag:true
+					cellselect_flag:true,
+					op_type:op_type
 				}
 				this.showConfig(args_obj);
 				// delete old calendarmapobj_list if this is the subsequent time
@@ -183,6 +185,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				options_obj.op_type;
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.server_key = 'info_data';
@@ -767,7 +771,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// the 'data' field (alternatively object.primaryuse_str) will
 					// have the passed data originating from the server
 					// through local data store.
-					var divstr_list = baseinfoSingleton.watch_obj.get('divstr_list')
+					var divstr_list = baseinfoSingleton.get_watch_obj(
+						'divstr_list', this.op_type);
 					if (divstr_list && divstr_list.length > 0) {
 						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
@@ -1207,7 +1212,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
                         })
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
-                    baseinfoSingleton.watch_obj.set('divstr_list', divstr_list);
+                    baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
+                    	this.op_type);
                 }
 				return data_list;
 			},

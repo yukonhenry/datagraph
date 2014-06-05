@@ -2,7 +2,12 @@
 for loadable module design and syntax  also ref
 http://dojotoolkit.org/documentation/tutorials/1.9/declare/ and
 http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html for class constructor syntax
-http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/*/
+http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/
+				// ref http://stackoverflow.com/questions/13932225/dojo-and-dynamically-added-options-to-dijit-form-select
+				// for closure http://stackoverflow.com/questions/4726611/function-used-from-within-javascript-dojo-closure-using-this-notation-is-undef
+				// without 3rd argument for  forEach, scope is global
+				// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
+*/
 define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/dom-class", "dojo/date",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
@@ -14,7 +19,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 		var status_dom = dom.byId("dbstatus_txt");
 		//var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
-			leaguedata: null, server_interface:null,
+			server_interface:null,
 			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
 			nsdbmenureg_list:null,
 			constructor: function(args) {
@@ -83,6 +88,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// for closure http://stackoverflow.com/questions/4726611/function-used-from-within-javascript-dojo-closure-using-this-notation-is-undef
 				// without 3rd argument for  forEach, scope is global
 				// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
+				/*
 				var info_list = (typeof info_list === "undefined") ? this.leaguedata : info_list;
 				var option_list = [{label:"Select Division", value:"", selected:true}];
 				arrayUtil.forEach(info_list, function(item, index) {
@@ -90,7 +96,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					// division code is 1-index based so increment by 1
 					option_list.push({label:divstr, value:index+1, selected:false});
 				});
-				select_reg.addOption(option_list);
+				select_reg.addOption(option_list); */
 			},
 			createSchedLinks: function(ldata_array, dom_name) {
 				var target_dom = dom.byId(dom_name);

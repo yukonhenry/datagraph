@@ -125,6 +125,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var form_id = "";
 				var dbname_id = "";
 				var inputnum_id = "";
+				var grid_id = "";
 				if (op_type == "wizard") {
 					form_id = wizconstant.form_id;
 					dbname_id = wizconstant.dbname_id;
@@ -253,12 +254,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					end_datebox_id:constant_obj.end_datebox_id,
 					spinner_id:constant_obj.weeksspinner_id,
 					numweeks:constant_obj.numweeks,
-					seasondates_btn_id:constant_obj.seasondates_btn_id
+					seasondates_btn_id:constant_obj.seasondates_btn_id,
+					op_type:op_type
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
-			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node, wizuistackmgr) {
-				this.wizuistackmgr = wizuistackmgr;
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
 				var pcontainer_id = wizconstant.wizid_stem+wizconstant.pcontainer_suffix_id;
 				this.pstackcontainer = new StackContainer({

@@ -21,79 +21,63 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
-		var divisionGrid = null;
-		var teamDataGrid = null; var fieldScheduleGrid = null;
-		var metricsGrid = null;
 		var ldata_array = null;
-		var schedUtil = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
-		var newschedbase_obj = new NewSchedulerBase({server_interface:serverInterface});
-		var divinfo_obj = new divinfo({server_interface:serverInterface});
-		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface});
-		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface});
+		var schedutil_obj = new schedulerUtil({server_interface:serverInterface});
+		var uistackmgr = new UIStackManager();
+		var storeutil_obj = new storeUtil({schedutil_obj:schedutil_obj,
+			server_interface:serverInterface, uistackmgr:uistackmgr});
+		var wizardlogic_obj = new WizardLogic({server_interface:serverInterface,
+			storeutil_obj:storeutil_obj});
+
+		var newschedbase_obj = new NewSchedulerBase({
+			server_interface:serverInterface, schedutil_obj:schedutil_obj,
+			uistackmgr:uistackmgr, storeutil_obj:storeutil_obj, op_type:"advance"});
+		var divinfo_obj = new divinfo({server_interface:serverInterface,
+			schedutil_obj:schedutil_obj, uistackmgr:uistackmgr,
+			storeutil_obj:storeutil_obj, op_type:"advance"});
+		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface,
+			schedutil_obj:schedutil_obj, uistackmgr:uistackmgr,
+			storeutil_obj:storeutil_obj, op_type:"advance"});
+		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,
+			schedutil_obj:schedutil_obj, uistackmgr:uistackmgr,
+			storeutil_obj:storeutil_obj, op_type:"advance"});
 		var preferenceinfo_obj = new PreferenceInfo(
-			{server_interface:serverInterface});
-		var wizardlogic_obj = new WizardLogic({server_interface:serverInterface});
-		//var schedinfo_obj = new schedinfo({server_interface:serverInterface});
-		var uiStackManager = null;
+			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
+				uistackmgr:uistackmgr, storeutil_obj:storeutil_obj,
+				op_type:"advance"});
 		var leaguediv_func = function(ldata) {
-			ldata_array = ldata.leaguedivinfo;
-			var fdata_array = ldata.field_info;
-			//grid.renderArray(ldata_array);
-			//fieldInfoGrid.renderArray(fdata_array);
-			//var dbstatus = ldata.dbstatus;
-			schedUtil = new schedulerUtil({leaguedata:ldata_array, server_interface:serverInterface});
-			var storeutil_obj = new storeUtil({schedutil_obj:schedUtil, uistackmgr:uiStackManager, server_interface:serverInterface});
-			newschedbase_obj.set_obj(schedUtil, storeutil_obj);
-			fieldinfo_obj.set_obj(schedUtil, storeutil_obj);
-			divinfo_obj.set_obj(schedUtil, storeutil_obj);
-			tourndivinfo_obj.set_obj(schedUtil, storeutil_obj);
-			preferenceinfo_obj.set_obj(schedUtil, storeutil_obj);
-			wizardlogic_obj.storeutil_obj = storeutil_obj;
-			//schedinfo_obj.set_obj(schedUtil, storeutil_obj);
+			var ldata_array = ldata.leaguedivinfo;
+
 			//schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
 			// generate dropdown menu for edit->existing schedules
-			var parent_ddown_reg = registry.byId("configmenu_id");
+			//var parent_ddown_reg = registry.byId("configmenu_id");
 			var rrdbcollection_list = ldata.rrdbcollection_list;
-			// fill initial store and create dropdown menu
-			storeutil_obj.createdb_store(rrdbcollection_list, 'rrdb');
-			//storeutil_obj.create_menu('div_id', divinfo_obj, true, parent_ddown_reg);
 			var tourndbcollection_list = ldata.tourndbcollection_list;
-			storeutil_obj.createdb_store(tourndbcollection_list, 'tourndb');
-			//storeutil_obj.create_menu('tourndiv_id', tourndivinfo_obj, true,
-			//	parent_ddown_reg);
-			var args_list = [{id:'div_id', info_obj:divinfo_obj},
-				{id:'tourndiv_id', info_obj:tourndivinfo_obj}]
-			var args_obj = {parent_ddown_reg:parent_ddown_reg,
-				args_list:args_list}
-			storeutil_obj.create_divmenu(args_obj);
-			// note we need to add delete to the schedule here by passing 'true'
-			//storeutil_obj.create_menu('sched_id', schedinfo_obj, false);
-			// generate dropdown for 'generate cup schedule'
-			// create menu for the field collections lists
 			var fielddb_list = ldata.fielddb_list;
-			storeutil_obj.createdb_store(fielddb_list, 'fielddb');
-			storeutil_obj.create_menu('field_id', fieldinfo_obj, true,
-				parent_ddown_reg);
-			// load initial schedule db's for display under new schedule/generation
-			// submenu
 			var newscheddb_list = ldata.newscheddb_list;
-			storeutil_obj.createdb_store(newscheddb_list, 'newscheddb');
-			storeutil_obj.create_menu('newsched_id', newschedbase_obj, true,
-				parent_ddown_reg);
 			var prefdb_list = ldata.prefdb_list;
-			storeutil_obj.createdb_store(prefdb_list, 'prefdb');
-			storeutil_obj.create_menu('pref_id', preferenceinfo_obj, true,
-				parent_ddown_reg);
 			var data_list = [
-				{db_type:'rrdb', list:rrdbcollection_list},
-				{db_type:'tourndb', list:tourndbcollection_list},
-				{db_type:'fielddb', list:fielddb_list},
-				{db_type:'newscheddb', list:newscheddb_list},
-				{db_type:'prefdb', list:prefdb_list}];
+				{db_type:'rrdb', db_list:rrdbcollection_list},
+				{db_type:'tourndb', db_list:tourndbcollection_list},
+				{db_type:'fielddb', db_list:fielddb_list},
+				{db_type:'newscheddb', db_list:newscheddb_list},
+				{db_type:'prefdb', db_list:prefdb_list}];
+			// store initial data returned from server
+			storeutil_obj.store_init_data(data_list)
+			// create initial wizard UI
 			wizardlogic_obj.create();
+			// create advanced UI
+			var info_obj_list = [
+				{id:'div_id', info_obj:divinfo_obj},
+				{id:'tourndiv_id', info_obj:tourndivinfo_obj},
+				{id:'field_id', info_obj:fieldinfo_obj},
+				{id:'newsched_id', info_obj:newschedbase_obj},
+				{id:'pref_id', info_obj:preferenceinfo_obj}
+			]
+			storeutil_obj.init_advanced_UI(info_obj_list);
 			console.log("load basic info complete");
 		}
 /*
@@ -145,22 +129,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
  			parser.parse();
  			// UI Stack Manager obj can only be created after html has been parsed
 			// as UIStackManager constructor needs to identify widgets
-			uiStackManager = new UIStackManager();
-			divinfo_obj.uistackmgr = uiStackManager;
-			tourndivinfo_obj.uistackmgr = uiStackManager;
-			fieldinfo_obj.uistackmgr = uiStackManager;
-			//schedinfo_obj.uistackmgr = uiStackManager;
-			newschedbase_obj.uistackmgr = uiStackManager;
-			preferenceinfo_obj.uistackmgr = uiStackManager;
-			wizardlogic_obj.uistackmgr = uiStackManager;
 			serverInterface.getServerData("leaguedivinfo", leaguediv_func);
-			//on(registry.byId("divisionPane"),"show",resizeDivisionPaneGrids);
-			//on(registry.byId("teamsPane"),"show",resizeTeamsPaneGrids);
-			//on(registry.byId("fieldsPane"),"show",resizeFieldsPaneGrids);
-			//on(registry.byId("metricsPane"),"show",resizeMetricsPaneGrids);
-			on(registry.byId("editPane"),"show",resizeEditPaneGrids);
-			on(registry.byId("editPane"),"load",scrollTopEditPane);
-			//on(registry.byId("tournamentPane"),"show",resizeTournamentPaneGrids);
 			//on(registry.byId("elimination2013"), "click", elimination2013);
 			//on(registry.byId("export_elimination2013"), "click", export_elim2013);
  		});

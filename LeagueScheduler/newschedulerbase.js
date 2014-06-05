@@ -59,7 +59,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		return declare(null, {
 			dbname_reg : null, form_reg: null, server_interface:null,
 			newsched_name:"", newsched_dom:"",
-			schedutil_obj:null, storeutil_obj:null,
+			schedutil_obj:null, storeutil_obj:null, op_type:"",
 			info_obj:null, idproperty:constant.idproperty_str,
 			server_path:"", server_key:"",
 			seasondates_btn_reg:null,
@@ -124,7 +124,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					fair_id:null};
 				this.calendarmap_obj = new Object();
 			},
-			initialize: function() {
+			initialize: function(op_type) {
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				var form_id = "";
 				this.form_reg = registry.byId(constant.form_name);
 				//this.dbname_reg = registry.byId("newsched_input_id");
 				// put selector documentation
@@ -159,13 +161,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 
 				this.seasondates_btn_reg = registry.byId("seasondates_btn");
-				this.showConfig();
+				this.showConfig(op_type);
 			},
-			set_obj: function(schedutil_obj, storeutil_obj) {
-				this.schedutil_obj = schedutil_obj;
-				this.storeutil_obj = storeutil_obj;
-			},
-			showConfig: function() {
+			showConfig: function(op_type) {
 				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage:"preconfig", entry_pt:"init"});
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
@@ -492,7 +490,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// now we want to create and populate grids, starting with
 				// divinfo/fieldinfo grid.  First check if local store has data
 				// corresponding to current collection
-				var info_obj = baseinfoSingleton.get_obj(idproperty);
+				var info_obj = baseinfoSingleton.get_obj(idproperty, this.op_type);
 				if (info_obj) {
 					if (info_obj.infogrid_store &&
 						info_obj.activegrid_colname == select_value) {
@@ -537,7 +535,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// for team id selection has been created; if it has not
 				// create the dropdown.
 				// first see if divinfo information is in current store
-				var divinfo_obj = baseinfoSingleton.get_obj('div_id');
+				var divinfo_obj = baseinfoSingleton.get_obj('div_id', this.op_type);
 				if (divinfo_obj && divinfo_obj.infogrid_store &&
 					divinfo_obj.activegrid_colname == select_value) {
 					// if in store, get data and create dropdown
