@@ -1,12 +1,13 @@
 // define observable store-related utility functions
-define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Observable","dojo/store/Memory","dijit/registry",
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
 	"dijit/Tooltip", "dijit/form/DropDownButton", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfoSingleton","put-selector/put",
 	"dojo/domReady!"],
-	function(dom, declare, lang, arrayUtil, Observable, Memory, registry,
+	function(dbootstrap, dom, declare, lang, arrayUtil, Observable, Memory,
+		registry,
 		DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
 		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane,
 		baseinfoSingleton, put) {
@@ -197,7 +198,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var advanced_cpane = new ContentPane({
 					title:"Advanced",
 					id:"editPane",
-					doLayout:false,
+					class:"allonehundred",
+					//doLayout:false,
 				})
 				advanced_cpane.on("show", lang.hitch(this, function(evt) {
 					console.log("advanced onshow");
@@ -337,7 +339,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var ddownmenu_widget = new DropDownMenu();
 				var popmbaritem_widget = new PopupMenuBarItem({
 					label:match_obj.label_str,
-					style:"color:green; font:bond",
+					style:"color:blue; font:bond",
 					popup:ddownmenu_widget
 				})
 				tooltipconfig_list.push({

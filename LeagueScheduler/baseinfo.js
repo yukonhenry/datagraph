@@ -29,6 +29,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					text_id:"infotxt_id"});
 				this.btntxtid_list.push({op_type:"wizard", id:"div_id",
 					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id"})
+				// tourndiv maps to the same id's as div
+				this.btntxtid_list.push({op_type:"wizard", id:"tourndiv_id",
+					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id"})
+				this.btntxtid_list.push({op_type:"wizard", id:"field_id",
+					btn_id:"wizfieldinfobtn_id", text_id:"wizfieldinfotxt_id"})
+				this.btntxtid_list.push({op_type:"wizard", id:"pref_id",
+					btn_id:"wizprefinfobtn_id", text_id:"wizprefinfotxt_id"})
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;

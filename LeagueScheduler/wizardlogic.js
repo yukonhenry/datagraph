@@ -35,7 +35,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var wizuistackmgr = new WizUIStackManager();
 				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
-				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', doLayout:false, id:"wiztop_cpane_id"});
+				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:"wiztop_cpane_id"});
 				tabcontainer.addChild(container_cpane);
 				//tabcontainer.selectChild(container_cpane);
 				//container_cpane.resize();

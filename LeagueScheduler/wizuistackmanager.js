@@ -8,31 +8,22 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		var constant = {
 			// param stack  cpaneid's
 			nfcpane_id:"wiznumfieldcpane_id",
-			tcpane_id:"wiztextbtncpane_id",
 			ndcpane_id:"wiznumdivcpane_id",
 			ntcpane_id:"wiznumtourndivcpane_id",
 			nscpane_id:"wiznewschedcpane_id",
 			sccpane_id:"wizseasoncalendar_input",
 			ppcpane_id:"wizprefparamcpane_id",
 			// grid stack id's
-			divcpane_id:"wizdivinfocpane_id",
-			tourndivcpane_id:"wiztourndivinfocpane_id",
-			fieldbcontainer_id:"wizfieldinfobcontainer_id",
-			fieldcpane_id:"wizfieldinfocpane_id",
-			prefcpane_id:"wizprefinfocpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 			// form and span id's
-			nscform_id:"wiznewsched_form_id",
 			nsctxt_id:"wiznewschedtxt_id",
-			tdform_id:"wiztourndiv_form_id",
-			pform_id:"wizpref_form_id",
 		};
 		return declare(null, {
 			pstackcontainer_list:null, pstackmap_list:null,
 			gstackcontainer_list:null, gstackmap_list:null,
 			cpanestate_list:null, updatebtn_widget:null,
-			current_grid:null, null_cpanestate:null,
+			current_grid:null, null_cpanestate:null, wizardid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				// For the wizard page, there will be stack container
@@ -43,6 +34,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.gstackcontainer_list = new Array();
 				this.resetcpane_list = new Array()
 				this.blankcpane_list = new Array();
+				this.gstackmap_list = new Array();
+				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
 				arrayUtil.forEach(id_list, function(item) {
 					// strip off the 'id' suffix portion
@@ -56,6 +49,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						cpane_id:idmgr_obj.resetcpane_id})
 					this.blankcpane_list.push({id:item,
 						cpane_id:idmgr_obj.blankcpane_id})
+					//this.gstackmap_list.push({id:item, pane_id:idmgr_obj.gridcpane_id})
 				}, this)
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
@@ -63,15 +57,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
 					pane_id:constant.nfcpane_id});
 				this.pstackmap_list.push({id:'field_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('field_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'preconfig',
 					pane_id:constant.ndcpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('div_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
 					pane_id:constant.ntcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('tourndiv_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
@@ -79,7 +73,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
 					pane_id:constant.ppcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
 				// define mapping object for the grid content pane
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
@@ -87,10 +81,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.blankcpane_list, 'id', 'newsched_id').cpane_id;
 				this.gstackmap_list = [
 					{id:'newsched_id', pane_id:newsched_blankcpane_id},
-					{id:'div_id', pane_id:constant.divcpane_id},
-					{id:'tourndiv_id', pane_id:constant.tourndivcpane_id},
-					{id:'field_id', pane_id:constant.fieldbcontainer_id},
-					{id:'pref_id', pane_id:constant.prefcpane_id}];
+					{id:'div_id',
+						pane_id:this.get_idstr_obj('div_id').gridcpane_id},
+					{id:'tourndiv_id',
+						pane_id:this.get_idstr_obj('tourndiv_id').gridcpane_id},
+					{id:'field_id',
+						pane_id:this.get_idstr_obj('field_id').bcontainer_id},
+					{id:'pref_id',
+						pane_id:this.get_idstr_obj('pref_id').gridcpane_id}];
 				this.cpanestate_list = new Array();
 				arrayUtil.forEach(this.gstackmap_list, function(item, index) {
 					/* cpanestate_list tracks current configuration state for each
@@ -107,6 +105,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						text_str:"", btn_callback:null, updatebtn_str:"",
 						active_flag:false});
 				}, this);
+			},
+			get_idstr_obj: function(id) {
+				var idmgr_obj = this.getuniquematch_obj(this.wizardid_list,
+					'id', id);
+				return idmgr_obj.idstr_obj;
 			},
 			getuniquematch_obj: function(list, key, value) {
 				var match_list = arrayUtil.filter(list,
@@ -151,8 +154,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.reset_cpanestate_active();
 			},
 			swapactive_pgstackcpane: function(match_obj) {
-				this.pstackcontainer_reg.selectChild(match_obj.p_pane);
-				this.gstackcontainer_reg.selectChild(match_obj.g_pane);
+				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', match_obj.id).container_id;
+				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
+				pstackcontainer_reg.selectChild(match_obj.p_pane);
+				var gstackcontainer_id = this.getuniquematch_obj(this.gstackcontainer_list, 'id', match_obj.id).container_id;
+				var gstackcontainer_reg = registry.byId(gstackcontainer_id);
+				gstackcontainer_reg.selectChild(match_obj.g_pane);
 				this.setreset_cpanestate_active(match_obj);
 			},
 			get_null_cpanestate: function(idproperty) {

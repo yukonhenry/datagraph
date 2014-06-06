@@ -8,7 +8,9 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
 			grid_id:"infogrid_id", league_select_id:"league_select_id",
 			pcontainer_id:"pcontainer_id", gcontainer_id:"gcontainer_id",
-			blankcpane_id:"blankcpane_id", resetcpane_id:"resetcpane_id"};
+			blankcpane_id:"blankcpane_id", resetcpane_id:"resetcpane_id",
+			gridcpane_id:"gridcpane_id", textbtncpane_id:"textbtncpane_id",
+			bcontainer_id:"bcontainer_id"}
 		var op_type_list = ['advance', 'wizard'];
 		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
 			'pref_id']

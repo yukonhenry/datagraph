@@ -1,12 +1,12 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
+define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
-	function(declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
+	function(dbootstrap, declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
 		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
 		baseinfo, baseinfoSingleton, WidgetGen, idmgrSingleton, put){
 		var constant = {
@@ -27,11 +27,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			numweeks:12
 		};
 		var wizconstant = {
-			tcpane_id:"wiztextbtncpane_id",
 			ndcpane_id:"wiznumdivcpane_id",
 			divcpane_id:"wizdivinfocpane_id",
-			infotxt_id:"wizdivinfotxt_id",
-			infobtn_id:"wizdivinfobtn_id",
 			// grid hosting div id's
 			start_datebox_id:'wizstart_dtbox_id',
 			end_datebox_id:'wizend_dtbox_id',
@@ -263,12 +260,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.pstackcontainer.addChild(div_cpane);
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
-					id:wizconstant.tcpane_id,
+					id:this.idmgr_obj.textbtncpane_id,
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]",
-					wizconstant.infotxt_id);
+					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
 				put(txtbtn_cpane.containerNode, "button[id=$]",
-					wizconstant.infobtn_id);
+					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({
@@ -283,7 +280,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.gstackcontainer.addChild(blank_cpane);
 				// add divinfo cpane and grid div
 				var div_cpane = new ContentPane({
-					id:wizconstant.divcpane_id,
+					id:this.idmgr_obj.gridcpane_id,
 				})
 				put(div_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);

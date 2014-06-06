@@ -9,14 +9,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/form/Button", "dijit/form/Form", "dijit/form/NumberTextBox",
 	"dijit/form/ValidationTextBox", "dijit/Tooltip",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
-	"dijit/TitlePane",
+	"dijit/TitlePane", "dijit/layout/StackContainer",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, idmgrSingleton,
 		WidgetGen,
 		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
 		CheckBox, Button, Form, NumberTextBox, ValidationTextBox,
-		Tooltip, BorderContainer, ContentPane, TitlePane, put, Calendar){
+		Tooltip, BorderContainer, ContentPane, TitlePane, StackContainer,
+		put, Calendar){
 		var constant = {
 			idproperty_str:"field_id",
 			updatebtn_str:"Update Field Info",
@@ -33,6 +34,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			//radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
 			//league_select_id:"league_select_id",
 			default_fieldevent_str:"Sports"
+		};
+		var wizconstant = {
+			nfcpane_id:"wiznumfieldcpane_id",
 		};
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
@@ -234,7 +238,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// if it doesn't exist, then we need to create it
 					// first get the top-level cpane widget (which is also a
 					// bordercontainer)
-					var fieldinfocpane = registry.byId("fieldinfobcontainer_id");
+					var fieldinfocpane = registry.byId(this.idmgr_obj.bcontainer_id);
 					// created border container
 					var detailed_bordercontainer = new BorderContainer({
 						region:'center', design:'sidebar', gutters:true,
@@ -1289,7 +1293,61 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
         		return totalfielddays;
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
-
+				// create cpane control for divinfo wizard pane under menubar
+				this.pstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%",
+					id:this.idmgr_obj.pcontainer_id
+				}, pcontainerdiv_node);
+				// reset pane for initialization and after delete
+				var reset_cpane = new ContentPane({
+					id:this.idmgr_obj.resetcpane_id
+				})
+				this.pstackcontainer.addChild(reset_cpane)
+				// add field config (number) cpane
+				var field_cpane = new ContentPane({
+					id:wizconstant.nfcpane_id,
+				})
+				var field_form = new Form({
+					id:this.idmgr_obj.form_id
+				})
+				field_cpane.addChild(field_form);
+				this.pstackcontainer.addChild(field_cpane);
+				// add txt + button cpane
+				var txtbtn_cpane = new ContentPane({
+					id:this.idmgr_obj.textbtncpane_id
+				})
+				put(txtbtn_cpane.containerNode, "span[id=$]",
+					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
+				put(txtbtn_cpane.containerNode, "button[id=$]",
+					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+				this.pstackcontainer.addChild(txtbtn_cpane)
+				// create grid stack container and grid
+				this.gstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"clear:left",
+					id:this.idmgr_obj.gcontainer_id
+				}, gcontainerdiv_node);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:this.idmgr_obj.blankcpane_id
+				})
+				this.gstackcontainer.addChild(blank_cpane);
+				// add fieldinfo cpane and grid div
+				var field_bcontainer = new BorderContainer({
+					id:this.idmgr_obj.bcontainer_id,
+					design:'headline', gutters:true, liveSplitters:true,
+					style:"height:800px; width:100%"
+				})
+				var field_cpane = new ContentPane({
+					id:this.idmgr_obj.gridcpane_id,
+					region:'top',
+					style:"height:300px; width:100%"
+				})
+				put(field_cpane.containerNode, "div[id=$]",
+					this.idmgr_obj.grid_id);
+				field_bcontainer.addChild(field_cpane);
+				this.gstackcontainer.addChild(field_bcontainer);
 			},
 			cleanup: function() {
 				if (this.starttime_handle)

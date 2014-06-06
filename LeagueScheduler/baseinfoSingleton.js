@@ -28,6 +28,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					item.watch_obj.watch('divstr_list',
 						lang.hitch(this,function(name, oldValue, value) {
 							var fieldinfo_obj = this.get_obj('field_id', item.op_type);
+							// if editgrid has not been created, no sweat, as  divstr
+							// is also queried after fieldinfo grid is created
 							if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
 								fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
 							}
@@ -54,10 +56,10 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				match_obj.watch_obj.set(watch_field, value);
 			},
 			get_watch_obj: function(watch_field, op_type) {
-				var watch_obj = arrayUtil.filter(this.watch_list, function(item) {
+				var match_obj = arrayUtil.filter(this.watch_list, function(item) {
 					return item.op_type == op_type;
 				})[0];
-				return watch_obj[watch_field];
+				return match_obj.watch_obj.get(watch_field);
 			},
 			get_obj: function(idproperty, op_type) {
 				var match_list = arrayUtil.filter(this.obj_list,
