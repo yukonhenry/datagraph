@@ -117,7 +117,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//style:"width:500px; height:400px; border:1px solid red"
 				})
 				wizard_reg.addChild(fieldinfo_wpane);
-				//-------------------------//
+				//-------------------------------------------//
+				// Preference Config Pane
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
 				var prefinfo_obj = new preferenceinfo({
@@ -126,12 +127,37 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
+				pcontainerdiv_node = put(topdiv_node, "div")
+				gcontainerdiv_node = put(topdiv_node, "div")
+				prefinfo_obj.create_wizardcontrol(pcontainerdiv_node,
+					gcontainerdiv_node);
 				var prefinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
 				})
 				wizard_reg.addChild(prefinfo_wpane);
+				//----------------------------------------------//
+				// Schedule Generation
+				topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>In this Pane, Select Parameters - Divsion List (required), Field List (required), and Preference List (optional) and name the Schedule.  After the parameters are selected using the dropdown element, press the 'Generate' button.  Additional tabs will be created after the schedule is generated, each with a different view into the schedule - by division, by team, by field.  Fairness metrics are also displayed in a separate tab.</i><br><br>";
+				var newschedinfo_obj = new newschedulerbase({
+					server_interface:this.server_interface,
+					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					op_type:"wizard"});
+				menubar_node = put(topdiv_node, "div");
+				this.storeutil_obj.create_menubar('newsched_id', newschedinfo_obj, true, menubar_node);
+				pcontainerdiv_node = put(topdiv_node, "div")
+				gcontainerdiv_node = put(topdiv_node, "div")
+				newschedinfo_obj.create_wizardcontrol(pcontainerdiv_node,
+					gcontainerdiv_node);
+				var newschedinfo_wpane = new WizardPane({
+					content:topdiv_node,
+					//class:'allauto'
+					//style:"width:500px; height:400px; border:1px solid red"
+				})
+				/////////////////////
+				wizard_reg.addChild(newschedinfo_wpane);
 				wizard_reg.startup();
 				wizard_reg.resize();
 				container_cpane.resize();

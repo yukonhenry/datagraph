@@ -1,30 +1,36 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
 	"dijit/form/DateTextBox", "dijit/form/TimeTextBox", "dgrid/editor",
+	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
+	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, NumberTextBox,
-		ValidationTextBox, DateTextBox, TimeTextBox, editor, baseinfo,
-		baseinfoSingleton, put){
+		ValidationTextBox, DateTextBox, TimeTextBox, editor, Form, StackContainer,
+		ContentPane, baseinfo,
+		baseinfoSingleton, idmgrSingleton, put){
 		var constant = {
-			idproperty_str:'pref_id', grid_id:'prefinfogrid_id', db_type:'prefdb',
-			form_id:'pref_form_id', dbname_id:'prefdbname_id',
+			idproperty_str:'pref_id', db_type:'prefdb',
 			dbname_str:'New Preference List Name',
 			vtextbox_str:'Enter Preference List Name',
 			ntextbox_str:'Enter Number of Preferences',
-			inputnum_id:'prefinputnum_id',
 			inputnum_str:'Number of Preferences',
 			text_node_str:'Preference List Name',
 			updatebtn_str:'Update Preference Info',
 			text_node_str: 'Preference List Name',
 		};
+		var wizconstant = {
+			npcpane_id:"wiznumprefcpane_id",
+		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
-			db_type:constant.db_type, today:null,
+			db_type:constant.db_type, today:null, idmgr_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.today = new Date();
+				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -99,17 +105,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				});
 				return newlist;
 			},
-			initialize: function(newgrid_flag) {
-				var form_reg = registry.byId(constant.form_id);
+			initialize: function(newgrid_flag, op_type) {
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				var form_reg = registry.byId(this.idmgr_obj.form_id);
 				var form_node = form_reg.domNode;
-				var dbname_reg = null;
+				var dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
 				var inputnum_reg = null;
-				if (!dbname_node) {
+				if (!dbname_reg) {
 					put(form_node, "label.label_box[for=$]",
-						constant.dbname_id, constant.dbname_str);
+						this.idmgr_obj.dbname_id, constant.dbname_str);
 					var dbname_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.dbname_id)
+						this.idmgr_obj.dbname_id)
 					dbname_reg = new ValidationTextBox({
 						value:'',
 						regExp:'\\D[\\w]+',
@@ -120,10 +127,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
-						constant.inputnum_id, constant.inputnum_str);
+						this.idmgr_obj.inputnum_id, constant.inputnum_str);
 					var inputnum_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.inputnum_id);
+						this.idmgr_obj.inputnum_id);
 					inputnum_reg = new NumberTextBox({
 						value:'1',
 						style:'width:5em',
@@ -133,13 +140,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						missingMessage:constant.ntextbox_str+' (positive integer)'
 					}, inputnum_node);
 				} else {
-					dbname_reg = registry.byId(constant.dbname_id);
-					inputnum_reg = registry.byId(constant.inputnum_id);
+					inputnum_reg = registry.byId(this.idmgr_obj.inputnum_id);
 				}
-				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
+				var tooltipconfig_list = [{connectId:[this.idmgr_obj.inputnum_id],
 					label:"Specify Initial Number of Preferences and press ENTER",
 					position:['below','after']},
-					{connectId:[constant.dbname_id],
+					{connectId:[this.idmgr_obj.dbname_id],
 					label:"Specify Preference List Name",
 					position:['below','after']}];
 				var args_obj = {
@@ -149,11 +155,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					server_path:"create_newdbcol/",
 					server_key:'info_data',
 					text_node_str: constant.text_node_str,
-					grid_id:constant.grid_id,
+					grid_id:this.idmgr_obj.grid_id,
 					updatebtn_str:constant.updatebtn_str,
 					tooltipconfig_list:tooltipconfig_list,
 					newgrid_flag:newgrid_flag,
-					cellselect_flag:false
+					cellselect_flag:false,
+					op_type:op_type
 				}
 				this.showConfig(args_obj);
 			},
@@ -170,7 +177,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Preference List Name";
-				options_obj.grid_id = constant.grid_id;
+				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
 				options_obj.db_type = constant.db_type;
@@ -185,6 +192,55 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						end_before:new Date(2014,0,1,17,0,0)});
 				}
 				return info_list;
+			},
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
+				// create cpane control for divinfo wizard pane under menubar
+				this.pstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%",
+					id:this.idmgr_obj.pcontainer_id
+				}, pcontainerdiv_node);
+				// reset pane for initialization and after delete
+				var reset_cpane = new ContentPane({
+					id:this.idmgr_obj.resetcpane_id
+				})
+				this.pstackcontainer.addChild(reset_cpane)
+				// add pref config (number) cpane
+				var pref_cpane = new ContentPane({
+					id:wizconstant.npcpane_id,
+				})
+				var pref_form = new Form({
+					id:this.idmgr_obj.form_id
+				})
+				pref_cpane.addChild(pref_form);
+				this.pstackcontainer.addChild(pref_cpane);
+				// add txt + button cpane
+				var txtbtn_cpane = new ContentPane({
+					id:this.idmgr_obj.textbtncpane_id,
+				})
+				put(txtbtn_cpane.containerNode, "span[id=$]",
+					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
+				put(txtbtn_cpane.containerNode, "button[id=$]",
+					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+				this.pstackcontainer.addChild(txtbtn_cpane)
+				// create grid stack container and grid
+				this.gstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"clear:left",
+					id:this.idmgr_obj.gcontainer_id
+				}, gcontainerdiv_node);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:this.idmgr_obj.blankcpane_id
+				})
+				this.gstackcontainer.addChild(blank_cpane);
+				// add divinfo cpane and grid div
+				var prefgrid_cpane = new ContentPane({
+					id:this.idmgr_obj.gridcpane_id,
+				})
+				put(prefgrid_cpane.containerNode, "div[id=$]",
+					this.idmgr_obj.grid_id);
+				this.gstackcontainer.addChild(prefgrid_cpane);
 			},
 		});
 });

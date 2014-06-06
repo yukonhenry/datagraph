@@ -10,14 +10,12 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
 		baseinfo, baseinfoSingleton, WidgetGen, idmgrSingleton, put){
 		var constant = {
-			idproperty_str:'div_id', form_id:'div_form_id', dbname_id:'rrdbname_id',
-			inputnum_id:'divinputnum_id',
+			idproperty_str:'div_id',
 			inputnum_str:'Number of Divisions',
 			dbname_str:'New Division List Name',
 			vtextbox_str:'Enter Division List Name',
 			ntextbox_str:'Enter Number of Divisions',
 			updatebtn_str:"Update Div Info",
-			grid_id:"divinfogrid_id",
 			text_node_str: 'Division List Name',
 			db_type:'rrdb',
 			start_datebox_id:'start_dtbox_id',
@@ -28,7 +26,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 		};
 		var wizconstant = {
 			ndcpane_id:"wiznumdivcpane_id",
-			divcpane_id:"wizdivinfocpane_id",
 			// grid hosting div id's
 			start_datebox_id:'wizstart_dtbox_id',
 			end_datebox_id:'wizend_dtbox_id',
@@ -279,12 +276,12 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 				})
 				this.gstackcontainer.addChild(blank_cpane);
 				// add divinfo cpane and grid div
-				var div_cpane = new ContentPane({
+				var divgrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
 				})
-				put(div_cpane.containerNode, "div[id=$]",
+				put(divgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);
-				this.gstackcontainer.addChild(div_cpane);
+				this.gstackcontainer.addChild(divgrid_cpane);
 			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.

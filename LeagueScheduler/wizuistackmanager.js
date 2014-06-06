@@ -12,7 +12,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			ntcpane_id:"wiznumtourndivcpane_id",
 			nscpane_id:"wiznewschedcpane_id",
 			sccpane_id:"wizseasoncalendar_input",
-			ppcpane_id:"wizprefparamcpane_id",
+			npcpane_id:"wiznumprefcpane_id",
 			// grid stack id's
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
@@ -71,7 +71,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
 					pane_id:constant.sccpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
-					pane_id:constant.ppcpane_id});
+					pane_id:constant.npcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
 				// define mapping object for the grid content pane

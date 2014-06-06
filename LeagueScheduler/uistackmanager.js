@@ -15,7 +15,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			sdcpane_id:"scheddivcpane_id",
 			nscpane_id:"newschedcpane_id",
 			sccpane_id:"seasoncalendar_input",
-			ppcpane_id:"prefparamcpane_id",
+			npcpane_id:"numprefcpane_id",
 			// grid stack id's
 			divcpane_id:"divinfocpane_id",
 			tourndivcpane_id:"tourndivinfocpane_id",
@@ -64,7 +64,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
 					pane_id:constant.sccpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
-					pane_id:constant.ppcpane_id});
+					pane_id:constant.npcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				// define mapping object for the grid content pane
@@ -510,7 +510,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				idstr_obj = this.get_idstr_obj(
 					'pref_id');
 				var pref_cpane = new ContentPane({
-					id:constant.ppcpane_id
+					id:constant.npcpane_id
 				})
 				var pref_form = new Form({
 					id:idstr_obj.form_id

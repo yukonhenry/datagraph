@@ -3,18 +3,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dojo/store/Observable",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
-	"dijit/form/DateTextBox", "dijit/layout/ContentPane", "dgrid/Grid",
+	"dijit/form/DateTextBox", "dijit/form/Form",
+	"dijit/layout/StackContainer","dijit/layout/ContentPane", "dgrid/Grid",
 	"dgrid/OnDemandGrid", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
-	"LeagueScheduler/widgetgen",
+	"LeagueScheduler/widgetgen", "LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "underscore-min", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory, Observable, registry, Tooltip, ValidationTextBox, Select, Button,
-		DateTextBox, ContentPane, Grid, OnDemandGrid, Keyboard, Selection, EditGrid,
-		baseinfoSingleton, WidgetGen, put) {
+		DateTextBox, Form, StackContainer, ContentPane, Grid, OnDemandGrid,
+		Keyboard, Selection, EditGrid,
+		baseinfoSingleton, WidgetGen, idmgrSingleton, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
-			form_name:'newsched_form_id',
 			scinput_div:'seasoncalendar_input',
 			radio1_id:'scradio1_id',
 			radio2_id:'scradio2_id',
@@ -77,9 +78,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			sched_store_mapobj:null, sched_grid_mapobj:null,
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
+			idmgr_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
+				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:this.idproperty, op_type:this.op_type});
 				this.newschedwatch_obj = new newschedwatch_class();
 				this.newschedwatch_obj.watch('leagueselect_flag',
 					lang.hitch(this, function(name, oldValue, value) {
@@ -126,8 +130,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			initialize: function(op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
-				var form_id = "";
-				this.form_reg = registry.byId(constant.form_name);
+				this.form_reg = registry.byId(this.idmgr_obj.form_id);
 				//this.dbname_reg = registry.byId("newsched_input_id");
 				// put selector documentation
 				// http://davidwalsh.name/put-selector
@@ -833,6 +836,55 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.newschedwatch_obj.set("leagueselect_flag", false);
 				this.newschedwatch_obj.set("fgselect_flag", false);
 				this.newschedwatch_obj.set("league_fg_flag", false);
+			},
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
+				// create cpane control for divinfo wizard pane under menubar
+				this.pstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%",
+					id:this.idmgr_obj.pcontainer_id
+				}, pcontainerdiv_node);
+				// reset pane for initialization and after delete
+				var reset_cpane = new ContentPane({
+					id:this.idmgr_obj.resetcpane_id
+				})
+				this.pstackcontainer.addChild(reset_cpane)
+				// add div config (number) cpane
+				var div_cpane = new ContentPane({
+					id:wizconstant.ndcpane_id,
+				})
+				var div_form = new Form({
+					id:this.idmgr_obj.form_id
+				})
+				div_cpane.addChild(div_form);
+				this.pstackcontainer.addChild(div_cpane);
+				// add txt + button cpane
+				var txtbtn_cpane = new ContentPane({
+					id:this.idmgr_obj.textbtncpane_id,
+				})
+				put(txtbtn_cpane.containerNode, "span[id=$]",
+					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
+				put(txtbtn_cpane.containerNode, "button[id=$]",
+					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+				this.pstackcontainer.addChild(txtbtn_cpane)
+				// create grid stack container and grid
+				this.gstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"clear:left",
+					id:this.idmgr_obj.gcontainer_id
+				}, gcontainerdiv_node);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:this.idmgr_obj.blankcpane_id
+				})
+				this.gstackcontainer.addChild(blank_cpane);
+				// add divinfo cpane and grid div
+				var divgrid_cpane = new ContentPane({
+					id:this.idmgr_obj.gridcpane_id,
+				})
+				put(divgrid_cpane.containerNode, "div[id=$]",
+					this.idmgr_obj.grid_id);
+				this.gstackcontainer.addChild(divgrid_cpane);
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

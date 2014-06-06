@@ -53,7 +53,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			infogrid_store:null, calendarmapobj_list:null,
 			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
-			delta_store:null, idmgr_obj:null,
+			delta_store:null, idmgr_obj:null, op_prefix:"",
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -61,8 +61,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				lang.mixin(this, args);
 				this.today = new Date();
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
+				// get list of id's for this id and op_type
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
 					id:this.idproperty, op_type:this.op_type});
+				// use to create op-type unique id strings local to this file
+				this.op_prefix = this.op_type.substring(0,3);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -125,9 +128,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
 				var form_reg = registry.byId(this.idmgr_obj.form_id);
 				var form_node = form_reg.domNode;
-				var dbname_reg = null;
+				var dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
 				var inputnum_reg = null;
-				if (!dbname_node) {
+				if (!dbname_reg) {
 					put(form_node, "label.label_box[for=$]",
 						this.idmgr_obj.dbname_id, constant.dbname_str);
 					var dbname_node = put(form_node,
@@ -156,7 +159,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						missingMessage:constant.ntextbox_str+' (positive integer)'
 					}, inputnum_node);
 				} else {
-					dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
 					inputnum_reg = registry.byId(this.idmgr_obj.inputnum_id);
 				}
 				var tooltipconfig_list = [{connectId:[this.idmgr_obj.inputnum_id],
@@ -233,7 +235,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// see if we can get the 1st level bordercontainer which should be
 				// below the top-level cpane which also happens to be a border
 				// container.
-				var detailed_bordercontainer = registry.byId("detailed_bordercontainer_id");
+				var dbcontainer_id = this.op_prefix+"detailed_bordercontainer_id"
+				var detailed_bordercontainer = registry.byId(dbcontainer_id);
 				if (!detailed_bordercontainer) {
 					// if it doesn't exist, then we need to create it
 					// first get the top-level cpane widget (which is also a
@@ -243,20 +246,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var detailed_bordercontainer = new BorderContainer({
 						region:'center', design:'sidebar', gutters:true,
 						liveSplitters:true, class:'allonehundred',
-						id:'detailed_bordercontainer_id'
+						id:dbcontainer_id
 					});
 					var detailed_leftcpane = new ContentPane({
 						splitter:true, region:'leading',
-						id:'detailed_leftcpane_id'
+						//id:'detailed_leftcpane_id'
 					})
 					// start defining timepane content
-					var tpcontent_node = put("div#title_pane_content_id");
-					put(tpcontent_node, "label.label_box[for=fieldselect_id]",
+					//var tpcontent_node = put("div#title_pane_content_id");
+					var fieldselect_id = this.op_prefix + "fieldselect_id";
+					var tpcontent_node = put("div");
+					put(tpcontent_node, "label.label_box[for=$]",fieldselect_id,
 						"Select Venue:");
 					var fieldselect_node = put(tpcontent_node,
-						"select#fieldselect_id[name=fieldselect_id]");
+						"select[id=$][name=$]", fieldselect_id, fieldselect_id);
 					this.fieldselect_widget = new Select({
-						name:"fieldselect_id",
+						name:fieldselect_id,
 						onChange: lang.hitch(this, function(event) {
 							// call edit_calendar with event as field_id
 							this.edit_calendar(event);
@@ -287,15 +292,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// on top of the created nodes.  See also baseinfo.js with use
 					// of dbname widgets etc.
 					// create dojo form widget
-					var tpform_node = put(tpcontent_node, "form#tpform_id");
+					var tpform_node = put(tpcontent_node, "form");
 					var tpform_widget = new Form({}, tpform_node);
 					var tpform_domnode = tpform_widget.domNode;
 					// Note tpform_domnode does not equal tpform_node, but confirm
 					// create elements that fall under form
+					var tpform_input_id = this.op_prefix+"tpform_input_id";
 					put(tpform_domnode,
-						"label.label_box[for=tpform_input_id]", "Event Name:");
+						"label.label_box[for=$]", tpform_input_id, "Event Name:");
 					var tpform_input_node = put(tpform_domnode,
-						"input#tpform_input_id");
+						"input[id=$]", tpform_input_id);
 					this.tpform_input_widget = new ValidationTextBox({
 						value:constant.default_fieldevent_str, required:true, regExp:'[\\w]+',
 						promptMessage:'Enter Event Name - only alphanumeric characters and _',
@@ -305,52 +311,56 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}, tpform_input_node);
 					put(tpform_domnode,"br, br");
 					// create date input
+					var tpform_date_id = this.op_prefix+"tpform_date_id";
 					put(tpform_domnode,
-						"label.label_box[for=tpform_date_id]", "Event Date:");
+						"label.label_box[for=$]", tpform_date_id, "Event Date:");
 					var tpform_date_node = put(tpform_domnode,
-						"input#tpform_date_id");
+						"input[id=$]", tpform_date_id);
 					this.tpform_date_widget = new DateTextBox({
 						value:this.today, style:'width:150px'
 					}, tpform_date_node);
 					put(tpform_domnode,"br, br");
 					// create time input
+					var tpform_starttime_id = this.op_prefix+"tpform_starttime_id";
 					put(tpform_domnode,
-						"label.label_box[for=tpform_starttime_id]", "Start:");
+						"label.label_box[for=$]", tpform_starttime_id, "Start:");
 					var tpform_starttime_node = put(tpform_domnode,
-						"input#tpform_starttime_id");
+						"input[id=$]", tpform_starttime_id);
 					this.tpform_starttime_widget = new TimeTextBox({
 						value:"T08:00:00", style:'width:110px'
 					}, tpform_starttime_node);
 					put(tpform_domnode,"br");
+					// end time spec
+					var tpform_endtime_id = this.op_prefix+"tpform_endtime_id";
 					put(tpform_domnode,
-						"label.label_box[for=tpform_endtime_id]", "End:");
+						"label.label_box[for=$]", tpform_endtime_id, "End:");
 					var tpform_endtime_node = put(tpform_domnode,
-						"input#tpform_endtime_id");
+						"input[id=$]", tpform_endtime_id);
 					this.tpform_endtime_widget = new TimeTextBox({
 						value:"T09:00:00", style:'width:110px'
 					}, tpform_endtime_node);
 					put(tpform_domnode,"br, br");
 					// create buttons
 					var tpform_chgbtn_node = put(tpform_domnode,
-						"button.dijitButton#tpform_chgbtn_id[type=button]");
+						"button.dijitButton[type=button]");
 					this.tpform_chgbtn_widget = new Button({
 						label:"Change Event", class:"primary", disabled:true
 					}, tpform_chgbtn_node);
 					var tpform_delbtn_node = put(tpform_domnode,
-						"button.dijitButton#tpform_delbtn_id[type=button]");
+						"button.dijitButton[type=button]");
 					this.tpform_delbtn_widget = new Button({
 						label:"Delete Event", class:"info", disabled:true,
 					}, tpform_delbtn_node);
 					put(tpform_domnode, "br, br");
 					// save to server button
 					var tpform_savebtn_node = put(tpform_domnode,
-						"button.dijitButton#tpform_savebtn_id[type=button]");
+						"button.dijitButton[type=button]");
 					this.tpform_savebtn_widget = new Button({
 						label:"Save Changes", class:"success", disabled:true
 					}, tpform_savebtn_node);
 					// cancel changes button
 					var tpform_cancelbtn_node = put(tpform_domnode,
-						"button.dijitButton#tpform_cancelbtn_id[type=button]");
+						"button.dijitButton[type=button]");
 					this.tpform_cancelbtn_widget = new Button({
 						label:"Cancel Changes", class:"warning", disabled:true
 					}, tpform_cancelbtn_node);
@@ -364,7 +374,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// underneath the above bordercontainer we have another
 					// cpane which itself has a div underneath it.
 					// that div will hold the dojox calendar.
-					var calendargrid_node = put("div#calendargrid_id");
+					var calendargrid_node = put("div");
 					var detailed_rightcpane = new ContentPane({
 						splitter:true, region:'center', class:'allauto',
 						content:calendargrid_node
@@ -401,25 +411,29 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if this.calendarmapobj_list does not exist, then no data
 						// has been returned from the server.  Instead, retrieve
 						// data from the current store
-						var item = this.editgrid.schedInfoStore.get(field_id);
-						// convert string elements to int; also sort ascending
-        				var dayweekint_list = arrayUtil.map(
-        					item.dayweek_str.split(','), function(item2) {
-        					return parseInt(item2);
-        					});
-        				// http://www.w3schools.com/jsref/jsref_sort.asp
-        				dayweekint_list.sort(function(a, b){return a-b});
-						var args_obj = {dayweek_list:dayweekint_list,
-							start_date:item.start_date,
-							totalfielddays:item.totalfielddays,
-							start_time_str:item.start_time.toLocaleTimeString(),
-							end_time_str:item.end_time.toLocaleTimeString()};
-						// get calendarmap list that maps fieldday_id to calendar
-						// date, for each field
-						var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
-						var fieldevent_str = constant.default_fieldevent_str;
-						this.populate_calendar_store(calendarmap_list,
-							item.field_id, fieldevent_str);
+						for (var f_id = 1; f_id < this.rownum+1; f_id++) {
+							// even though edit_calendar was called for a specific
+							// field, populate calendar store with all fields
+							var item = this.editgrid.schedInfoStore.get(f_id);
+							// convert string elements to int; also sort ascending
+	        				var dayweekint_list = arrayUtil.map(
+	        					item.dayweek_str.split(','), function(item2) {
+	        					return parseInt(item2);
+	        					});
+	        				// http://www.w3schools.com/jsref/jsref_sort.asp
+	        				dayweekint_list.sort(function(a, b){return a-b});
+							var args_obj = {dayweek_list:dayweekint_list,
+								start_date:item.start_date,
+								totalfielddays:item.totalfielddays,
+								start_time_str:item.start_time.toLocaleTimeString(),
+								end_time_str:item.end_time.toLocaleTimeString()};
+							// get calendarmap list that maps fieldday_id to calendar
+							// date, for each field
+							var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
+							var fieldevent_str = constant.default_fieldevent_str;
+							this.populate_calendar_store(calendarmap_list,
+								item.field_id, fieldevent_str);
+						}
 					}
 					// create dojox calendar - note we create a (blank) calendar
 					// even if there is no calendarmap_obj_list data
@@ -1339,14 +1353,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					design:'headline', gutters:true, liveSplitters:true,
 					style:"height:800px; width:100%"
 				})
-				var field_cpane = new ContentPane({
+				var fieldgrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
 					region:'top',
 					style:"height:300px; width:100%"
 				})
-				put(field_cpane.containerNode, "div[id=$]",
+				put(fieldgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);
-				field_bcontainer.addChild(field_cpane);
+				field_bcontainer.addChild(fieldgrid_cpane);
 				this.gstackcontainer.addChild(field_bcontainer);
 			},
 			cleanup: function() {
