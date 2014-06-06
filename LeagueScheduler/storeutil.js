@@ -29,15 +29,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					mbaritem_id:"prefmbaritem_id"}
 			],
 			initmenu_list:[
-				{id:'div_id', label_str:"Create League Division Info",
+				{id:'div_id', label_str:"Create New Division Info",
 					help_str:"To Create, Click"},
 				{id:'tourndiv_id', label_str:"Create New Tournament Division Info",
 					help_str:"To Create, Click"},
-				{id:'field_id', label_str:"Create Field List",
+				{id:'field_id', label_str:"Create New Field List",
 					help_str:"To Create, Click Here"},
-				{id:'newsched_id', label_str:"Generate Schedule",
+				{id:'newsched_id', label_str:"Generate New Schedule",
 					help_str:"To Create Schedule Paramenters and Generate, Click"},
-				{id:'pref_id', label_str:"Create Preference List",
+				{id:'pref_id', label_str:"Create New Preference List",
 					help_str:"To Create Preferences, Click Here"}
 			],
 			editmenu_list:[
@@ -196,7 +196,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				//var editpane = registry.byId("editPane");
 				var tabcontainer = registry.byId("tabcontainer_id")
 				var advanced_cpane = new ContentPane({
-					title:"Advanced",
+					title:"Advanced UI",
 					id:"editPane",
 					class:"allonehundred",
 					//doLayout:false,
@@ -315,7 +315,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var tooltipconfig_list = new Array();
 				// Create horizontal menubar
 				var mbar_widget = new MenuBar({
-					style:"width:500px; height:auto"}, mbar_node);
+					style:"width:40em; height:auto"}, mbar_node);
 				//-----------------------------//
 				// Create first element, which is a MenuBarItem that supports click to create new info item
 				match_obj = this.getuniquematch_obj(constant.initmenu_list,

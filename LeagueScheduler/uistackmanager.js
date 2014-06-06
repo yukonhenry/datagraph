@@ -27,7 +27,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 			// form and span id's
-			nsctxt_id:"newschedtxt_id",
 			infotxt_id:"infotxt_id",
 			infobtn_id:"infobtn_id",
 		};
@@ -39,7 +38,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			advanceid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				//this.pstackcontainer_reg = registry.byId(constant.pstackcontainer_id);
+				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type', 'advance');
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();
@@ -61,8 +61,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					pane_id:constant.sdcpane_id});  // for sched_id, stays in preconfig pane (with dropdown)
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
+				// note newsched has it's own txtbtn cpane as it does not share
+				// a common inheritance/influence from baseinfo class
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
-					pane_id:constant.sccpane_id});
+					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
 					pane_id:constant.npcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
@@ -71,8 +73,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
-				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type', 'advance');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
 				/*
 				this.gstackmap_list = new Array();
 				arrayUtil.forEach(id_list, function(id) {
@@ -459,12 +459,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				newsched_cpane.addChild(newsched_form);
 				this.pstackcontainer_reg.addChild(newsched_cpane)
 				// add season calendar input cpane
-				var scinput_cpane = new ContentPane({
-					id:constant.sccpane_id
+				var newschedtxtbtn_cpane = new ContentPane({
+					id:idstr_obj.textbtncpane_id
 				})
-				put(scinput_cpane.containerNode, "span[id=$]",constant.nsctxt_id)
-				put(scinput_cpane.containerNode, "br");
-				this.pstackcontainer_reg.addChild(scinput_cpane)
+				put(newschedtxtbtn_cpane.containerNode, "span[id=$]",
+					idstr_obj.text_id)
+				put(newschedtxtbtn_cpane.containerNode, "br");
+				this.pstackcontainer_reg.addChild(newschedtxtbtn_cpane)
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
 					id:constant.tcpane_id

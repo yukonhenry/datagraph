@@ -24,7 +24,7 @@
 			require(["dbootstrap", "dojo/dom", "LeagueScheduler/scheduler",
                 "dijit/layout/TabContainer", "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.26l";
+                var version_str = "v1.0.0.26v";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date();
                 greeting_node.innerHTML = version_str + ", updated "+ today.toLocaleDateString();
@@ -34,120 +34,6 @@
         <!-- NOTE adding doLayout:false at the toplevel tabcontainer_id, has effect
         on size of the cpane display for both wizard and advanced.  Need to experiment more -->
 		<div data-dojo-type="dijit/layout/TabContainer" id="tabcontainer_id" class="height80">
-            <!--
-            <div data-dojo-type="dijit/layout/ContentPane" title="Advanced" id="editPane" data-dojo-props="doLayout:false">  -->
-                <!--
-                <div data-dojo-type="dijit/form/DropDownButton" class="primary editsched">
-                    <span>Select Configuration</span>
-                    <div data-dojo-type="dijit/DropDownMenu" id="configmenu_id">
-                    </div>
-                </div> -->
-                <!--reference on use of different kinds of id's:
-                http://dojotoolkit.org/reference-guide/1.9/dijit/registry.html#data-dojo-id-jsid-before-dojo-1-6
-                http://stackoverflow.com/questions/12469140/difference-between-id-and-data-dojo-id
-                -->
-                <!-- basic sched parameters -->
-                <!--
-                <div id="paramStackContainer_id" data-dojo-type="dijit/layout/StackContainer" data-dojo-props="doLayout:false" style="float:left; width:80%">
-                    <div id="dummy_id" data-dojo-type="dijit/layout/ContentPane"></div>
-                    <div id="newschedcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <form data-dojo-type="dijit/form/Form" id="newsched_form_id" data-dojo-id="newsched_form_id">
-                        </form>
-                    </div>
-                    <div id="seasoncalendar_input" data-dojo-type="dijit/layout/ContentPane">
-                        <span id="newschedtxt_id"></span><br>
-                    </div>
-                    <div id="textbtncpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <span id="infotxt_id"></span>
-                        <button id="infobtn_id"></button>
-                    </div>
-                    <div id="numfieldcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <form data-dojo-type="dijit/form/Form" id="field_form_id" data-dojo-id="field_form_id">
-                        </form>
-                    </div>
-                    <div id="numdivcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <form data-dojo-type="dijit/form/Form" id="div_form_id" data-dojo-id="div_form_id">
-                        </form>
-                    </div>
-                    <div id="numtourndivcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <form data-dojo-type="dijit/form/Form" id="tourndiv_form_id" data-dojo-id="tourndiv_form_id">
-                        </form>
-                    </div>
-                    <div id="scheddivcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <label for="schedDBDivisionSelect">Select Division</label>
-                        <select id="schedDBDivisionSelect" data-dojo-type="dijit/form/Select" name="schedDBDivisionSelect">
-                        </select>
-                    </div>
-                    <div id="prefparamcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <form data-dojo-type="dijit/form/Form" id="pref_form_id" data-dojo-id="pref_form_id">
-                        </form>
-                    </div>
-                </div> -->
-                <!-- http://dojofoundation.org/packages/dgrid/tutorials/grids_and_stores/
-                <div id="divisionInfoInputGridErrorNode" class="style_none">
-                </div> -->
-                <!-- manage switching between grids by using content panes embedded in stack container -->
-                <!-- note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance -->
-                <!-- http://css.maxdesign.com.au/floatutorial/-->
-                <!--
-                <div id="gridContainer_id" data-dojo-type="dijit/layout/StackContainer" data-dojo-props="doLayout:false" style="clear:left">
-                    <div id="blankcpane_id" data-dojo-type="dijit/layout/ContentPane">
-                    </div>
-                    <div id="divinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <div id="divinfogrid_id"></div>
-                    </div>
-                    <div id="tourndivinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <div id="tourndivinfogrid_id"></div>
-                    </div>
-                    <div id="schedinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <div id="schedinfogrid_id"></div>
-                    </div>
-                    <div id="prefinfocpane_id" data-dojo-type="dijit/layout/ContentPane">
-                        <div id="prefinfogrid_id"></div>
-                    </div>
-                    <div id="fieldinfobcontainer_id" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:true, liveSplitters:true" style="height:800px;width: 100%">
-                        <div id="fieldinfocpane_id" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'" style="height:300px; width: 100%">
-                            <div id="fieldinfogrid_id" ></div>
-                        </div>
-                        <div id="borderContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="region: 'center', design:'sidebar', gutters:true, liveSplitters:true" style="visibility:hidden">
-                            <div id="borderContainer_LeftContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'leading'">
-                                <div data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Select Dates'">
-                                    <label for="fieldselect_id">Select Venue</label>
-                                    <select id="fieldselect_id" name="fieldselect_id" data-dojo-type="dijit/form/Select">
-                                    </select>
-                                    <form data-dojo-type="dijit/form/Form" id="fieldsched_form_id" data-dojo-id="fieldsched_form_id">
-                                    <label for="fieldevent_id">Event Name</label><br>
-                                    <input type="text" id="fieldevent_id" value="Sports" required="true" data-dojo-type="dijit/form/ValidationTextBox"
-                                    data-dojo-props="regExp:'[\\w]+', promptMessage:'Enter New Schedule - only alphanumeric characters and _', invalidMessage:'only alphanumeric characters and _', missingMessage:'enter schedule name'"/>
-                                    <br>
-                                    <label for="eventdate_id">Event Date:</label><br>
-                                    <input id="eventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'">
-                                    <br>
-                                    <label for="starttime_id">Start:</label>
-                                    <input id="starttime_id" value="T08:00:00" data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
-                                    <label for="endtime_id">End:</label>
-                                    <input id="endtime_id" value="T09:00:00"data-dojo-type="dijit/form/TimeTextBox" data-dojo-props="style:'width:110px'">
-                                    <br>
-                                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimeset_btn" value="Submit">Update</button>
-                                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedel_btn" value="Submit">Delete</button>
-                                    </form>
-                                </div>
-                                <div id="duptitlepane_id" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Duplicate', open:false">
-                                    <label for="dupfieldselect_id">Select Venue for Duplication</label>
-                                    <select id="dupfieldselect_id" name="dupfieldselect_id" data-dojo-type="dijit/form/Select">
-                                    </select><br>
-                                    <label for="dupeventdate_id">Event Date to Dup:</label><br>
-                                    <input id="dupeventdate_id" data-dojo-type="dijit/form/DateTextBox" data-dojo-props="style:'width:150px'"><br>
-                                    <button class="dijitButton primary" data-dojo-type="dijit/form/Button" type="button" id="datetimedup_btn" value="Submit">Duplicate</button>
-                                </div>
-                            </div>
-                            <div id="borderContainer_RightContentPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="splitter:true, region:'center'">
-                                <div id="calendarGrid_id"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div> --> <!--stackcontainer-->
-            <!--</div> -->
     	</div>
 
     </body>

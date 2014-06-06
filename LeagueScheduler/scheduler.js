@@ -28,8 +28,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var storeutil_obj = new storeUtil({schedutil_obj:schedutil_obj,
 			server_interface:serverInterface, uistackmgr:uistackmgr});
 		var wizardlogic_obj = new WizardLogic({server_interface:serverInterface,
-			storeutil_obj:storeutil_obj});
-
+			storeutil_obj:storeutil_obj, schedutil_obj:schedutil_obj});
 		var newschedbase_obj = new NewSchedulerBase({
 			server_interface:serverInterface, schedutil_obj:schedutil_obj,
 			uistackmgr:uistackmgr, storeutil_obj:storeutil_obj, op_type:"advance"});

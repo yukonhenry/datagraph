@@ -16,12 +16,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		baseinfoSingleton, WidgetGen, idmgrSingleton, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
-			scinput_div:'seasoncalendar_input',
 			radio1_id:'scradio1_id',
 			radio2_id:'scradio2_id',
 			league_select_id:'scleague_select_id',
 			fg_select_id:'fg_select_id',
-			statustxt_id:'schedstatustxt_id',
+			schedparambtn_id:'schedparambtn_id',
+			schedstatustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
 			newdivcpane_id:'newdivcpane_id',
 			newdivcpane_txt_id:'newdivcpane_txt_id',
@@ -52,13 +52,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			team_id:'team_id',
 			fair_id:'fair_id'
 		};
+		var wizconstant = {
+			nscpane_id:"wiznewschedcpane_id",
+		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
 			fgselect_flag:false,
 			league_fg_flag:false
 		})
 		return declare(null, {
-			dbname_reg : null, form_reg: null, server_interface:null,
+			server_interface:null,
 			newsched_name:"", newsched_dom:"",
 			schedutil_obj:null, storeutil_obj:null, op_type:"",
 			info_obj:null, idproperty:constant.idproperty_str,
@@ -78,12 +81,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			sched_store_mapobj:null, sched_grid_mapobj:null,
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
-			idmgr_obj:null,
+			idmgr_obj:null, op_type:"", op_prefix:"", opconstant_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
 					id:this.idproperty, op_type:this.op_type});
+				// watch object is specific to this object so we don't need to
+				// expand watch functionality to accomodate op_type
 				this.newschedwatch_obj = new newschedwatch_class();
 				this.newschedwatch_obj.watch('leagueselect_flag',
 					lang.hitch(this, function(name, oldValue, value) {
@@ -95,24 +100,31 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.newschedwatch_obj.set('league_fg_flag',
 							this.newschedwatch_obj.get('leagueselect_flag') && value);
 					}));
+				// reassign values for all the constant dom id's by adding an
+				// op_type (first three chars) prefix
+				this.op_prefix = this.op_type.substring(0,3);
+				this.opconstant_obj = new Object();
+				for (var key in constant) {
+					this.opconstant_obj[key] = this.op_prefix+constant[key]
+				}
 				// create dictionaries/objects that map idproperty to idproperty-specific
 				// id's or objects
 				// w each dict mapping idproperty to either a schedule grid or the
 				// corresponding .on handler
-				this.cpane_grid_id_mapobj = {div_id:constant.newdivcpane_grid_id,
-					field_id:constant.newfieldcpane_grid_id,
-					team_id:constant.newteamcpane_grid_id,
-					fair_id:constant.newfaircpane_grid_id}
+				this.cpane_grid_id_mapobj = {div_id:this.opconstant_obj.newdivcpane_grid_id,
+					field_id:this.opconstant_obj.newfieldcpane_grid_id,
+					team_id:this.opconstant_obj.newteamcpane_grid_id,
+					fair_id:this.opconstant_obj.newfaircpane_grid_id}
 				this.cpane_schedgrid_id_mapobj = {
-					div_id:constant.newdivcpane_schedgrid_id,
-					field_id:constant.newfieldcpane_schedgrid_id,
-					team_id:constant.newteamcpane_schedgrid_id,
-					fair_id:constant.newfaircpane_schedgrid_id}
+					div_id:this.opconstant_obj.newdivcpane_schedgrid_id,
+					field_id:this.opconstant_obj.newfieldcpane_schedgrid_id,
+					team_id:this.opconstant_obj.newteamcpane_schedgrid_id,
+					fair_id:this.opconstant_obj.newfaircpane_schedgrid_id}
 				this.cpane_schedheader_id_mapobj = {
-					div_id:constant.newdivcpane_schedheader_id,
-					field_id:constant.newfieldcpane_schedheader_id,
-					team_id:constant.newteamcpane_schedheader_id,
-					fair_id:constant.newfaircpane_schedheader_id}
+					div_id:this.opconstant_obj.newdivcpane_schedheader_id,
+					field_id:this.opconstant_obj.newfieldcpane_schedheader_id,
+					team_id:this.opconstant_obj.newteamcpane_schedheader_id,
+					fair_id:this.opconstant_obj.newfaircpane_schedheader_id}
 				this.info_grid_mapobj = {div_id:null, field_id:null, team_id:null,
 					fair_id:null};
 				this.info_handle_mapobj = {div_id:null, field_id:null,
@@ -130,26 +142,29 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			initialize: function(op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
-				this.form_reg = registry.byId(this.idmgr_obj.form_id);
+				form_reg = registry.byId(this.idmgr_obj.form_id);
+				var form_node = form_reg.domNode;
 				//this.dbname_reg = registry.byId("newsched_input_id");
 				// put selector documentation
 				// http://davidwalsh.name/put-selector
 				// https://github.com/kriszyp/put-selector
 				// first check to see if the domNode has already been created by
 				// seeing the dom node can be retrieved
-				var sched_input = dom.byId("newsched_input_id");
-				if (!sched_input) {
-					put(this.form_reg.domNode, "label.label_box[for=newsched_input_id]",
+				var dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
+				if (!dbname_reg) {
+					put(form_node,
+						"label.label_box[for=$]", this.idmgr_obj.dbname_id,
 						'New Schedule Name:');
-					sched_input = put(this.form_reg.domNode,
-						"input#newsched_input_id[type=text][required=true]");
-					this.dbname_reg = new ValidationTextBox({
+					var dbname_node = put(form_node,
+						"input[id=$][type=text][required=true]",
+						this.idmgr_obj.dbname_id);
+					dbname_reg = new ValidationTextBox({
 						value:'',
 						regExp:'\\D[\\w]+',
 						promptMessage:'Enter New Schedule-start with letter or _, followed by alphanumeric or _',
 						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
 						missingMessage:'enter schedule name'
-					}, sched_input);
+					}, dbname_node);
 				} else {
 					// domnode already exists, get widget that should also be there
 					// NOTE: registry.byNode() does not work -
@@ -162,30 +177,38 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// DON"T use below:
 					//this.dbname_reg = registry.byNode(sched_input);
 				}
-
-				this.seasondates_btn_reg = registry.byId("seasondates_btn");
-				this.showConfig(op_type);
+				//this.seasondates_btn_reg = registry.byId("seasondates_btn");
+				args_obj = {
+					dbname_reg:dbname_reg,
+					form_reg:form_reg,
+					op_type:op_type
+				}
+				this.showConfig(args_obj);
 			},
-			showConfig: function(op_type) {
+			showConfig: function(args_obj) {
+				var dbname_reg = args_obj.dbname_reg;
 				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage:"preconfig", entry_pt:"init"});
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 				if (!this.tooltip) {
-					var tooltipconfig = {connectId:['newsched_input_id'],
-						label:"Enter Schedule Name and press ENTER",
+					var tooltipconfig = {connectId:[this.idmgr_obj.dbname_id],
+						label:"Enter New Schedule Name and press ENTER",
 						position:['below','after']};
 					this.tooltip = new Tooltip(tooltipconfig);
 				}
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
-				this.keyup_handle = this.dbname_reg.on("keyup", lang.hitch(this, this.processdivinfo_input));
+				this.keyup_handle = dbname_reg.on("keyup", lang.hitch(this, this.processdivinfo_input, args_obj));
 			},
 			// ref http://dojotoolkit.org/documentation/tutorials/1.9/key_events/
-			processdivinfo_input: function(event) {
+			processdivinfo_input: function(args_obj, event) {
 				if (event.keyCode == keys.ENTER) {
-					if (this.form_reg.validate()) {
+					var form_reg = args_obj.form_reg;
+					var dbname_reg = args_obj.dbname_reg;
+					var op_type = args_obj.op_type;
+					if (form_reg.validate()) {
 						confirm('Input format is Valid, creating new Schedule DB');
-						this.newsched_name = this.dbname_reg.get("value");
+						this.newsched_name = dbname_reg.get("value");
 						if (!this.storeutil_obj.nodupdb_validate(this.newsched_name,
 							this.idproperty)) {
 							alert("Selected sched name already exists, choose another");
@@ -279,23 +302,30 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 			},
 			create_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+				var radio1_id = this.opconstant_obj.radio1_id;
+				var radio2_id = this.opconstant_obj.radio2_id;
+				var fg_select_id = this.opconstant_obj.fg_select_id;
+				var league_select_id = this.idmgr_obj.league_select_id;
+				var schedparambtn_id = this.opconstant_obj.schedparambtn_id;
+				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
+
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
-				this.newsched_dom = dom.byId("newschedtxt_id");
+				this.newsched_dom = dom.byId(this.idmgr_obj.text_id);
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen = new WidgetGen({
 					storeutil_obj:this.storeutil_obj,
 					server_interface:this.server_interface
 				});
-				var scinput_dom = dom.byId(constant.scinput_div);
+				var scinput_dom = dom.byId(this.idmgr_obj.textbtncpane_id);
 				this.widgetgen.create_dbtype_radiobtn(scinput_dom,
-					constant.radio1_id, constant.radio2_id, divdb_type,
+					radio1_id, radio2_id, divdb_type,
 					this, this.radio1_callback, this.radio2_callback,
-					constant.league_select_id);
+					league_select_id);
 				// create league info dropdowns
 				var lsargs_obj = {
 					topdiv_node:scinput_dom,
-					select_id:constant.league_select_id,
+					select_id:league_select_id,
 					init_db_type:divdb_type,
 					init_colname:divcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
@@ -311,7 +341,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// create field group dropdown
 				var fgargs_obj = {
 					topdiv_node:scinput_dom,
-					select_id:constant.fg_select_id,
+					select_id:fg_select_id,
 					init_db_type:'fielddb',
 					init_colname:fieldcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
@@ -325,12 +355,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.fg_select = this.widgetgen.create_select(fgargs_obj);
 
-				var btn_node = dom.byId("schedparambtn_id");
+				var btn_node = dom.byId(schedparambtn_id);
 				if (!btn_node) {
 					btn_node = put(scinput_dom,
-						"button.dijitButton#schedparambtn_id[type=button]");
+						"button.dijitButton[id=$][type=button]", schedparambtn_id);
 					var btn_tooltipconfig = {
-						connectId:['schedparambtn_id'],
+						connectId:[schedparambtn_id],
 						label:"Ensure League and Field Group are Selected",
 						position:['above','after']};
 					var schedule_btn = new Button({
@@ -353,10 +383,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					)
 					put(scinput_dom, "br, br");
 				}
-				var schedstatustxt_node = dom.byId(constant.statustxt_id);
+				var schedstatustxt_node = dom.byId(schedstatustxt_id);
 				if (!schedstatustxt_node) {
 					schedstatustxt_node = put(scinput_dom,
-						"span#schedstatustxt_id",
+						"span[id=$]", schedstatustxt_id,
 						"Configure Schedule Parameters")
 				}
 				// set flag that is used by observable memory update in
@@ -377,10 +407,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			reload_widgets: function(divdb_type, divcol_name, fieldcol_name) {
 				// reuse widgets that have already been created and reload new values
+				var radio1_id = this.opconstant_obj.radio1_id;
+				var radio2_id = this.opconstant_obj.radio2_id;
+				var schedparambtn_id = this.opconstant_obj.schedparambtn_id;
+
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
-				this.widgetgen.reload_dbytpe_radiobtn(constant.radio1_id, constant.radio2_id, divdb_type);
+				this.widgetgen.reload_dbytpe_radiobtn(radio1_id, radio2_id, divdb_type);
 				var lsargs_obj = {
 					select_reg:this.league_select,
 					init_db_type:divdb_type,
@@ -395,7 +429,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					label_str:"Select Field Group",
 				}
 				this.widgetgen.reload_select(fgargs_obj);
-				var schedule_btn = registry.byId("schedparambtn_id");
+				var schedule_btn = registry.byId(schedparambtn_id);
 				schedule_btn.set("disabled", true);
 				var onchange_callback = null;
 				if (divcol_name) {
@@ -408,7 +442,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 			},
 			send_generate: function() {
-				var schedstatustxt_node = dom.byId(constant.statustxt_id);
+				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
+				var schedstatustxt_node = dom.byId(schedstatustxt_id);
 				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";
 				schedstatustxt_node.style.color = 'red';
 				var server_key_obj = {divcol_name:this.league_select_value,
@@ -426,40 +461,41 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.idproperty, 1);
 			},
 			update_schedstatustxt: function(adata, options_obj) {
+				var tabcontainer_id = constant.tabcontainer_id;
 				var dbstatus = adata.dbstatus;
 				var schedstatustxt_node = options_obj.node;
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
-				this.tabcontainer_reg = registry.byId(constant.tabcontainer_id);
+				this.tabcontainer_reg = registry.byId(tabcontainer_id);
 				var args_obj = {
-					suffix_id:constant.newdivcpane_id,
+					suffix_id:this.opconstant_obj.newdivcpane_id,
 					// define contents of div pane
-					content_str:"<div id='"+constant.newdivcpane_txt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+constant.newdivcpane_grid_id+"'></div><div id='"+constant.newdivcpane_schedheader_id+"'></div><div id='"+constant.newdivcpane_schedgrid_id+"'></div>",
+					content_str:"<div id='"+this.opconstant_obj.newdivcpane_txt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+this.opconstant_obj.newdivcpane_grid_id+"'></div><div id='"+this.opconstant_obj.newdivcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newdivcpane_schedgrid_id+"'></div>",
 					title_suffix:' by Div',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data('div_id', dbstatus);
 				args_obj = {
-					suffix_id:constant.newfieldcpane_id,
+					suffix_id:this.opconstant_obj.newfieldcpane_id,
 					// define contents of select-by-field pane
-					content_str:"<div id='"+constant.newfieldcpane_txt_id+"'></div> <b>Click on Field row</b> to see field-specific schedule - scroll down. <div id='"+constant.newfieldcpane_grid_id+"'></div><div id='"+constant.newfieldcpane_schedheader_id+"'></div><div id='"+constant.newfieldcpane_schedgrid_id+"'></div>",
+					content_str:"<div id='"+this.opconstant_obj.newfieldcpane_txt_id+"'></div> <b>Click on Field row</b> to see field-specific schedule - scroll down. <div id='"+this.opconstant_obj.newfieldcpane_grid_id+"'></div><div id='"+this.opconstant_obj.newfieldcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newfieldcpane_schedgrid_id+"'></div>",
 					title_suffix:' by Field',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data('field_id', dbstatus);
 				// add by-team sched grid
 				args_obj = {
-					suffix_id:constant.newteamcpane_id,
-					content_str:"<div id='"+constant.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+constant.newteamcpane_select_id+"'>Select Division</label><select id='"+constant.newteamcpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newteamcpane_select_id+"'></select><div id='"+constant.newteamcpane_grid_id+"'></div><div id='"+constant.newteamcpane_schedheader_id+"'></div><div id='"+constant.newteamcpane_schedgrid_id+"'></div>",
+					suffix_id:this.opconstant_obj.newteamcpane_id,
+					content_str:"<div id='"+this.opconstant_obj.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+this.opconstant_obj.newteamcpane_select_id+"'>Select Division</label><select id='"+this.opconstant_obj.newteamcpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+this.opconstant_obj.newteamcpane_select_id+"'></select><div id='"+this.opconstant_obj.newteamcpane_grid_id+"'></div><div id='"+this.opconstant_obj.newteamcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newteamcpane_schedgrid_id+"'></div>",
 					title_suffix:' by Team',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data(constant.team_id, dbstatus)
 				// add fairness metrics cpane
 				args_obj = {
-					suffix_id:constant.newfaircpane_id,
-					content_str:"<div id='"+constant.newfaircpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+constant.newfaircpane_select_id+"'>Select Division</label><select id='"+constant.newfaircpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+constant.newfaircpane_select_id+"'></select><div id='"+constant.newfaircpane_grid_id+"'></div><div id='"+constant.newfaircpane_schedheader_id+"'></div><div id='"+constant.newfaircpane_schedgrid_id+"'></div>",
+					suffix_id:this.opconstant_obj.newfaircpane_id,
+					content_str:"<div id='"+this.opconstant_obj.newfaircpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+this.opconstant_obj.newfaircpane_select_id+"'>Select Division</label><select id='"+this.opconstant_obj.newfaircpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+this.opconstant_obj.newfaircpane_select_id+"'></select><div id='"+this.opconstant_obj.newfaircpane_grid_id+"'></div><div id='"+this.opconstant_obj.newfaircpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newfaircpane_schedgrid_id+"'></div>",
 					title_suffix:' by Fairness Metrics',
 				}
 				this.createnewsched_pane(args_obj);
@@ -470,21 +506,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var select_value = null;
 				var db_type = null;
 				if (idproperty == 'div_id') {
-					statusnode_id = constant.newdivcpane_txt_id;
+					statusnode_id = this.opconstant_obj.newdivcpane_txt_id;
 					select_value = this.league_select_value;
 					db_type = this.current_db_type;
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'field_id') {
-					statusnode_id = constant.newfieldcpane_txt_id;
+					statusnode_id = this.opconstant_obj.newfieldcpane_txt_id;
 					select_value = this.fg_select_value;
 					db_type = 'fielddb';
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == constant.team_id) {
-					statusnode_id = constant.newteamcpane_txt_id;
-					this.getdivselect_dropdown(idproperty, constant.newteamcpane_select_id);
+					statusnode_id = this.opconstant_obj.newteamcpane_txt_id;
+					this.getdivselect_dropdown(idproperty, this.opconstant_obj.newteamcpane_select_id);
 				} else if (idproperty == constant.fair_id) {
-					statusnode_id = constant.newfaircpane_txt_id;
-					this.getdivselect_dropdown(idproperty, constant.newfaircpane_select_id);
+					statusnode_id = this.opconstant_obj.newfaircpane_txt_id;
+					this.getdivselect_dropdown(idproperty, this.opconstant_obj.newfaircpane_select_id);
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
@@ -849,23 +885,24 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					id:this.idmgr_obj.resetcpane_id
 				})
 				this.pstackcontainer.addChild(reset_cpane)
-				// add div config (number) cpane
-				var div_cpane = new ContentPane({
-					id:wizconstant.ndcpane_id,
+				// add sched config  cpane
+				var newsched_cpane = new ContentPane({
+					id:wizconstant.nscpane_id,
 				})
-				var div_form = new Form({
+				var newsched_form = new Form({
 					id:this.idmgr_obj.form_id
 				})
-				div_cpane.addChild(div_form);
-				this.pstackcontainer.addChild(div_cpane);
+				newsched_cpane.addChild(newsched_form);
+				this.pstackcontainer.addChild(newsched_cpane);
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id,
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+					this.idmgr_obj.text_id);
+				put(txtbtn_cpane.containerNode, "br");
+				//put(txtbtn_cpane.containerNode, "button[id=$]",
+				//	this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({
@@ -873,18 +910,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					style:"clear:left",
 					id:this.idmgr_obj.gcontainer_id
 				}, gcontainerdiv_node);
-				// add blank pane (for resetting)
+				// add blank pane (for resetting); no grid for new sched
 				var blank_cpane = new ContentPane({
 					id:this.idmgr_obj.blankcpane_id
 				})
 				this.gstackcontainer.addChild(blank_cpane);
-				// add divinfo cpane and grid div
-				var divgrid_cpane = new ContentPane({
-					id:this.idmgr_obj.gridcpane_id,
-				})
-				put(divgrid_cpane.containerNode, "div[id=$]",
-					this.idmgr_obj.grid_id);
-				this.gstackcontainer.addChild(divgrid_cpane);
 			},
 			cleanup: function() {
 				if (this.seasonstart_handle)

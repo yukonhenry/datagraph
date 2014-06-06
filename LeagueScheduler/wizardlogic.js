@@ -22,7 +22,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
-			newdivbtn_widget:null,
+			schedutil_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -45,15 +45,15 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					title:"Scheduling Wizard/Start Here",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
-					class:'allauto'
+					class:'allauto',
 					//style:"width:600px; height:500px",
-					//nextButtonLabel:"Configure Divisions"
+					nextButtonLabel:"Next Configuration"
 				});
 				container_cpane.addChild(wizard_reg);
 
 				//--------------------//
 				// Create informational starting pane
-				var content_str = "Gather Information for the League:<br>Get basic information for the league such as the number of divisions, number of teams in each division."
+				var content_str = "Welcome to the YukonTR League Scheduler.  The main purpose of this scheduler is to not only generate schedules for large leagues, but to also accomodate constraints and/or preferences with scheduling.<br><br>To take maximum advantage use of the tool, make sure you understand what you are trying to accomplish through your scheduling efforts.  In addition, division and field data about your League will need to be entered:<br><br>This wizard will take you through 3 steps of configuration before you generate your schedule:<ul><li><strong>Division Information</strong> - Number of Teams, how many games they play in a season, length of season, length of games, and how often they play</li><br><li><strong>Field Information</strong> - Field labels, which divisions play on the field, availability of fields (date and times).  There is a separate calendar UI to enter exceptions and special restrictions on availability</li><br><li><strong>Preference Information</strong>(Optional) If any team has time and/or location constraints, they can be specified.  As an administrator, you will need to assign priorities to the preferences as the scheduler will only make a best effort to meet the preferences.</li><br><li><strong>Schedule Generation</strong>  In the final step, choose the configured division/field/preference lists that are needed to generate the Schedule.  Generation is done with a single button press; Results are generated under additional tabs that are created.</li></ul><br><b>Begin</b> by pressing 'Next Configuration' button in the bottom-right of the Pane"
 				var intro_wpane = new WizardPane({
 					content:content_str,
 					//class:'allonehundred'
@@ -78,7 +78,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var divinfo_obj = new divinfo({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
-					op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				var menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
 				var pcontainerdiv_node = put(topdiv_node, "div")
@@ -104,7 +104,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
-					op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -124,7 +124,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var prefinfo_obj = new preferenceinfo({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
-					op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -144,7 +144,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var newschedinfo_obj = new newschedulerbase({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
-					op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('newsched_id', newschedinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -155,6 +155,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					content:topdiv_node,
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
+					doneFunction: function() {
+						alert("Feedback Appreciated on YukonTR Scheduler - Contact:henry@yukontr.com")
+					}
 				})
 				/////////////////////
 				wizard_reg.addChild(newschedinfo_wpane);

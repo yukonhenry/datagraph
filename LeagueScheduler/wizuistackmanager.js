@@ -11,13 +11,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			ndcpane_id:"wiznumdivcpane_id",
 			ntcpane_id:"wiznumtourndivcpane_id",
 			nscpane_id:"wiznewschedcpane_id",
-			sccpane_id:"wizseasoncalendar_input",
 			npcpane_id:"wiznumprefcpane_id",
 			// grid stack id's
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
-			// form and span id's
-			nsctxt_id:"wiznewschedtxt_id",
 		};
 		return declare(null, {
 			pstackcontainer_list:null, pstackmap_list:null,
@@ -69,7 +66,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
-					pane_id:constant.sccpane_id});
+					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
 					pane_id:constant.npcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',

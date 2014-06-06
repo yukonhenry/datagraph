@@ -76,10 +76,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			},
 			updateDBstatus_node: function(dbstatus, node) {
 				if (dbstatus) {
-					node.innerHTML = "Schedule in database, Ready";
+					node.innerHTML = "Schedule in database, Ready.  See generated tabs above to see various views into schedule"
 					node.style.color = 'green';
 				} else {
-					node.innerHTML = "Schedule Not Ready";
+					node.innerHTML = "Schedule Computing, Not Ready";
 					node.style.color = 'red';
 				}
 			},
