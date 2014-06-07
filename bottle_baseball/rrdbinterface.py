@@ -24,6 +24,8 @@ class RRDBInterface:
     def readDB(self):
         liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
         divlist = liststatus_tuple.list
+        for div in divlist:
+            del div['SCHED_STATUS']
         config_status = liststatus_tuple.config_status
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
         # switch key to lower case for transfer to client
@@ -33,6 +35,15 @@ class RRDBInterface:
         return _List_Status(divinfo_list, config_status)
 
     def readDBraw(self):
+        liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
+        divlist = liststatus_tuple.list
+        config_status = liststatus_tuple.config_status
+        # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
+        # switch key to lower case for transfer to client
+        divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
+        #d_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(divinfo_list)).get(x)
+        #return _List_Indexer(divinfo_list, d_indexerGet)
+        return _List_Status(divinfo_list, config_status)
         return self.readDB()
 
     def readSchedDB(self, age, gender):

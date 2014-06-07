@@ -56,6 +56,7 @@ class FieldDBInterface:
         divstr_colname = liststatus_qtuple.divstr_colname
         divstr_db_type = liststatus_qtuple.divstr_db_type
         for field in field_list:
+            del field['SCHED_TYPE']
             field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])

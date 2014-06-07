@@ -331,9 +331,10 @@ def send_generate():
     db_type = request.query.db_type
     divcol_name = request.query.divcol_name
     fieldcol_name = request.query.fieldcol_name
+    prefcol_name = request.query.prefcol_name
     schedcol_name = request.query.schedcol_name
     schedMaster = SchedMaster(mongoClient, db_type, divcol_name, fieldcol_name,
-        schedcol_name)
+        prefcol_name, schedcol_name)
     # save schedMaster to global obj to reuse on get_schedule
     _routelogic_obj.schedmaster_obj = schedMaster
     dbstatus = schedMaster.generate()

@@ -45,6 +45,7 @@ class TournDBInterface:
         for div in divlist:
             div[field_id_list_CONST] = ','.join(str(f)
                                            for f in divinfo[field_id_list_CONST])
+            del div['SCHED_STATUS']
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
         return _List_Status(divinfo_list, config_status)
 
