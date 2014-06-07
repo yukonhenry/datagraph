@@ -3,6 +3,7 @@ from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from scheddbinterface import SchedDBInterface
+from prefdbinterface import PrefDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from collections import namedtuple
