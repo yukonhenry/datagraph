@@ -90,6 +90,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					id:this.idproperty, op_type:this.op_type});
 				// watch object is specific to this object so we don't need to
 				// expand watch functionality to accomodate op_type
+				// also preference is only optional so it doesn't affect the league_fg_flag which enables the button
 				this.newschedwatch_obj = new newschedwatch_class();
 				this.newschedwatch_obj.watch('leagueselect_flag',
 					lang.hitch(this, function(name, oldValue, value) {
@@ -256,6 +257,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.league_select.removeOption(index);
 				} else if (db_type == 'fielddb') {
 					this.fg_select.removeOption(index)
+				} else if (db_type == 'prefdb') {
+					this.pref_select.removeOption(index)
 				}
 			},
 			addto_select: function(db_type, label, insertIndex) {
@@ -269,6 +272,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.league_select.addOption(soption_obj);
 				} else if (db_type == 'fielddb') {
 					this.fg_select.addOption(soption_obj);
+				} else if (db_type == 'prefdb') {
+					this.pref_select.removeOption(index)
 				}
 			},
 			is_serverdata_required: function(options_obj) {
@@ -305,7 +310,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					entry_pt:"fromdb"});
 				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
 			},
-			create_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+			create_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name) {
 				var radio1_id = this.opconstant_obj.radio1_id;
 				var radio2_id = this.opconstant_obj.radio2_id;
 				var fg_select_id = this.opconstant_obj.fg_select_id;
@@ -360,6 +365,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					put_trail_spacing:"span.empty_gap"
 				}
 				this.fg_select = this.widgetgen.create_select(fgargs_obj);
+				put(scinput_dom, "br, br");
 				// create preference list dropdown
 				var prefargs_obj = {
 					topdiv_node:scinput_dom,
@@ -367,8 +373,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					init_db_type:'prefdb',
 					init_colname:prefcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
-						this.newschedwatch_obj.set('prefselect_flag',
-							evt!="");
 						this.pref_select_value = evt;
 					}),
 					name_str:"pref_select",
@@ -425,8 +429,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (fieldcol_name) {
 					fgargs_obj.onchange_callback(fieldcol_name);
 				}
+				if (prefcol_name) {
+					prefargs_obj.onchange_callback(prefcol_name);
+				}
 			},
-			reload_widgets: function(divdb_type, divcol_name, fieldcol_name) {
+			reload_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name) {
 				// reuse widgets that have already been created and reload new values
 				var radio1_id = this.opconstant_obj.radio1_id;
 				var radio2_id = this.opconstant_obj.radio2_id;
@@ -434,8 +441,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
+				var prefcol_name = (typeof prefcol_name === "undefined" || prefcol_name === null) ? "" : prefcol_name;
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen.reload_dbytpe_radiobtn(radio1_id, radio2_id, divdb_type);
+				// div league select
 				var lsargs_obj = {
 					select_reg:this.league_select,
 					init_db_type:divdb_type,
@@ -443,6 +452,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					label_str:"Select League",
 				};
 				this.widgetgen.reload_select(lsargs_obj);
+				// field group select
 				var fgargs_obj = {
 					select_reg:this.fg_select,
 					init_db_type:'fielddb',
@@ -450,6 +460,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					label_str:"Select Field Group",
 				}
 				this.widgetgen.reload_select(fgargs_obj);
+				// pref list select
+				var prefargs_obj = {
+					select_reg:this.pref_select,
+					init_db_type:'prefdb',
+					init_colname:prefcol_name,
+					label_str:"Select Preference List",
+				}
+				this.widgetgen.reload_select(prefargs_obj);
 				var schedule_btn = registry.byId(schedparambtn_id);
 				schedule_btn.set("disabled", true);
 				var onchange_callback = null;
@@ -461,6 +479,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					onchange_callback = this.fg_select.get("onChange");
 					onchange_callback(fieldcol_name);
 				}
+				if (prefcol_name) {
+					onchange_callback = this.pref_select.get("onChange");
+					onchange_callback(prefcol_name);
+				}
 			},
 			send_generate: function() {
 				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
@@ -469,6 +491,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				schedstatustxt_node.style.color = 'red';
 				var server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
+					prefcol_name:this.pref_select,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",

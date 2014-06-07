@@ -77,16 +77,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					start_date: editor({label:"Start Date", autoSave:true,
 						columntype:false,
 						editorArgs:{
-							style:'width:120px',
+							style:'width:100px',
 						},
 					}, DateTextBox),
 					end_date: editor({label:"End Date", autoSave:true,
 						columntype:false,
 						editorArgs:{
-							style:'width:120px',
+							style:'width:100px',
 						},
 					}, DateTextBox),
 					start_time: editor({label:"Start Time", autoSave:true, columntype:false,
+						editorArgs: {
+							style:"width:100px"
+						},
 						// note adding editorArgs w constraints timePattern
 						// HH:MM:ss turns time display into 24-hr format
 						// do not use if 12 hour am/pm format is desired
@@ -105,7 +108,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}, */
 					}, TimeTextBox),
 					end_time: editor({label:"End Time", autoSave:true,
-						columntype:false
+						columntype:false,
+						editorArgs: {
+							style:"width:100px"
+						},
 					}, TimeTextBox),
 					dayweek_str:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
