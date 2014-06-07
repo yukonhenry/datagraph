@@ -20,6 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			radio2_id:'scradio2_id',
 			league_select_id:'scleague_select_id',
 			fg_select_id:'fg_select_id',
+			pref_select_id:'pref_select_id',
 			schedparambtn_id:'schedparambtn_id',
 			schedstatustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
@@ -283,18 +284,21 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					lang.hitch(this, this.create_schedconfig));
 			},
 			create_schedconfig: function(adata) {
+				// callback function when newsched config is retrieved from server
 				var param_obj = adata.param_obj;
 				var divcol_name = param_obj.divcol_name;
 				var divdb_type = param_obj.divdb_type;
 				var fieldcol_name = param_obj.fieldcol_name;
+				var prefcol_name = param_obj.prefcol_name;
 				if (!this.widgetgen) {
 					this.create_widgets(divdb_type, divcol_name,
-						fieldcol_name);
+						fieldcol_name, prefcol_name);
 				} else {
 					// reset watch object fields
 					this.reset_newschedwatch_obj();
 					// reload widgets
-					this.reload_widgets(divdb_type, divcol_name, fieldcol_name);
+					this.reload_widgets(divdb_type, divcol_name, fieldcol_name,
+						prefcol_name);
 				}
 				this.uistackmgr.switch_pstackcpane({
 					idproperty:this.idproperty, p_stage:"config",
@@ -308,9 +312,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var league_select_id = this.idmgr_obj.league_select_id;
 				var schedparambtn_id = this.opconstant_obj.schedparambtn_id;
 				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
+				var pref_select_id = this.opconstant_obj.pref_select_id;
 
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
+				var prefcol_name = (typeof prefcol_name === "undefined" || prefcol_name === null) ? "" : prefcol_name;
 				this.newsched_dom = dom.byId(this.idmgr_obj.text_id);
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen = new WidgetGen({
@@ -354,7 +360,22 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					put_trail_spacing:"span.empty_gap"
 				}
 				this.fg_select = this.widgetgen.create_select(fgargs_obj);
-
+				// create preference list dropdown
+				var prefargs_obj = {
+					topdiv_node:scinput_dom,
+					select_id:pref_select_id,
+					init_db_type:'prefdb',
+					init_colname:prefcol_name,
+					onchange_callback:lang.hitch(this, function(evt) {
+						this.newschedwatch_obj.set('prefselect_flag',
+							evt!="");
+						this.pref_select_value = evt;
+					}),
+					name_str:"pref_select",
+					label_str:"Select Preferece List",
+					put_trail_spacing:"span.empty_gap"
+				}
+				this.pref_select = this.widgetgen.create_select(prefargs_obj);
 				var btn_node = dom.byId(schedparambtn_id);
 				if (!btn_node) {
 					btn_node = put(scinput_dom,
