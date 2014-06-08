@@ -268,7 +268,8 @@ def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     '''Get list that maps fieldday_id to calendar date;
     Start Date is a datetime object as Date objects cannot be serialized
     to be written in as a doc for mongodb '''
-    #start_date = parser.parse(start_date_str).date()
+    #start_date and next_date are dt objects (instead of date obj) so that we can
+    # to addition operations with timedelta objects
     start_date = parser.parse(start_date_str)
     start_day = start_date.weekday()
     fielddaymapdate_list = []

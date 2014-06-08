@@ -35,7 +35,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
 					pref_id: "ID",
-					priority_num: editor({label:"Priority", autoSave:true,
+					priority: editor({label:"Priority", autoSave:true,
 						editorArgs:{
 							constraints:{min:1, max:500},
 							promptMessage:'Enter Priority Number (lower is higher priority)',
@@ -187,7 +187,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
 					info_list.push({pref_id:i, div_id:1, team_id:i,
-						priority_num:i, game_date:this.today,
+						priority:i, game_date:this.today,
 						start_after:new Date(2014,0,1,8,0,0),
 						end_before:new Date(2014,0,1,17,0,0)});
 				}

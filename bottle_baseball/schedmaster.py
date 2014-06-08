@@ -10,6 +10,7 @@ from collections import namedtuple
 import logging
 from sched_exceptions import CodeLogicError
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
+_List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
 
 # main class for launching schedule generator
 # Handling round-robin season-long schedules.  May extend to handle other schedule
@@ -51,21 +52,25 @@ class SchedMaster:
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
         # get pref list information, if any
         if prefcol_name:
+            # preference list use is optional - only process if preference list
+            # exists
             pdbInterface = PrefDBInterface(mongoClient, prefcol_name)
             pdbtuple = pdbInterface.readDBraw();
             if pdbtule.config_status == 1:
-                self.prefinfo_list = pdbtuple.list
-                self.prefinfo_indexerGet = lambda x: dict((p['pref_id'],i) for i,p in enumerate(self.prefinfo_list)).get(x)
-                self.prefinfo_tuple = _List_Indexer(self.prefinfo_list,
-                    self.prefinfo_indexerGet)
+                prefinfo_list = pdbtuple.list
+                prefinfo_indexerGet = lambda x: dict((p['pref_id'],i) for i,p in enumerate(prefinfo_list)).get(x)
+                prefinfo_indexerMatch = lambda x: [i for i,p in
+                    enumerate(prefinfo_list) if p['div_id'] == x]
+                prefinfo_triple = _List_IndexerGM(prefinfo_list,
+                    prefinfo_indexerGet, prefinfo_indexerMatch)
                 self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name, prefcol_name)
                 self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
                     dbinterface=self.sdbInterface,
                     divinfo_tuple=divinfo_tuple,
                     fieldinfo_tuple=self.fieldinfo_tuple,
-                    prefinfo_tuple=self.prefinfo_tuple)
+                    prefinfo_tuple=prefinfo_triple)
             else:
-                self.prefinfo_tuple = _List_Indexer(None, None)
+                prefinfo_tuple = _List_IndexerGM(None, None, None)
                 raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))
                 self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
                 self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
