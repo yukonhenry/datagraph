@@ -1740,6 +1740,8 @@ class FieldTimeScheduleGenerator:
                         # first get calendarmap_list for the field, and see if there
                         # is an entry for the priority list game_date
                         finfo = self.fieldinfo_list[self.fieldinfo_indexerGet(f)]
+                        fstart_time = finfo['start_time']
+                        fend_time = finfo['end_time']
                         cmap_list = finfo['calendarmap_list']
                         cmap_indexerMatch_list = lambda x: [i for i,p in
                             enumerate(calendarmap_list) if p['date'].date() == x]
