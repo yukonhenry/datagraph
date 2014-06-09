@@ -1559,7 +1559,7 @@ class BasicFieldTimeScheduleGenerator:
                                 # [TTTTTTTTTTTT] (no constraint)
                                 logging.debug("ftscheduler:processconstraints: constraint %d is not needed since start_after=end_before",
                                               cd_id)
-                                break
+                                break # this should be continue
                         else:
                             logging.debug("ftscheduler:processconstraints: constraint %d nothing specified",
                                           cd_id)
