@@ -491,7 +491,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				schedstatustxt_node.style.color = 'red';
 				var server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
-					prefcol_name:this.pref_select,
+					prefcol_name:this.pref_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",

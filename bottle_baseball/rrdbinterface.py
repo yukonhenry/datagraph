@@ -25,7 +25,7 @@ class RRDBInterface:
         liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
         divlist = liststatus_tuple.list
         for div in divlist:
-            del div['SCHED_STATUS']
+            del div['SCHED_TYPE']
         config_status = liststatus_tuple.config_status
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
         # switch key to lower case for transfer to client

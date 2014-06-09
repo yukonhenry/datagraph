@@ -42,7 +42,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							invalidMessage:'Must be Non-zero integer',
 							missingMessage:'Enter Priority',
 							value:'1',
-							style:'width:6em',
+							//style:'width:6em',
+							style:"width:auto",
 						}}, NumberTextBox),
 					div_id: editor({label:"Divison Id", autoSave:true,
 						editorArgs:{
@@ -51,7 +52,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							invalidMessage:'Must be Non-zero integer',
 							missingMessage:'Enter Division ID',
 							value:'1',
-							style:'width:6em',
+							//style:'width:6em',
+							style:"width:auto",
 						}}, NumberTextBox),
 					team_id: editor({label:"Team Id", autoSave:true,
 						editorArgs:{
@@ -60,17 +62,25 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							invalidMessage:'Must be Non-zero integer',
 							missingMessage:'Enter Team ID',
 							value:'1',
-							style:'width:6em',
+							//style:'width:6em',
+							style:"width:auto",
 						}}, NumberTextBox),
 					game_date: editor({label:'Game Date', autoSave:true,
 						editorArgs:{
-							style:'width:120px'
+							//style:'width:120px'
+							style:"width:auto",
 						}
 					}, DateTextBox),
 					start_after: editor({label:'Start After', autoSave:true,
-						}, TimeTextBox),
+						editorArgs:{
+							style:"width:auto",
+						}
+					}, TimeTextBox),
 					end_before: editor({label:'End Before', autoSave:true,
-						}, TimeTextBox),
+						editorArgs:{
+							style:"width:auto",
+						}
+					}, TimeTextBox),
 				};
 				return columnsdef_obj;
 			},

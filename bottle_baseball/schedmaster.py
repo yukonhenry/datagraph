@@ -56,7 +56,7 @@ class SchedMaster:
             # exists
             pdbInterface = PrefDBInterface(mongoClient, prefcol_name)
             pdbtuple = pdbInterface.readDBraw();
-            if pdbtule.config_status == 1:
+            if pdbtuple.config_status == 1:
                 prefinfo_list = pdbtuple.list
                 prefinfo_indexerGet = lambda x: dict((p['pref_id'],i) for i,p in enumerate(prefinfo_list)).get(x)
                 prefinfo_indexerMatch = lambda x: [i for i,p in
@@ -68,7 +68,7 @@ class SchedMaster:
                     dbinterface=self.sdbInterface,
                     divinfo_tuple=divinfo_tuple,
                     fieldinfo_tuple=self.fieldinfo_tuple,
-                    prefinfo_tuple=prefinfo_triple)
+                    prefinfo_triple=prefinfo_triple)
             else:
                 prefinfo_tuple = _List_IndexerGM(None, None, None)
                 raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))

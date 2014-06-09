@@ -90,6 +90,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					content:topdiv_node,
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
+					onShow: function() {
+						if (divinfo_obj.editgrid) {
+							divinfo_obj.editgrid.schedInfoGrid.resize();
+						}
+					}
 				})
 				wizard_reg.addChild(divinfo_wpane);
 				//--------------------------------------//
@@ -115,6 +120,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					content:topdiv_node,
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
+					onShow: function() {
+						if (fieldinfo_obj.editgrid) {
+							fieldinfo_obj.editgrid.schedInfoGrid.resize();
+						}
+					}
 				})
 				wizard_reg.addChild(fieldinfo_wpane);
 				//-------------------------------------------//
@@ -135,6 +145,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					content:topdiv_node,
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
+					onShow: function() {
+						if (prefinfo_obj.editgrid) {
+							prefinfo_obj.editgrid.schedInfoGrid.resize();
+						}
+					}
 				})
 				wizard_reg.addChild(prefinfo_wpane);
 				//----------------------------------------------//

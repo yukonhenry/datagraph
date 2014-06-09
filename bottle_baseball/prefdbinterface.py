@@ -24,7 +24,7 @@ class PrefDBInterface:
         liststatus_tuple = self.dbinterface.getInfoDocument('PREF_ID')
         rawlist = liststatus_tuple.list
         for raw in rawlist:
-            del raw['SCHED_STATUS']
+            del raw['SCHED_TYPE']
         config_status = liststatus_tuple.config_status
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
         # switch key to lower case for transfer to client
@@ -40,3 +40,6 @@ class PrefDBInterface:
         # switch key to lower case for transfer to client
         info_list = [{k.lower():v for k,v in x.items()} for x in rawlist]
         return _List_Status(info_list, config_status)
+
+    def drop_collection(self):
+        self.dbinterface.drop_collection()
