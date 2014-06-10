@@ -62,7 +62,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         "div[id=$]", div1_radio_id);
                     put(topdiv_node,
                         "label.label_box[for=$]", div1_radio_id,
-                        "Round Robin");
+                        "League/Round Robin");
                     div1_radio = new RadioButton({
                         name:'db_type',
                         value:'rrdb',

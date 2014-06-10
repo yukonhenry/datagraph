@@ -84,6 +84,23 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				};
 				return columnsdef_obj;
 			},
+			getfixedcolumnsdef_obj: function() {
+				// column definition for constraint satisfaction cpane display
+				// after schedule is generated
+				var columnsdef_obj = {
+					pref_id:"Preference ID",
+					priority:"Priority",
+					div_id:"Division ID",
+					div_age:"Age Group",
+					div_gen:"Gender",
+					team_id:"Team ID",
+					game_date:"Game Date",
+					start_after:"Start After",
+					end_before:"End Before",
+					satisfy:"Met"
+				}
+				return columnsdef_obj;
+			},
 			modifyserver_data: function(data_list) {
 				arrayUtil.forEach(data_list, function(item, index) {
 					// save date str to pass into start and end time calc

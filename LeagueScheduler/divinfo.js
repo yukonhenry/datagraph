@@ -100,8 +100,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 			getfixedcolumnsdef_obj: function () {
 				var columnsdef_obj = {
 					div_id:"Div ID",
-					div_age:"Age Group",
-					div_gen:"Gender (or secondary field)",
+					div_age:"Age Group/Primary Group ID",
+					div_gen:"Gender/Secondary Group ID",
 					totalteams:"Total #Teams",
 					totalgamedays:"Total # Games",
 					gameinterval:"Game Interval(min)"

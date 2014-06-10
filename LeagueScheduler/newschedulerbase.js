@@ -48,6 +48,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newfaircpane_select_id:'newfaircpane_select_id',
 			// constraint satisfaction id's
 			newprefcpane_id:'newprefcpane_id',
+			newprefcpane_txt_id:'newprefcpane_txt_id',
+			newprefcpane_grid_id:'newprefcpane_grid_id',
+			newprefcpane_schedheader_id:'newprefcpane_schedheader_id',
 			defaultselect_db_type:'rrdb',
 			db_type:'newscheddb',
 			slot_id:'slot_id',
@@ -69,8 +72,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newsched_name:"", newsched_dom:"",
 			schedutil_obj:null, storeutil_obj:null, op_type:"",
 			info_obj:null, idproperty:constant.idproperty_str,
-			server_path:"", server_key:"",
-			seasondates_btn_reg:null,
+			seasondates_btn_reg:null, server_key_obj:null,
 			callback:null, text_node_str:"", tooltip:null,
 			start_dtbox:null, end_dtbox:null, sl_spinner:null,
 			seasonstart_handle:null, seasonend_handle:null,
@@ -119,7 +121,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.cpane_grid_id_mapobj = {div_id:this.opconstant_obj.newdivcpane_grid_id,
 					field_id:this.opconstant_obj.newfieldcpane_grid_id,
 					team_id:this.opconstant_obj.newteamcpane_grid_id,
-					fair_id:this.opconstant_obj.newfaircpane_grid_id}
+					fair_id:this.opconstant_obj.newfaircpane_grid_id,
+					pref_id:this.opconstant_obj.newprefcpane_grid_id}
 				this.cpane_schedgrid_id_mapobj = {
 					div_id:this.opconstant_obj.newdivcpane_schedgrid_id,
 					field_id:this.opconstant_obj.newfieldcpane_schedgrid_id,
@@ -129,9 +132,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					div_id:this.opconstant_obj.newdivcpane_schedheader_id,
 					field_id:this.opconstant_obj.newfieldcpane_schedheader_id,
 					team_id:this.opconstant_obj.newteamcpane_schedheader_id,
-					fair_id:this.opconstant_obj.newfaircpane_schedheader_id}
+					fair_id:this.opconstant_obj.newfaircpane_schedheader_id,
+					pref_id:this.opconstant_obj.newprefcpane_schedheader_id}
 				this.info_grid_mapobj = {div_id:null, field_id:null, team_id:null,
-					fair_id:null};
+					fair_id:null, pref_id:null};
 				this.info_handle_mapobj = {div_id:null, field_id:null,
 					team_id:null, fair_id:null};
 				this.gridmethod_mapobj = {
@@ -492,13 +496,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var schedstatustxt_node = dom.byId(schedstatustxt_id);
 				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";
 				schedstatustxt_node.style.color = 'red';
-				var server_key_obj = {divcol_name:this.league_select_value,
+				// save server_key_obj to a member variable, as this will 'lock' the
+				// values and used as data for the newly generate schedule cpanes.
+				this.server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
 					prefcol_name:this.pref_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
-					lang.hitch(this, this.update_schedstatustxt), server_key_obj,
+					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,
 					{node:schedstatustxt_node});
 				// add metadata to local store
 				// third parameter 1 is the config_status, which is always complete
@@ -550,8 +556,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// add cpane to display constraint satisfaction
 				args_obj = {
 					suffix_id:this.opconstant_obj.newprefcpane_id,
-
+					content_str:"<div id='"+this.opconstant_obj.newprefcpane_txt_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_grid_id+"'></div><br>",
+					title_suffix:' by Preference',
 				}
+				this.createnewsched_pane(args_obj);
+				this.prepgrid_data(constant.pref_id, dbstatus);
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
@@ -559,12 +568,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var db_type = null;
 				if (idproperty == 'div_id') {
 					statusnode_id = this.opconstant_obj.newdivcpane_txt_id;
-					select_value = this.league_select_value;
-					db_type = this.current_db_type;
+					select_value = this.server_key_obj.divcol_name;
+					db_type = this.server_key_obj.db_type;
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'field_id') {
 					statusnode_id = this.opconstant_obj.newfieldcpane_txt_id;
-					select_value = this.fg_select_value;
+					select_value = this.server_key_obj.fieldcol_name;
 					db_type = 'fielddb';
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == constant.team_id) {
@@ -573,6 +582,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				} else if (idproperty == constant.fair_id) {
 					statusnode_id = this.opconstant_obj.newfaircpane_txt_id;
 					this.getdivselect_dropdown(idproperty, this.opconstant_obj.newfaircpane_select_id);
+				} else if (idproperty == constant.pref_id) {
+					statusnode_id = this.opconstant_obj.newprefcpane_txt_id;
+					select_value = this.server_key_obj.prefcol_name;
+					db_type = 'prefdb';
+					this.getgrid_data(idproperty, select_value, db_type);
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					dom.byId(statusnode_id))
@@ -583,20 +597,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// corresponding to current collection
 				var info_obj = baseinfoSingleton.get_obj(idproperty, this.op_type);
 				if (info_obj) {
-					if (info_obj.infogrid_store &&
+					// for pref_id always get from server as we want to get the
+					// constraint satisfaction status from the generated schedule
+					if (idproperty != constant.pref_id &&
+						info_obj.infogrid_store &&
 						info_obj.activegrid_colname == select_value) {
 						var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
-						/*
-						var griddata_list = info_obj.infogrid_store.query().map(function(item) {
-							var map_obj = {}
-							// only extra data corresponding to keys specified in
-							// columnsdef_obj.  This may be a subset of all the keys
-							// available in the store.
-							for (var key in columnsdef_obj) {
-								map_obj[key] = item[key];
-							}
-							return map_obj;
-						}) */
 						var griddata_list = info_obj.infogrid_store.query();
 						this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
 					} else {
@@ -761,21 +767,29 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					info_grid.refresh();
 				}
 				info_grid.renderArray(griddata_list);
-				var info_handle = this.info_handle_mapobj[idproperty];
-				if (info_handle)
-					info_handle.remove();
-				var callback_method = this.gridmethod_mapobj[idproperty]
-				info_handle = info_grid.on("dgrid-select",
-					lang.hitch(this, function(event) {
-					var event_data = event.rows[0].data;
-					var id = event_data[idproperty];
-					this.setselect_text(event_data, idproperty);
-					this.server_interface.getServerData('get_schedule/'+
-						this.newsched_name+'/'+idproperty+'/'+id,
-						callback_method,
-						query_obj, {idproperty:idproperty, event_data:event_data})
-					}));
-				this.info_handle_mapobj[idproperty] = info_handle;
+				if (idproperty != 'pref_id') {
+					// preference id grid is a standalong-grid and it's rows
+					// are not selectable
+					var info_handle = this.info_handle_mapobj[idproperty];
+					if (info_handle)
+						info_handle.remove();
+					var callback_method = this.gridmethod_mapobj[idproperty]
+					info_handle = info_grid.on("dgrid-select",
+						lang.hitch(this, function(event) {
+						var event_data = event.rows[0].data;
+						var id = event_data[idproperty];
+						this.setselect_text(event_data, idproperty);
+						this.server_interface.getServerData('get_schedule/'+
+							this.newsched_name+'/'+idproperty+'/'+id,
+							callback_method,
+							query_obj, {idproperty:idproperty, event_data:event_data})
+						}));
+					this.info_handle_mapobj[idproperty] = info_handle;
+				} else {
+					// set secondary text for pref_id
+					this.setselect_text({prefcol_name:this.server_key_obj.prefcol_name}, 'pref_id');
+				}
+				console.log("infogrid complete"+idproperty)
 			},
 			createdivsched_grid: function(adata, options_obj) {
 				var idproperty = options_obj.idproperty;
@@ -917,6 +931,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					text_str = event_data.field_name + " selected";
 				} else if (idproperty == constant.team_id) {
 					text_str = "Team ID#"+event_data.team_id + " selected";
+				} else if (idproperty == 'pref_id') {
+					text_str = "Preference List ID: "+event_data.prefcol_name;
 				}
 				dom.byId(schedheader_id).innerHTML = text_str;
 			},
