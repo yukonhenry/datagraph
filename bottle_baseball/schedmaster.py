@@ -68,7 +68,7 @@ class SchedMaster:
                     dbinterface=self.sdbInterface,
                     divinfo_tuple=divinfo_tuple,
                     fieldinfo_tuple=self.fieldinfo_tuple,
-                    prefinfo_triple=prefinfo_triple)
+                    prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface)
             else:
                 prefinfo_tuple = _List_IndexerGM(None, None, None)
                 raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))
@@ -80,9 +80,9 @@ class SchedMaster:
         else:
             # save schedule generation parameters in db
             self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-            dbinterface=self.sdbInterface,
-            divinfo_tuple=divinfo_tuple, fieldinfo_tuple=self.fieldinfo_tuple)
+            self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
+                dbinterface=self.sdbInterface,
+                divinfo_tuple=divinfo_tuple, fieldinfo_tuple=self.fieldinfo_tuple)
         self.schedcol_name = schedcol_name
 
     def generate(self):
