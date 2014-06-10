@@ -20,8 +20,8 @@
 #b elimfieldtimescheduler.py:338
 #b schedmaster.py:115
 #b fielddbinterface.py:1766
-b fieldtimescheduler.py:1258
-b fieldtimescheduler.py:941
+b fieldtimescheduler.py:1912
+#b fieldtimescheduler.py:941
 #b fieldtimescheduler.py:1747
 #b dbinterface.py:602
 #b leaguediv_process.py:336

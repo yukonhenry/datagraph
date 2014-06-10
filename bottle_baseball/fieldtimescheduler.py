@@ -1258,6 +1258,7 @@ class FieldTimeScheduleGenerator:
             self.ManualSwapTeams(fset, connected_div_list)
             if self.prefinfo_list:
                 constraint_status_list = self.ProcessConstraints(fset, connected_div_list)
+                self.pdbinterface.write_constraint_status(constraint_status_list)
             # read from memory and store in db
             for field_id in fset:
                 fieldday_id = 1
@@ -1741,6 +1742,7 @@ class FieldTimeScheduleGenerator:
                     endbefore_time = parser.parse(endbefore_str)
                     cgame_date = parser.parse(constraint['game_date']).date()
                     break_flag = False
+                    swapmatch_list = []
                     for f in fset:
                         # reassign cstartafter_time, cendbefore_time in case  it
                         # was nulled out in previous loop
@@ -1806,7 +1808,6 @@ class FieldTimeScheduleGenerator:
                                 logging.debug("ftscheduler:processconstraints: constraint %d nothing specified",
                                     cpref_id)
                                 continue
-                            swapmatch_list = []
                             # first
                             # search through each field for the divset to 1)find if team is already scheduled in a desired slot; or
                             # 2) if not, find the list of matches that the team can swap with during that day

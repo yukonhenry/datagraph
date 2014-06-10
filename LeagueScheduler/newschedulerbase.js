@@ -46,12 +46,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			newfaircpane_schedheader_id:'newfaircpane_schedheader_id',
 			newfaircpane_schedgrid_id:'newfaircpane_schedgrid_id',
 			newfaircpane_select_id:'newfaircpane_select_id',
+			// constraint satisfaction id's
+			newprefcpane_id:'newprefcpane_id',
 			defaultselect_db_type:'rrdb',
 			db_type:'newscheddb',
 			slot_id:'slot_id',
 			game_id:'game_id',
 			team_id:'team_id',
-			fair_id:'fair_id'
+			fair_id:'fair_id',
+			pref_id:'pref_id'
 		};
 		var wizconstant = {
 			nscpane_id:"wiznewschedcpane_id",
@@ -544,6 +547,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data(constant.fair_id, dbstatus)
+				// add cpane to display constraint satisfaction
+				args_obj = {
+					suffix_id:this.opconstant_obj.newprefcpane_id,
+
+				}
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;

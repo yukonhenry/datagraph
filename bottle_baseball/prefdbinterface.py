@@ -19,6 +19,13 @@ class PrefDBInterface:
         document_list = [{k.upper():v for k,v in x.items()} for x in info_list]
         self.dbinterface.updateInfoDocument(document_list, config_status, 'PREF_ID')
 
+    def write_constraint_status(self, cstatus_list):
+        operator = "$set"
+        for cstatus in cstatus_list:
+            query_obj = {'PREF_ID':cstatus['pref_id']}
+            operator_obj = {'SATISFY':cstatus['status']}
+            self.dbinterface.updatedoc(query_obj, operator, operator_obj)
+
     def readDB(self):
         # readDB is for returning to client UI
         liststatus_tuple = self.dbinterface.getInfoDocument('PREF_ID')
