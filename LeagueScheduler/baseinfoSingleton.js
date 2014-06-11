@@ -13,9 +13,12 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				this.obj_list = new Array();
 				this.watch_list = new Array();
 				arrayUtil.forEach(['advance', 'wizard'], function(item) {
-					// create separate watch object for each op_type
-					var watch_obj = new Watch_class();
-					this.watch_list.push({watch_obj:watch_obj, op_type:item})
+					arrayUtil.forEach(['field_id', 'pref_id'], function(id) {
+						// create separate watch object for each op_type and id
+						var watch_obj = new Watch_class();
+						this.watch_list.push({watch_obj:watch_obj, op_type:item,
+							idproperty:id})
+					}, this)
 				}, this)
 			},
 			register_obj: function(obj, idproperty) {
@@ -27,11 +30,13 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				arrayUtil.forEach(this.watch_list, function(item) {
 					item.watch_obj.watch('divstr_list',
 						lang.hitch(this,function(name, oldValue, value) {
-							var fieldinfo_obj = this.get_obj('field_id', item.op_type);
-							// if editgrid has not been created, no sweat, as  divstr
-							// is also queried after fieldinfo grid is created
-							if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
-								fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
+							if (item.idproperty == 'field_id') {
+								var fieldinfo_obj = this.get_obj('field_id', item.op_type);
+								// if editgrid has not been created, no sweat, as  divstr
+								// is also queried after fieldinfo grid is created
+								if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
+									fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
+								}
 							}
 						})
 					);
@@ -49,15 +54,15 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					);
 				}, this);
 			},
-			set_watch_obj: function(watch_field, value, op_type) {
+			set_watch_obj: function(watch_field, value, op_type, idproperty) {
 				var match_obj = arrayUtil.filter(this.watch_list, function(item) {
-					return item.op_type == op_type;
+					return item.op_type == op_type && item.idproperty == idproperty;
 				})[0]
 				match_obj.watch_obj.set(watch_field, value);
 			},
-			get_watch_obj: function(watch_field, op_type) {
+			get_watch_obj: function(watch_field, op_type, idproperty) {
 				var match_obj = arrayUtil.filter(this.watch_list, function(item) {
-					return item.op_type == op_type;
+					return item.op_type == op_type && item.idproperty == idproperty;
 				})[0];
 				return match_obj.watch_obj.get(watch_field);
 			},

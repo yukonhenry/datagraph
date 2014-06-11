@@ -36,6 +36,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
 				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:"wiztop_cpane_id"});
+				container_cpane.on("show", lang.hitch(this, function(evt) {
+					console.log("Wizard onshow");
+					if (this.uistackmgr && this.uistackmgr.current_grid) {
+						this.uistackmgr.current_grid.resize();
+					}
+					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
+						this.wizuistackmgr.current_grid.resize();
+					}
+					advanced_cpane.domNode.scrollTop = 0;
+				}))
 				tabcontainer.addChild(container_cpane);
 				//tabcontainer.selectChild(container_cpane);
 				//container_cpane.resize();

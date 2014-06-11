@@ -25,6 +25,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
 			db_type:constant.db_type, today:null, idmgr_obj:null,
+			//divstr_colname, divstr_db_type, widgetgen are all member var's
+			// that have to do with the db_type radiobutton /
+			// league select drop down
+			divstr_colname:"", divstr_db_type:"rrdb", widgetgen:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);

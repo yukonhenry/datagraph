@@ -21,18 +21,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		var constant = {
 			idproperty_str:"field_id",
 			updatebtn_str:"Update Field Info",
-			//grid_id:"fieldinfogrid_id",
 			text_node_str:'Field List Name',
 			db_type:'fielddb',
-			//form_id:'field_form_id', dbname_id:'fielddbname_id',
 			dbname_str:'New Field List Name',
 			vtextbox_str:'Enter Field List Name',
 			ntextbox_str:'Enter Number of Fields',
-			//inputnum_id:'fieldinputnum_id',
 			inputnum_str:'Number of Fields',
 			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-			//radiobtn1_id:"radio1_id", radiobtn2_id:"radio2_id",
-			//league_select_id:"league_select_id",
 			default_fieldevent_str:"Sports"
 		};
 		var wizconstant = {
@@ -787,10 +782,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}, this);
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
+				var field_id = object.field_id;
+			    var ddown_btn_prefix = this.op_prefix+"fielddropdownbtn";
+			    var ddown_btn_id = ddown_btn_prefix+field_id+"_id";
 				if (this.rendercell_flag) {
 					var TDialog = null;
 					var tdialogprop_obj = null;
-					var field_id = object.field_id;
 					// get data to create the possible check list items
 					// which is the all the divinfo items
 					// Data for actually entering the checks will come later
@@ -810,12 +807,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			    			content:"Select Database using Select Config->Division Info"
 			    		});
 			    	}
-					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
+					var dropdown_btn = registry.byId(ddown_btn_id);
 					if (!dropdown_btn) {
 						var dropdown_btn = new DropDownButton({
 							label:"Config",
 							dropDown:TDialog,
-							id:'fielddropdownbtn'+field_id+'_id'
+							id:ddown_btn_id
 						});
 						dropdown_btn.startup();
 					} else {
@@ -830,14 +827,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    			var args_obj = {dialogprop_obj:tdialogprop_obj,
 		    				check_str:object.primaryuse_str,
 		    				display_list:tdialogprop_obj.div_list,
-		    				dropdownbtn_prefix:"fielddropdownbtn",
+		    				dropdownbtn_prefix:ddown_btn_prefix,
 		    				index_offset:1}
 		    			this.init_checkbox(args_obj);
 		    		}
 				} else {
 					// retrieve widget that had already been instantiated
-					var field_id = object.field_id;
-					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
+					var dropdown_btn = registry.byId(ddown_btn_id);
 				}
 				node.appendChild(dropdown_btn.domNode);
 				return dropdown_btn;
@@ -850,19 +846,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(divstr_list, function(divstr_obj) {
 					var divstr = divstr_obj.divstr;
 					div_list.push(divstr);
-					var idstr = "checkbox"+divstr+field_id+"_id";
+					var idstr = this.op_prefix+"checkbox"+divstr+field_id+"_id";
 					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
 					'" value="'+divstr_obj.div_id+'"><label for="'+idstr+'">'+divstr+'</label><br>';
 					checkboxid_list.push(idstr);
-				});
-				var button_id = 'tdialogbtn'+field_id+'_id';
+				}, this);
+				var button_id = this.op_prefix+'tdialogbtn'+field_id+'_id';
+				var tooltip_id = this.op_prefix+'tooltip'+field_id+'_id';
 				content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
-				var TDialog = registry.byId('tooltip'+field_id);
+				var TDialog = registry.byId(tooltip_id);
 				if (TDialog) {
 					TDialog.set('content', content_str);
 				} else {
 					TDialog = new TooltipDialog({
-						id:"tooltip"+field_id,
+						id:tooltip_id,
 						content: content_str
 	    			});
 				}
@@ -881,7 +878,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				for (var field_id = 1; field_id < this.rownum+1; field_id++) {
 					var primaryuse_obj = this.create_primaryuse_dialog(divstr_list, field_id);
 					var TDialog = primaryuse_obj.tdialog;
-					var dropdown_btn = registry.byId('fielddropdownbtn'+field_id+'_id');
+					var dropdown_btn = registry.byId(this.op_prefix+'fielddropdownbtn'+field_id+'_id');
 					if (dropdown_btn) {
 						dropdown_btn.set('dropDown', TDialog);
 					}
@@ -912,18 +909,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					store_elem.primaryuse_str = value_str;
 					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
-					var dropdownbtn_reg = registry.byId("fielddropdownbtn"+field_id+"_id");
+					var dropdownbtn_reg = registry.byId(this.op_prefix+"fielddropdownbtn"+field_id+"_id");
 					dropdownbtn_reg.set('label', display_str);
 				}
 			},
 			dates_actionRenderCell: function(object, data, node) {
+				var field_id = object.field_id;
+				var fielddatesbtn_id = this.op_prefix+"fielddatesbtn"+field_id+"_id"
 				if (this.rendercell_flag) {
-					var field_id = object.field_id;
-					var config_btn = registry.byId("fielddatesbtn"+field_id+"_id");
+					var config_btn = registry.byId(fielddatesbtn_id);
 					if (!config_btn) {
 						config_btn = new Button({
 							label:"Config Venue"+field_id,
-							id:"fielddatesbtn"+field_id+"_id",
+							id:fielddatesbtn_id,
 							onClick: lang.hitch(this, function() {
 								this.edit_calendar(field_id);
 							})
@@ -932,32 +930,34 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}
 				} else {
 					// retrieve widget that had already been instantiated
-					var field_id = object.field_id;
-					var config_btn = registry.byId("fielddatesbtn"+field_id+"_id");
+					var config_btn = registry.byId(fielddatesbtn_id);
 				}
 				node.appendChild(config_btn.domNode);
 				return config_btn;
 			},
 			dayweek_actionRenderCell: function(object, data, node) {
+				var field_id = object.field_id;
+				var dwdialog_id = this.op_prefix+"dwtooltip"+field_id+'_id';
+				var dwfielddownbtn_prefix = this.op_prefix+"dwfielddropdownbtn";
+				var dwfielddownbtn_id = dwfielddownbtn_prefix+field_id+'_id';
 				if (this.rendercell_flag) {
-					var field_id = object.field_id;
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
 					var checkboxid_list = new Array();
 					arrayUtil.forEach(constant.day_list, function(day, index) {
-						var idstr = day+field_id+"_id";
+						var idstr = this.op_prefix+day+field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
 						'" value='+index+'><label for="'+idstr+'">'+day+'</label> ';
 						if (index%2)
 							content_str += '<br>'
 						checkboxid_list.push(idstr);
-					});
-					var button_id = 'dwdialogbtn'+field_id+'_id';
+					}, this);
+					var button_id = this.op_prefix+'dwdialogbtn'+field_id+'_id';
 					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
-					var dwdialog = registry.byId("dwtooltip"+field_id);
+					var dwdialog = registry.byId(dwdialog_id);
 					if (!dwdialog) {
 						dwdialog = new TooltipDialog({
-							id:"dwtooltip"+field_id,
+							id:dwdialog_id,
 							content: content_str
 			    		});
 					} else {
@@ -969,12 +969,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    		var button_reg = registry.byId(button_id);
 		    		button_reg.on("click",
 		    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
-		    		var dropdown_btn = registry.byId('dwfielddropdownbtn'+field_id+'_id');
+		    		var dropdown_btn = registry.byId(dwfielddownbtn_id);
 		    		if (!dropdown_btn) {
 						dropdown_btn = new DropDownButton({
 							label:"Config",
 							dropDown:dwdialog,
-							id:'dwfielddropdownbtn'+field_id+'_id'
+							id:dwfielddownbtn_id
 						});
 						dropdown_btn.startup();
 		    		} else {
@@ -986,13 +986,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    			var args_obj = {dialogprop_obj:dwdialogprop_obj,
 		    				check_str:object.dayweek_str,
 		    				display_list:dwdialogprop_obj.day_list,
-		    				dropdownbtn_prefix:"dwfielddropdownbtn",
+		    				dropdownbtn_prefix:dwfielddownbtn_prefix,
 		    				index_offset:0}
 		    			this.init_checkbox(args_obj);
 		    		}
 				} else {
-					var field_id = object.field_id;
-					var dropdown_btn = registry.byId('dwfielddropdownbtn'+field_id+'_id');
+					var dropdown_btn = registry.byId(dwfielddownbtn_id);
 				}
 				node.appendChild(dropdown_btn.domNode);
 				//dropdown_btn.startup();
@@ -1027,7 +1026,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					//store_elem.dayweek_num = numdays;
 					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
-					var dwdropdownbtn_reg = registry.byId("dwfielddropdownbtn"+field_id+"_id");
+					var dwdropdownbtn_reg = registry.byId(this.op_prefix+"dwfielddropdownbtn"+field_id+"_id");
 					dwdropdownbtn_reg.set('label', display_str);
 				}
 			},
@@ -1052,59 +1051,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				display_str = display_str.substring(0, display_str.length-1);
 				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
 				dropdownbtn_reg.set('label', display_str);
-			},
-			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname) {
-				// passed in init_db_type and init_colname are typicall
-				// for divinfo(divstr) db_type and colname even though it
-				// is used for fieldinfo grid
-				var init_db_type = init_db_type || "";
-				var init_colname = init_colname || "";
-				//For field grids, create radio button pair to select
-				// schedule type - rr or tourn
-				var fieldinfogrid_node = dom.byId(this.idmgr_obj.grid_id);
-				var topdiv_node = put(fieldinfogrid_node, "-div");
-				if (!this.widgetgen) {
-					this.widgetgen = new WidgetGen({
-						storeutil_obj:this.storeutil_obj,
-						server_interface:this.server_interface
-					});
-				}
-				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
-					radio1_id, radio2_id, init_db_type,
-					this, this.radio1_callback, this.radio2_callback, select_id);
-				//for callback function, additional parameters after the first two
-				// are passed to the callback as extra parameters.
-				var args_obj = {
-					topdiv_node:topdiv_node, select_id:select_id,
-					init_db_type:init_db_type,
-					init_colname:init_colname,
-					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this),
-					name_str:"league select",
-					label_str:"Select League",
-					put_trail_spacing:"br"}
-				this.widgetgen.create_select(args_obj);
-			},
-			// callback function when dbtype radiobutton is changed
-			radio1_callback: function(select_id, event) {
-				if (event) {
-					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
-					this.divstr_db_type = 'rrdb';
-				}
-			},
-			radio2_callback: function(select_id, event) {
-				if (event) {
-					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
-					this.divstr_db_type = 'tourndb';
-				}
-			},
-			// set and get divinfo  obj information that is attached to the current
-			// fieldinfo obj
-			setdivstr_obj: function(colname, db_type) {
-				this.divstr_colname = colname;
-				this.divstr_db_type = db_type;
-			},
-			getdivstr_obj: function() {
-				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
 			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.
@@ -1262,11 +1208,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					newlist.push(obj);
 				});
 				return newlist;
-			},
-			initabovegrid_UI: function() {
-				this.create_dbselect_radiobtnselect(
-					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
-					this.idmgr_obj.league_select_id);
 			},
 			calc_totalfielddays: function(item) {
 				// calculate # of totalfielddays based on current grid

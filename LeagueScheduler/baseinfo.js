@@ -1,12 +1,12 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dojo/keys", "dojo/Stateful",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
-	"dijit/form/RadioButton",
+	"dijit/form/RadioButton", "LeagueScheduler/widgetgen",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
-		registry, Tooltip, Button, RadioButton, EditGrid, baseinfoSingleton,
+		registry, Tooltip, Button, RadioButton, WidgetGen, EditGrid, baseinfoSingleton,
 		put) {
 		var constant = {
 			infobtn_id:"infobtn_id",
@@ -85,7 +85,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.keyup_handle.remove();
 						// if idproperty is field, create radio buttons for
 						// db selection (for div select)
-						if (this.idproperty == 'field_id') {
+						if (this.idproperty == 'field_id' ||
+							this.idproperty == 'pref_id') {
 							// field_id-specific UI above grid
 							this.initabovegrid_UI();
 						} else if (this.idproperty == 'div_id') {
@@ -132,6 +133,64 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					} else {
 						alert('Input name is Invalid, please correct');
 					}
+				}
+			},
+			// set and get divinfo  obj information that is attached to the current
+			// info obj (fieldinfo or preferenceinfo)
+			setdivstr_obj: function(colname, db_type) {
+				this.divstr_colname = colname;
+				this.divstr_db_type = db_type;
+			},
+			getdivstr_obj: function() {
+				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
+			},
+			initabovegrid_UI: function() {
+				this.create_dbselect_radiobtnselect(
+					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
+					this.idmgr_obj.league_select_id);
+			},
+			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname) {
+				// passed in init_db_type and init_colname are typicall
+				// for divinfo(divstr) db_type and colname even though it
+				// is used for fieldinfo grid
+				var init_db_type = init_db_type || "";
+				var init_colname = init_colname || "";
+				//For field grids, create radio button pair to select
+				// schedule type - rr or tourn
+				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
+				var topdiv_node = put(infogrid_node, "-div");
+				if (!this.widgetgen) {
+					this.widgetgen = new WidgetGen({
+						storeutil_obj:this.storeutil_obj,
+						server_interface:this.server_interface
+					});
+				}
+				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
+					radio1_id, radio2_id, init_db_type,
+					this, this.radio1_callback, this.radio2_callback, select_id);
+				//for callback function, additional parameters after the first two
+				// are passed to the callback as extra parameters.
+				var args_obj = {
+					topdiv_node:topdiv_node, select_id:select_id,
+					init_db_type:init_db_type,
+					init_colname:init_colname,
+					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this),
+					name_str:"league select",
+					label_str:"Select League",
+					put_trail_spacing:"br"}
+				this.widgetgen.create_select(args_obj);
+			},
+			// callback function when dbtype radiobutton is changed
+			radio1_callback: function(select_id, event) {
+				if (event) {
+					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
+					this.divstr_db_type = 'rrdb';
+				}
+			},
+			radio2_callback: function(select_id, event) {
+				if (event) {
+					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
+					this.divstr_db_type = 'tourndb';
 				}
 			},
 			getServerDBInfo: function(options_obj) {

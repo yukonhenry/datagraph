@@ -147,7 +147,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                             this.getname_list(evt, db_type, info_obj);
                         }) */
                     }, select_node);
-                    args_obj = {db_type:db_type, label_str:label_str,
+                    var args_obj = {db_type:db_type, label_str:label_str,
                                 config_status:true, init_colname:init_colname};
                     var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
                     league_select.addOption(option_list);
@@ -165,6 +165,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 } else {
                     // we can use by Node here as both node and widget are selects
                     league_select = registry.byNode(select_node);
+                    // reset options and callback based on passed in parameters
+                    var args_obj = {db_type:db_type, label_str:label_str,
+                        config_status:true, init_colname:init_colname};
+                    var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
+                    league_select.set("options", option_list);
+                    league_select.set("onChange", onchange_callback);
+                    league_select.startup();
                 }
                 return league_select;
             },
@@ -233,14 +240,16 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         function(item, index) {
                             // return both the divstr (string) and div_id value
                             // value used as the value for the checkbox in the fieldinfo grid dropdown
+                            // also save totalteams field as it will be useful for
+                            // preference table
                             return {'divstr':item.div_age + item.div_gen,
-                                'div_id':item.div_id};
+                                'div_id':item.div_id, 'totalteams':item.totalteams};
                         })
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
                     info_obj.setdivstr_obj(colname, db_type);
                     baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
-                        info_obj.op_type);
+                        info_obj.op_type, info_obj.idproperty);
                 }
             },
             // create calendar inputs for season start/end dates
