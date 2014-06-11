@@ -83,21 +83,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					node.style.color = 'red';
 				}
 			},
-			generateDivSelectDropDown: function(select_reg, info_list) {
-				// ref http://stackoverflow.com/questions/13932225/dojo-and-dynamically-added-options-to-dijit-form-select
-				// for closure http://stackoverflow.com/questions/4726611/function-used-from-within-javascript-dojo-closure-using-this-notation-is-undef
-				// without 3rd argument for  forEach, scope is global
-				// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
-				/*
-				var info_list = (typeof info_list === "undefined") ? this.leaguedata : info_list;
-				var option_list = [{label:"Select Division", value:"", selected:true}];
-				arrayUtil.forEach(info_list, function(item, index) {
-					var divstr = item.div_age + item.div_gen;
-					// division code is 1-index based so increment by 1
-					option_list.push({label:divstr, value:index+1, selected:false});
-				});
-				select_reg.addOption(option_list); */
-			},
 			createSchedLinks: function(ldata_array, dom_name) {
 				var target_dom = dom.byId(dom_name);
 				var hrefstr = "";

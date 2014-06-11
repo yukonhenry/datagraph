@@ -77,12 +77,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// IMPORTANT: call to colname_obj.set needs to be later than
 				// setting info_obj.infogrid_store above as colname_obj watch
 				// function utilizes infogrid_store (for div_id idprop)
-				/*
 				this.errorHandle = this.schedInfoGrid.on("dgrid-error", function(event) {
-					console.log("dgrid error fired");
-					this.error_node.className = "message error";
-					this.error_node.innerHTML = event.error.message;
-				}); */
+					console.log("dgrid error fired, event=", event);
+					//this.error_node.className = "message error";
+					//this.error_node.innerHTML = event.error.message;
+				});
 				if (this.datachangeHandle)
 					this.datachangeHandle.remove();
 				//this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",

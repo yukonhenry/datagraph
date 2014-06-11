@@ -190,7 +190,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					updatebtn_str:constant.updatebtn_str,
 					tooltipconfig_list:tooltipconfig_list,
 					newgrid_flag:newgrid_flag,
-					cellselect_flag:false,
+					cellselect_flag:true,
 					op_type:op_type
 				}
 				this.showConfig(args_obj);
