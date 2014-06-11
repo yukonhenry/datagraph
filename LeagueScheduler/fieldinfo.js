@@ -796,7 +796,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// have the passed data originating from the server
 					// through local data store.
 					var divstr_list = baseinfoSingleton.get_watch_obj(
-						'divstr_list', this.op_type);
+						'divstr_list', this.op_type, 'field_id');
 					if (divstr_list && divstr_list.length > 0) {
 						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
@@ -1186,7 +1186,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
                     baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
-                    	this.op_type);
+                    	this.op_type, 'field_id');
                 }
 				return data_list;
 			},

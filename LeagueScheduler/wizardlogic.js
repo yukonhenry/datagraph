@@ -44,7 +44,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
 						this.wizuistackmgr.current_grid.resize();
 					}
-					advanced_cpane.domNode.scrollTop = 0;
+					container_cpane.domNode.scrollTop = 0;
 				}))
 				tabcontainer.addChild(container_cpane);
 				//tabcontainer.selectChild(container_cpane);
