@@ -46,12 +46,12 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
 					div_id: "Div ID",
-					div_age: editor({label:"Age", field:"div_age", autoSave:true,
+					div_age: editor({label:"Age", autoSave:true,
 						set:function(item) {
 							// trim any leading or trailing whitespace characters
 							return item.div_age.trim();
 						}},"text","click"),
-					div_gen: editor({label:"Gender", field:"div_gen", autoSave:true,
+					div_gen: editor({label:"Gender", autoSave:true,
 						set:function(item) {
 							return item.div_gen.trim();
 						}}, "text", "click"),
@@ -79,17 +79,32 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 							return parseInt(item.gameinterval)
 						}}, "text", "click"),
 					mingap_days: editor({label:"Minimum Gap (days)", autoSave:true,
+						change_flag:false,
 						editorArgs:{
 							style:'width:70px', value:1, smallDelta:1,
 							//id:"mingap_days_spinner_id",
 							constraints:{min:1, max:50, places:0}
+						},
+						set:function(item) {
+							// give a better initial estimate for the mingap_days
+							// dependent on numgdaysperweek value
+							if (this.change_flag) {
+								this.change_flag = false;
+								return (7/item.numgdaysperweek-1)
+							}
 						}
 					}, NumberSpinner),
 					maxgap_days: editor({label:"Maximum Gap (days)", autoSave:true,
+						change_flag:false,
 						editorArgs:{
 							style:'width:70px', value:2, smallDelta:1,
-							//id:"maxgap_days_spinner_id",
 							constraints:{min:1, max:50, places:0}
+						},
+						set:function(item) {
+							if (this.change_flag) {
+								this.change_flag = false;
+								return (7/item.numgdaysperweek+1)
+							}
 						}
 					}, NumberSpinner)
 				};

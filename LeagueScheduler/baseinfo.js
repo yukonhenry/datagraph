@@ -176,7 +176,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					init_colname:init_colname,
 					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this),
 					name_str:"league select",
-					label_str:"Select League",
+					label_str:"Select Division List",
 					put_trail_spacing:"br"}
 				this.widgetgen.create_select(args_obj);
 			},

@@ -70,18 +70,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
 					start_date: editor({label:"Start Date", autoSave:true,
-						columntype:false,
+						//columntype:false,
 						editorArgs:{
 							style:'width:100px',
 						},
 					}, DateTextBox),
 					end_date: editor({label:"End Date", autoSave:true,
-						columntype:false,
+						//columntype:false,
 						editorArgs:{
 							style:'width:100px',
 						},
 					}, DateTextBox),
-					start_time: editor({label:"Start Time", autoSave:true, columntype:false,
+					start_time: editor({label:"Start Time", autoSave:true,
+						//columntype:false,
 						editorArgs: {
 							style:"width:100px"
 						},
@@ -103,7 +104,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}, */
 					}, TimeTextBox),
 					end_time: editor({label:"End Time", autoSave:true,
-						columntype:false,
+						//columntype:false,
 						editorArgs: {
 							style:"width:100px"
 						},
@@ -200,7 +201,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.server_key = 'info_data';
-				options_obj.cellselect_flag = true;
+				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server
 				options_obj.serverdata_key = 'info_list';

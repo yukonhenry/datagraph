@@ -2,12 +2,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/date",
 	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
-	"dgrid/CellSelection", "dijit/form/ToggleButton",
+	"dgrid/CellSelection", "dijit/form/ToggleButton", "dijit/Tooltip",
 	"LeagueScheduler/baseinfoSingleton", "dojo/domReady!"
 	], function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
 	         arrayUtil, date, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
-		ToggleButton, baseinfoSingleton) {
+		ToggleButton, Tooltip, baseinfoSingleton) {
 		return declare(null, {
 			griddata_list:null,
 			server_interface:null, colname:null,
@@ -29,7 +29,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
 				// Observable Memory + dgrid has issues - switching to Memory only
 				if (this.idproperty == 'div_id' ||
-					this.idproperty == 'tourndiv_id') {
+					this.idproperty == 'tourndiv_id' ||
+					this.idproperty == 'pref_id') {
 					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
@@ -70,6 +71,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				//if (this.info_obj && 'editgrid' in this.info_obj) {
 				//	this.info_obj.editgrid = this.schedInfoGrid;
 				//}
+				var tooltipconfig = {connectId:[this.schedInfoGrid.columns.totalgamedays.headerNode],
+						label:"Enter Total Number Teams in Division",
+						position:['above','before']};
+				var tooltip = new Tooltip(tooltipconfig)
 				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
@@ -87,7 +92,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				//this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
 				//	lang.hitch(this, this.editschedInfoGrid));
 				this.datachangeHandle = this.schedInfoGrid.on("dgrid-datachange",
-					this.editschedInfoGrid);
+					lang.hitch(this, this.editschedInfoGrid));
 				if (this.cellselect_flag) {
 					this.manageCellSelect();
 				}
@@ -95,7 +100,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.header_handle.remove();
 				this.header_handle = this.schedInfoGrid.on("dgrid-sort",
 					lang.hitch(this, function(event) {
-						if (event.grid.id == "fieldinfogrid_id") {
+						if (this.idproperty == "field_id") {
 							// deal with bug where renderCell gets fired
 							// after grid is rendered and when header row
 							// gets clicked on any column.
@@ -115,8 +120,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var val = event.value;
         		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
         			'col='+event.cell.column.field);
-        		var columntype = event.cell.column.field;
-        		event.grid.columns[columntype].columntype = true;
+        		if (this.idproperty == 'div_id') {
+        			if (event.cell.column.id == 'numgdaysperweek') {
+        				// enable single shot writes to mingap and maxgap columns
+        				event.grid.columns.mingap_days.change_flag = true;
+        				event.grid.columns.maxgap_days.change_flag = true;
+        			}
+        		}
+        		//var columntype = event.cell.column.field;
+        		//event.grid.columns[columntype].columntype = true;
 			},
 			rowSelectHandler: function(event) {
 				var eventdata = event.rows[0].data
