@@ -626,6 +626,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getdivselect_dropdown: function(idproperty, select_id) {
 				// first get the div information selected by
 				// league_select_value and current_db_type
+				// cross-reference widgetgen/getname_list
 				var select_value = this.league_select_value;
 				var db_type = this.current_db_type;
 				// check if the divselect_reg divsion select drop-down
@@ -766,10 +767,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// call refresh() to clear array
 					info_grid.refresh();
 				}
-				info_grid.renderArray(griddata_list);
 				if (idproperty != 'pref_id') {
-					// preference id grid is a standalong-grid and it's rows
-					// are not selectable
+					// set up infogrid selection handles and setup callbacks that
+					// will create secondary grids
 					var info_handle = this.info_handle_mapobj[idproperty];
 					if (info_handle)
 						info_handle.remove();
@@ -786,9 +786,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						}));
 					this.info_handle_mapobj[idproperty] = info_handle;
 				} else {
+					// preference id grid is a standalong-grid and it's rows
+					// are not selectable
 					// set secondary text for pref_id
 					this.setselect_text({prefcol_name:this.server_key_obj.prefcol_name}, 'pref_id');
+					// change convert satisfy status to text
+					arrayUtil.forEach(griddata_list, function(item) {
+						if (item.satisfy) {
+							item.satisfy = 'Yes';
+						} else {
+							item.satisfy = 'No';
+						}
+					})
 				}
+				info_grid.renderArray(griddata_list);
 				console.log("infogrid complete"+idproperty)
 			},
 			createdivsched_grid: function(adata, options_obj) {

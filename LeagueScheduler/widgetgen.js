@@ -14,8 +14,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
         });
         var constant = {
             default_db_type:'rrdb',
-            serverdata_key:'info_list',
-            serverstatus_key:'config_status'
         }
         return declare(null, {
             storeutil_obj:null, radio_db_type:null, watch_obj:null,
@@ -208,12 +206,30 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var db_type = (divstr_db_type == "") ?
                     constant.default_db_type:divstr_db_type;
                 if (colname) {
+                    // first check to see whether data is in a current grid store
+                    // Note info_obj points to where the divstr_list will eventually
+                    // be applied to - not where it is coming from, which will
+                    // always be from a 'div_id' idproperty db - rrdb or tourndb
+                    // Reference w newschedulerbase/getdivselect_dropdown; info_obj
+                    // is Not necessarily divinfo
+                    var divinfo_obj = baseinfoSingleton.get_obj('div_id', info_obj.op_type);
                     var options_obj = {colname:colname, info_obj:info_obj,
                         db_type:db_type};
-                    this.server_interface.getServerData(
-                        'get_dbcol/'+db_type+'/'+colname,
-                        lang.hitch(this, this.create_divstr_list), null,
-                        options_obj);
+                    if (divinfo_obj && divinfo_obj.infogrid_store &&
+                        divinfo_obj.activegrid_colname == colname) {
+                        var data_obj = new Object();
+                        data_obj.info_list = divinfo_obj.infogrid_store.query();
+                        data_obj.config_status = divinfo_obj.config_status;
+                        this.create_divstr_list(data_obj, options_obj)
+                    } else {
+                        // not in local divinfo store, so get from server
+                        // db_type is a divstr_db_type - which means it should always
+                        // be rrdb or tourndb
+                        this.server_interface.getServerData(
+                            'get_dbcol/'+db_type+'/'+colname,
+                            lang.hitch(this, this.create_divstr_list), null,
+                            options_obj);
+                    }
                 }
             },
             // swap the store for the league select widget
@@ -228,8 +244,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 league_select.startup();
             },
             create_divstr_list: function(server_data, options_obj) {
-                var data_list = server_data[constant.serverdata_key];
-                var config_status = server_data[constant.serverstatus_key];
+                var data_list = server_data.info_list;
+                var config_status = server_data.config_status;
                 var colname = options_obj.colname; // collection name for divinfo
                 var db_type = options_obj.db_type; // db_type for divstr
                 var info_obj = options_obj.info_obj; // where to return colname and db_type info

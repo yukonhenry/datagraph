@@ -65,7 +65,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
 					field_id: "Field ID",
-					field_name: editor({label:"Name", autoSave:true},"text","dblclick"),
+					field_name: editor({label:"Name", autoSave:true},"text","click"),
 					primaryuse_str: {label:"Primary Use",
 						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
@@ -269,8 +269,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						})
 					}, fieldselect_node);
 					var fieldselect_list = new Array();
-					// this.rownum is defined in baseinfo
-					for (var i = 1; i < this.rownum+1; i++) {
+					// this.totalrows_num is defined in baseinfo
+					for (var i = 1; i < this.totalrows_num+1; i++) {
 						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
 					}
 					// initialize selected value with field_id row that selected
@@ -412,7 +412,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if this.calendarmapobj_list does not exist, then no data
 						// has been returned from the server.  Instead, retrieve
 						// data from the current store
-						for (var f_id = 1; f_id < this.rownum+1; f_id++) {
+						for (var f_id = 1; f_id < this.totalrows_num+1; f_id++) {
 							// even though edit_calendar was called for a specific
 							// field, populate calendar store with all fields
 							var item = this.editgrid.schedInfoStore.get(f_id);
@@ -485,14 +485,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// if field select widget does not exist, create one.
 					this.fieldselect_reg = registry.byId("fieldselect_id");
 					var fieldselect_list = new Array();
-					for (var i = 1; i < this.rownum+1; i++) {
+					for (var i = 1; i < this.totalrows_num+1; i++) {
 						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
 					}
 					fieldselect_list[field_index].selected = true;
 					this.fieldselect_reg.addOption(fieldselect_list);
 					// add field list for schedule duplication select drop-down
 					var dupfieldselect_list = lang.clone(fieldselect_list);
-					dupfieldselect_list.push({label:'All Fields', value:this.rownum+1, selected:false});
+					dupfieldselect_list.push({label:'All Fields', value:this.totalrows_num+1, selected:false});
 					this.dupfieldselect_reg = registry.byId("dupfieldselect_id");
 					this.dupfieldselect_reg.addOption(dupfieldselect_list);
 					//this.dupfieldselect_reg.startup();
@@ -875,7 +875,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			// below function called after divstr_list changed externally
 			set_primaryuse_dialog_dropdown: function(divstr_list) {
-				for (var field_id = 1; field_id < this.rownum+1; field_id++) {
+				for (var field_id = 1; field_id < this.totalrows_num+1; field_id++) {
 					var primaryuse_obj = this.create_primaryuse_dialog(divstr_list, field_id);
 					var TDialog = primaryuse_obj.tdialog;
 					var dropdown_btn = registry.byId(this.op_prefix+'fielddropdownbtn'+field_id+'_id');

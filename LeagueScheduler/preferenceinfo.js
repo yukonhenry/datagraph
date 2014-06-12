@@ -1,12 +1,13 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
-	"dijit/form/DateTextBox", "dijit/form/TimeTextBox", "dgrid/editor",
+	"dijit/form/DateTextBox", "dijit/form/TimeTextBox", "dijit/form/Select",
+	"dgrid/editor",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, NumberTextBox,
-		ValidationTextBox, DateTextBox, TimeTextBox, editor, Form, StackContainer,
+		ValidationTextBox, DateTextBox, TimeTextBox, Select, editor, Form, StackContainer,
 		ContentPane, baseinfo,
 		baseinfoSingleton, idmgrSingleton, put){
 		var constant = {
@@ -49,26 +50,21 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							//style:'width:6em',
 							style:"width:auto",
 						}}, NumberTextBox),
-					div_id: editor({label:"Divison Id", autoSave:true,
+					// for embedded select objects autoSave is disabled as the saves
+					// will happen manually after select event is captured
+					// autoSave does NOT work
+					div_id: editor({label:"Divison", autoSave:false,
 						editorArgs:{
-							constraints:{min:1, max:50},
-							promptMessage:'Enter Division ID',
-							invalidMessage:'Must be Non-zero integer',
-							missingMessage:'Enter Division ID',
-							value:'1',
-							//style:'width:6em',
-							style:"width:auto",
-						}}, NumberTextBox),
-					team_id: editor({label:"Team Id", autoSave:true,
+							//style:"width:auto",
+							name:"division_select",
+							options:[{label:"Select League first", selected:true, value:""}]
+						}}, Select),
+					team_id: editor({label:"Team Id", autoSave:false,
 						editorArgs:{
-							constraints:{min:1, max:100},
-							promptMessage:'Enter Team ID',
-							invalidMessage:'Must be Non-zero integer',
-							missingMessage:'Enter Team ID',
-							value:'1',
-							//style:'width:6em',
-							style:"width:auto",
-						}}, NumberTextBox),
+							//style:"width:auto",
+							name:"team_select",
+							options:[{label:"Select Div first", selected:true, value:""}]
+						}}, Select),
 					game_date: editor({label:'Game Date', autoSave:true,
 						editorArgs:{
 							//style:'width:120px'
@@ -94,9 +90,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var columnsdef_obj = {
 					pref_id:"Preference ID",
 					priority:"Priority",
-					div_id:"Division ID",
-					div_age:"Age Group",
-					div_gen:"Gender",
+					div_id:"Division",
 					team_id:"Team ID",
 					game_date:"Game Date",
 					start_after:"Start After",
@@ -105,7 +99,31 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				return columnsdef_obj;
 			},
-			modifyserver_data: function(data_list) {
+			modifyserver_data: function(data_list, divstr_obj) {
+				// see comments for fieldinfo modifyserver_data - process divstr
+				// data; separately process data_list (especially dates)
+				this.divstr_colname = divstr_obj.colname;
+				this.divstr_db_type = divstr_obj.db_type;
+				var config_status = divstr_obj.config_status;
+				var info_list = divstr_obj.info_list;
+				// create radio button pair to select
+				// schedule type - rr or tourn
+				if (this.divstr_colname && this.divstr_db_type) {
+					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
+						this.idmgr_obj.radiobtn2_id, this.idmgr_obj.league_select_id,
+						this.divstr_db_type, this.divstr_colname);
+				} else {
+					this.initabovegrid_UI();
+				}
+				if (config_status) {
+					var divstr_list = arrayUtil.map(info_list,
+					function(item) {
+						return {'divstr':item.div_age + item.div_gen,
+							'div_id':item.div_id, 'totalteams':item.totalteams};
+						})
+					baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
+						this.op_type, 'pref_id');
+				}
 				arrayUtil.forEach(data_list, function(item, index) {
 					// save date str to pass into start and end time calc
 					// (though it can be a dummy date)
@@ -217,12 +235,78 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getInitialList: function(num) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
-					info_list.push({pref_id:i, div_id:1, team_id:i,
+					info_list.push({pref_id:i, div_id:"", team_id:"",
 						priority:i, game_date:this.today,
 						start_after:new Date(2014,0,1,8,0,0),
 						end_before:new Date(2014,0,1,17,0,0)});
 				}
 				return info_list;
+			},
+			set_gridselect: function(divstr_list) {
+				// called from baseinfoSingleton watch obj callback for division
+				// string list
+				// baseinfoSingleton has already done a check for existence of
+				// editgrid obj and grid itself
+				// Config status check is completed before calling this method, i.e.
+				// the divstr_list should make up all rows of the cb collection
+				// Reference newschedulerbase/createdivselect_dropdown
+				var pref_grid = this.editgrid.schedInfoGrid;
+				// First create the option_list that will feed the select
+				// dropdown for each cell in the 'division' column of the pref
+				// grid.
+				// initialize option_list
+				var option_list = [{label:"Select Division", value:"",
+					selected:true, totalteams:0}];
+				arrayUtil.forEach(divstr_list, function(item, index) {
+					option_list.push({label:item.divstr, value:item.div_id,
+						selected:false, totalteams:item.totalteams})
+				})
+				for (var row_id = 1; row_id < this.totalrows_num+1; row_id++) {
+					var cell = pref_grid.cell(row_id, 'div_id')
+					// ref https://github.com/SitePen/dgrid/blob/v0.3.15/doc/components/core-components/Grid.md
+					// need to make new make of option_list for each use in select
+					var copy_list = lang.clone(option_list);
+					var select_widget = cell.element.widget;
+					select_widget.set("options", copy_list);
+					// We need to pass the id of the originating select widget
+					// and also an option_list definition (can be the original
+					// or copy - just needed to find the totalteams value for
+					// the selected div_id)
+					var options_obj = {
+						pref_id:row_id, option_list:copy_list
+					}
+					select_widget.set("onChange", lang.hitch(this,
+						this.set_gridteamselect, options_obj));
+					select_widget.startup();
+				}
+			},
+			set_gridteamselect: function(options_obj, divevent) {
+				// set the select dropdown for the team id column in the pref grid
+				var divoption_list = options_obj.option_list;
+				var pref_id = options_obj.pref_id;
+				var pref_grid = this.editgrid.schedInfoGrid;
+				var match_option = arrayUtil.filter(divoption_list,
+					function(item) {
+						return item.value == divevent;
+					})[0]
+				var option_list = [{label:"Select Team", value:"",
+					selected:true}];
+				for (var team_id = 1; team_id < match_option.totalteams+1;
+					team_id++) {
+					option_list.push({label:team_id.toString(), value:team_id, selected:false})
+				}
+				// get cell - use id for the div_id selected widget to identify
+				// the row number
+				var cell = pref_grid.cell(pref_id, 'team_id')
+				var select_widget = cell.element.widget;
+				select_widget.set("options", option_list);
+				select_widget.set("onChange", lang.hitch(this, function(event) {
+					var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
+					pref_obj.div_id = divevent;
+					pref_obj.team_id = event;
+					this.editgrid.schedInfoStore.put(pref_obj);
+				}))
+				select_widget.startup();
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar

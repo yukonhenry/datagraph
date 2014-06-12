@@ -447,7 +447,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				}
 			},
 			scrollTopEditPane: function() {
-				console.log("scroll to top");
 				//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 				// ensure edit pane scroll resets to top
 				// seems like scrolling to top only works if it works off of onLoad and not onShow

@@ -55,7 +55,7 @@ date_format_CONST = '%m/%d/%Y'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
-_FieldList_Status = namedtuple('_FieldList_Status', 'list config_status divstr_colname divstr_db_type')
+_PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_colname divstr_db_type')
 
 # http://pythonhosted.org/flufl.enum/docs/using.html
 class DB_Col_Type(Enum):
@@ -133,7 +133,7 @@ class MongoDBInterface:
                                       {"$set": updatedoc},
                                       upsert=True)
 
-    def updateFieldInfoDocument(self, doc_list, config_status, divstr_colname, divstr_db_type):
+    def updateInfoPlusDocument(self, doc_list, config_status, divstr_colname, divstr_db_type, id_str):
         # going to flatten doc structure for fields - do away with doc_list top
         # level structure; put divstr information into main status doc
         self.collection.update({sched_type_CONST:self.sched_type,
@@ -146,7 +146,7 @@ class MongoDBInterface:
             # each doc should have a sched_type field
             doc[sched_type_CONST] = self.sched_type
             self.collection.update({sched_type_CONST:self.sched_type,
-                'FIELD_ID':doc['FIELD_ID']}, doc, upsert=True)
+                id_str:doc[id_str]}, doc, upsert=True)
 
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
@@ -606,18 +606,19 @@ class MongoDBInterface:
         info_list = [x for x in info_curs]
         return _List_Status(info_list, config_status)
 
-    def getFieldInfoDocument(self):
+    def getInfoPlusDocument(self, id_str):
+        # similar to getInfoDocument, but also get divstr info in db and return
+        # as separate parameters
         result = self.collection.find_one({sched_type_CONST:self.sched_type,
             sched_status_CONST:{"$exists":True}}, {'_id':0})
         config_status = result[config_status_CONST]
         divstr_colname = result[divstr_colname_CONST]
         divstr_db_type = result[divstr_db_type_CONST]
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
-            field_id_CONST:{"$exists":True}}, {'_id':0})
+            id_str:{"$exists":True}}, {'_id':0})
         # convert cursor to list
-        #info_list = [x for x in info_curs]
         info_list = list(info_curs)
-        return _FieldList_Status(info_list, config_status, divstr_colname,
+        return _PlusList_Status(info_list, config_status, divstr_colname,
                             divstr_db_type)
 
     def getSchedType_doc(self):

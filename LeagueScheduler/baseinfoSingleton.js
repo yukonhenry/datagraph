@@ -30,12 +30,17 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				arrayUtil.forEach(this.watch_list, function(item) {
 					item.watch_obj.watch('divstr_list',
 						lang.hitch(this,function(name, oldValue, value) {
-							if (item.idproperty == 'field_id') {
-								var fieldinfo_obj = this.get_obj('field_id', item.op_type);
-								// if editgrid has not been created, no sweat, as  divstr
-								// is also queried after fieldinfo grid is created
-								if (fieldinfo_obj && fieldinfo_obj.editgrid && fieldinfo_obj.editgrid.schedInfoGrid) {
-									fieldinfo_obj.set_primaryuse_dialog_dropdown(value);
+							// Execute when watch gets activated for any change to
+							// divstr_list; only idprops field_id and pref_id are
+							// relevant to the watch
+							var info_obj = this.get_obj(item.idproperty,
+								item.op_type);
+							if (info_obj && info_obj.editgrid &&
+								info_obj.editgrid.schedInfoGrid) {
+								if (item.idproperty == 'field_id') {
+									info_obj.set_primaryuse_dialog_dropdown(value);
+								} else if (item.idproperty == 'pref_id') {
+									info_obj.set_gridselect(value);
 								}
 							}
 						})

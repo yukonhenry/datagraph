@@ -17,7 +17,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr:null,
 			storeutil_obj:null,
-			keyup_handle:null, tooltip_list:null, rownum:0,
+			keyup_handle:null, tooltip_list:null, totalrows_num:0,
 			schedutil_obj:null, activegrid_colname:"",
 			config_status:0,
 			btntxtid_list:null, op_type:"",
@@ -79,8 +79,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							return;
 						}
 						//rownum, is the total # of divisions/fields/current config
-						this.rownum = entrynum_reg.get("value");
-						var info_list = this.getInitialList(this.rownum);
+						this.totalrows_num = entrynum_reg.get("value");
+						var info_list = this.getInitialList(this.totalrows_num);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						// if idproperty is field, create radio buttons for
@@ -201,15 +201,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
-				//options_obj.storeutil_obj = this.storeutil_obj;
 				// define key for object returned from server to get
 				// status of configuration - config_status
 				options_obj.serverstatus_key = 'config_status'
-				/*
-				var query_obj = null;
-				if ('db_type' in options_obj) {
-					query_obj = {db_type:options_obj.db_type};
-				} */
 				this.server_interface.getServerData(
 					options_obj.getserver_path+options_obj.db_type+'/'+item,
 					lang.hitch(this, this.createEditGrid), null, options_obj);
@@ -234,7 +228,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					// db_type; if not, reanalyze
 					console.log("createEditGrid: warning: check db_type/serverdb_type logic");
 				} */
-				this.rownum = data_list.length;
+				this.totalrows_num = data_list.length;
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
 						data_list = this.modifyserver_data(data_list,
@@ -244,7 +238,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					}
 				} else if (options_obj.db_type == 'prefdb') {
 					if (idproperty == 'pref_id') {
-						data_list = this.modifyserver_data(data_list);
+						data_list = this.modifyserver_data(data_list,
+							server_data.divstr_obj);
 					} else {
 						alert('check db_type and idproperty consistency');
 					}

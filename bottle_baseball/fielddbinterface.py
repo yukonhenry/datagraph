@@ -12,7 +12,7 @@ import logging
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
-_FieldList_Status = namedtuple('_FieldList_Status', 'list config_status divstr_colname divstr_db_type')
+_PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_colname divstr_db_type')
 
 field_id_CONST = 'FIELD_ID'
 field_name_CONST = 'FIELD_NAME'
@@ -47,10 +47,12 @@ class FieldDBInterface:
             del fieldinfo['dayweek_str']
             del fieldinfo['primaryuse_str']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
-        self.dbinterface.updateFieldInfoDocument(document_list, config_status, divstr_colname=divstr_colname, divstr_db_type=divstr_db_type)
+        self.dbinterface.updateInfoPlusDocument(document_list, config_status,
+            divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
+            id_str='FIELD_ID')
 
     def readDB(self):
-        liststatus_qtuple = self.dbinterface.getFieldInfoDocument()
+        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('FIELD_ID')
         field_list = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname
@@ -76,19 +78,19 @@ class FieldDBInterface:
                 del field['CLOSED_LIST']
             # http://stackoverflow.com/questions/15411107/delete-a-dictionary-item-if-the-key-exists (None is the return value if closed_list doesnt exist
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
-        return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
+        return _PlusList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
 
     # read from DB, but don't covert lists back into string representation
     # also don't covert the dayweek_list elements back to JS format
     def readDBraw(self):
-        liststatus_qtuple = self.dbinterface.getFieldInfoDocument()
+        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('FIELD_ID')
         field_list = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname
         divstr_db_type = liststatus_qtuple.divstr_db_type
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
-        return _FieldList_Status(fieldinfo_list, config_status, divstr_colname,
+        return _PlusList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
 
     def updateFieldTimes(self, fieldtime_str):
