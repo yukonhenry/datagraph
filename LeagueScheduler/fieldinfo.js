@@ -227,6 +227,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				return info_list;
 			},
+			get_gridhelp_list: function() {
+				var gridhelp_list = [
+					{id:'field_id', help_str:"Identifier, Non-Editable"},
+					{id:'field_name', help_str:"Enter Field Name, click to edit"},
+					{id:'primaryuse_str', help_str:"Select Division(s) that are using the field, click to bring up checkbox list"},
+					{id:'start_date', help_str:"Specify Date when field availability begins"},
+					{id:'end_date', help_str:"Specify Date when field availability ends"},
+					{id:'dayweek_str', help_str:"Specify days of week when field is available; click to bring up check list"},
+					{id:'start_time', help_str:"Specify typical start time when first game can be played"},
+					{id:'end_time', help_str:"Specify typical end time when last needs to finish by"},
+					{id:'detaileddates', help_str:"(Optional)If there are exception dates/times for availability, click bring up calendar-like UI for detailed date configuration"},
+					{id:'totalfielddays', help_str:"total number of days that field is available"}]
+				return gridhelp_list;
+			},
 			// main entry point for creating dojox calendar inst
 			// ref http://dojotoolkit.org/reference-guide/1.9/dojox/calendar.html
 			// for dojox calendar specifics

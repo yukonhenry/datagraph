@@ -25,7 +25,7 @@ from scheddbinterface import SchedDBInterface
 from prefdbinterface import PrefDBInterface
 from sched_exceptions import CodeLogicError
 
-dbInterface = MongoDBInterface(mongoClient)
+_dbInterface = MongoDBInterface(mongoClient)
 
 class RouteLogic:
     '''ref http://stackoverflow.com/questions/8725605/bottle-framework-and-oop-using-method-instead-of-function and
@@ -58,13 +58,13 @@ def leaguedivinfo_all():
     callback_name = request.query.callback
     ldata_tuple = getLeagueDivInfo()
     field_tuple = getFieldInfo()
-    dbstatus = dbInterface.getSchedStatus()
-    rrdbcol_list = dbInterface.getScheduleCollection(DB_Col_Type.RoundRobin)
-    tourndbcol_list = dbInterface.getScheduleCollection(DB_Col_Type.ElimTourn)
-    #cupschedcol_list = dbInterface.getCupScheduleCollections()
-    fielddb_list = dbInterface.getScheduleCollection(DB_Col_Type.FieldInfo)
-    newscheddb_list = dbInterface.getScheduleCollection(DB_Col_Type.GeneratedSchedule)
-    prefdb_list = dbInterface.getScheduleCollection(DB_Col_Type.PreferenceInfo)
+    dbstatus = _dbInterface.getSchedStatus()
+    rrdbcol_list = _dbInterface.getScheduleCollection(DB_Col_Type.RoundRobin)
+    tourndbcol_list = _dbInterface.getScheduleCollection(DB_Col_Type.ElimTourn)
+    #cupschedcol_list = _dbInterface.getCupScheduleCollections()
+    fielddb_list = _dbInterface.getScheduleCollection(DB_Col_Type.FieldInfo)
+    newscheddb_list = _dbInterface.getScheduleCollection(DB_Col_Type.GeneratedSchedule)
+    prefdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.PreferenceInfo)
     logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "field_info":field_tuple.dict_list,
@@ -89,7 +89,7 @@ def leaguedivinfo(tid):
 		div = ldata_divinfo[divindex]
 		age = div['div_age']
 		gender = div['div_gen']
-		game_list = dbInterface.findDivisionSchedule(age, gender)
+		game_list = _dbInterface.findDivisionSchedule(age, gender)
 		a = json.dumps({"game_list":game_list, "fields":div['fields']})
 		return callback_name+'('+a+')'
 	else:
@@ -113,15 +113,15 @@ def get_alldivSchedule():
     # get list of connected divisions through field constraints
     #connectedG = json_graph.node_link_graph(ldata['connected_graph'])
     #connected_div_components = connected_components(connectedG)
-    fieldtimeSchedule = BasicFieldTimeScheduleGenerator(dbInterface)
+    fieldtimeSchedule = BasicFieldTimeScheduleGenerator(_dbInterface)
     fieldtimeSchedule.generateSchedule(total_match_list)
-    a = json.dumps({"dbstatus":dbInterface.getSchedStatus()})
+    a = json.dumps({"dbstatus":_dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
 @route('/exportschedule')
 def exportSchedule():
     callback_name = request.query.callback
-    schedExporter = ScheduleExporter(dbInterface)
+    schedExporter = ScheduleExporter(_dbInterface)
     ldata_divinfo = getLeagueDivInfo().dict_list
     for division in ldata_divinfo:
         schedExporter.exportDivTeamSchedules(div_id=division['div_id'], age=division['div_age'], gen=division['div_gen'],
@@ -181,7 +181,7 @@ def teamdata(tid):
     divdata = getDivisionData(divcode)
     age = divdata['div_age']
     gender = divdata['div_gen']
-    teamdata_list = dbInterface.findTeamSchedule(age, gender, tid)
+    teamdata_list = _dbInterface.findTeamSchedule(age, gender, tid)
     # http://stackoverflow.com/questions/13708857/mongodb-aggregation-framework-nested-arrays-subtract-expression
     # http://docs.mongodb.org/manual/reference/aggregation/
     #col.aggregate({$match:{age:'U12',gender:'G'}},{$project:{game_list:1}},{$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},{$match:{$or:[{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.HOME':1},{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.AWAY':1}]}})
@@ -201,7 +201,7 @@ def teamdata(tid):
 @route('/fieldschedule/<fid:int>', method='GET')
 def fieldschedule(fid):
     callback_name = request.query.callback
-    fieldschedule_list = dbInterface.findFieldSchedule(fid)
+    fieldschedule_list = _dbInterface.findFieldSchedule(fid)
     a = json.dumps({'fieldschedule_list':fieldschedule_list})
     return callback_name+'('+a+')'
 
@@ -220,7 +220,7 @@ def schedulemetrics(div_id):
     callback_name = request.query.callback
     divisionData = getDivisionData(div_id)
     div_tuple = getAgeGenderDivision(div_id)
-    metrics_list = dbInterface.getMetrics(div_tuple.age, div_tuple.gender,
+    metrics_list = _dbInterface.getMetrics(div_tuple.age, div_tuple.gender,
                                           divisionData)
     a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
     return callback_name+'('+a+')'

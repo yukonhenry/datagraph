@@ -392,6 +392,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     var sdbtn_status_span = put(sdbtn_node,"+span.empty_smallgap_color");
                     sdbtn = new Button({
                         label:"Transfer Dates Info",
+                        title:"Click to Calculate # weeks in season and transfer to Grid",
                         class:"primary",
                         onClick: lang.hitch(this, this.getSeasonDatesFromInput,
                             op_type)
@@ -406,7 +407,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var seasonstart_date = this.start_dtbox.get("value");
                 var seasonend_date = this.end_dtbox.get("value");
                 var season_len = this.sl_spinner.get("value");
-                baseinfoSingleton.set_watch_obj('numweeks', season_len, op_type);
+                // season dates spinners are only for div_id panel at the moment
+                baseinfoSingleton.set_watch_obj('numweeks', season_len, op_type, 'div_id');
             },
         })
     })

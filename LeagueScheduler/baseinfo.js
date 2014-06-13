@@ -19,7 +19,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			storeutil_obj:null,
 			keyup_handle:null, tooltip_list:null, totalrows_num:0,
 			schedutil_obj:null, activegrid_colname:"",
-			config_status:0,
+			config_status:0, gridtooltip_list:null,
 			btntxtid_list:null, op_type:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -212,7 +212,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// don't create grid if a grid already exists and it points to the same schedule db col
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
 				this.activegrid_colname = options_obj.item;
-				var columnsdef_obj = options_obj.columnsdef_obj;
+				var columnsdef_obj = this.getcolumnsdef_obj();
 				var idproperty = options_obj.idproperty;
 				// if server data is fielddb information, then we need to do
 				// some data conversion (convert to date obj) before passing onto grid
@@ -349,6 +349,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				} else {
 					infobtn_widget = new Button({
 						label:label_str,
+						title:"Click to Save",
 						type:"button",
 						class:"primary",
 						style:"margin-left:20px",
@@ -453,6 +454,28 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					btn_id = idmatch_obj.btn_id;
 				}
 				return {text_id:text_id, btn_id:btn_id}
+			},
+			enable_gridtooltips: function(grid) {
+				var gridhelp_list = this.get_gridhelp_list();
+				// ref http://stackoverflow.com/questions/11743392/check-if-array-is-empty-or-exists
+				if (typeof gridhelp_list !== 'undefined' &&
+					gridhelp_list.length > 0) {
+					if (this.gridtooltip_list) {
+						arrayUtil.forEach(this.gridtooltip_list, function(item) {
+							item.destroyRecursive();
+						})
+					}
+					this.gridtooltip_list = new Array();
+					var tooltipconfig_list = new Array();
+					arrayUtil.forEach(gridhelp_list, function(help_obj) {
+						var tooltipconfig = {
+							connectId:[grid.columns[help_obj.id].headerNode],
+							label:help_obj.help_str,
+							position:['above', 'before']}
+						tooltipconfig_list.push(tooltipconfig);
+						this.gridtooltip_list.push(new Tooltip(tooltipconfig));
+					}, this)
+				}
 			},
 			cleanup:function() {
 				arrayUtil.forEach(this.tooltip_list, function(item) {

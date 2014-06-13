@@ -63,11 +63,11 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 						set:function(item) {
 							return parseInt(item.numweeks)
 						}}, "text", "click"),
-					numgdaysperweek: editor({label:"Num Gamedays per Week (per team)", autoSave:true,
+					numgdaysperweek: editor({label:"#Games per week per team", autoSave:true,
 						set:function(item) {
 							return parseInt(item.numgdaysperweek)
 						}}, "text", "click"),
-					totalgamedays: {label:"Total Gamedays (per team)",
+					totalgamedays: {label:"Total Gamedays per team",
 						set:function(item) {
 							return parseInt(item.numgdaysperweek) *
 								parseInt(item.numweeks);
@@ -219,6 +219,20 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 						gameinterval:1, mingap_days:1, maxgap_days:2});
 				}
 				return info_list;
+			},
+			get_gridhelp_list: function() {
+				var gridhelp_list = [
+					{id:'div_id', help_str:"Identifier, Non-Editable"},
+					{id:'div_age', help_str:"Age or Primary Division Identifier, click to edit"},
+					{id:'div_gen', help_str:"Gender or Secondary Division Identifier, click to edit"},
+					{id:'totalteams', help_str:"Total # of Teams in the Division, click to edit"},
+					{id:'numweeks', help_str:"Total # of weeks in a season for a team in the Division, use 'Transfer Dates' button to calculate #weeks, or click to edit"},
+					{id:'numgdaysperweek', help_str:"# of games that a team in the division will play each week, click to edit"},
+					{id:'totalgamedays', help_str:"total #games for each team, (#weeks x #gamedays per week) save bye games in the schedule if there are an odd number of teams in the division, Non-editable"},
+					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click to edit"},
+					{id:'mingap_days', help_str:"NOTE: Assign the minimum # days that should elapse between consecutive games for a given team, unit is in days"},
+					{id:'maxgap_days', help_str:"NOTE: Assign the maximum # days that should elapse between consecutive games for a given team, unit is in days"}]
+				return gridhelp_list;
 			},
 			update_numweeks: function(numweeks) {
 				this.infogrid_store.query({})

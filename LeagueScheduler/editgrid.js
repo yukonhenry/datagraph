@@ -29,8 +29,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
 				// Observable Memory + dgrid has issues - switching to Memory only
 				if (this.idproperty == 'div_id' ||
-					this.idproperty == 'tourndiv_id' ||
-					this.idproperty == 'pref_id') {
+					this.idproperty == 'tourndiv_id' ) {
+				//	|| this.idproperty == 'pref_id') {
 					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
@@ -66,15 +66,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				//into the switch_gstackcpane function
 				// CORRECTION: resize needed for initial grid
 				this.schedInfoGrid.resize();
-				// track which grid content panes have grids in them
-				// looks like editgrid_obj is servering same purpose
-				//if (this.info_obj && 'editgrid' in this.info_obj) {
-				//	this.info_obj.editgrid = this.schedInfoGrid;
-				//}
+				// enable help tool tips for each grid created
+				this.info_obj.enable_gridtooltips(this.schedInfoGrid);
+				/*
 				var tooltipconfig = {connectId:[this.schedInfoGrid.columns.totalgamedays.headerNode],
 						label:"Enter Total Number Teams in Division",
 						position:['above','before']};
-				var tooltip = new Tooltip(tooltipconfig)
+				var tooltip = new Tooltip(tooltipconfig) */
 				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
@@ -100,7 +98,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.header_handle.remove();
 				this.header_handle = this.schedInfoGrid.on("dgrid-sort",
 					lang.hitch(this, function(event) {
-						if (this.idproperty == "field_id") {
+						if (this.idproperty == "field_id" || this.idproperty == 'pref_id') {
 							// deal with bug where renderCell gets fired
 							// after grid is rendered and when header row
 							// gets clicked on any column.
@@ -109,7 +107,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							// turn it back on
 							this.info_obj.rendercell_flag = true;
 						}
-					}));
+				}));
+				/*
+				this.schedInfoGrid.on("dgrid-refresh-complete", function(event) {
+					console.log("refresh complete")
+				}) */
 			},
 			manageCellSelect: function() {
 				if (this.cellselect_handle)

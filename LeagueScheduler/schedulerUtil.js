@@ -127,11 +127,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// http://www.nczonline.net/blog/2010/07/27/determining-if-an-object-property-exists/
 				// http://stackoverflow.com/questions/135448/how-do-i-check-to-see-if-an-object-has-a-property-in-javascript
 				// Need to test if it works when properties are methods
+				// move to assign columnsdef_obj in the respective info_obj's
+				// before call to createeditgrid
+				/*
 				if ('info_obj' in options_obj &&
 					'getcolumnsdef_obj' in options_obj.info_obj) {
 					var columnsdef_obj = options_obj.info_obj.getcolumnsdef_obj();
 					options_obj.columnsdef_obj = columnsdef_obj;
-				}
+				} */
 				this.generateDBCollection_smenu(smenu_reg, dbcollection_list, sched_context, serv_function, options_obj);
 			},
 			// review usage of hitch to provide context to event handlers

@@ -603,7 +603,7 @@ class MongoDBInterface:
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
             id_str:{"$exists":True}}, {'_id':0})
         # convert cursor to list
-        info_list = [x for x in info_curs]
+        info_list = list(info_curs)
         return _List_Status(info_list, config_status)
 
     def getInfoPlusDocument(self, id_str):

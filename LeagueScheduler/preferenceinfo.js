@@ -30,6 +30,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			// that have to do with the db_type radiobutton /
 			// league select drop down
 			divstr_colname:"", divstr_db_type:"rrdb", widgetgen:null,
+			rendercell_flag:true,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -53,12 +54,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// for embedded select objects autoSave is disabled as the saves
 					// will happen manually after select event is captured
 					// autoSave does NOT work
-					div_id: editor({label:"Divison", autoSave:false,
+					div_id: {label:"Division",
+						renderCell: lang.hitch(this, this.div_id_select_render)
+					},
+					/*
+					editor({label:"Divison", autoSave:false,
 						editorArgs:{
 							//style:"width:auto",
 							name:"division_select",
-							options:[{label:"Select League first", selected:true, value:""}]
-						}}, Select),
+							options:[{label:"Select League first", selected:true, value:""}],
+						}}, Select), */
 					team_id: editor({label:"Team Id", autoSave:false,
 						editorArgs:{
 							//style:"width:auto",
@@ -97,7 +102,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					end_before:"End Before",
 					satisfy:"Met"
 				}
-				return columnsdef_obj;
 			},
 			modifyserver_data: function(data_list, divstr_obj) {
 				// see comments for fieldinfo modifyserver_data - process divstr
@@ -110,7 +114,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// schedule type - rr or tourn
 				if (this.divstr_colname && this.divstr_db_type) {
 					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
-						this.idmgr_obj.radiobtn2_id, this.idmgr_obj.league_select_id,
+						this.idmgr_obj.radiobtn2_id,
+						this.idmgr_obj.league_select_id,
 						this.divstr_db_type, this.divstr_colname);
 				} else {
 					this.initabovegrid_UI();
@@ -120,7 +125,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					function(item) {
 						return {'divstr':item.div_age + item.div_gen,
 							'div_id':item.div_id, 'totalteams':item.totalteams};
-						})
+					})
 					baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
 						this.op_type, 'pref_id');
 				}
@@ -242,6 +247,17 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				return info_list;
 			},
+			get_gridhelp_list: function() {
+				var gridhelp_list = [
+					{id:'pref_id', help_str:"Identifier, Non-Editable"},
+					{id:'priority', help_str:"Priority of the preference - assign positive integer, lower value is higher priority"},
+					{id:'div_id', help_str:"Select Division identifier after division list has been selected"},
+					{id:'team_id', help_str:"Select Team ID after division has been selected"},
+					{id:'game_date', help_str:"Select Date where preference applies"},
+					{id:'start_after', help_str:"Choose preference start time - game should start after this time"},
+					{id:'end_before', help_str:"Choose preference end time - game should end before this time - Note 'end_before' can be before 'start_after' times (which case there is a blocked out time range sandwiched between two available time ranges"}]
+				return gridhelp_list;
+			},
 			set_gridselect: function(divstr_list) {
 				// called from baseinfoSingleton watch obj callback for division
 				// string list
@@ -307,6 +323,32 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.editgrid.schedInfoStore.put(pref_obj);
 				}))
 				select_widget.startup();
+			},
+			div_id_select_render: function(object, data, node) {
+				if (this.rendercell_flag) {
+					var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
+						this.op_type, 'pref_id');
+					var option_list = new Array();
+					if (divstr_list && divstr_list.length > 0) {
+						option_list.push({label:"Select Division", value:"",
+							selected:false, totalteams:0});
+						arrayUtil.forEach(divstr_list, function(item) {
+							var option_obj = {label:item.divstr, value:item.div_id,
+								selected:false, totalteams:item.totalteams}
+							if (item.div_id == data) {
+								option_obj.selected = true;
+							}
+							option_list.push(option_obj);
+						})
+					} else {
+						option_list.push({label:"Select League first", selected:true, value:""});
+					}
+					var select_node = put(node, "select");
+					var div_id_select = new Select({
+						options:option_list, style:"width:auto"}, select_node)
+					div_id_select.startup();
+					//node.appendChild(div_id_select.domNode);
+				}
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
