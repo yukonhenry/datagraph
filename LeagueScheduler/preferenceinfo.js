@@ -54,16 +54,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// for embedded select objects autoSave is disabled as the saves
 					// will happen manually after select event is captured
 					// autoSave does NOT work
+					/*
 					div_id: {label:"Division",
 						renderCell: lang.hitch(this, this.div_id_select_render)
-					},
-					/*
-					editor({label:"Divison", autoSave:false,
+					}, */
+					div_id: editor({label:"Divison", autoSave:false,
 						editorArgs:{
-							//style:"width:auto",
+							style:"width:auto",
 							name:"division_select",
 							options:[{label:"Select League first", selected:true, value:""}],
-						}}, Select), */
+						}}, Select),
 					team_id: editor({label:"Team Id", autoSave:false,
 						editorArgs:{
 							//style:"width:auto",
@@ -323,6 +323,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.editgrid.schedInfoStore.put(pref_obj);
 				}))
 				select_widget.startup();
+			},
+			create_gridselect: function(grid) {
+				var divstr_list = baseinfoSingleton.get_watch_obj(
+					'divstr_list', this.op_type, 'pref_id');
+				if (divstr_list && divstr_list.length > 0) {
+					this.set_gridselect(divstr_list);
+				}
 			},
 			div_id_select_render: function(object, data, node) {
 				if (this.rendercell_flag) {

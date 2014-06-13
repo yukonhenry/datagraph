@@ -16,7 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			error_node:null,
 			errorHandle:null, datachangeHandle:null, header_handle:null,
 			idproperty:null,
-			cellselect_flag:false, cellselect_handle:null,
+			cellselect_flag:false, cellselect_handle:null, refresh_handle:null,
 			server_path:"", server_key:"",
 			info_obj:null, uistackmgr:null, storeutil_obj:null, db_type:null,
 			constructor: function(args) {
@@ -68,11 +68,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.schedInfoGrid.resize();
 				// enable help tool tips for each grid created
 				this.info_obj.enable_gridtooltips(this.schedInfoGrid);
-				/*
-				var tooltipconfig = {connectId:[this.schedInfoGrid.columns.totalgamedays.headerNode],
-						label:"Enter Total Number Teams in Division",
-						position:['above','before']};
-				var tooltip = new Tooltip(tooltipconfig) */
 				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
@@ -108,10 +103,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							this.info_obj.rendercell_flag = true;
 						}
 				}));
-				/*
-				this.schedInfoGrid.on("dgrid-refresh-complete", function(event) {
-					console.log("refresh complete")
-				}) */
+				if (this.refresh_handle)
+					this.refresh_handle.remove();
+				this.refresh_handle = this.schedInfoGrid.on(
+					"dgrid-refresh-complete", lang.hitch(this, function(event) {
+					if (this.idproperty == 'pref_id') {
+						this.info_obj.create_gridselect(event.grid);
+					}
+				}));
 			},
 			manageCellSelect: function() {
 				if (this.cellselect_handle)
@@ -215,9 +214,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.rowSelectHandle.remove();
 				if (this.cellselect_handle)
 					this.cellselect_handle.remove();
-				/*
-				if (this.tbutton_reg)
-					domStyle.set(this.tbutton_reg.domNode, 'display', 'none'); */
+				if (this.refresh_handle)
+					this.refresh_handle.remove();
 			}
 		});
 	})
