@@ -20,7 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			keyup_handle:null, tooltip_list:null, totalrows_num:0,
 			schedutil_obj:null, activegrid_colname:"",
 			config_status:0, gridtooltip_list:null,
-			btntxtid_list:null, op_type:"",
+			btntxtid_list:null, op_type:"", op_prefix:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.tooltip_list = new Array();
@@ -36,6 +36,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					btn_id:"wizfieldinfobtn_id", text_id:"wizfieldinfotxt_id"})
 				this.btntxtid_list.push({op_type:"wizard", id:"pref_id",
 					btn_id:"wizprefinfobtn_id", text_id:"wizprefinfotxt_id"})
+				// use to create op-type unique id strings local to this file
+				this.op_prefix = this.op_type.substring(0,3);
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -85,6 +87,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.keyup_handle.remove();
 						// if idproperty is field, create radio buttons for
 						// db selection (for div select)
+						baseinfoSingleton.set_watch_obj('divstr_list', [],
+							this.op_type, this.idproperty)
 						if (this.idproperty == 'field_id' ||
 							this.idproperty == 'pref_id') {
 							// field_id-specific UI above grid

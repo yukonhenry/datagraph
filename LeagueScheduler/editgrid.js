@@ -93,7 +93,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.header_handle.remove();
 				this.header_handle = this.schedInfoGrid.on("dgrid-sort",
 					lang.hitch(this, function(event) {
-						if (this.idproperty == "field_id" || this.idproperty == 'pref_id') {
+						if (this.idproperty == "field_id") {
 							// deal with bug where renderCell gets fired
 							// after grid is rendered and when header row
 							// gets clicked on any column.
@@ -103,6 +103,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							this.info_obj.rendercell_flag = true;
 						}
 				}));
+				/*
 				if (this.refresh_handle)
 					this.refresh_handle.remove();
 				this.refresh_handle = this.schedInfoGrid.on(
@@ -110,7 +111,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					if (this.idproperty == 'pref_id') {
 						this.info_obj.create_gridselect(event.grid);
 					}
-				}));
+				})); */
 			},
 			manageCellSelect: function() {
 				if (this.cellselect_handle)

@@ -195,9 +195,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				var op_type = ('op_type' in options_obj)?options_obj.op_type:"advance";
 				// write op_type back to options_obj in case it did not exist
-				options_obj.op_type = op_type;
+				if (!('op_type' in options_obj))
+					options_obj.op_type = this.op_type;
 				options_obj.serverdata_key = 'info_list';
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_key = 'info_data';

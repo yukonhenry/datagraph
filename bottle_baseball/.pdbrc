@@ -24,7 +24,7 @@
 #b fieldtimescheduler.py:941
 #b fieldtimescheduler.py:1747
 b dbinterface.py:602
-b leaguediv_process.py:283
+b leaguediv_process.py:268
 #b schedule_util.py:265
 #b prefdbinterface.py:14
 #b rrdbinterface.py:27

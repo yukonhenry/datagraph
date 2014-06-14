@@ -48,7 +48,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			infogrid_store:null, calendarmapobj_list:null,
 			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
-			delta_store:null, idmgr_obj:null, op_prefix:"",
+			delta_store:null, idmgr_obj:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -59,8 +59,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// get list of id's for this id and op_type
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
 					id:this.idproperty, op_type:this.op_type});
-				// use to create op-type unique id strings local to this file
-				this.op_prefix = this.op_type.substring(0,3);
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -196,8 +194,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
-				options_obj.op_type;
+				if (!('op_type' in options_obj))
+					options_obj.op_type = this.op_type;
 				options_obj.idproperty = constant.idproperty_str;
 				options_obj.server_path = "create_newdbcol/";
 				options_obj.server_key = 'info_data';

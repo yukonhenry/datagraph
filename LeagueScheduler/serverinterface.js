@@ -14,12 +14,14 @@ function(dom, declare, lang, script) {
 			var data = null;
 			var wholeURL = this.hostURL + rest_path;
 			console.log("getserver url="+wholeURL);
-			script.get(wholeURL, {
+			var prom = script.get(wholeURL, {
 				jsonp:"callback",
 				query:query_obj
 			}).then(function(data) {
 				console.log("request to "+wholeURL+" returned");
 				then_function(data, options_obj);
+			}, function(err) {
+				console.log("GetServer ERROR="+err);
 			});
 		},
 		server_ack: function(adata) {
