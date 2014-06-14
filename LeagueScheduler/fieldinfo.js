@@ -823,7 +823,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var dropdown_btn = registry.byId(ddown_btn_id);
 					if (!dropdown_btn) {
 						var dropdown_btn = new DropDownButton({
-							label:"Config",
+							//label:"Config",
 							dropDown:TDialog,
 							id:ddown_btn_id
 						});
@@ -843,6 +843,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    				dropdownbtn_prefix:ddown_btn_prefix,
 		    				index_offset:1}
 		    			this.init_checkbox(args_obj);
+		    		} else {
+		    			// if there is no divstr list, that means a league has to
+		    			// be selected
+		    			dropdown_btn.set("label", "Config");
 		    		}
 				} else {
 					// retrieve widget that had already been instantiated
@@ -985,7 +989,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    		var dropdown_btn = registry.byId(dwfielddownbtn_id);
 		    		if (!dropdown_btn) {
 						dropdown_btn = new DropDownButton({
-							label:"Config",
+							//label:"Config",
 							dropDown:dwdialog,
 							id:dwfielddownbtn_id
 						});
@@ -1002,6 +1006,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    				dropdownbtn_prefix:dwfielddownbtn_prefix,
 		    				index_offset:0}
 		    			this.init_checkbox(args_obj);
+		    		} else {
+		    			dropdown_btn.set("label", "Config");
 		    		}
 				} else {
 					var dropdown_btn = registry.byId(dwfielddownbtn_id);

@@ -13,7 +13,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			bcontainer_id:"bcontainer_id", text_id:"text_id"}
 		var op_type_list = ['advance', 'wizard'];
 		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
-			'pref_id']
+			'pref_id', 'team_id']
 		var idmgrSingleton = declare(null, {
 			idmgr_list:null,
 			constructor: function() {

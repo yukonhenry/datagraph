@@ -12,6 +12,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			ntcpane_id:"wiznumtourndivcpane_id",
 			nscpane_id:"wiznewschedcpane_id",
 			npcpane_id:"wiznumprefcpane_id",
+			ntmcpane_id:"wiznumteamcpane_id",
 			// grid stack id's
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
@@ -33,7 +34,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.blankcpane_list = new Array();
 				this.gstackmap_list = new Array();
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id'];
 				arrayUtil.forEach(id_list, function(item) {
 					// strip off the 'id' suffix portion
 					var idmgr_obj = idmgrSingleton.get_idmgr_obj({id:item,
@@ -71,6 +72,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					pane_id:constant.npcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
+				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
+					pane_id:constant.ntmcpane_id});
+				this.pstackmap_list.push({id:'team_id', p_stage:'config',
+					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
 				// define mapping object for the grid content pane
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
@@ -86,6 +91,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						pane_id:this.get_idstr_obj('field_id').bcontainer_id},
 					{id:'pref_id',
 						pane_id:this.get_idstr_obj('pref_id').gridcpane_id}];
+					{id:'team_id',
+						pane_id:this.get_idstr_obj('team_id').gridcpane_id}];
 				this.cpanestate_list = new Array();
 				arrayUtil.forEach(this.gstackmap_list, function(item, index) {
 					/* cpanestate_list tracks current configuration state for each

@@ -36,6 +36,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					btn_id:"wizfieldinfobtn_id", text_id:"wizfieldinfotxt_id"})
 				this.btntxtid_list.push({op_type:"wizard", id:"pref_id",
 					btn_id:"wizprefinfobtn_id", text_id:"wizprefinfotxt_id"})
+				this.btntxtid_list.push({op_type:"wizard", id:"team_id",
+					btn_id:"wizteaminfobtn_id", text_id:"wizteaminfotxt_id"})
 				// use to create op-type unique id strings local to this file
 				this.op_prefix = this.op_type.substring(0,3);
 			},
@@ -180,7 +182,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					init_colname:init_colname,
 					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this),
 					name_str:"league select",
-					label_str:"Select Division List",
+					label_str:"Select League",
 					put_trail_spacing:"br"}
 				this.widgetgen.create_select(args_obj);
 			},

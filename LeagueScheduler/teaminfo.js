@@ -1,31 +1,30 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
-	"dijit/form/DateTextBox", "dijit/form/TimeTextBox", "dijit/form/Select",
-	"dgrid/editor",
+	"dijit/form/Select", "dgrid/editor",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, NumberTextBox,
-		ValidationTextBox, DateTextBox, TimeTextBox, Select, editor, Form, StackContainer,
+		ValidationTextBox, Select, editor, Form, StackContainer,
 		ContentPane, baseinfo,
 		baseinfoSingleton, idmgrSingleton, put){
 		var constant = {
-			idproperty_str:'pref_id', db_type:'prefdb',
-			dbname_str:'New Preference List Name',
-			vtextbox_str:'Enter Preference List Name',
-			ntextbox_str:'Enter Number of Preferences',
-			inputnum_str:'Number of Preferences',
-			text_node_str:'Preference List Name',
-			updatebtn_str:'Update Preference Info',
-			text_node_str: 'Preference List Name',
+			idproperty_str:'team_id', db_type:'teamdb',
+			dbname_str:'New Team List Name',
+			vtextbox_str:'Enter Team List Name',
+			ntextbox_str:'Enter Number of Teams',
+			inputnum_str:'Number of Teams',
+			text_node_str:'Team List Name',
+			updatebtn_str:'Update Team Info',
+			text_node_str: 'Team List Name',
 		};
 		var wizconstant = {
-			npcpane_id:"wiznumprefcpane_id",
+			ntmcpane_id:"wiznumteamcpane_id",
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
-			db_type:constant.db_type, today:null, idmgr_obj:null,
+			db_type:constant.db_type, idmgr_obj:null,
 			//divstr_colname, divstr_db_type, widgetgen are all member var's
 			// that have to do with the db_type radiobutton /
 			// league select drop down
@@ -33,61 +32,23 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
-				this.today = new Date();
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
 					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
-					pref_id: "ID",
-					priority: editor({label:"Priority", autoSave:true,
+					team_id: "ID",
+					team_name: editor({label:"Team Name", autoSave:true,
 						editorArgs:{
-							constraints:{min:1, max:500},
-							promptMessage:'Enter Priority Number (lower is higher priority)',
-							invalidMessage:'Must be Non-zero integer',
-							missingMessage:'Enter Priority',
-							value:'1',
-							//style:'width:6em',
-							style:"width:auto",
-						}}, NumberTextBox),
+							trim:true, propercase:true, style:"width:auto"
+						}
+					}, TextBox)
 					// for embedded select objects autoSave is disabled as the saves
 					// will happen manually after select event is captured
 					// autoSave does NOT work
-					div_id: {label:"Division",
-						renderCell: lang.hitch(this, this.div_select_render)
+					af_field_str: {label:"Division",
+						renderCell: lang.hitch(this, this.af_field_render)
 					},
-					team_id: {label:"Team ID",
-						renderCell: lang.hitch(this, this.team_select_render)
-					},
-					/*
-					div_id: editor({label:"Divison", autoSave:false,
-						editorArgs:{
-							style:"width:auto",
-							name:"division_select",
-							options:[{label:"Select League first", selected:true, value:""}],
-					}}, Select),
-					team_id: editor({label:"Team Id", autoSave:false,
-						editorArgs:{
-							//style:"width:auto",
-							name:"team_select",
-							options:[{label:"Select Div first", selected:true, value:""}]
-						}}, Select), */
-					game_date: editor({label:'Game Date', autoSave:true,
-						editorArgs:{
-							//style:'width:120px'
-							style:"width:auto",
-						}
-					}, DateTextBox),
-					start_after: editor({label:'Start After', autoSave:true,
-						editorArgs:{
-							style:"width:auto",
-						}
-					}, TimeTextBox),
-					end_before: editor({label:'End Before', autoSave:true,
-						editorArgs:{
-							style:"width:auto",
-						}
-					}, TimeTextBox),
 				};
 				return columnsdef_obj;
 				//return {};
@@ -96,14 +57,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// column definition for constraint satisfaction cpane display
 				// after schedule is generated
 				var columnsdef_obj = {
-					pref_id:"Preference ID",
-					priority:"Priority",
-					div_id:"Division",
-					team_id:"Team ID",
-					game_date:"Game Date",
-					start_after:"Start After",
-					end_before:"End Before",
-					satisfy:"Met"
 				}
 				return columnsdef_obj;
 			},
@@ -131,7 +84,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							'div_id':item.div_id, 'totalteams':item.totalteams};
 					})
 					baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
-						this.op_type, 'pref_id');
+						this.op_type, 'team_id');
 				}
 				arrayUtil.forEach(data_list, function(item, index) {
 					// save date str to pass into start and end time calc
@@ -148,7 +101,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			modify_toserver_data: function(raw_result) {
 				// modify store data before sending data to server
 				var newlist = new Array();
-				// similar to field data, for the pref grid data convert Data objects to str
+				// similar to field data, for the team grid data convert Data objects to str
 				// note we want to keep it as data objects inside of store to
 				// maintain direct compatibility with Date and TimeTextBox's
 				// and associated picker widgets.
@@ -456,14 +409,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				})
 				this.pstackcontainer.addChild(reset_cpane)
 				// add pref config (number) cpane
-				var pref_cpane = new ContentPane({
-					id:wizconstant.npcpane_id,
+				var team_cpane = new ContentPane({
+					id:wizconstant.ntmcpane_id,
 				})
-				var pref_form = new Form({
+				var team_form = new Form({
 					id:this.idmgr_obj.form_id
 				})
-				pref_cpane.addChild(pref_form);
-				this.pstackcontainer.addChild(pref_cpane);
+				team_cpane.addChild(team_form);
+				this.pstackcontainer.addChild(team_cpane);
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id,
@@ -485,12 +438,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				})
 				this.gstackcontainer.addChild(blank_cpane);
 				// add divinfo cpane and grid div
-				var prefgrid_cpane = new ContentPane({
+				var teamgrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
 				})
-				put(prefgrid_cpane.containerNode, "div[id=$]",
+				put(teamgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);
-				this.gstackcontainer.addChild(prefgrid_cpane);
+				this.gstackcontainer.addChild(teamgrid_cpane);
 			},
 		});
 });

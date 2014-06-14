@@ -16,14 +16,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			nscpane_id:"newschedcpane_id",
 			sccpane_id:"seasoncalendar_input",
 			npcpane_id:"numprefcpane_id",
+			ntmcpane_id:"numteamcpane_id"
 			// grid stack id's
+			/*
 			divcpane_id:"divinfocpane_id",
 			tourndivcpane_id:"tourndivinfocpane_id",
 			schedcpane_id:"schedinfocpane_id",
 			fieldbcontainer_id:"fieldinfobcontainer_id",
-			fieldcpane_id:"fieldinfocpane_id",
+			fieldcpane_id:"fieldinfocpane_id", */
 			blankcpane_id:"blankcpane_id",
-			prefcpane_id:"prefinfocpane_id",
+			//prefcpane_id:"prefinfocpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 			// form and span id's
@@ -69,6 +71,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					pane_id:constant.npcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
+				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
+					pane_id:constant.ntmcpane_id});
+				this.pstackmap_list.push({id:'team_id', p_stage:'config',
+					pane_id:constant.tcpane_id});
 				// define mapping object for the grid content pane
 				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
@@ -92,7 +98,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					{id:'tourndiv_id',
 						pane_id:this.get_idstr_obj('tourndiv_id').gridcpane_id},
 					{id:'field_id', pane_id:this.get_idstr_obj('field_id').bcontainer_id},
-					{id:'pref_id', pane_id:this.get_idstr_obj('pref_id').gridcpane_id}];
+					{id:'pref_id', pane_id:this.get_idstr_obj('pref_id').gridcpane_id},
+					{id:'team_id', pane_id:this.get_idstr_obj('team_id').gridcpane_id}];
 				this.cpanestate_list = new Array();
 				this.null_cpanestate = {
 						p_pane:null, p_stage:null, entry_pt:null,
