@@ -8,24 +8,17 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		var constant = {
 			// param stack id's
 			dummy_id:"dummy_id",
-			nfcpane_id:"numfieldcpane_id",
+			//nfcpane_id:"numfieldcpane_id",
 			tcpane_id:"textbtncpane_id",
-			ndcpane_id:"numdivcpane_id",
-			ntcpane_id:"numtourndivcpane_id",
+			//ndcpane_id:"numdivcpane_id",
+			//ntcpane_id:"numtourndivcpane_id",
 			sdcpane_id:"scheddivcpane_id",
 			nscpane_id:"newschedcpane_id",
 			sccpane_id:"seasoncalendar_input",
-			npcpane_id:"numprefcpane_id",
-			ntmcpane_id:"numteamcpane_id"
+			//npcpane_id:"numprefcpane_id",
+			//ntmcpane_id:"numteamcpane_id"
 			// grid stack id's
-			/*
-			divcpane_id:"divinfocpane_id",
-			tourndivcpane_id:"tourndivinfocpane_id",
-			schedcpane_id:"schedinfocpane_id",
-			fieldbcontainer_id:"fieldinfobcontainer_id",
-			fieldcpane_id:"fieldinfocpane_id", */
 			blankcpane_id:"blankcpane_id",
-			//prefcpane_id:"prefinfocpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 			// form and span id's
@@ -46,21 +39,22 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// param content pane
 				this.pstackmap_list = new Array();
 				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
-					pane_id:constant.nfcpane_id});
+					pane_id:this.get_idstr_obj('field_id').numcpane_id});
 				this.pstackmap_list.push({id:'field_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'preconfig',
-					pane_id:constant.ndcpane_id});
+					pane_id:this.get_idstr_obj('div_id').numcpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
-					pane_id:constant.ntcpane_id});
+					pane_id:this.get_idstr_obj('tourndiv_id').numcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
+				/*
 				this.pstackmap_list.push({id:'sched_id', p_stage:'preconfig',
 					pane_id:constant.sdcpane_id})
 				this.pstackmap_list.push({id:'sched_id', p_stage:'config',
-					pane_id:constant.sdcpane_id});  // for sched_id, stays in preconfig pane (with dropdown)
+					pane_id:constant.sdcpane_id}); */
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				// note newsched has it's own txtbtn cpane as it does not share
@@ -68,11 +62,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
-					pane_id:constant.npcpane_id});
+					pane_id:this.get_idstr_obj('pref_id').numcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
-					pane_id:constant.ntmcpane_id});
+					pane_id:this.get_idstr_obj('team_id').numcpane_id});
 				this.pstackmap_list.push({id:'team_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				// define mapping object for the grid content pane
@@ -524,6 +518,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				pref_cpane.addChild(pref_form);
 				this.pstackcontainer_reg.addChild(pref_cpane)
+				// add team config
 			},
 			create_grid_stack: function(container_cpane) {
 				// programmatically create grid stack

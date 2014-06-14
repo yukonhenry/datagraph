@@ -10,7 +10,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			pcontainer_id:"pcontainer_id", gcontainer_id:"gcontainer_id",
 			blankcpane_id:"blankcpane_id", resetcpane_id:"resetcpane_id",
 			gridcpane_id:"gridcpane_id", textbtncpane_id:"textbtncpane_id",
-			bcontainer_id:"bcontainer_id", text_id:"text_id"}
+			bcontainer_id:"bcontainer_id", text_id:"text_id", numcpane_id:"numcpane_id"}
 		var op_type_list = ['advance', 'wizard'];
 		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
 			'pref_id', 'team_id']
