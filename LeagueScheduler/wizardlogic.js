@@ -7,11 +7,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"LeagueScheduler/wizuistackmanager", "LeagueScheduler/divinfo",
 	"LeagueScheduler/tourndivinfo", "LeagueScheduler/fieldinfo",
 	"LeagueScheduler/preferenceinfo", "LeagueScheduler/newschedulerbase",
+	"LeagueScheduler/teaminfo",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
 		DropDownMenu, DropDownButton, Button, ContentPane,
 		baseinfoSingleton, WidgetGen, WizUIStackManager, divinfo, tourndivinfo,
-		fieldinfo, preferenceinfo, newschedulerbase, put) {
+		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, put) {
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
 			divselect_id:'wizdivselect_id',
@@ -137,6 +138,30 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					}
 				})
 				wizard_reg.addChild(fieldinfo_wpane);
+				//-------------------------------------------//
+				topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>In this Pane, Assign team-related information.  Specify name of the team (for identification purposes) and any preferred fields for that team. As a default, schedule is created assuming there is field-use fairness across all fields, regardless of whether a team is designated as home/away.  If teams are associated with certain fields for home games, assign them in the grid below.</i><br><br>";
+				var teaminfo_obj = new teaminfo({
+					server_interface:this.server_interface,
+					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+				menubar_node = put(topdiv_node, "div");
+				this.storeutil_obj.create_menubar('team_id', teaminfo_obj, true, menubar_node);
+				pcontainerdiv_node = put(topdiv_node, "div")
+				gcontainerdiv_node = put(topdiv_node, "div")
+				teaminfo_obj.create_wizardcontrol(pcontainerdiv_node,
+					gcontainerdiv_node);
+				var teaminfo_wpane = new WizardPane({
+					content:topdiv_node,
+					//class:'allauto'
+					//style:"width:500px; height:400px; border:1px solid red"
+					onShow: function() {
+						if (teaminfo_obj.editgrid) {
+							teaminfo_obj.editgrid.schedInfoGrid.resize();
+						}
+					}
+				})
+				wizard_reg.addChild(teaminfo_wpane);
 				//-------------------------------------------//
 				// Preference Config Pane
 				topdiv_node = put("div");

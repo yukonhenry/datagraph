@@ -97,6 +97,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.initabovegrid_UI();
 						} else if (this.idproperty == 'div_id') {
 							this.create_calendar_input(op_type);
+						} else if (this.idproperty == 'team_id') {
+							var topdiv_node = this.initabovegrid_UI();
+							this.create_team_select(topdiv_node);
 						}
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
@@ -151,9 +154,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
 			},
 			initabovegrid_UI: function() {
-				this.create_dbselect_radiobtnselect(
+				var topdiv_node = this.create_dbselect_radiobtnselect(
 					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
 					this.idmgr_obj.league_select_id);
+				return topdiv_node;
 			},
 			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname) {
 				// passed in init_db_type and init_colname are typicall
@@ -185,6 +189,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					label_str:"Select League",
 					put_trail_spacing:"br"}
 				this.widgetgen.create_select(args_obj);
+				return topdiv_node;
 			},
 			// callback function when dbtype radiobutton is changed
 			radio1_callback: function(select_id, event) {

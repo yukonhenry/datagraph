@@ -478,54 +478,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id_cpane.addChild(id_form);
 					this.pstackcontainer_reg.addChild(id_cpane);
 				}, this)
-				/*
-				// add field config (number) cpane
-				idstr_obj = this.get_idstr_obj(
-					'field_id');
-				var field_cpane = new ContentPane({
-					id:constant.nfcpane_id
-				});
-				var field_form = new Form({
-					id:idstr_obj.form_id
-				})
-				field_cpane.addChild(field_form);
-				this.pstackcontainer_reg.addChild(field_cpane);
-				// add div config (number) cpane
-				// get id list corresponding to div_id
-				idstr_obj = this.get_idstr_obj(
-					'div_id');
-				var div_cpane = new ContentPane({
-					id:constant.ndcpane_id
-				})
-				var div_form = new Form({
-					id:idstr_obj.form_id
-				})
-				div_cpane.addChild(div_form);
-				this.pstackcontainer_reg.addChild(div_cpane);
-				// add tourndiv config (number) cpane
-				idstr_obj = this.get_idstr_obj(
-					'tourndiv_id');
-				var tdiv_cpane = new ContentPane({
-					id:constant.ntcpane_id
-				})
-				var tdiv_form = new Form({
-					id:idstr_obj.form_id
-				})
-				tdiv_cpane.addChild(tdiv_form);
-				this.pstackcontainer_reg.addChild(tdiv_cpane);
-				// add preference config
-				idstr_obj = this.get_idstr_obj(
-					'pref_id');
-				var pref_cpane = new ContentPane({
-					id:constant.npcpane_id
-				})
-				var pref_form = new Form({
-					id:idstr_obj.form_id
-				})
-				pref_cpane.addChild(pref_form);
-				this.pstackcontainer_reg.addChild(pref_cpane)
-				// add team config
-				*/
 			},
 			create_grid_stack: function(container_cpane) {
 				// programmatically create grid stack
@@ -583,6 +535,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					idstr_obj.grid_id);
 				field_bcontainer.addChild(field_cpane);
 				this.gstackcontainer_reg.addChild(field_bcontainer);
+				// add team info cpane
+				idstr_obj = this.get_idstr_obj(
+					'team_id');
+				var tmdiv_cpane = new ContentPane({
+					id:idstr_obj.gridcpane_id
+				})
+				put(tmdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
+				this.gstackcontainer_reg.addChild(tmdiv_cpane);
 			}
 		});
 	}

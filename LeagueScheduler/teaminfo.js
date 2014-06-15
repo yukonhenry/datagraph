@@ -40,9 +40,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							trim:true, propercase:true, style:"width:auto"
 						}
 					}, TextBox)
-					// for embedded select objects autoSave is disabled as the saves
-					// will happen manually after select event is captured
-					// autoSave does NOT work
+					// affinity field checkbox creation
 					af_field_str: {label:"Division",
 						renderCell: lang.hitch(this, this.af_field_render)
 					},
@@ -196,22 +194,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getInitialList: function(num) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
-					info_list.push({pref_id:i, div_id:"", team_id:"",
-						priority:i, game_date:this.today,
-						start_after:new Date(2014,0,1,8,0,0),
-						end_before:new Date(2014,0,1,17,0,0)});
+					info_list.push({team_id:i, team_name:"", af_field_str:""});
 				}
 				return info_list;
 			},
 			get_gridhelp_list: function() {
 				var gridhelp_list = [
-					{id:'pref_id', help_str:"Identifier, Non-Editable"},
-					{id:'priority', help_str:"Priority of the preference - assign positive integer, lower value is higher priority"},
-					{id:'div_id', help_str:"Select Division identifier after division list has been selected"},
-					{id:'team_id', help_str:"Select Team ID after division has been selected"},
-					{id:'game_date', help_str:"Select Date where preference applies"},
-					{id:'start_after', help_str:"Choose preference start time - game should start after this time"},
-					{id:'end_before', help_str:"Choose preference end time - game should end before this time - Note 'end_before' can be before 'start_after' times (which case there is a blocked out time range sandwiched between two available time ranges"}]
+					{id:'team_id', help_str:"Identifier, Non-Editable"},
+					{id:'team_name', help_str:"Enter Team Name or Identifier"},
+					{id:"af_field_str", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
+				]
 				return gridhelp_list;
 			},
 			set_griddiv_select: function(divstr_list) {
@@ -392,6 +384,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				team_select_widget.startup();
 				//node.appendChild(div_id_select.domNode);
+			},
+			create_team_select: function(topdiv_node) {
+				var team_select_id = this.op_prefix+"teamselect_id";
+				var select_node = dom.byId(team_select_id)
+				if (!select_node) {
+
+				}
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
