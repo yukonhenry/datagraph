@@ -20,9 +20,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			updatebtn_str:'Update Preference Info',
 			text_node_str: 'Preference List Name',
 		};
-		var wizconstant = {
-			npcpane_id:"wiznumprefcpane_id",
-		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
 			db_type:constant.db_type, today:null, idmgr_obj:null,
@@ -457,7 +454,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.pstackcontainer.addChild(reset_cpane)
 				// add pref config (number) cpane
 				var pref_cpane = new ContentPane({
-					id:wizconstant.npcpane_id,
+					id:this.idmgr_obj.numcpane_id,
 				})
 				var pref_form = new Form({
 					id:this.idmgr_obj.form_id

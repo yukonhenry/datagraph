@@ -19,9 +19,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			updatebtn_str:'Update Team Info',
 			text_node_str: 'Team List Name',
 		};
-		var wizconstant = {
-			ntmcpane_id:"wiznumteamcpane_id",
-		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
 			db_type:constant.db_type, idmgr_obj:null,
@@ -410,7 +407,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.pstackcontainer.addChild(reset_cpane)
 				// add pref config (number) cpane
 				var team_cpane = new ContentPane({
-					id:wizconstant.ntmcpane_id,
+					id:this.idmgr_obj.numcpane_id,
 				})
 				var team_form = new Form({
 					id:this.idmgr_obj.form_id

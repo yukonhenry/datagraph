@@ -12,9 +12,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			tcpane_id:"textbtncpane_id",
 			//ndcpane_id:"numdivcpane_id",
 			//ntcpane_id:"numtourndivcpane_id",
-			sdcpane_id:"scheddivcpane_id",
+			//sdcpane_id:"scheddivcpane_id",
 			nscpane_id:"newschedcpane_id",
-			sccpane_id:"seasoncalendar_input",
+			//sccpane_id:"seasoncalendar_input",
 			//npcpane_id:"numprefcpane_id",
 			//ntmcpane_id:"numteamcpane_id"
 			// grid stack id's
@@ -33,7 +33,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			advanceid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type', 'advance');
+				// get advanceid_list before any call to get_idstr_obj
+				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
+					'advance');
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
@@ -50,11 +52,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					pane_id:this.get_idstr_obj('tourndiv_id').numcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
-				/*
-				this.pstackmap_list.push({id:'sched_id', p_stage:'preconfig',
-					pane_id:constant.sdcpane_id})
-				this.pstackmap_list.push({id:'sched_id', p_stage:'config',
-					pane_id:constant.sdcpane_id}); */
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				// note newsched has it's own txtbtn cpane as it does not share
@@ -73,13 +70,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
-				/*
-				this.gstackmap_list = new Array();
-				arrayUtil.forEach(id_list, function(id) {
-					var idstr_obj = this.get_idstr_obj(id);
-					this.gstackmap_list.push({id:id,
-						pane_id:idstr_obj.gridcpane_id})
-				}, this) */
 				// for gstackmap_list, it is best to hardcode than do a loop as
 				// commented out above as there are special cases for certain id's
 				// the key here is to assing the toplevel cpane hosts the grid
@@ -473,6 +463,22 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(txtbtn_cpane.containerNode, "span[id=$]", constant.infotxt_id);
 				put(txtbtn_cpane.containerNode, "button[id=$]", constant.infobtn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
+				// ad config (number) cpanes for field, div, tourndiv, pref,
+				// and team
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
+					'team_id'];
+				arrayUtil.forEach(id_list, function(idproperty) {
+					var idstr_obj = this.get_idstr_obj(idproperty);
+					var id_cpane = new ContentPane({
+						id:idstr_obj.numcpane_id
+					})
+					var id_form = new Form({
+						id:idstr_obj.form_id
+					})
+					id_cpane.addChild(id_form);
+					this.pstackcontainer_reg.addChild(id_cpane);
+				}, this)
+				/*
 				// add field config (number) cpane
 				idstr_obj = this.get_idstr_obj(
 					'field_id');
@@ -519,6 +525,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				pref_cpane.addChild(pref_form);
 				this.pstackcontainer_reg.addChild(pref_cpane)
 				// add team config
+				*/
 			},
 			create_grid_stack: function(container_cpane) {
 				// programmatically create grid stack

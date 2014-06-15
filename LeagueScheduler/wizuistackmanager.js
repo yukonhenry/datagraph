@@ -7,12 +7,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		BorderContainer, Form, put, idmgrSingleton) {
 		var constant = {
 			// param stack  cpaneid's
-			nfcpane_id:"wiznumfieldcpane_id",
-			ndcpane_id:"wiznumdivcpane_id",
-			ntcpane_id:"wiznumtourndivcpane_id",
+			//nfcpane_id:"wiznumfieldcpane_id",
+			//ndcpane_id:"wiznumdivcpane_id",
+			//ntcpane_id:"wiznumtourndivcpane_id",
 			nscpane_id:"wiznewschedcpane_id",
-			npcpane_id:"wiznumprefcpane_id",
-			ntmcpane_id:"wiznumteamcpane_id",
+			//npcpane_id:"wiznumprefcpane_id",
+			//ntmcpane_id:"wiznumteamcpane_id",
 			// grid stack id's
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
@@ -33,6 +33,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.resetcpane_list = new Array()
 				this.blankcpane_list = new Array();
 				this.gstackmap_list = new Array();
+				this.cpanestate_list = new Array();
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id'];
 				arrayUtil.forEach(id_list, function(item) {
@@ -47,38 +48,51 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						cpane_id:idmgr_obj.resetcpane_id})
 					this.blankcpane_list.push({id:item,
 						cpane_id:idmgr_obj.blankcpane_id})
-					//this.gstackmap_list.push({id:item, pane_id:idmgr_obj.gridcpane_id})
+					/* cpanestate_list tracks current configuration state for each
+					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
+					g_pane: grid name, text_str, btn_callback: send server button
+					parameters, active_flag:boolean whether idprop is currently
+					active or not.
+					*/
+					this.cpanestate_list.push({id:item,
+						p_pane:null, p_stage:null, entry_pt:null,
+						g_pane:idmgr_obj.blankcpane_id,
+						text_str:"", btn_callback:null, updatebtn_str:"",
+						active_flag:false});
 				}, this)
+				/*
+				arrayUtil.forEach(id_list, function(item, index) {
+					var blankcpane_id = this.getuniquematch_obj(
+						this.blankcpane_list, 'id', item.id).cpane_id;
+					this.cpanestate_list.push({id:item.id,
+						p_pane:null, p_stage:null, entry_pt:null,
+						g_pane:blankcpane_id,
+						text_str:"", btn_callback:null, updatebtn_str:"",
+						active_flag:false});
+				}, this); */
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
+				// create pstackmap_list and gstackmap_list manually for newsched_id
 				this.pstackmap_list = new Array();
-				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
-					pane_id:constant.nfcpane_id});
-				this.pstackmap_list.push({id:'field_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('field_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'div_id', p_stage:'preconfig',
-					pane_id:constant.ndcpane_id});
-				this.pstackmap_list.push({id:'div_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('div_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
-					pane_id:constant.ntcpane_id});
-				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('tourndiv_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
-					pane_id:constant.npcpane_id});
-				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
-					pane_id:constant.ntmcpane_id});
-				this.pstackmap_list.push({id:'team_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
+				// note the id_list does not include newsched_id as the grid structure
+				// for newsched_id is a little bit different than the other id's
+				// so we can't use the for loop to create the preconfig and config
+				// panes
+				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id'];
+				arrayUtil.forEach(id_list, function(idproperty) {
+					this.pstackmap_list.push({id:idproperty, p_stage:'preconfig',
+						pane_id:this.get_idstr_obj(idproperty).numcpane_id});
+					this.pstackmap_list.push({id:idproperty, p_stage:'config',
+						pane_id:this.get_idstr_obj(idproperty).textbtncpane_id});
+				}, this)
 				// define mapping object for the grid content pane
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
+				// also field_id points to bcontainer and not gridcpane
 				var newsched_blankcpane_id = this.getuniquematch_obj(
 					this.blankcpane_list, 'id', 'newsched_id').cpane_id;
 				this.gstackmap_list = [
@@ -90,25 +104,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					{id:'field_id',
 						pane_id:this.get_idstr_obj('field_id').bcontainer_id},
 					{id:'pref_id',
-						pane_id:this.get_idstr_obj('pref_id').gridcpane_id}];
+						pane_id:this.get_idstr_obj('pref_id').gridcpane_id},
 					{id:'team_id',
 						pane_id:this.get_idstr_obj('team_id').gridcpane_id}];
-				this.cpanestate_list = new Array();
-				arrayUtil.forEach(this.gstackmap_list, function(item, index) {
-					/* cpanestate_list tracks current configuration state for each
-					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
-					g_pane: grid name, text_str, btn_callback: send server button
-					parameters, active_flag:boolean whether idprop is currently
-					active or not.
-					*/
-					var blankcpane_id = this.getuniquematch_obj(
-						this.blankcpane_list, 'id', item.id).cpane_id;
-					this.cpanestate_list.push({id:item.id,
-						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:blankcpane_id,
-						text_str:"", btn_callback:null, updatebtn_str:"",
-						active_flag:false});
-				}, this);
 			},
 			get_idstr_obj: function(id) {
 				var idmgr_obj = this.getuniquematch_obj(this.wizardid_list,

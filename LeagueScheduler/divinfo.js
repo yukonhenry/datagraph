@@ -25,7 +25,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 			numweeks:12
 		};
 		var wizconstant = {
-			ndcpane_id:"wiznumdivcpane_id",
+			//ndcpane_id:"wiznumdivcpane_id",
 			// grid hosting div id's
 			start_datebox_id:'wizstart_dtbox_id',
 			end_datebox_id:'wizend_dtbox_id',
@@ -277,7 +277,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 				this.pstackcontainer.addChild(reset_cpane)
 				// add div config (number) cpane
 				var div_cpane = new ContentPane({
-					id:wizconstant.ndcpane_id,
+					id:this.idmgr_obj.numcpane_id
 				})
 				var div_form = new Form({
 					id:this.idmgr_obj.form_id

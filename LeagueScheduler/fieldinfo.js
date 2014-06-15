@@ -30,9 +30,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 			default_fieldevent_str:"Sports"
 		};
-		var wizconstant = {
-			nfcpane_id:"wiznumfieldcpane_id",
-		};
 		return declare(baseinfo, {
  			idproperty:constant.idproperty_str,
 			calendar_store:null, calendar_id:1,
@@ -1286,7 +1283,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.pstackcontainer.addChild(reset_cpane)
 				// add field config (number) cpane
 				var field_cpane = new ContentPane({
-					id:wizconstant.nfcpane_id,
+					id:this.idmgr_obj.numcpane_id
 				})
 				var field_form = new Form({
 					id:this.idmgr_obj.form_id
