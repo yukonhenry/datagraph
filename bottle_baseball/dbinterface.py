@@ -64,6 +64,7 @@ class DB_Col_Type(Enum):
     FieldInfo = 3
     GeneratedSchedule = 4
     PreferenceInfo = 5
+    TeamInfo = 6
 
 class MongoDBInterface:
     def __init__(self, mongoClient, collection_name='games',

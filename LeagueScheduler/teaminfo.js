@@ -56,60 +56,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				return columnsdef_obj;
 			},
 			modifyserver_data: function(data_list, divstr_obj) {
-				// see comments for fieldinfo modifyserver_data - process divstr
-				// data; separately process data_list (especially dates)
-				this.divstr_colname = divstr_obj.colname;
-				this.divstr_db_type = divstr_obj.db_type;
-				var config_status = divstr_obj.config_status;
-				var info_list = divstr_obj.info_list;
-				// create radio button pair to select
-				// schedule type - rr or tourn
-				if (this.divstr_colname && this.divstr_db_type) {
-					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
-						this.idmgr_obj.radiobtn2_id,
-						this.idmgr_obj.league_select_id,
-						this.divstr_db_type, this.divstr_colname);
-				} else {
-					this.initabovegrid_UI();
-				}
-				if (config_status) {
-					var divstr_list = arrayUtil.map(info_list,
-					function(item) {
-						return {'divstr':item.div_age + item.div_gen,
-							'div_id':item.div_id, 'totalteams':item.totalteams};
-					})
-					baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
-						this.op_type, 'team_id');
-				}
-				arrayUtil.forEach(data_list, function(item, index) {
-					// save date str to pass into start and end time calc
-					// (though it can be a dummy date)
-					var game_date_str = item.game_date;
-					var start_after_str = item.start_after;
-					var end_before_str = item.end_before;
-					item.game_date = new Date(game_date_str);
-					item.start_after = new Date(game_date_str+' '+start_after_str);
-					item.end_before = new Date(game_date_str+' '+end_before_str);
-				});
-				return data_list;
 			},
 			modify_toserver_data: function(raw_result) {
-				// modify store data before sending data to server
-				var newlist = new Array();
-				// similar to field data, for the team grid data convert Data objects to str
-				// note we want to keep it as data objects inside of store to
-				// maintain direct compatibility with Date and TimeTextBox's
-				// and associated picker widgets.
-				raw_result.map(function(item) {
-					var newobj = lang.clone(item);
-					newobj.game_date = newobj.game_date.toLocaleDateString();
-					newobj.start_after = newobj.start_after.toLocaleTimeString();
-					newobj.end_before = newobj.end_before.toLocaleTimeString();
-					return newobj;
-				}).forEach(function(obj) {
-					newlist.push(obj);
-				});
-				return newlist;
 			},
 			initialize: function(newgrid_flag, op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
@@ -389,7 +337,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var team_select_id = this.op_prefix+"teamselect_id";
 				var select_node = dom.byId(team_select_id)
 				if (!select_node) {
-
+					put(topdiv_node, "label.label_box[for=$]",
+					team_select_id, "Select Team ID:");
+					select_node = put(topdiv_node, "select[id=$][name=$]", team_select_id, team_select_id);
+					var team_select = new Select({
+						name:team_select_id,
+						onChange:function(event) {
+							console.log("create_team_select="+event)
+						}
+					})
 				}
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
@@ -405,6 +361,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				})
 				this.pstackcontainer.addChild(reset_cpane)
 				// add pref config (number) cpane
+				/*
 				var team_cpane = new ContentPane({
 					id:this.idmgr_obj.numcpane_id,
 				})
@@ -412,7 +369,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					id:this.idmgr_obj.form_id
 				})
 				team_cpane.addChild(team_form);
-				this.pstackcontainer.addChild(team_cpane);
+				this.pstackcontainer.addChild(team_cpane); */
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id,

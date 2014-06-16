@@ -146,7 +146,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('team_id', teaminfo_obj, true, menubar_node);
+				// No menubar for team_id as there is no create/delete operations
+				// for teaminfo grids
+				//this.storeutil_obj.create_menubar('team_id', teaminfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
 				gcontainerdiv_node = put(topdiv_node, "div")
 				teaminfo_obj.create_wizardcontrol(pcontainerdiv_node,

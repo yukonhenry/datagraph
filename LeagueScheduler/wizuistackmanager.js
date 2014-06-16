@@ -7,12 +7,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		BorderContainer, Form, put, idmgrSingleton) {
 		var constant = {
 			// param stack  cpaneid's
-			//nfcpane_id:"wiznumfieldcpane_id",
-			//ndcpane_id:"wiznumdivcpane_id",
-			//ntcpane_id:"wiznumtourndivcpane_id",
 			nscpane_id:"wiznewschedcpane_id",
-			//npcpane_id:"wiznumprefcpane_id",
-			//ntmcpane_id:"wiznumteamcpane_id",
 			// grid stack id's
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
@@ -82,7 +77,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// for newsched_id is a little bit different than the other id's
 				// so we can't use the for loop to create the preconfig and config
 				// panes
-				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id'];
+				// Implement pstackmap_list entries for team_id also - team_id pstackmap_list is a little different also because 'preconfig'
+				// maps to a blank (reset) cpane
+				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
+					pane_id:this.get_idstr_obj('team_id').resetcpane_id});
+				this.pstackmap_list.push({id:'team_id', p_stage:'config',
+					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
+				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					this.pstackmap_list.push({id:idproperty, p_stage:'preconfig',
 						pane_id:this.get_idstr_obj(idproperty).numcpane_id});

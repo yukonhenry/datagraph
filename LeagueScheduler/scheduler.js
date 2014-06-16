@@ -16,10 +16,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
 		"LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil",
 		"LeagueScheduler/tourndivinfo", "LeagueScheduler/wizardlogic",
+		"LeagueScheduler/teaminfo",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
-		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic) {
+		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic,
+		Teaminfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var ldata_array = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
@@ -45,6 +47,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
 				uistackmgr:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
+		var teaminfo_obj = new TeamInfo(
+			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
+				uistackmgr:uistackmgr, storeutil_obj:storeutil_obj,
+				op_type:"advance"});
 		var leaguediv_func = function(ldata) {
 			var ldata_array = ldata.leaguedivinfo;
 
@@ -58,12 +64,14 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var fielddb_list = ldata.fielddb_list;
 			var newscheddb_list = ldata.newscheddb_list;
 			var prefdb_list = ldata.prefdb_list;
+			var teamdb_list = ldata.teamdb_list;
 			var data_list = [
 				{db_type:'rrdb', db_list:rrdbcollection_list},
 				{db_type:'tourndb', db_list:tourndbcollection_list},
 				{db_type:'fielddb', db_list:fielddb_list},
 				{db_type:'newscheddb', db_list:newscheddb_list},
-				{db_type:'prefdb', db_list:prefdb_list}];
+				{db_type:'prefdb', db_list:prefdb_list},
+				{db_type:'teamdb', db_list:teamdb_list}];
 			// store initial data returned from server
 			storeutil_obj.store_init_data(data_list)
 			// create initial wizard UI
@@ -74,7 +82,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				{id:'tourndiv_id', info_obj:tourndivinfo_obj},
 				{id:'field_id', info_obj:fieldinfo_obj},
 				{id:'newsched_id', info_obj:newschedbase_obj},
-				{id:'pref_id', info_obj:preferenceinfo_obj}
+				{id:'pref_id', info_obj:preferenceinfo_obj},
+				{id:'team_id', info_obj:teaminfo_obj}
 			]
 			storeutil_obj.init_advanced_UI(info_obj_list);
 			console.log("load basic info complete");

@@ -203,12 +203,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				})
 				advanced_cpane.on("show", lang.hitch(this, function(evt) {
 					console.log("advanced onshow");
+					// only uistackmgr relevant for resizing (and not wizuistackmgr)
 					if (this.uistackmgr && this.uistackmgr.current_grid) {
 						this.uistackmgr.current_grid.resize();
 					}
+					/*
 					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
 						this.wizuistackmgr.current_grid.resize();
-					}
+					} */
 					advanced_cpane.domNode.scrollTop = 0;
 				}))
 				advanced_cpane.on("load", function(evt) {
