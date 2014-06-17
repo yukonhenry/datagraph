@@ -2,30 +2,28 @@
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dojox/widget/Wizard", "dojox/widget/WizardPane",
 	"dijit/DropDownMenu", "dijit/form/DropDownButton", "dijit/form/Button",
-	"dijit/layout/ContentPane",
+	"dijit/form/DropDownButton", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"LeagueScheduler/wizuistackmanager", "LeagueScheduler/divinfo",
 	"LeagueScheduler/tourndivinfo", "LeagueScheduler/fieldinfo",
 	"LeagueScheduler/preferenceinfo", "LeagueScheduler/newschedulerbase",
-	"LeagueScheduler/teaminfo",
+	"LeagueScheduler/teaminfo", "LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
-		DropDownMenu, DropDownButton, Button, ContentPane,
+		DropDownMenu, DropDownButton, Button, DropDownButton, ContentPane,
 		baseinfoSingleton, WidgetGen, WizUIStackManager, divinfo, tourndivinfo,
-		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, put) {
+		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, idmgrSingleton,
+		put) {
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
 			divselect_id:'wizdivselect_id',
-			fradio1_id:'wizfradio1_id', fradio2_id:'wizfradio2_id',
-			fselect_id:'wizfselect_id',
-			prefradio1_id:'wizprefradio1_id', prefradio2_id:'wizprefradio2_id',
-			prefselect_id:'wizprefselect_id',
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
-			schedutil_obj:null,
+			schedutil_obj:null, wizardid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
 			},
 			create: function() {
 				// tabconatiner examples:
@@ -112,11 +110,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// Field Config Pane
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
-				/*
-				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.fradio1_id, constant.fradio2_id, "rrdb",
-					this, this.radio1_callback, this.radio2_callback,
-					constant.fselect_id); */
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
@@ -139,13 +132,27 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				wizard_reg.addChild(fieldinfo_wpane);
 				//-------------------------------------------//
+				// ------------- TEAM INFO Pane  ----------------
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Assign team-related information.  Specify name of the team (for identification purposes) and any preferred fields for that team. As a default, schedule is created assuming there is field-use fairness across all fields, regardless of whether a team is designated as home/away.  If teams are associated with certain fields for home games, assign them in the grid below.</i><br><br>";
+				// radio button to choose between rrd and tourndb
+				var idstr_obj = this.get_idstr_obj('team_id');
+				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
+					idstr_obj.radiobtn1_id, idstr_obj.radiobtn2_id, "rrdb",
+					this, this.radio1_callback, this.radio2_callback,
+					idstr_obj.league_select_id);
+				var ddmenu_widget = new DropDownMenu()
+				var ddbtn_node = put(topdiv_node, "button[type=button]")
+				var ddbtn_widget = new DropDownButton({
+					class:"primary",
+					label:"Select League",
+					dropDown:ddmenu_widget
+				}, ddbtn_node);
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,
 					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
-				menubar_node = put(topdiv_node, "div");
+				// menubar_node = put(topdiv_node, "div");
 				// No menubar for team_id as there is no create/delete operations
 				// for teaminfo grids
 				//this.storeutil_obj.create_menubar('team_id', teaminfo_obj, true, menubar_node);
@@ -230,7 +237,19 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			},
 			radio2_callback: function(select_id, event) {
 
-			}
+			},
+			get_idstr_obj: function(id) {
+				var idmgr_obj = this.getuniquematch_obj(this.wizardid_list,
+					'id', id);
+				return idmgr_obj.idstr_obj;
+			},
+			getuniquematch_obj: function(list, key, value) {
+				var match_list = arrayUtil.filter(list,
+					function(item) {
+						return item[key] == value;
+					});
+				return match_list[0];
+			},
 		})
 	}
 );

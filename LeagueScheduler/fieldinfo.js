@@ -122,7 +122,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				return columnsdef_obj;
 			},
 			initialize: function(newgrid_flag, op_type) {
-				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				// op_type defaults to 'advance' if it is not defined or null
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
 				var form_reg = registry.byId(this.idmgr_obj.form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
@@ -1180,12 +1181,15 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// if divstr parameters were saved with fieldgrid info and returned
 				// to the client, use those to set up the radio buttons.  Otherwise
 				// use default values.
+				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
+				var topdiv_node = put(infogrid_node, "-div");
 				if (this.divstr_colname && this.divstr_db_type) {
 					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
-						this.idmgr_obj.radiobtn2_id, this.idmgr_obj.league_select_id,
-						this.divstr_db_type, this.divstr_colname);
+						this.idmgr_obj.radiobtn2_id,
+						this.idmgr_obj.league_select_id,
+						this.divstr_db_type, this.divstr_colname, topdiv_node);
 				} else {
-					this.initabovegrid_UI();
+					this.initabovegrid_UI(topdiv_node);
 				}
 				//config_status should always be 1 for as divinfo db's are
 				// selected from a list that includes only fully complete configs

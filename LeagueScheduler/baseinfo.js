@@ -98,8 +98,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						} else if (this.idproperty == 'div_id') {
 							this.create_calendar_input(op_type);
 						} else if (this.idproperty == 'team_id') {
-							var topdiv_node = this.initabovegrid_UI();
-							this.create_team_select(topdiv_node);
+							console.log("CodeLogicError: baseinfo:processdivinfo_input: execution not expected for team_id");
 						}
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
@@ -153,13 +152,18 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			getdivstr_obj: function() {
 				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
 			},
-			initabovegrid_UI: function() {
-				var topdiv_node = this.create_dbselect_radiobtnselect(
+			initabovegrid_UI: function(topdiv_node) {
+				if (typeof topdiv_node === "undefined" ||
+					topdiv_node === null) {
+					var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
+					var topdiv_node = put(infogrid_node, "-div");
+				}
+				this.create_dbselect_radiobtnselect(
 					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
-					this.idmgr_obj.league_select_id);
+					this.idmgr_obj.league_select_id, topdiv_node);
 				return topdiv_node;
 			},
-			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname) {
+			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname, topdiv_node) {
 				// passed in init_db_type and init_colname are typicall
 				// for divinfo(divstr) db_type and colname even though it
 				// is used for fieldinfo grid
@@ -167,8 +171,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var init_colname = init_colname || "";
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
-				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
-				var topdiv_node = put(infogrid_node, "-div");
 				if (!this.widgetgen) {
 					this.widgetgen = new WidgetGen({
 						storeutil_obj:this.storeutil_obj,
@@ -189,7 +191,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					label_str:"Select League",
 					put_trail_spacing:"br"}
 				this.widgetgen.create_select(args_obj);
-				return topdiv_node;
 			},
 			// callback function when dbtype radiobutton is changed
 			radio1_callback: function(select_id, event) {

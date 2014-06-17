@@ -13,20 +13,21 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 		baseinfoSingleton, put) {
 		var constant = {
 			idtopmenu_list:[
-				{id:'div_id', label_str:"Round Robin Parameters",
-					help_str:"Configure Division/Fields for Round Robin League Schedule", mbaritem_id:"divmbaritem_id"},
-				{id:'tourndiv_id', label_str:"Tournament Parameters",
+				{id:'div_id', label_str:"League/Round Robin Format",
+					help_str:"Configure Division/Fields for Round Robin League Schedule", mbaritem_id:"divmbaritem_id", db_type:'rrdb'},
+				{id:'tourndiv_id', label_str:"Tournament format",
 					help_str:"Configure Division/Fields for Tournament Schedule",
-					mbaritem_id:"tourndivmbaritem_id"},
+					mbaritem_id:"tourndivmbaritem_id", db_type:'tourndb'},
 				{id:'field_id', label_str:"Specify Fields",
 					help_str:"Configure Field Information",
-					mbaritem_id:"fieldmbaritem_id"},
+					mbaritem_id:"fieldmbaritem_id", db_type:'fielddb'},
 				{id:'newsched_id', label_str:"Generate Schedule",
 					help_str:"Configure Final Set of Parameters and Generate",
-					mbaritem_id:"newschedmbaritem_id"},
+					mbaritem_id:"newschedmbaritem_id", db_type:'newscheddb'},
 				{id:'pref_id', label_str:"Scheduling Preferences",
 					help_str:"Configure Preferences List",
-					mbaritem_id:"prefmbaritem_id"}
+					mbaritem_id:"prefmbaritem_id", db_type:'prefdb'},
+				{id:'team_id', label_str:"Specify Teams", help_str:"Configure Team-specific information/constraints", db_type:'teamdb'}
 			],
 			initmenu_list:[
 				{id:'div_id', label_str:"Create New Division Info",
@@ -227,20 +228,65 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				})
 				advanced_cpane.addChild(editddown_btn);
 				//var parent_ddown_reg = registry.byId("configmenu_id");
+				var teaminfo_obj = null;
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;
 					if (id == 'div_id' || id == 'tourndiv_id') {
 						args_list.push({id:id, info_obj:item.info_obj})
-					} else {
+					} else if (id == 'team_id') {
+						teaminfo_obj = item.info_obj;
+					}else if (id != 'team_id') {
+						// for team_id, we are going to utilize args_list from above
+						// with div_id and tourndiv_id to create a two-level
+						// submenu - see second call to create_divmenu below
 						this.create_menu(id, item.info_obj, true, editddown_menu);
 					}
 				}, this)
+				// specify parameters for the two-level menu
+				// first specify for the divinfo dropdown
+				// menu_index is the display position in the parent_ddown widget
 				var args_obj = {parent_ddown_reg:editddown_menu,
-					args_list:args_list}
+					args_list:args_list, label_str: "Division Info",
+					menu_index:0}
 				this.create_divmenu(args_obj);
+				// create team_id submenu
+				args_obj = {label_str:"Team Info", id:"team_id",
+					parent_ddown_reg:editddown_menu, divargs_list:args_list,
+					menu_index:2, info_obj:teaminfo_obj}
+				this.create_editonlymenu(args_obj);
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
 				this.uistackmgr.create_grid_stack(advanced_cpane);
+			},
+			create_editonlymenu: function(args_obj) {
+				var parent_ddown_widget = args_obj.parent_ddown_reg;
+				var ddown_widget = new DropDownMenu();
+				var popup_widget = new PopupMenuItem({
+					label:args_obj.label_str,
+					popup:ddown_widget
+				})
+				parent_ddown_widget.addChild(popup_widget, args_obj.menu_index)
+				arrayUtil.forEach(args_obj.divargs_list, function(item) {
+					// get db collection listings for each div type (rrdb and tourndb)
+					var match_obj = this.getuniquematch_obj(constant.idtopmenu_list,
+					'id', item.id);
+					var db_ddown_widget= new DropDownMenu();
+					var db_popup_widget = new PopupMenuItem({
+						label:match_obj.label_str,
+						popup:db_ddown_widget
+					})
+					ddown_widget.addChild(db_popup_widget);
+					var db_type = match_obj.db_type;
+					// create respective db menu
+					var db_list = this.getfromdb_store_value(db_type, 'name');
+					// note info_obj points back to teaminfo_obj
+					var info_obj = args_obj.info_obj;
+					this.schedutil_obj.generateDBCollection_smenu(
+						db_ddown_widget, db_list,
+						this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
+						{db_type:db_type, info_obj:info_obj,
+							storeutil_obj:this, op_type:"advance"});
+				}, this)
 			},
 			create_divmenu: function(args_obj) {
 				// programmatic instantiation of submenus for divinfo and
@@ -249,10 +295,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var args_list = args_obj.args_list;
 				var div_ddown_reg = new DropDownMenu();
 				var div_popup_reg = new PopupMenuItem({
-					label:"Division Info",
+					label:args_obj.label_str,
 					popup:div_ddown_reg
 				})
-				parent_ddown_reg.addChild(div_popup_reg, 0);
+				parent_ddown_reg.addChild(div_popup_reg, args_obj.menu_index);
 				arrayUtil.forEach(args_list, function(item) {
 					this.create_menu(item.id, item.info_obj, true, div_ddown_reg)
 				}, this)

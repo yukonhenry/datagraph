@@ -77,13 +77,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// for newsched_id is a little bit different than the other id's
 				// so we can't use the for loop to create the preconfig and config
 				// panes
-				// Implement pstackmap_list entries for team_id also - team_id pstackmap_list is a little different also because 'preconfig'
-				// maps to a blank (reset) cpane
-				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('team_id').resetcpane_id});
-				this.pstackmap_list.push({id:'team_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
-				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id'];
+				// rest of id's have a common structure
+				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					this.pstackmap_list.push({id:idproperty, p_stage:'preconfig',
 						pane_id:this.get_idstr_obj(idproperty).numcpane_id});

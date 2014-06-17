@@ -124,7 +124,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 				return columnsdef_obj;
 			},
 			initialize: function(newgrid_flag, op_type) {
-				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
 				var form_id = this.idmgr_obj.form_id;
 				var dbname_id = this.idmgr_obj.dbname_id;
 				var inputnum_id = this.idmgr_obj.inputnum_id;

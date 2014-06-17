@@ -21,7 +21,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic,
-		Teaminfo) {
+		TeamInfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var ldata_array = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});

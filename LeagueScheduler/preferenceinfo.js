@@ -113,13 +113,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var info_list = divstr_obj.info_list;
 				// create radio button pair to select
 				// schedule type - rr or tourn
+				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
+				var topdiv_node = put(infogrid_node, "-div");
 				if (this.divstr_colname && this.divstr_db_type) {
 					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
 						this.idmgr_obj.radiobtn2_id,
 						this.idmgr_obj.league_select_id,
-						this.divstr_db_type, this.divstr_colname);
+						this.divstr_db_type, this.divstr_colname, topdiv_node);
 				} else {
-					this.initabovegrid_UI();
+					this.initabovegrid_UI(topdiv_node);
 				}
 				if (config_status) {
 					var divstr_list = arrayUtil.map(info_list,
@@ -161,7 +163,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				return newlist;
 			},
 			initialize: function(newgrid_flag, op_type) {
-				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
 				var form_reg = registry.byId(this.idmgr_obj.form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = registry.byId(this.idmgr_obj.dbname_id);

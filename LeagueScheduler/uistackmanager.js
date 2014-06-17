@@ -65,7 +65,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// for teaminfo there is no numcpane - go straight to grid with
 				// tcpane_id
 				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
-					pane_id:constant.dummy_id});
+					pane_id:this.get_idstr_obj('team_id').numcpane_id});
 				this.pstackmap_list.push({id:'team_id', p_stage:'config',
 					pane_id:constant.tcpane_id});
 				// define mapping object for the grid content pane
@@ -450,7 +450,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				});
 				newsched_cpane.addChild(newsched_form);
 				this.pstackcontainer_reg.addChild(newsched_cpane)
-				// add nesched config input cpane
+				// add newsched config input cpane
 				var newschedtxtbtn_cpane = new ContentPane({
 					id:idstr_obj.textbtncpane_id
 				})
@@ -466,18 +466,19 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(txtbtn_cpane.containerNode, "button[id=$]", constant.infobtn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// ad config (number) cpanes for field, div, tourndiv, pref,
-				// Teaminfo does not have a name or num configuration panel
-				// Teaminfo goes straight to the config state - txtbtn_cpane
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					var idstr_obj = this.get_idstr_obj(idproperty);
 					var id_cpane = new ContentPane({
 						id:idstr_obj.numcpane_id
 					})
-					var id_form = new Form({
-						id:idstr_obj.form_id
-					})
-					id_cpane.addChild(id_form);
+					if (idproperty != 'team_id') {
+						// form id not relevant for team_id
+						var id_form = new Form({
+							id:idstr_obj.form_id
+						})
+						id_cpane.addChild(id_form);
+					}
 					this.pstackcontainer_reg.addChild(id_cpane);
 				}, this)
 			},

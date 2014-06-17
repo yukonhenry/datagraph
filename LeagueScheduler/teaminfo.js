@@ -39,7 +39,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						editorArgs:{
 							trim:true, propercase:true, style:"width:auto"
 						}
-					}, TextBox)
+					}, TextBox),
 					// affinity field checkbox creation
 					af_field_str: {label:"Division",
 						renderCell: lang.hitch(this, this.af_field_render)
@@ -60,63 +60,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			modify_toserver_data: function(raw_result) {
 			},
 			initialize: function(newgrid_flag, op_type) {
-				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
-				var form_reg = registry.byId(this.idmgr_obj.form_id);
-				var form_node = form_reg.domNode;
-				var dbname_reg = registry.byId(this.idmgr_obj.dbname_id);
-				var inputnum_reg = null;
-				if (!dbname_reg) {
-					put(form_node, "label.label_box[for=$]",
-						this.idmgr_obj.dbname_id, constant.dbname_str);
-					var dbname_node = put(form_node,
-						"input[id=$][type=text][required=true]",
-						this.idmgr_obj.dbname_id)
-					dbname_reg = new ValidationTextBox({
-						value:'',
-						regExp:'\\D[\\w]+',
-						style:'width:12em',
-						promptMessage:constant.vtextbox_str + '-start with letter or _, followed by alphanumeric or _',
-						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
-						missingMessage:constant.vtextbox_str
-					}, dbname_node);
-					put(form_node, "span.empty_smallgap");
-					put(form_node, "label.label_box[for=$]",
-						this.idmgr_obj.inputnum_id, constant.inputnum_str);
-					var inputnum_node = put(form_node,
-						"input[id=$][type=text][required=true]",
-						this.idmgr_obj.inputnum_id);
-					inputnum_reg = new NumberTextBox({
-						value:'1',
-						style:'width:5em',
-						constraints:{min:1, max:500},
-						promptMessage:constant.ntextbox_str,
-						invalidMessage:'Must be Non-zero integer',
-						missingMessage:constant.ntextbox_str+' (positive integer)'
-					}, inputnum_node);
-				} else {
-					inputnum_reg = registry.byId(this.idmgr_obj.inputnum_id);
-				}
-				var tooltipconfig_list = [{connectId:[this.idmgr_obj.inputnum_id],
-					label:"Specify Initial Number of Preferences and press ENTER",
-					position:['below','after']},
-					{connectId:[this.idmgr_obj.dbname_id],
-					label:"Specify Preference List Name",
-					position:['below','after']}];
-				var args_obj = {
-					dbname_reg:dbname_reg,
-					form_reg:form_reg,
-					entrynum_reg:inputnum_reg,
-					server_path:"create_newdbcol/",
-					server_key:'info_data',
-					text_node_str: constant.text_node_str,
-					grid_id:this.idmgr_obj.grid_id,
-					updatebtn_str:constant.updatebtn_str,
-					tooltipconfig_list:tooltipconfig_list,
-					newgrid_flag:newgrid_flag,
-					cellselect_flag:true,
-					op_type:op_type
-				}
-				this.showConfig(args_obj);
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
+				var topdiv_node = put("div");
+				this.initabovegrid_UI(topdiv_node);
+				var param_cpane = registry.byId(this.idmgr_obj.numcpane_id);
+				param_cpane.addChild(topdiv_node)
+				this.create_team_select(topdiv_node);
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -132,7 +81,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				options_obj.serverdata_key = 'info_list';
 				options_obj.server_key = 'info_data';
 				options_obj.cellselect_flag = false;
-				options_obj.text_node_str = "Preference List Name";
+				options_obj.text_node_str = "Team List Name";
 				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
@@ -155,6 +104,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				return gridhelp_list;
 			},
 			set_griddiv_select: function(divstr_list) {
+				/*
 				// called from baseinfoSingleton watch obj callback for division
 				// string list
 				// baseinfoSingleton has already done a check for existence of
@@ -162,7 +112,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// Config status check is completed before calling this method, i.e.
 				// the divstr_list should make up all rows of the cb collection
 				// Reference newschedulerbase/createdivselect_dropdown
-				var pref_grid = this.editgrid.schedInfoGrid;
+				var team_grid = this.editgrid.schedInfoGrid;
 				// First create the option_list that will feed the select
 				// dropdown for each cell in the 'division' column of the pref
 				// grid.
@@ -197,9 +147,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					//var cell = pref_grid.cell(row_id, 'div_id')
 					// ref https://github.com/SitePen/dgrid/blob/v0.3.15/doc/components/core-components/Grid.md
 					// need to make new make of option_list for each use in select
-				}
+				} */
 			},
 			set_gridteam_select: function(options_obj, divevent) {
+				/*
 				// set the select dropdown for the team id column in the pref grid
 				var divoption_list = options_obj.option_list;
 				var pref_id = options_obj.pref_id;
@@ -227,16 +178,19 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				//var select_widget = cell.element.widget;
 				if (team_select_widget) {
 					team_select_widget.set("options", option_list);
+					*/
 					/*
 					team_select_widget.set("onChange", lang.hitch(this, function(event) {
 						var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
 						pref_obj.team_id = event;
 						this.editgrid.schedInfoStore.put(pref_obj);
 					})) */
+/*
 					team_select_widget.startup()
-				}
+				} */
 			},
 			div_select_render: function(object, data, node) {
+				/*
 				var pref_id = object.pref_id;
 				var div_select_prefix = this.op_prefix+"prefdiv_select";
 				var div_select_id = div_select_prefix+pref_id+"_id";
@@ -286,9 +240,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						lang.hitch(this, this.set_gridteam_select, eventoptions_obj))
 				}
 				div_select_widget.startup();
-				//node.appendChild(div_id_select.domNode);
+				//node.appendChild(div_id_select.domNode); */
 			},
 			team_select_render: function(object, data, node) {
+				/*
 				var pref_id = object.pref_id; // equivalent to row
 				var div_id = object.div_id;  // selected div_id for same row
 				var team_select_prefix = this.op_prefix+"prefteam_select";
@@ -332,6 +287,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				team_select_widget.startup();
 				//node.appendChild(div_id_select.domNode);
+				*/
 			},
 			create_team_select: function(topdiv_node) {
 				var team_select_id = this.op_prefix+"teamselect_id";
@@ -361,15 +317,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				})
 				this.pstackcontainer.addChild(reset_cpane)
 				// add pref config (number) cpane
-				/*
+				// Note there is no number input form, but we will use the cpane
+				// to host the dropdown select used in lieu of the input text box
 				var team_cpane = new ContentPane({
 					id:this.idmgr_obj.numcpane_id,
 				})
+				// Note form under the cpane like other infoobj's however
+				/*
 				var team_form = new Form({
 					id:this.idmgr_obj.form_id
 				})
-				team_cpane.addChild(team_form);
-				this.pstackcontainer.addChild(team_cpane); */
+				team_cpane.addChild(team_form); */
+				this.pstackcontainer.addChild(team_cpane);
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id,
