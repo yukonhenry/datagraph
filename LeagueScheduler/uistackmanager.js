@@ -36,7 +36,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// get advanceid_list before any call to get_idstr_obj
 				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
 					'advance');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();

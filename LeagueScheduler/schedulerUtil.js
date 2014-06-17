@@ -16,7 +16,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 		arrayUtil,
 		registry, MenuItem, DivInfo, FieldInfo){
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};
-		var status_dom = dom.byId("dbstatus_txt");
 		//var status1_dom = dom.byId("dbstatus1_txt");
 		return declare(null, {
 			server_interface:null,
@@ -50,17 +49,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
     				time[0] = +time[0] % 12 || 12; // Adjust hours
   				}
   				return time.join (''); // return adjusted time or original string
-			},
-			updateDBstatusline: function(dbstatus) {
-				arrayUtil.forEach([status_dom], function(item_dom, index) {
-					if (dbstatus) {
-						item_dom.innerHTML = "Schedule in database, Ready";
-						item_dom.style.color = 'green';
-					} else {
-						item_dom.innerHTML = "Schedule Not Ready";
-						item_dom.style.color = 'red';
-					}
-				});
 			},
 			// following function is robust whether nodelist is a n Array
 			// or a scalar dom node

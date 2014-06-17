@@ -70,6 +70,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				wizard_reg.addChild(intro_wpane);
 				//---------------------//
+				// --- DIVISION INFO-----//
 				var topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
 				// get/create widgetgen obj
@@ -137,16 +138,18 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Assign team-related information.  Specify name of the team (for identification purposes) and any preferred fields for that team. As a default, schedule is created assuming there is field-use fairness across all fields, regardless of whether a team is designated as home/away.  If teams are associated with certain fields for home games, assign them in the grid below.</i><br><br>";
 				// radio button to choose between rrd and tourndb
 				var idstr_obj = this.get_idstr_obj('team_id');
+				var ddbtn_node = put(topdiv_node, "button[type=button]")
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
 					idstr_obj.radiobtn1_id, idstr_obj.radiobtn2_id, "rrdb",
 					this, this.radio1_callback, this.radio2_callback,
 					idstr_obj.league_select_id);
 				var ddmenu_widget = new DropDownMenu()
-				var ddbtn_node = put(topdiv_node, "button[type=button]")
 				var ddbtn_widget = new DropDownButton({
 					class:"primary",
 					label:"Select League",
-					dropDown:ddmenu_widget
+					//style:"margin-left:25px",
+					dropDown:ddmenu_widget,
+					style:"margin-right:12px"
 				}, ddbtn_node);
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,

@@ -191,6 +191,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				}, this)
 			},
 			init_advanced_UI: function(info_obj_list) {
+				// ADVANCE MENU target
 				// save data to local db and create menu structure for advanced
 				// pane
 				var args_list = new Array();
@@ -259,6 +260,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				this.uistackmgr.create_grid_stack(advanced_cpane);
 			},
 			create_editonlymenu: function(args_obj) {
+				// ADVANCE MENU target
 				var parent_ddown_widget = args_obj.parent_ddown_reg;
 				var ddown_widget = new DropDownMenu();
 				var popup_widget = new PopupMenuItem({
@@ -289,6 +291,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				}, this)
 			},
 			create_divmenu: function(args_obj) {
+				// ADVANCE menu target
 				// programmatic instantiation of submenus for divinfo and
 				// tourndivinfo menu info
 				var parent_ddown_reg = args_obj.parent_ddown_reg;
@@ -304,6 +307,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				}, this)
 			},
 			create_menu: function(id, info_obj, delflag, ddown_reg) {
+				// ADVANCE MENU target
 				var match_obj = this.getuniquematch_obj(constant.idtopmenu_list,
 					'id', id);
 				var idtop_ddown_reg = new DropDownMenu();
@@ -359,6 +363,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				}
 			},
 			create_menubar: function(id, info_obj, delflag, mbar_node) {
+				// WIZARD pane target function
 				// Similar to create_menu, except create a horizontal menubar instead
 				var tooltipconfig_list = new Array();
 				// Create horizontal menubar
