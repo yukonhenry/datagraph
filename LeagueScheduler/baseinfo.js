@@ -9,8 +9,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		registry, Tooltip, Button, RadioButton, WidgetGen, EditGrid, baseinfoSingleton,
 		put) {
 		var constant = {
-			infobtn_id:"infobtn_id",
-			text_id:"infotxt_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
@@ -100,6 +98,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						} else if (this.idproperty == 'team_id') {
 							console.log("CodeLogicError: baseinfo:processdivinfo_input: execution not expected for team_id");
 						}
+						var args_obj = null;
 						if (newgrid_flag) {
 							var columnsdef_obj = this.getcolumnsdef_obj();
 							this.editgrid = new EditGrid({griddata_list:info_list,
@@ -116,25 +115,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								storeutil_obj:this.storeutil_obj,
 								db_type:this.db_type});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
-							var args_obj = {
-								colname:this.activegrid_colname,
-								text_node_str:text_node_str,
-								updatebtn_str:updatebtn_str,
-								idproperty:this.idproperty,
-								swapcpane_flag:true,
+							args_obj = {
 								newgrid_flag:true
 							}
 						} else {
 							this.editgrid.replace_store(this.activegrid_colname, info_list);
-							var args_obj = {
-								colname:this.activegrid_colname,
-								text_node_str:text_node_str,
-								updatebtn_str:updatebtn_str,
-								idproperty:this.idproperty,
-								swapcpane_flag:true,
+							args_obj = {
 								newgrid_flag:false
 							}
 						}
+						args_obj.swapcpane_flag = true;
+						args_obj.updatebtn_str = updatebtn_str;
+						args_obj.text_node_str = text_node_str;
+						args_obj.idproperty = this.idproperty;
+						args_obj.colname = this.activegrid_colname;
 						args_obj.entry_pt = constant.init;
 						args_obj.op_type = op_type;
 						this.reconfig_infobtn(args_obj);

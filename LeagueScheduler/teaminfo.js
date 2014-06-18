@@ -1,14 +1,14 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-	"dijit/registry", "dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
+	"dijit/registry", "dijit/form/TextBox", "dijit/form/ValidationTextBox",
 	"dijit/form/Select", "dgrid/editor",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
-	"LeagueScheduler/idmgrSingleton",
+	"LeagueScheduler/idmgrSingleton", "LeagueScheduler/editgrid",
 	"put-selector/put", "dojo/domReady!"],
-	function(declare, dom, lang, arrayUtil, registry, NumberTextBox,
+	function(declare, dom, lang, arrayUtil, registry, TextBox,
 		ValidationTextBox, Select, editor, Form, StackContainer,
 		ContentPane, baseinfo,
-		baseinfoSingleton, idmgrSingleton, put){
+		baseinfoSingleton, idmgrSingleton, EditGrid, put){
 		var constant = {
 			idproperty_str:'team_id', db_type:'teamdb',
 			dbname_str:'New Team List Name',
@@ -17,7 +17,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			inputnum_str:'Number of Teams',
 			text_node_str:'Team List Name',
 			updatebtn_str:'Update Team Info',
-			text_node_str: 'Team List Name',
+			// entry_pt id's
+			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
@@ -42,7 +43,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, TextBox),
 					// affinity field checkbox creation
 					af_field_str: {label:"Division",
-						renderCell: lang.hitch(this, this.af_field_render)
+						//renderCell: lang.hitch(this, this.af_field_render)
 					},
 				};
 				return columnsdef_obj;
@@ -136,10 +137,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage: "preconfig", entry_pt:constant.init});
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
 			set_team_select: function(options_obj, divevent) {
 				var option_list = options_obj.option_list;
-				this.activegrid_colname =
 				var match_option = arrayUtil.filter(option_list,
 					function(item) {
 						return item.value == divevent;
@@ -148,8 +149,37 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var info_list = this.getInitialList(this.totalrows_num);
 				if (this.is_newgrid_required()) {
 					var columnsdef_obj = this.getcolumnsdef_obj();
+					this.editgrid = new EditGrid({
+						griddata_list:info_list,
+						colname:this.activegrid_colname,
+						grid:this.idmgr_obj.grid_id,
+						idproperty:this.idproperty,
+						server_path:"create_newdbcol/",
+						server_key:'info_data',
+						cellselect_flag:false,
+						info_obj:this,
+						uistackmgr_type:this.uistackmgr_type,
+						storeutil_obj:this.storeutil_obj,
+						db_type:this.db_type
+					})
+					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
+					args_obj = {
+						newgrid_flag:true
+					}
+				} else {
+					this.editgrid.replace_store(this.activegrid_colname, info_list);
+					args_obj = {
+						newgrid_flag:false
+					}
 				}
-				console.log("team select");
+				args_obj.swapcpane_flag = true;
+				args_obj.updatebtn_str = constant.updatebtn_str;
+				args_obj.text_node_str = constant.text_node_str;
+				args_obj.idproperty = this.idproperty;
+				args_obj.colname = this.activegrid_colname;
+				args_obj.entry_pt = constant.init;
+				args_obj.op_type = this.op_type;
+				this.reconfig_infobtn(args_obj);
 				/*
 				// set the select dropdown for the team id column in the pref grid
 				var divoption_list = options_obj.option_list;
@@ -289,6 +319,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				//node.appendChild(div_id_select.domNode);
 				*/
 			},
+			/*
 			create_team_select: function(topdiv_node) {
 				var team_select_id = this.op_prefix+"teamselect_id";
 				var select_node = dom.byId(team_select_id)
@@ -303,7 +334,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						}
 					})
 				}
-			},
+			}, */
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
 				this.pstackcontainer = new StackContainer({

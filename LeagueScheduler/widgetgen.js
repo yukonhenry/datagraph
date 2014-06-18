@@ -201,6 +201,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // be extracted from the object.  Here we are using the label -
                 // we could have also used info_obj.item (see calling function)
                 this.get_leagueparam_list(info_obj, info_obj.item);
+                if (info_obj.idproperty == 'team_id') {
+                    // if idprop is team_id, then activecol_name for the grid is
+                    // league param collection (not just the distr_colname like for
+                    // other idproperties)
+                    info_obj.activecol_name = info_obj.item;
+                }
             },
             get_leagueparam_list: function(info_obj, colname) {
                 // note {colname:colname} is the options_obj obj passed directly
@@ -254,6 +260,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 league_select.startup();
             },
             create_divstr_list: function(server_data, options_obj) {
+                // call after getting league param divstr informaton from server
                 var data_list = server_data.info_list;
                 var config_status = server_data.config_status;
                 var colname = options_obj.colname; // collection name for divinfo
