@@ -15,7 +15,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
 		return declare(null, {
-			server_interface:null, editgrid:null, uistackmgr:null,
+			server_interface:null, editgrid:null, uistackmgr_type:null,
 			storeutil_obj:null,
 			keyup_handle:null, tooltip_list:null, totalrows_num:0,
 			schedutil_obj:null, activegrid_colname:"",
@@ -52,10 +52,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						this.tooltip_list.push(new Tooltip(item));
 					}, this);
 				}
-				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+				this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage: "preconfig", entry_pt:constant.init});
 				// switch to blank cpane
-				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 				if (this.keyup_handle)
 					this.keyup_handle.remove();
 				this.keyup_handle = entrynum_reg.on("keyup", lang.hitch(this, this.processdivinfo_input, args_obj));
@@ -112,7 +112,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								server_key:server_key,
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
-								uistackmgr:this.uistackmgr,
+								uistackmgr_type:this.uistackmgr_type,
 								storeutil_obj:this.storeutil_obj,
 								db_type:this.db_type});
 							this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
@@ -186,7 +186,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					topdiv_node:topdiv_node, select_id:select_id,
 					init_db_type:init_db_type,
 					init_colname:init_colname,
-					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.getname_list, this),
+					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.get_leagueparam_list, this),
 					name_str:"league select",
 					label_str:"Select League",
 					put_trail_spacing:"br"}
@@ -271,7 +271,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:this,
-						uistackmgr:this.uistackmgr,
+						uistackmgr_type:this.uistackmgr_type,
 						storeutil_obj:this.storeutil_obj,
 						db_type:this.db_type});
 					this.editgrid.recreateSchedInfoGrid(columnsdef_obj);
@@ -318,7 +318,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				updatebtn_widget.set("onClick", btn_callback);
 				this.update_configdone(-1, gridstatus_node); // reset
 				if (swapcpane_flag) {
-					this.uistackmgr.switch_pstackcpane({idproperty:idproperty,
+					this.uistackmgr_type.switch_pstackcpane({idproperty:idproperty,
 						p_stage:"config", entry_pt:entry_pt,
 						text_str:text_str, btn_callback: btn_callback,
 						updatebtn_str:updatebtn_str});
@@ -326,7 +326,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						// also swap grid if we are not generating a new one
 						// if we are generating a new grid, switchgstack is called
 						// from within editgrid
-						this.uistackmgr.switch_gstackcpane(idproperty, false,
+						this.uistackmgr_type.switch_gstackcpane(idproperty, false,
 							this.editgrid.schedInfoGrid);
 					}
 				}

@@ -27,29 +27,31 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var schedutil_obj = new schedulerUtil({server_interface:serverInterface});
 		var uistackmgr = new UIStackManager();
+		// storeutil_obj has separate member variables for uistackmgr and
+		// wizuistackmgr
 		var storeutil_obj = new storeUtil({schedutil_obj:schedutil_obj,
 			server_interface:serverInterface, uistackmgr:uistackmgr});
 		var wizardlogic_obj = new WizardLogic({server_interface:serverInterface,
 			storeutil_obj:storeutil_obj, schedutil_obj:schedutil_obj});
 		var newschedbase_obj = new NewSchedulerBase({
 			server_interface:serverInterface, schedutil_obj:schedutil_obj,
-			uistackmgr:uistackmgr, storeutil_obj:storeutil_obj, op_type:"advance"});
+			uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj, op_type:"advance"});
 		var divinfo_obj = new divinfo({server_interface:serverInterface,
-			schedutil_obj:schedutil_obj, uistackmgr:uistackmgr,
+			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
 			storeutil_obj:storeutil_obj, op_type:"advance"});
 		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface,
-			schedutil_obj:schedutil_obj, uistackmgr:uistackmgr,
+			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
 			storeutil_obj:storeutil_obj, op_type:"advance"});
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,
-			schedutil_obj:schedutil_obj, uistackmgr:uistackmgr,
+			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
 			storeutil_obj:storeutil_obj, op_type:"advance"});
 		var preferenceinfo_obj = new PreferenceInfo(
 			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
-				uistackmgr:uistackmgr, storeutil_obj:storeutil_obj,
+				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
 		var teaminfo_obj = new TeamInfo(
 			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
-				uistackmgr:uistackmgr, storeutil_obj:storeutil_obj,
+				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
 		var leaguediv_func = function(ldata) {
 			var ldata_array = ldata.leaguedivinfo;

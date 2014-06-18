@@ -76,7 +76,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			start_dtbox:null, end_dtbox:null, sl_spinner:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null, league_select:null, fg_select:null,
-			event_flag:false, uistackmgr:null, newschedwatch_obj:null,
+			event_flag:false, uistackmgr_type:null, newschedwatch_obj:null,
 			selectexists_flag:false,
 			league_select_value:"", fg_select_value:"", widgetgen:null,
 			current_db_type:constant.defaultselect_db_type,
@@ -195,9 +195,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			showConfig: function(args_obj) {
 				var dbname_reg = args_obj.dbname_reg;
-				this.uistackmgr.switch_pstackcpane({idproperty:this.idproperty,
+				this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
 					p_stage:"preconfig", entry_pt:"init"});
-				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 				if (!this.tooltip) {
 					var tooltipconfig = {connectId:[this.idmgr_obj.dbname_id],
 						label:"Enter New Schedule Name and press ENTER",
@@ -236,7 +236,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							// reload widgets
 							this.reload_widgets(constant.defaultselect_db_type);
 						}
-						this.uistackmgr.switch_pstackcpane({
+						this.uistackmgr_type.switch_pstackcpane({
 							idproperty:this.idproperty, p_stage:"config",
 							entry_pt:"init"});
 					} else {
@@ -311,10 +311,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.reload_widgets(divdb_type, divcol_name, fieldcol_name,
 						prefcol_name);
 				}
-				this.uistackmgr.switch_pstackcpane({
+				this.uistackmgr_type.switch_pstackcpane({
 					idproperty:this.idproperty, p_stage:"config",
 					entry_pt:"fromdb"});
-				this.uistackmgr.switch_gstackcpane(this.idproperty, true);
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
 			create_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name) {
 				var radio1_id = this.opconstant_obj.radio1_id;
@@ -625,7 +625,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getdivselect_dropdown: function(idproperty, select_id) {
 				// first get the div information selected by
 				// league_select_value and current_db_type
-				// cross-reference widgetgen/getname_list
+				// cross-reference widgetgen/get_leagueparam_list
 				var select_value = this.league_select_value;
 				var db_type = this.current_db_type;
 				// check if the divselect_reg divsion select drop-down

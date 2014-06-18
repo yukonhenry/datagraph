@@ -280,7 +280,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					}
 				}
 			},
-			check_getServerDBInfo: function(options_obj) {
+			check_getServerDBInfo: function(options_obj, event) {
 				/* scenarios:
 				a)switch within same idprop: one grid to another grid - grid doesn't exist
 				b)switch within same idprop: incomplete preconfig to different grid that already exists
@@ -297,6 +297,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				For each of the scenarios above, we need to decide if we need to get
 				data from the server and/or switch content panes; we also need to
 				determine if grid needs to be swapped or created*/
+				// NOTE: look at calling function to ensure that use menuitem label
+				// is equivalent to item value;
+				//var item = event.label;
+				// Reassigning back to options_obj needed for each info_obj's getserverDBInfo processing
+				//options_obj.item = item;
 				var info_obj = options_obj.info_obj;
 				// get incoming idproperty
 				var new_idproperty = info_obj.idproperty;

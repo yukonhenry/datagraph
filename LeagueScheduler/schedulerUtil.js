@@ -130,15 +130,24 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
 				var options_obj = options_obj || {};
 				arrayUtil.forEach(submenu_list, function(item, index) {
+					options_obj.item = item;
 					var smenuitem = new MenuItem({label: item,
+						onClick: lang.hitch(onclick_context, onclick_func,
+							options_obj)
+						/*
 						onClick: function() {
 							// update options_obj in actual onclick handler
 							// when it is called
 							options_obj.item = item;
 							var onclick_direct = lang.hitch(onclick_context, onclick_func);
-							onclick_direct(options_obj);}});
+							onclick_direct(options_obj);} */
+					});
     				submenu_reg.addChild(smenuitem);
 				});  // context should be function
+				// use itemclick on entire menu widget instead of onclicks on
+				// individual menuitems
+				// ref http://dojotoolkit.org/documentation/tutorials/1.10/menus/
+				//submenu_reg.set("onItemClick", lang.hitch(onclick_context, onclick_func, options_obj));
 				if (typeof options_obj.db_type !== 'undefined') {
 					var db_type = options_obj.db_type;
 					if (db_type == 'rrdb') {

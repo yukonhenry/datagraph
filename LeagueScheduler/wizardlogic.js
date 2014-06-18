@@ -16,11 +16,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		put) {
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
-			divselect_id:'wizdivselect_id',
+			divselect_id:'wizdivselect_id', init_db_type:"rrdb",
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
-			schedutil_obj:null, wizardid_list:null,
+			schedutil_obj:null, wizardid_list:null, wizuistackmgr:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
@@ -32,14 +32,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
 				var wizuistackmgr = new WizUIStackManager();
+				this.wizuistackmgr = wizuistackmgr;
 				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
 				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:"wiztop_cpane_id"});
 				container_cpane.on("show", lang.hitch(this, function(evt) {
 					console.log("Wizard onshow");
+					/*
 					if (this.uistackmgr && this.uistackmgr.current_grid) {
 						this.uistackmgr.current_grid.resize();
-					}
+					} */
 					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
 						this.wizuistackmgr.current_grid.resize();
 					}
@@ -82,12 +84,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}
 				// radio button to choose between rrd and tourndb
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.divradio1_id, constant.divradio2_id, "rrdb",
+					constant.divradio1_id, constant.divradio2_id,
+					constant.init_db_type,
 					this, this.radio1_callback, this.radio2_callback,
-					constant.divselect_id);
+					'div_id_type_select');
 				var divinfo_obj = new divinfo({
 					server_interface:this.server_interface,
-					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				var menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
@@ -113,7 +116,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
-					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
@@ -138,14 +141,22 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Assign team-related information.  Specify name of the team (for identification purposes) and any preferred fields for that team. As a default, schedule is created assuming there is field-use fairness across all fields, regardless of whether a team is designated as home/away.  If teams are associated with certain fields for home games, assign them in the grid below.</i><br><br>";
 				// radio button to choose between rrd and tourndb
 				var idstr_obj = this.get_idstr_obj('team_id');
-				var ddbtn_node = put(topdiv_node, "button[type=button]")
+				// put the dropdown button first before the radio button id's
+				// putting it after causes some problems with the location of the div's
+				// Somehow put selector puts the button node after the pcontainerdiv_node even though the latter is create after the button
+				// node is created.  Might be related to the fact that  create_db_type_radiobtn has some <br>s generated after the radio
+				// button nodes; instead of putting the button node after that,
+				// it decides to put the pcontainerdiv_node first. (the button node
+				// shows up after the pcontainerdiv)
+				var ddbtn_node = put(topdiv_node, "button[type=button]");
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					idstr_obj.radiobtn1_id, idstr_obj.radiobtn2_id, "rrdb",
+					idstr_obj.radiobtn1_id, idstr_obj.radiobtn2_id,
+					constant.init_db_type,
 					this, this.radio1_callback, this.radio2_callback,
-					idstr_obj.league_select_id);
+					"team_id");
 				var ddmenu_widget = new DropDownMenu()
 				var ddbtn_widget = new DropDownButton({
-					class:"primary",
+					class:"info",
 					label:"Select League",
 					//style:"margin-left:25px",
 					dropDown:ddmenu_widget,
@@ -153,8 +164,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}, ddbtn_node);
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,
-					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+				this.storeutil_obj.create_dropdown_menu(ddmenu_widget,
+					constant.init_db_type, this.widgetgen_obj, teaminfo_obj);
 				// menubar_node = put(topdiv_node, "div");
 				// No menubar for team_id as there is no create/delete operations
 				// for teaminfo grids
@@ -180,7 +193,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
 				var prefinfo_obj = new preferenceinfo({
 					server_interface:this.server_interface,
-					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
@@ -205,7 +218,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Select Parameters - Divsion List (required), Field List (required), and Preference List (optional) and name the Schedule.  After the parameters are selected using the dropdown element, press the 'Generate' button.  Additional tabs will be created after the schedule is generated, each with a different view into the schedule - by division, by team, by field.  Fairness metrics are also displayed in a separate tab.</i><br><br>";
 				var newschedinfo_obj = new newschedulerbase({
 					server_interface:this.server_interface,
-					uistackmgr:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('newsched_id', newschedinfo_obj, true, menubar_node);

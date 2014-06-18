@@ -60,12 +60,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			modify_toserver_data: function(raw_result) {
 			},
 			initialize: function(newgrid_flag, op_type) {
+				/*
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
 				var topdiv_node = put("div");
 				this.initabovegrid_UI(topdiv_node);
 				var param_cpane = registry.byId(this.idmgr_obj.numcpane_id);
 				param_cpane.addChild(topdiv_node)
-				this.create_team_select(topdiv_node);
+				this.create_team_select(topdiv_node); */
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -103,53 +104,52 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				]
 				return gridhelp_list;
 			},
-			set_griddiv_select: function(divstr_list) {
-				/*
-				// called from baseinfoSingleton watch obj callback for division
-				// string list
-				// baseinfoSingleton has already done a check for existence of
-				// editgrid obj and grid itself
-				// Config status check is completed before calling this method, i.e.
-				// the divstr_list should make up all rows of the cb collection
-				// Reference newschedulerbase/createdivselect_dropdown
-				var team_grid = this.editgrid.schedInfoGrid;
-				// First create the option_list that will feed the select
-				// dropdown for each cell in the 'division' column of the pref
-				// grid.
-				// initialize option_list
+			set_div_select: function(divstr_list) {
 				var option_list = [{label:"Select Division", value:"",
-					selected:true, totalteams:0}];
-				arrayUtil.forEach(divstr_list, function(item, index) {
-					option_list.push({label:item.divstr, value:item.div_id,
-						selected:false, totalteams:item.totalteams})
-				})
-				var div_select_prefix = this.op_prefix+"prefdiv_select";
-				for (var row_id = 1; row_id < this.totalrows_num+1; row_id++) {
-					var div_select_id = div_select_prefix+row_id+"_id";
-					var div_select_widget = registry.byId(div_select_id);
-					if (div_select_widget) {
-						// the select widget should be there, but check for existence anyway
-						var copy_list = lang.clone(option_list);
-						//var select_widget = cell.element.widget;
-						div_select_widget.set("options", copy_list);
-						// We need to pass the id of the originating select widget
-						// and also an option_list definition (can be the original
-						// or copy - just needed to find the totalteams value for
-						// the selected div_id)
-						// don't need entire option_list, especially the first header row
-						var options_obj = {
-							pref_id:row_id, option_list:option_list.slice(1)
-						}
-						div_select_widget.set("onChange", lang.hitch(this,
-							this.set_gridteam_select, options_obj));
-						div_select_widget.startup();
-					}
-					//var cell = pref_grid.cell(row_id, 'div_id')
-					// ref https://github.com/SitePen/dgrid/blob/v0.3.15/doc/components/core-components/Grid.md
-					// need to make new make of option_list for each use in select
-				} */
+						selected:true, totalteams:0}]
+				if (divstr_list && divstr_list.length > 0) {
+					arrayUtil.forEach(divstr_list, function(item) {
+						var option_obj = {label:item.divstr, value:item.div_id,
+							selected:false, totalteams:item.totalteams}
+						// data value is read from the store and corresponds to
+						// stored div_id value for that row
+						option_list.push(option_obj);
+					})
+				}
+				var top_cpane = registry.byId(this.idmgr_obj.numcpane_id);
+				var top_containernode = top_cpane.containerNode;
+				var divselect_id = this.op_prefix+"tm_divselect_id";
+				var divselect_widget = registry.byId(divselect_id);
+				if (!divselect_widget) {
+					put(top_containernode, "label.label_box[for=$]",
+						divselect_id, "Select Division");
+					var divselect_node = put(top_containernode,
+						"select[id=$][name=$]", divselect_id, divselect_id);
+					var eventoptions_obj = {option_list:option_list,
+						topdiv_node:top_containernode};
+					var divselect_widget = new Select({
+						//name:name_str,
+						options:option_list,
+						onChange: lang.hitch(this, this.set_team_select, eventoptions_obj)
+					}, divselect_node);
+					divselect_widget.startup();
+				}
+				this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
+					p_stage: "preconfig", entry_pt:constant.init});
 			},
-			set_gridteam_select: function(options_obj, divevent) {
+			set_team_select: function(options_obj, divevent) {
+				var option_list = options_obj.option_list;
+				this.activegrid_colname =
+				var match_option = arrayUtil.filter(option_list,
+					function(item) {
+						return item.value == divevent;
+					})[0]
+				this.totalrows_num = match_option.totalteams;
+				var info_list = this.getInitialList(this.totalrows_num);
+				if (this.is_newgrid_required()) {
+					var columnsdef_obj = this.getcolumnsdef_obj();
+				}
+				console.log("team select");
 				/*
 				// set the select dropdown for the team id column in the pref grid
 				var divoption_list = options_obj.option_list;
@@ -189,7 +189,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					team_select_widget.startup()
 				} */
 			},
-			div_select_render: function(object, data, node) {
+			af_field_render: function(object, data, node) {
 				/*
 				var pref_id = object.pref_id;
 				var div_select_prefix = this.op_prefix+"prefdiv_select";

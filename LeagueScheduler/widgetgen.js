@@ -142,7 +142,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         onChange:onchange_callback
                         /*
                         onChange: lang.hitch(this, function(evt) {
-                            this.getname_list(evt, db_type, info_obj);
+                            this.get_leagueparam_list(evt, db_type, info_obj);
                         }) */
                     }, select_node);
                     var args_obj = {db_type:db_type, label_str:label_str,
@@ -188,12 +188,21 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             },
             // get list of items in db specified by db_type from server
             // collection name is the event of calling onChange event handler
-            // ordering of parameters is important, as getname_list is an event
+            // ordering of parameters is important, as get_leagueparam_list is an event
             // handler - colname is passed as the event value - calling event handler
             // is specified as lang.hitch(this, this.getname, db_type, info_obj)
             // event comes in as the last parameter (empirically determined, should)
             // get confirmation.
-            getname_list: function(info_obj, colname) {
+            get_leagueparam_frommenu_list: function(info_obj, event) {
+                // callback from a menuitem click - callback from menus are different
+                // than callbacks from select's as for the latter the event will
+                // be the value of the select entry; however, the event for a menu
+                // click is a click related object and the pertinent value must
+                // be extracted from the object.  Here we are using the label -
+                // we could have also used info_obj.item (see calling function)
+                this.get_leagueparam_list(info_obj, info_obj.item);
+            },
+            get_leagueparam_list: function(info_obj, colname) {
                 // note {colname:colname} is the options_obj obj passed directly
                 // to the callback function create_divstr_list
                 // we want to pass the colname back to the callback so that the colname
@@ -212,6 +221,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // always be from a 'div_id' idproperty db - rrdb or tourndb
                     // Reference w newschedulerbase/getdivselect_dropdown; info_obj
                     // is Not necessarily divinfo
+                    // NOTE 'div_id' for get_obj should be a passed parameter as the obj might be tourndiv_id idprop object
                     var divinfo_obj = baseinfoSingleton.get_obj('div_id', info_obj.op_type);
                     var options_obj = {colname:colname, info_obj:info_obj,
                         db_type:db_type};

@@ -13,7 +13,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				this.obj_list = new Array();
 				this.watch_list = new Array();
 				arrayUtil.forEach(['advance', 'wizard'], function(item) {
-					arrayUtil.forEach(['field_id', 'pref_id', 'div_id'], function(id) {
+					arrayUtil.forEach(['field_id', 'pref_id', 'div_id', 'team_id'], function(id) {
 						// create separate watch object for each op_type and id
 						var watch_obj = new Watch_class();
 						this.watch_list.push({watch_obj:watch_obj, op_type:item,
@@ -35,13 +35,19 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 							// relevant to the watch
 							var info_obj = this.get_obj(item.idproperty,
 								item.op_type);
-							if (info_obj && info_obj.editgrid &&
-								info_obj.editgrid.schedInfoGrid &&
-								value.length > 0) {
-								if (item.idproperty == 'field_id') {
-									info_obj.set_primaryuse_dialog_dropdown(value);
-								} else if (item.idproperty == 'pref_id') {
-									info_obj.set_griddiv_select(value);
+							if (info_obj) {
+								if (info_obj.editgrid &&
+									info_obj.editgrid.schedInfoGrid &&
+									value.length > 0) {
+									if (item.idproperty == 'field_id') {
+										info_obj.set_primaryuse_dialog_dropdown(value);
+									} else if (item.idproperty == 'pref_id') {
+										info_obj.set_griddiv_select(value);
+									} else if (item.idproperty == 'team_id') {
+										info_obj.set_div_select(value);
+									}
+								} else if (item.idproperty == 'team_id') {
+									info_obj.set_div_select(value);
 								}
 							}
 						})

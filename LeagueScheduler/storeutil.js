@@ -4,13 +4,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
 	"dijit/Tooltip", "dijit/form/DropDownButton", "dijit/layout/ContentPane",
-	"LeagueScheduler/baseinfoSingleton","put-selector/put",
+	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
+	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, Observable, Memory,
 		registry,
 		DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
 		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane,
-		baseinfoSingleton, put) {
+		baseinfoSingleton, WidgetGen, put) {
 		var constant = {
 			idtopmenu_list:[
 				{id:'div_id', label_str:"League/Round Robin Format",
@@ -74,6 +75,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 		return declare(null, {
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
 			server_interface:null, dbstore_list:null, wizuistackmgr:null,
+			widgetgen_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.dbstore_list = new Array();
@@ -251,16 +253,22 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					menu_index:0}
 				this.create_divmenu(args_obj);
 				// create team_id submenu
+				var widgetgen_obj = new WidgetGen({
+					storeutil_obj:this.storeutil_obj,
+					server_interface:this.server_interface
+				});
 				args_obj = {label_str:"Team Info", id:"team_id",
 					parent_ddown_reg:editddown_menu, divargs_list:args_list,
-					menu_index:2, info_obj:teaminfo_obj}
+					menu_index:2, info_obj:teaminfo_obj,
+					widgetgen_obj:widgetgen_obj}
 				this.create_editonlymenu(args_obj);
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
 				this.uistackmgr.create_grid_stack(advanced_cpane);
 			},
 			create_editonlymenu: function(args_obj) {
-				// ADVANCE MENU target
+				// ADVANCE MENU target, used right now for teaminfo edit; bring
+				// up divinfo collections to select from
 				var parent_ddown_widget = args_obj.parent_ddown_reg;
 				var ddown_widget = new DropDownMenu();
 				var popup_widget = new PopupMenuItem({
@@ -268,6 +276,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					popup:ddown_widget
 				})
 				parent_ddown_widget.addChild(popup_widget, args_obj.menu_index)
+				var info_obj = args_obj.info_obj;
+				var widgetgen_obj = args_obj.widgetgen_obj;
 				arrayUtil.forEach(args_obj.divargs_list, function(item) {
 					// get db collection listings for each div type (rrdb and tourndb)
 					var match_obj = this.getuniquematch_obj(constant.idtopmenu_list,
@@ -282,13 +292,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					// create respective db menu
 					var db_list = this.getfromdb_store_value(db_type, 'name');
 					// note info_obj points back to teaminfo_obj
-					var info_obj = args_obj.info_obj;
 					this.schedutil_obj.generateDBCollection_smenu(
 						db_ddown_widget, db_list,
-						this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
-						{db_type:db_type, info_obj:info_obj,
-							storeutil_obj:this, op_type:"advance"});
+						widgetgen_obj, widgetgen_obj.get_leagueparam_frommenu_list,
+						info_obj);
 				}, this)
+			},
+			create_dropdown_menu: function(ddownmenu_widget, db_type, widgetgen_obj, info_obj) {
+				// WIZARD MENU target
+				// (to make it generic for WIZARD or ADVANCED, pass in op_type and
+				// also callback+context)
+				var db_list = this.getfromdb_store_value(db_type, 'name');
+				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
+					db_list, widgetgen_obj, widgetgen_obj.get_leagueparam_frommenu_list,
+					info_obj)
 			},
 			create_divmenu: function(args_obj) {
 				// ADVANCE menu target
@@ -336,10 +353,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var db_type = match_obj.db_type;
 				// create respective db menu
 				var db_list = this.getfromdb_store_value(db_type, 'name');
-				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_reg,
-					this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
+				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_reg,
+					db_list, this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
-						op_type:"advance"});
+						op_type:"advance"})
 				if (delflag) {
 					match_obj = this.getuniquematch_obj(constant.delmenu_list,
 						'id', id);
@@ -402,10 +419,16 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var db_type = match_obj.db_type;
 				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
+				/*
 				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
 					this.wizuistackmgr, this.wizuistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
-						op_type:"wizard"});
+						op_type:"wizard"}); */
+				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
+					db_list, this.wizuistackmgr,
+					this.wizuistackmgr.check_getServerDBInfo,
+					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
+						op_type:"wizard"})
 				//----------------------------------------//
 				// add delete menu items
 				if (delflag) {
@@ -469,8 +492,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				});
 				return option_list;
 			},
-			delete_dbcollection: function(options_obj) {
+			delete_dbcollection: function(options_obj, event) {
+				//console.log("delete dbcollection evt="+event);
 				var item = options_obj.item;
+				// items = event.label works as long as the calling function that
+				// creates that menuitems is using the item value as the label
+				//var item = event.label;
 				var server_path = constant.delserver_path;
 				var db_type = options_obj.db_type
 				this.removefromdb_store(item, db_type);

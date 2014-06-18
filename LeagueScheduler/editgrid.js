@@ -18,7 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			idproperty:null,
 			cellselect_flag:false, cellselect_handle:null, refresh_handle:null,
 			server_path:"", server_key:"",
-			info_obj:null, uistackmgr:null, storeutil_obj:null, db_type:null,
+			info_obj:null, uistackmgr_type:null, storeutil_obj:null, db_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -57,7 +57,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				}
 				this.schedInfoGrid.startup();
 				// switch to content pane that has above generated grid
-				this.uistackmgr.switch_gstackcpane(this.idproperty, false,
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, false,
 					this.schedInfoGrid);
 				//scontainer_reg.selectChild(this.cpane_id);
 				// the resize on grid is required; another option is to
@@ -192,7 +192,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.schedInfoGrid.resize();
 				// we might not always need to switch the gstack, but do it
 				// by default right now
-				this.uistackmgr.switch_gstackcpane(this.idproperty, false, this.schedInfoGrid);
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, false, this.schedInfoGrid);
 				if ('infogrid_store' in this.info_obj) {
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
