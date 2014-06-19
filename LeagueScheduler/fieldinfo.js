@@ -909,12 +909,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
-						// create str to display in buttone
+						// create str to display in button
 						display_str += div_list[index]+',';
 						// create str to store (str of integer id elements)
 						value_str += checkbox_reg.get("value")+',';
 					}
-				}, this);
+				});
 				// trim off last comma
 				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
 				display_str = display_str.substring(0, display_str.length-1);

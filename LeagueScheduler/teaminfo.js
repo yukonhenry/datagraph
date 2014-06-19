@@ -1,13 +1,13 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dijit/form/TextBox", "dijit/form/DropDownButton",
 	"dijit/form/Select", "dgrid/editor", "dijit/TooltipDialog",
-	"dijit/form/CheckBox",
+	"dijit/form/CheckBox", "dijit/form/Button",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton", "LeagueScheduler/editgrid",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, TextBox,
-		DropDownButton, Select, editor, TooltipDialog, CheckBox,
+		DropDownButton, Select, editor, TooltipDialog, CheckBox, Button,
 		Form, StackContainer,
 		ContentPane, baseinfo,
 		baseinfoSingleton, idmgrSingleton, EditGrid, put){
@@ -44,13 +44,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							trim:true, propercase:true, style:"width:auto"
 						}
 					}, TextBox, "click"),
-					// affinity field checkbox creation
-					/*
-					af_field_str: editor({label:"Field affinity",
-						editorArgs:{
-							label:"Fields"
-						}
-					}, DropDownButton), */
 					af_field_str:{label:"Field Affinity",
 						renderCell: lang.hitch(this, this.af_field_render)
 					}
@@ -197,16 +190,30 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// define parameters for the dialogtooltip that pops up in each
 				// grid cell after ddown btn is clicked
 				var content_str = "";
-				var checkboxid_list = new Array();
+				var checkbox_list = new Array();
 				if (this.divfield_list) {
+					// create content_str for the checkboxes and labels that
+					// will populate the tooltipdialog
 					arrayUtil.forEach(this.divfield_list, function(field_id) {
-						var idstr = this.op_prefix+"tm_checkbox"+team_id+field_id+"_id";
+						var idstr = this.op_prefix+"tmfield_checkbox"+team_id+
+							field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+
 						idstr+
 						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_id+'</strong></label><br>';
-					checkboxid_list.push(idstr);
+						checkbox_list.push(idstr);
+					}, this)
+				}
+				var options_obj = {checkbox_list:checkbox_list, team_id:team_id}
+				var button_id = this.op_prefix+"tmfield_btn"+team_id+"_id";
+				var button_widget = registry.byId(button_id);
+				if (!button_widget) {
+					button_widget = new Button({
+						label:"Save", class:"info", id:button_id, type:"submit",
+						onClick: lang.hitch(this, this.af_dialogbtn_process,
+							options_obj)
 					})
 				}
+				// define parameters for the tooltip dialog
 				var tipdialog_prefix = this.op_prefix+"tmfield_tdialog";
 				var tipdialog_id = tipdialog_prefix+team_id+"_id";
 				var tipdialog_widget = registry.byId(tipdialog_id);
@@ -215,6 +222,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						id:tipdialog_id,
 						content:content_str
 					})
+					tipdialog_widget.addChild(button_widget);
 				}
 				// define parameters for the ddown button embedded in grid cell
 				var team_ddown_prefix = this.op_prefix+"tmfield_ddown";
@@ -227,54 +235,30 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						class:"info",
 						dropDown:tipdialog_widget
 					}, ddown_node)
+					//team_ddown_widget.startup();
 				}
 			},
-			team_select_render: function(object, data, node) {
-				/*
-				var pref_id = object.pref_id; // equivalent to row
-				var div_id = object.div_id;  // selected div_id for same row
-				var team_select_prefix = this.op_prefix+"prefteam_select";
-				var team_select_id = team_select_prefix+pref_id+"_id";
-				var team_select_widget = registry.byId(team_select_id);
-				var option_list = new Array();
-				var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
-					this.op_type, 'pref_id');
-				if (divstr_list && divstr_list.length > 0) {
-					var match_obj = arrayUtil.filter(divstr_list,
-						function(item) {
-						return item.div_id == div_id;
-					})[0];
-					for (var team_id = 1; team_id < match_obj.totalteams+1;
-						team_id++) {
-						var option_obj = {label:team_id.toString(),
-							value:team_id, selected:false};
-						if (team_id == data) {
-							option_obj.selected = true;
-						}
-						option_list.push(option_obj);
+			af_dialogbtn_process: function(options_obj, event) {
+				//callback function for affinity field tooltipdialog button
+				var checkbox_list = options_obj.checkbox_list;
+				var team_id = options_obj.team_id;
+				var value_str = "";
+				// loop through each checkbox to see if there is a value
+				arrayUtil.forEach(checkbox_list, function(checkbox_id) {
+					var checkbox_widget = registry.byId(checkbox_id);
+					if (checkbox_widget.get("checked")) {
+						// create str to store (str of integer id elements)
+						value_str += checkbox_widget.get("value")+',';
 					}
-				} else {
-					option_list.push({label:"Select Division first", selected:true, value:""});
+				})
+				// trim off last comma
+				value_str = value_str.substring(0, value_str.length-1);
+				if (this.editgrid) {
+					var store_elem = this.editgrid.schedInfoStore.get(team_id);
+					store_elem.af_field_str = value_str;
+					this.editgrid.schedInfoStore.put(store_elem);
 				}
-				// create select node to place widget - use passed in node as reference
-				if (!team_select_widget) {
-					var select_node = put(node, "select");
-					team_select_widget = new Select({
-						options:option_list, style:"width:auto",
-						id:team_select_id,
-						onChange: lang.hitch(this, function(event) {
-							var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
-							pref_obj.team_id = event;
-							this.editgrid.schedInfoStore.put(pref_obj);
-						})
-					}, select_node)
-				} else {
-					team_select_widget.set("options", option_list)
-					node.appendChild(team_select_widget.domNode);
-				}
-				team_select_widget.startup();
-				//node.appendChild(div_id_select.domNode);
-				*/
+				console.log("afprocess")
 			},
 			/*
 			create_team_select: function(topdiv_node) {
