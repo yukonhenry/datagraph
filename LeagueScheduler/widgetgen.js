@@ -202,10 +202,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // we could have also used info_obj.item (see calling function)
                 this.get_leagueparam_list(info_obj, info_obj.item);
                 if (info_obj.idproperty == 'team_id') {
-                    // if idprop is team_id, then activecol_name for the grid is
+                    // if idprop is team_id, then activegrid_colname for the grid is
                     // league param collection (not just the distr_colname like for
                     // other idproperties)
-                    info_obj.activecol_name = info_obj.item;
+                    info_obj.activegrid_colname = info_obj.item;
                 }
             },
             get_leagueparam_list: function(info_obj, colname) {
@@ -276,7 +276,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                             // also save totalteams field as it will be useful for
                             // preference table
                             return {'divstr':item.div_age + item.div_gen,
-                                'div_id':item.div_id, 'totalteams':item.totalteams};
+                                'div_id':item.div_id, 'totalteams':item.totalteams,
+                                'divfield_list':item.fields};
                         })
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj

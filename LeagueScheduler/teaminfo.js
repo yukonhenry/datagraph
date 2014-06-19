@@ -1,12 +1,14 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-	"dijit/registry", "dijit/form/TextBox", "dijit/form/ValidationTextBox",
-	"dijit/form/Select", "dgrid/editor",
+	"dijit/registry", "dijit/form/TextBox", "dijit/form/DropDownButton",
+	"dijit/form/Select", "dgrid/editor", "dijit/TooltipDialog",
+	"dijit/form/CheckBox",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton", "LeagueScheduler/editgrid",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, TextBox,
-		ValidationTextBox, Select, editor, Form, StackContainer,
+		DropDownButton, Select, editor, TooltipDialog, CheckBox,
+		Form, StackContainer,
 		ContentPane, baseinfo,
 		baseinfoSingleton, idmgrSingleton, EditGrid, put){
 		var constant = {
@@ -27,6 +29,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			// that have to do with the db_type radiobutton /
 			// league select drop down
 			divstr_colname:"", divstr_db_type:"rrdb", widgetgen:null,
+			divfield_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -40,11 +43,17 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						editorArgs:{
 							trim:true, propercase:true, style:"width:auto"
 						}
-					}, TextBox),
+					}, TextBox, "click"),
 					// affinity field checkbox creation
-					af_field_str: {label:"Division",
-						//renderCell: lang.hitch(this, this.af_field_render)
-					},
+					/*
+					af_field_str: editor({label:"Field affinity",
+						editorArgs:{
+							label:"Fields"
+						}
+					}, DropDownButton), */
+					af_field_str:{label:"Field Affinity",
+						renderCell: lang.hitch(this, this.af_field_render)
+					}
 				};
 				return columnsdef_obj;
 				//return {};
@@ -111,7 +120,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				if (divstr_list && divstr_list.length > 0) {
 					arrayUtil.forEach(divstr_list, function(item) {
 						var option_obj = {label:item.divstr, value:item.div_id,
-							selected:false, totalteams:item.totalteams}
+							selected:false, totalteams:item.totalteams,
+							divfield_list:item.divfield_list}
 						// data value is read from the store and corresponds to
 						// stored div_id value for that row
 						option_list.push(option_obj);
@@ -126,7 +136,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						divselect_id, "Select Division");
 					var divselect_node = put(top_containernode,
 						"select[id=$][name=$]", divselect_id, divselect_id);
-					var eventoptions_obj = {option_list:option_list,
+					var eventoptions_obj = {option_list:option_list.slice(1),
 						topdiv_node:top_containernode};
 					var divselect_widget = new Select({
 						//name:name_str,
@@ -146,13 +156,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						return item.value == divevent;
 					})[0]
 				this.totalrows_num = match_option.totalteams;
+				this.divfield_list = match_option.divfield_list;
 				var info_list = this.getInitialList(this.totalrows_num);
 				if (this.is_newgrid_required()) {
 					var columnsdef_obj = this.getcolumnsdef_obj();
 					this.editgrid = new EditGrid({
 						griddata_list:info_list,
 						colname:this.activegrid_colname,
-						grid:this.idmgr_obj.grid_id,
+						grid_id:this.idmgr_obj.grid_id,
 						idproperty:this.idproperty,
 						server_path:"create_newdbcol/",
 						server_key:'info_data',
@@ -180,97 +191,43 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				args_obj.entry_pt = constant.init;
 				args_obj.op_type = this.op_type;
 				this.reconfig_infobtn(args_obj);
-				/*
-				// set the select dropdown for the team id column in the pref grid
-				var divoption_list = options_obj.option_list;
-				var pref_id = options_obj.pref_id;
-				// go ahead and save the div_id that was selected
-				var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
-				pref_obj.div_id = divevent;
-				this.editgrid.schedInfoStore.put(pref_obj);
-				// find the totalteams match corresponding to the div_id event
-				var match_option = arrayUtil.filter(divoption_list,
-					function(item) {
-						return item.value == divevent;
-					})[0]
-				var option_list = [{label:"Select Team", value:"",
-					selected:true}];
-				for (var team_id = 1; team_id < match_option.totalteams+1;
-					team_id++) {
-					option_list.push({label:team_id.toString(), value:team_id, selected:false})
-				}
-				// get cell - use id for the div_id selected widget to identify
-				// the row number
-				var team_select_prefix = this.op_prefix+"prefteam_select";
-				var team_select_id = team_select_prefix+pref_id+"_id";
-				var team_select_widget = registry.byId(team_select_id);
-				//var cell = pref_grid.cell(pref_id, 'team_id')
-				//var select_widget = cell.element.widget;
-				if (team_select_widget) {
-					team_select_widget.set("options", option_list);
-					*/
-					/*
-					team_select_widget.set("onChange", lang.hitch(this, function(event) {
-						var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
-						pref_obj.team_id = event;
-						this.editgrid.schedInfoStore.put(pref_obj);
-					})) */
-/*
-					team_select_widget.startup()
-				} */
 			},
 			af_field_render: function(object, data, node) {
-				/*
-				var pref_id = object.pref_id;
-				var div_select_prefix = this.op_prefix+"prefdiv_select";
-				var div_select_id = div_select_prefix+pref_id+"_id";
-				var div_select_widget = registry.byId(div_select_id);
-				var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
-					this.op_type, 'pref_id');
-				var option_list = new Array();
-				var eventoptions_obj = null;
-				if (divstr_list && divstr_list.length > 0) {
-					option_list.push({label:"Select Division", value:"",
-						selected:false, totalteams:0});
-					// get reference to team_id cell for this row
-					// as we will modify it here once we find out the div_id
-					// that has been been selected
-					//var team_cell = this.editgrid.schedInfoGrid.cell(
-					//	object.pref_id, 'team_id');
-					//var team_widget = team_cell.element.widget;
-					arrayUtil.forEach(divstr_list, function(item) {
-						var option_obj = {label:item.divstr, value:item.div_id,
-							selected:false, totalteams:item.totalteams}
-						// data value is read from the store and corresponds to
-						// stored div_id value for that row
-						if (item.div_id == data) {
-							option_obj.selected = true;
-						}
-						option_list.push(option_obj);
+				var team_id = object.team_id;
+				// define parameters for the dialogtooltip that pops up in each
+				// grid cell after ddown btn is clicked
+				var content_str = "";
+				var checkboxid_list = new Array();
+				if (this.divfield_list) {
+					arrayUtil.forEach(this.divfield_list, function(field_id) {
+						var idstr = this.op_prefix+"tm_checkbox"+team_id+field_id+"_id";
+						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+
+						idstr+
+						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_id+'</strong></label><br>';
+					checkboxid_list.push(idstr);
 					})
-					// create options list to pass to the team select event handler
-					eventoptions_obj = {pref_id:pref_id,
-						option_list:option_list.slice(1)}
-				} else {
-					option_list.push({label:"Select League first", selected:true, value:""});
 				}
-				// create select node to place widget - use passed in node as reference
-				if (!div_select_widget) {
-					var select_node = put(node, "select");
-					div_select_widget = new Select({
-						options:option_list, style:"width:auto",
-						id:div_select_id,
-					}, select_node)
-				} else {
-					div_select_widget.set("options", option_list)
-					node.appendChild(div_select_widget.domNode)
+				var tipdialog_prefix = this.op_prefix+"tmfield_tdialog";
+				var tipdialog_id = tipdialog_prefix+team_id+"_id";
+				var tipdialog_widget = registry.byId(tipdialog_id);
+				if (!tipdialog_widget) {
+					var tipdialog_widget = new TooltipDialog({
+						id:tipdialog_id,
+						content:content_str
+					})
 				}
-				if (eventoptions_obj) {
-					div_select_widget.set("onChange",
-						lang.hitch(this, this.set_gridteam_select, eventoptions_obj))
+				// define parameters for the ddown button embedded in grid cell
+				var team_ddown_prefix = this.op_prefix+"tmfield_ddown";
+				var team_ddown_id = team_ddown_prefix+team_id+"_id";
+				var team_ddown_widget = registry.byId(team_ddown_id);
+				if (!team_ddown_widget) {
+					var ddown_node = put(node, "div");
+					team_ddown_widget = new DropDownButton({
+						label:"Field Affinity",
+						class:"info",
+						dropDown:tipdialog_widget
+					}, ddown_node)
 				}
-				div_select_widget.startup();
-				//node.appendChild(div_id_select.domNode); */
 			},
 			team_select_render: function(object, data, node) {
 				/*

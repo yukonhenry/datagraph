@@ -1,7 +1,7 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 // http://www.anujgakhar.com/2013/08/29/singletons-in-dojo/
 define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
-	"dojo/Stateful", "dojo/domReady!"],
+	"dojo/domReady!"],
 	function(declare, arrayUtil, lang) {
 		var suffix_obj = {form_id:"form_id", dbname_id:"dbname_id",
 			inputnum_id:"inputnum_id",

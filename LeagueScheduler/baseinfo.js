@@ -1,11 +1,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
-	"dojo/_base/array", "dojo/keys", "dojo/Stateful",
+	"dojo/_base/array", "dojo/keys",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"dijit/form/RadioButton", "LeagueScheduler/widgetgen",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put",
 	"dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, keys, Stateful,
+	function(dbootstrap, dom, declare, lang, arrayUtil, keys,
 		registry, Tooltip, Button, RadioButton, WidgetGen, EditGrid, baseinfoSingleton,
 		put) {
 		var constant = {

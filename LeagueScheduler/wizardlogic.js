@@ -156,7 +156,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					"team_id");
 				var ddmenu_widget = new DropDownMenu()
 				var ddbtn_widget = new DropDownButton({
-					class:"info",
+					class:"primary",
 					label:"Select League",
 					//style:"margin-left:25px",
 					dropDown:ddmenu_widget,
