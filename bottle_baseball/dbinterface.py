@@ -636,4 +636,6 @@ class MongoDBInterface:
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
     def drop_collection(self):
-        self.collection.drop()
+        query_obj = {"SCHED_TYPE":self.sched_type}
+        self.collection.remove(query_obj)
+        #self.collection.drop()

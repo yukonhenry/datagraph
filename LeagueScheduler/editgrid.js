@@ -157,12 +157,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var server_path = this.server_path;
 				var server_key = this.server_key || "";
 				var server_key_obj = {};
-				var newlist = null;
-				if (this.idproperty == "field_id" || this.idproperty == "pref_id") {
-					// for field or pref id's modify grid data before sending to
-					// server - also attach divstr information also
-					newlist = this.info_obj.modify_toserver_data(raw_result);
-					storedata_json = JSON.stringify(newlist);
+				if (this.idproperty == "field_id" || this.idproperty == "pref_id" ||
+					this.idproperty == "team_id") {
+					if (this.idproperty == "team_id") {
+						// no need to modify result for team_id
+						storedata_json = JSON.stringify(raw_result);
+					} else {
+						var newlist = null;
+						// for field or pref id's modify grid data before sending to
+						// server - also attach divstr information also
+						newlist = this.info_obj.modify_toserver_data(raw_result);
+						storedata_json = JSON.stringify(newlist);
+					}
 					divstr_obj = this.info_obj.getdivstr_obj();
 					// get colname and db_type for the divinfo obj attached to the
 					// current fieldinfo obj.

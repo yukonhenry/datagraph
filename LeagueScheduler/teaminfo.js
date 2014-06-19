@@ -41,7 +41,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					team_id: "ID",
 					team_name: editor({label:"Team Name", autoSave:true,
 						editorArgs:{
-							trim:true, propercase:true, style:"width:auto"
+							trim:true, //propercase:true,
+							style:"width:auto"
 						}
 					}, TextBox, "click"),
 					af_field_str:{label:"Field Affinity",
@@ -156,6 +157,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.editgrid = new EditGrid({
 						griddata_list:info_list,
 						colname:this.activegrid_colname,
+						server_interface:this.server_interface,
 						grid_id:this.idmgr_obj.grid_id,
 						idproperty:this.idproperty,
 						server_path:"create_newdbcol/",
