@@ -83,9 +83,9 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				{id:'div_id', info_obj:divinfo_obj},
 				{id:'tourndiv_id', info_obj:tourndivinfo_obj},
 				{id:'field_id', info_obj:fieldinfo_obj},
-				{id:'newsched_id', info_obj:newschedbase_obj},
+				{id:'team_id', info_obj:teaminfo_obj},
 				{id:'pref_id', info_obj:preferenceinfo_obj},
-				{id:'team_id', info_obj:teaminfo_obj}
+				{id:'newsched_id', info_obj:newschedbase_obj},
 			]
 			storeutil_obj.init_advanced_UI(info_obj_list);
 			console.log("load basic info complete");

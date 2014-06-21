@@ -40,7 +40,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				{id:'newsched_id', label_str:"Generate New Schedule",
 					help_str:"To Create Schedule Paramenters and Generate, Click"},
 				{id:'pref_id', label_str:"Create New Preference List",
-					help_str:"To Create Preferences, Click Here"}
+					help_str:"To Create Preferences, Click Here"},
+				{id:'team_id', label_str:"Create New Team List",
+					help_str:"To Create Team List, Click Here"}
 			],
 			editmenu_list:[
 				{id:'div_id', db_type:'rrdb', label_str:"Edit Division Info",
@@ -240,23 +242,24 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					var id = item.id;
 					if (id == 'div_id' || id == 'tourndiv_id') {
 						args_list.push({id:id, info_obj:item.info_obj})
-					} else if (id == 'team_id') {
-						teaminfo_obj = item.info_obj;
-					}else if (id != 'team_id') {
-						// for team_id, we are going to utilize args_list from above
-						// with div_id and tourndiv_id to create a two-level
-						// submenu - see second call to create_divmenu below
+					} else {
 						this.create_menu(id, item.info_obj, true, editddown_menu);
 					}
 				}, this)
 				// specify parameters for the two-level menu
 				// first specify for the divinfo dropdown
 				// menu_index is the display position in the parent_ddown widget
+				// Note general positioining in menu is not as flexible even with
+				// use of menu_index - a position index does not work unless there
+				// is already a menu structure created with at least that menu index
+				// items - index x requires that x+1 entries have  already been
+				// created.
 				var args_obj = {parent_ddown_reg:editddown_menu,
 					args_list:args_list, label_str: "Division Info",
 					menu_index:0}
 				this.create_divmenu(args_obj);
 				// create team_id submenu
+				/*
 				var widgetgen_obj = new WidgetGen({
 					storeutil_obj:this.storeutil_obj,
 					server_interface:this.server_interface
@@ -265,7 +268,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					parent_ddown_reg:editddown_menu, divargs_list:args_list,
 					menu_index:2, info_obj:teaminfo_obj,
 					widgetgen_obj:widgetgen_obj}
-				this.create_editonlymenu(args_obj);
+				this.create_editonlymenu(args_obj); */
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
 				this.uistackmgr.create_grid_stack(advanced_cpane);
@@ -323,8 +326,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					popup:div_ddown_reg
 				})
 				parent_ddown_reg.addChild(div_popup_reg, args_obj.menu_index);
-				arrayUtil.forEach(args_list, function(item) {
-					this.create_menu(item.id, item.info_obj, true, div_ddown_reg)
+				arrayUtil.forEach(args_list, function(item, index) {
+					this.create_menu(item.id, item.info_obj, true, div_ddown_reg,
+						index)
 				}, this)
 			},
 			create_menu: function(id, info_obj, delflag, ddown_reg) {
@@ -392,24 +396,20 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					style:"width:40em; height:auto"}, mbar_node);
 				//-----------------------------//
 				// Create first element, which is a MenuBarItem that supports click to create new info item
-				// if id is team_id, then there is no 'new' operation as team_id
-				// always uses the same collection name used by divinfo
-				if (id != 'team_id') {
-					match_obj = this.getuniquematch_obj(constant.initmenu_list,
-						'id', id);
-					var mbaritem_widget = new MenuBarItem({
-						id:match_obj.mbaritem_id,
-						label:match_obj.label_str,
-						style:"color:green; font:bold",
-						onClick:lang.hitch(this.wizuistackmgr, this.wizuistackmgr.check_initialize, info_obj)
-						//onClick:lang.hitch(info_obj, info_obj.wizinitialize)
-					})
-					// create tooltip config info for menubaritem
-					tooltipconfig_list.push({
-						connect_node:mbaritem_widget.domNode,
-						label_str:match_obj.help_str});
-					mbar_widget.addChild(mbaritem_widget);
-				}
+				match_obj = this.getuniquematch_obj(constant.initmenu_list,
+					'id', id);
+				var mbaritem_widget = new MenuBarItem({
+					id:match_obj.mbaritem_id,
+					label:match_obj.label_str,
+					style:"color:green; font:bold",
+					onClick:lang.hitch(this.wizuistackmgr, this.wizuistackmgr.check_initialize, info_obj)
+					//onClick:lang.hitch(info_obj, info_obj.wizinitialize)
+				})
+				// create tooltip config info for menubaritem
+				tooltipconfig_list.push({
+					connect_node:mbaritem_widget.domNode,
+					label_str:match_obj.help_str});
+				mbar_widget.addChild(mbaritem_widget);
 				//-----------------------------//
 				// Create second element, which is the edit menu
 				match_obj = this.getuniquematch_obj(constant.editmenu_list,

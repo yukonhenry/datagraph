@@ -64,13 +64,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			modify_toserver_data: function(raw_result) {
 			},
 			initialize: function(newgrid_flag, op_type) {
-				/*
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
-				var topdiv_node = put("div");
-				this.initabovegrid_UI(topdiv_node);
 				var param_cpane = registry.byId(this.idmgr_obj.numcpane_id);
-				param_cpane.addChild(topdiv_node)
-				this.create_team_select(topdiv_node); */
+				//var topdiv_node = put("div");
+				this.initabovegrid_UI(param_cpane.containerNode);
+				this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
+					p_stage: "preconfig", entry_pt:constant.init});
+				// switch to blank cpane
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -121,17 +122,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						option_list.push(option_obj);
 					})
 				}
-				var top_cpane = registry.byId(this.idmgr_obj.numcpane_id);
-				var top_containernode = top_cpane.containerNode;
 				var divselect_id = this.op_prefix+"tm_divselect_id";
 				var divselect_widget = registry.byId(divselect_id);
 				if (!divselect_widget) {
-					put(top_containernode, "label.label_box[for=$]",
+					// place division select above grid (division select) should
+					// always be visible when grid is present
+					var topdiv_node = registry.byId(this.idmgr_obj.textbtncpane_id).containerNode;
+					put(topdiv_node, "label.label_box[for=$]",
 						divselect_id, "Select Division");
-					var divselect_node = put(top_containernode,
+					var divselect_node = put(topdiv_node,
 						"select[id=$][name=$]", divselect_id, divselect_id);
 					var eventoptions_obj = {option_list:option_list.slice(1),
-						topdiv_node:top_containernode};
+						topdiv_node:topdiv_node};
 					var divselect_widget = new Select({
 						//name:name_str,
 						options:option_list,
@@ -140,8 +142,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					divselect_widget.startup();
 				}
 				this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
-					p_stage: "preconfig", entry_pt:constant.init});
-				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
+					p_stage: "config", entry_pt:constant.init});
+				//this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
 			set_team_select: function(options_obj, divevent) {
 				var option_list = options_obj.option_list;

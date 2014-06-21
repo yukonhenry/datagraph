@@ -36,18 +36,16 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 							var info_obj = this.get_obj(item.idproperty,
 								item.op_type);
 							if (info_obj) {
-								if (info_obj.editgrid &&
+								if (item.idproperty == 'team_id') {
+									info_obj.set_div_select(value);
+								} else if (info_obj.editgrid &&
 									info_obj.editgrid.schedInfoGrid &&
 									value.length > 0) {
 									if (item.idproperty == 'field_id') {
 										info_obj.set_primaryuse_dialog_dropdown(value);
 									} else if (item.idproperty == 'pref_id') {
 										info_obj.set_griddiv_select(value);
-									} else if (item.idproperty == 'team_id') {
-										info_obj.set_div_select(value);
 									}
-								} else if (item.idproperty == 'team_id') {
-									info_obj.set_div_select(value);
 								}
 							}
 						})

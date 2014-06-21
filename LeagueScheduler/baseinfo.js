@@ -154,15 +154,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				this.create_dbselect_radiobtnselect(
 					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
-					this.idmgr_obj.league_select_id, topdiv_node);
+					this.idmgr_obj.league_select_id, "", "", topdiv_node);
 				return topdiv_node;
 			},
 			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname, topdiv_node) {
 				// passed in init_db_type and init_colname are typicall
 				// for divinfo(divstr) db_type and colname even though it
 				// is used for fieldinfo grid
-				var init_db_type = init_db_type || "";
-				var init_colname = init_colname || "";
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
 				if (!this.widgetgen) {
