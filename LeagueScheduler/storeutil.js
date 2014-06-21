@@ -54,7 +54,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					label_str:"Regenerate Schedule",
 					help_str:"To Regenerate, Click and Select Previously Saved Schedule Name"},
 				{id:'pref_id', db_type:'prefdb', label_str:"Edit Preference List",
-					help_str:"To Edit, Click and Select Previously Saved Preference List Name"}
+					help_str:"To Edit, Click and Select Previously Saved Preference List Name"},
+				{id:'team_id', db_type:'teamdb', label_str:"Edit Team List",
+					help_str:"To Edit, Click and Select Previously Division/Team List Name"}
 			],
 			delmenu_list:[
 				{id:'div_id', db_type:'rrdb', label_str:"Delete Division Info",
@@ -68,7 +70,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					label_str:"Delete Schedule",
 					help_str:"To Delete, Click and Select Previously Saved Schedule Name"},
 				{id:'pref_id', db_type:'prefdb', label_str:"Delete Preference List",
-					help_str:"To Delete, Click and Select Previously Saved Preference List Name"}
+					help_str:"To Delete, Click and Select Previously Saved Team List Name"},
+				{id:'team_id', db_type:'teamdb', label_str:"Delete Team List",
+					help_str:"To Delete, Click and Select Previously Saved Team List Name"}
 			],
 			delserver_path:"delete_dbcol/"
 		};
@@ -388,20 +392,24 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					style:"width:40em; height:auto"}, mbar_node);
 				//-----------------------------//
 				// Create first element, which is a MenuBarItem that supports click to create new info item
-				match_obj = this.getuniquematch_obj(constant.initmenu_list,
-					'id', id);
-				var mbaritem_widget = new MenuBarItem({
-					id:match_obj.mbaritem_id,
-					label:match_obj.label_str,
-					style:"color:green; font:bold",
-					onClick:lang.hitch(this.wizuistackmgr, this.wizuistackmgr.check_initialize, info_obj)
-					//onClick:lang.hitch(info_obj, info_obj.wizinitialize)
-				})
-				// create tooltip config info for menubaritem
-				tooltipconfig_list.push({
-					connect_node:mbaritem_widget.domNode,
-					label_str:match_obj.help_str});
-				mbar_widget.addChild(mbaritem_widget);
+				// if id is team_id, then there is no 'new' operation as team_id
+				// always uses the same collection name used by divinfo
+				if (id != 'team_id') {
+					match_obj = this.getuniquematch_obj(constant.initmenu_list,
+						'id', id);
+					var mbaritem_widget = new MenuBarItem({
+						id:match_obj.mbaritem_id,
+						label:match_obj.label_str,
+						style:"color:green; font:bold",
+						onClick:lang.hitch(this.wizuistackmgr, this.wizuistackmgr.check_initialize, info_obj)
+						//onClick:lang.hitch(info_obj, info_obj.wizinitialize)
+					})
+					// create tooltip config info for menubaritem
+					tooltipconfig_list.push({
+						connect_node:mbaritem_widget.domNode,
+						label_str:match_obj.help_str});
+					mbar_widget.addChild(mbaritem_widget);
+				}
 				//-----------------------------//
 				// Create second element, which is the edit menu
 				match_obj = this.getuniquematch_obj(constant.editmenu_list,

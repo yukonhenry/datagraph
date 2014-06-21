@@ -16,7 +16,13 @@ class TeamDBInterface:
             collection_name=newcol_name, db_col_type=DB_Col_Type.TeamInfo)
 
     def writeDB(self, info_str, config_status, divstr_colname, divstr_db_type):
-        info_list = json.loads(info_str)
+        teaminfo_list = json.loads(info_str)
+        for teaminfo in teaminfo_list:
+            if teaminfo['af_field_str']:
+                teaminfo['af_field_list'] = [int(x)
+                    for x in teaminfo['af_field_str'].split(',')]
+            else:
+                teaminfo['af_field_list'] = []
         document_list = [{k.upper():v for k,v in x.items()} for x in info_list]
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,

@@ -148,12 +148,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// button nodes; instead of putting the button node after that,
 				// it decides to put the pcontainerdiv_node first. (the button node
 				// shows up after the pcontainerdiv)
-				var ddbtn_node = put(topdiv_node, "button[type=button]");
+				//var ddbtn_node = put(topdiv_node, "button[type=button]");
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
 					idstr_obj.radiobtn1_id, idstr_obj.radiobtn2_id,
 					constant.init_db_type,
 					this, this.radio1_callback, this.radio2_callback,
 					"team_id");
+				/*
 				var ddmenu_widget = new DropDownMenu()
 				var ddbtn_widget = new DropDownButton({
 					class:"primary",
@@ -161,17 +162,18 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//style:"margin-left:25px",
 					dropDown:ddmenu_widget,
 					style:"margin-right:12px"
-				}, ddbtn_node);
+				}, ddbtn_node); */
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,
 					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+				/*
 				this.storeutil_obj.create_dropdown_menu(ddmenu_widget,
-					constant.init_db_type, this.widgetgen_obj, teaminfo_obj);
-				// menubar_node = put(topdiv_node, "div");
+					constant.init_db_type, this.widgetgen_obj, teaminfo_obj); */
+				menubar_node = put(topdiv_node, "div");
 				// No menubar for team_id as there is no create/delete operations
 				// for teaminfo grids
-				//this.storeutil_obj.create_menubar('team_id', teaminfo_obj, true, menubar_node);
+				this.storeutil_obj.create_menubar('team_id', teaminfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
 				gcontainerdiv_node = put(topdiv_node, "div")
 				teaminfo_obj.create_wizardcontrol(pcontainerdiv_node,
