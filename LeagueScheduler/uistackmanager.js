@@ -8,22 +8,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		var constant = {
 			// param stack id's
 			dummy_id:"dummy_id",
-			//nfcpane_id:"numfieldcpane_id",
-			tcpane_id:"textbtncpane_id",
-			//ndcpane_id:"numdivcpane_id",
-			//ntcpane_id:"numtourndivcpane_id",
-			//sdcpane_id:"scheddivcpane_id",
 			nscpane_id:"newschedcpane_id",
-			//sccpane_id:"seasoncalendar_input",
-			//npcpane_id:"numprefcpane_id",
-			//ntmcpane_id:"numteamcpane_id"
 			// grid stack id's
 			blankcpane_id:"blankcpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
-			// form and span id's
-			infotxt_id:"infotxt_id",
-			infobtn_id:"infobtn_id",
 		};
 		return declare(null, {
 			pstackcontainer_reg:null, pstackmap_list:null,
@@ -43,15 +32,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('field_id').numcpane_id});
 				this.pstackmap_list.push({id:'field_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('field_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('div_id').numcpane_id});
 				this.pstackmap_list.push({id:'div_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('div_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('tourndiv_id').numcpane_id});
 				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('tourndiv_id').textbtncpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
 					pane_id:constant.nscpane_id});
 				// note newsched has it's own txtbtn cpane as it does not share
@@ -61,13 +50,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('pref_id').numcpane_id});
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
 				// for teaminfo there is no numcpane - go straight to grid with
 				// tcpane_id
 				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('team_id').numcpane_id});
 				this.pstackmap_list.push({id:'team_id', p_stage:'config',
-					pane_id:constant.tcpane_id});
+					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
 				// define mapping object for the grid content pane
 				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
@@ -465,10 +454,17 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackcontainer_reg.addChild(newschedtxtbtn_cpane)
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({
-					id:constant.tcpane_id
+					// Note the idproperty can be any of the infoobj idproperties
+					// as the cpane is all shared (getidstrobj also returns the same
+					// textbtncpane_id)
+					id:this.get_idstr_obj("div_id").textbtncpane_id
 				})
-				put(txtbtn_cpane.containerNode, "span[id=$]", constant.infotxt_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]", constant.infobtn_id);
+				// for team_id the txt and btn nodes will be added in teaminfo
+				// code after the div select is added in the same pane
+				put(txtbtn_cpane.containerNode, "span[id=$]",
+					this.get_idstr_obj("div_id").text_id);
+				put(txtbtn_cpane.containerNode, "button[id=$]",
+					this.get_idstr_obj("div_id").btn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// ad config (number) cpanes for field, div, tourndiv, pref,
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id'];

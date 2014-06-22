@@ -36,12 +36,10 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 		return declare(baseinfo, {
 			infogrid_store:null, idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
-			base_numweeks:0, widgetgen:null, idmgr_obj:null,
+			base_numweeks:0, widgetgen:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
-				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -289,9 +287,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 					id:this.idmgr_obj.textbtncpane_id,
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
+					this.idmgr_obj.text_id);
 				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+					this.idmgr_obj.btn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({

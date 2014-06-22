@@ -468,9 +468,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					id:this.idmgr_obj.textbtncpane_id,
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
+					this.idmgr_obj.text_id);
 				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+					this.idmgr_obj.btn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({

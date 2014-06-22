@@ -45,7 +45,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			infogrid_store:null, calendarmapobj_list:null,
 			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
-			delta_store:null, idmgr_obj:null,
+			delta_store:null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -53,9 +53,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				lang.mixin(this, args);
 				this.today = new Date();
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
-				// get list of id's for this id and op_type
-				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
@@ -1299,9 +1296,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					id:this.idmgr_obj.textbtncpane_id
 				})
 				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).text_id);
+					this.idmgr_obj.text_id);
 				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.getbtntxtid_obj("wizard", this.idproperty).btn_id);
+					this.idmgr_obj.btn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({

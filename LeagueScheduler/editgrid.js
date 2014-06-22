@@ -22,7 +22,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
-			recreateSchedInfoGrid: function(columnsdef_obj) {
+			recreateSchedInfoGrid: function(columnsdef_obj, query_obj) {
 				// for finding dom node from dijit registry:
 				// http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
 				// make store observable
@@ -32,6 +32,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.idproperty == 'tourndiv_id' ) {
 				//	|| this.idproperty == 'pref_id') {
 					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
+				} else if (this.idproperty == 'team_id') {
+					// for team_id, the store idproperty is the default "id" field
+					this.schedInfoStore = new Memory({data:this.griddata_list});
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
 				}
@@ -55,7 +58,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 						selectionMode:"single"
 					}, this.grid_id);
 				}
+				if (typeof query_obj !== "undefined") {
+					this.schedInfoGrid.set("query", query_obj);
+				}
 				this.schedInfoGrid.startup();
+				console.log("grid start");
 				// switch to content pane that has above generated grid
 				this.uistackmgr_type.switch_gstackcpane(this.idproperty, false,
 					this.schedInfoGrid);
@@ -203,6 +210,43 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					// set property that divinfo collection has been selected
 					this.info_obj.infogrid_store = this.schedInfoStore;
 				}
+			},
+			addreplace_store: function(colname, griddata_list, query_obj) {
+				//reference http://www.sitepen.com/blog/2013/09/06/dojo-faq-how-can-i-add-filtering-controls-to-dgrid/
+				// Note we should be setting filtering queries to the store, instead
+				// of doing setData everytime new data comes in
+				// setData does not work with observable stores - see comment in fieldinfo.js
+				// Add to Store - with filtering query_obj passed in
+				this.colname = colname;
+				if (this.schedInfoStore.query(query_obj).total == 0) {
+					// query produces empty, so add griddata_list elements
+					// (but not setData because we are not resetting all data, e.g.
+					// data that was outside of the query)
+					arrayUtil.forEach(griddata_list, function(item) {
+						this.schedInfoStore.add(item);
+					}, this)
+				} else {
+					// query produced results, so we will overwrite any data existing
+					// in the store with new griddata data
+					arrayUtil.forEach(griddata_list, function(item) {
+						if (this.schedInfoStore.get(item.id)) {
+							this.schedInfoStore.put(item);
+						} else {
+							this.schedInfoStore.add(item);
+						}
+					}, this)
+				}
+				this.schedInfoGrid.set("query", query_obj);
+				this.schedInfoGrid.refresh();
+				this.schedInfoGrid.resize();
+				// we might not always need to switch the gstack, but do it
+				// by default right now
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, false, this.schedInfoGrid);
+				if ('infogrid_store' in this.info_obj) {
+					// set property that divinfo collection has been selected
+					this.info_obj.infogrid_store = this.schedInfoStore;
+				}
+				console.log("grid addreplace refresh");
 			},
 			cleanup: function() {
 				if (this.schedInfoGrid) {

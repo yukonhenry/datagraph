@@ -10,7 +10,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			pcontainer_id:"pcontainer_id", gcontainer_id:"gcontainer_id",
 			blankcpane_id:"blankcpane_id", resetcpane_id:"resetcpane_id",
 			gridcpane_id:"gridcpane_id", textbtncpane_id:"textbtncpane_id",
-			bcontainer_id:"bcontainer_id", text_id:"text_id", numcpane_id:"numcpane_id"}
+			bcontainer_id:"bcontainer_id", text_id:"text_id",
+			numcpane_id:"numcpane_id", btn_id:"btn_id"}
 		var op_type_list = ['advance', 'wizard'];
 		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
 			'pref_id', 'team_id']
@@ -26,7 +27,17 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 						var id_prefix = id.substring(0,3);
 						var idstr_obj = new Object();
 						for (var key in suffix_obj) {
-							idstr_obj[key] = op_prefix+id_prefix+'_'+suffix_obj[key];
+							if (op_type == "advance" && (key=="text_id" ||
+								key=="btn_id" || key=="textbtncpane_id") &&
+								id != "newsched_id") {
+								// for advanced UI, and if idprop is not
+								// newsched_id there is only one set of
+								// textbtn nodes across all of the idproperties
+								idstr_obj[key] = op_prefix+'_'+suffix_obj[key]
+							} else {
+								idstr_obj[key] = op_prefix+id_prefix+'_'+
+									suffix_obj[key]
+							}
 						}
 						this.idmgr_list.push({op_type:op_type, id:id,
 							idstr_obj:idstr_obj})

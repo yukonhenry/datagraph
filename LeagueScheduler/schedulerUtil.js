@@ -20,7 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 		return declare(null, {
 			server_interface:null,
 			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
-			nsdbmenureg_list:null,
+			nsdbmenureg_list:null, prefdbmenureg_list:null, teamdbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
@@ -34,6 +34,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				this.fielddbmenureg_list = new Array();
 				// new sched/generate menu list
 				this.nsdbmenureg_list = new Array();
+				// preference menu list
+				this.prefdbmenureg_list = new Array();
+				// team menu list
+				this.teamdbmenureg_list = new Array();
 			},
 			getTournCalendarMap: function(gameday_id) {
 				return tournCalendarMapObj[gameday_id];
@@ -149,7 +153,11 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// ref http://dojotoolkit.org/documentation/tutorials/1.10/menus/
 				//submenu_reg.set("onItemClick", lang.hitch(onclick_context, onclick_func, options_obj));
 				if (typeof options_obj.db_type !== 'undefined') {
-					var db_type = options_obj.db_type;
+					var dbmenureg_list = this.get_dbmenureg_list(options_obj.db_type);
+					dbmenureg_list.push({reg:submenu_reg,
+						context:onclick_context, func:onclick_func,
+						options_obj:options_obj});
+					/*
 					if (db_type == 'rrdb') {
 						this.rrdbmenureg_list.push({reg:submenu_reg,
 							context:onclick_context, func:onclick_func,
@@ -166,7 +174,15 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 						this.nsdbmenureg_list.push({reg:submenu_reg,
 							context:onclick_context, func:onclick_func,
 							options_obj:options_obj});
-					}
+					} else if (db_type == 'prefdb') {
+						this.prefdbmenureg_list.push({reg:submenu_reg,
+							context:onclick_context, func:onclick_func,
+							options_obj:options_obj});
+					} else if (db_type == 'teamdb') {
+						this.teamdbmenureg_list.push({reg:submenu_reg,
+							context:onclick_context, func:onclick_func,
+							options_obj:options_obj});
+					} */
 				}
 			},
 			default_alert: function(options_obj) {
@@ -174,39 +190,14 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				alert(item);
 			},
 			regenDelDBCollection_smenu: function(delindex, db_type) {
-				var dbmenureg_list = null;
-				if (db_type == 'rrdb')
-					dbmenureg_list = this.rrdbmenureg_list;
-				else if (db_type == 'tourndb')
-					dbmenureg_list = this.tdbmenureg_list;
-				else if (db_type == 'fielddb')
-					dbmenureg_list = this.fielddbmenureg_list;
-				else if (db_type == 'newscheddb')
-					dbmenureg_list = this.nsdbmenureg_list;
-				else {
-					dbmenureg_list = [];
-					console.log("Error regenDelDBCollection: Invalid db_type");
-				}
+				var dbmenureg_list = this.get_dbmenureg_list(db_type);
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					dbmenureg.removeChild(delindex);
 				});
 			},
 			regenAddDBCollection_smenu: function(insertIndex, object, db_type) {
-				var dbmenureg_list = null;
-				//var db_type = object.db_type;
-				if (db_type == 'rrdb')
-					dbmenureg_list = this.rrdbmenureg_list;
-				else if (db_type == 'tourndb')
-					dbmenureg_list = this.tdbmenureg_list;
-				else if (db_type == 'fielddb')
-					dbmenureg_list = this.fielddbmenureg_list;
-				else if (db_type == 'newscheddb')
-					dbmenureg_list = this.nsdbmenureg_list;
-				else {
-					dbmenureg_list = [];
-					console.log("Error regenAddDBCollection: Invalid db_type");
-				}
+				var dbmenureg_list = this.get_dbmenureg_list(db_type);
 				var item_name = object.name;
 				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
@@ -217,6 +208,26 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 						onClick:lang.hitch(dbmenudata.context, dbmenudata.func, options_obj)});
     				dbmenureg.addChild(smenuitem, insertIndex);
 				});
+			},
+			get_dbmenureg_list: function(db_type) {
+				var dbmenureg_list = null;
+				if (db_type == 'rrdb')
+					dbmenureg_list = this.rrdbmenureg_list;
+				else if (db_type == 'tourndb')
+					dbmenureg_list = this.tdbmenureg_list;
+				else if (db_type == 'fielddb')
+					dbmenureg_list = this.fielddbmenureg_list;
+				else if (db_type == 'newscheddb')
+					dbmenureg_list = this.nsdbmenureg_list;
+				else if (db_type == 'prefdb')
+					dbmenureg_list = this.prefdbmenureg_list;
+				else if (db_type == 'teamdb')
+					dbmenureg_list = this.teamdbmenureg_list;
+				else {
+					dbmenureg_list = [];
+					console.log("Error get_dbmenureg_list: Invalid db_type");
+				}
+				return dbmenureg_list;
 			},
 			getCupSchedule: function(options_obj) {
 				var item = options_obj.item;

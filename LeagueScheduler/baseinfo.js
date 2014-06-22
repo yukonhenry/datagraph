@@ -3,10 +3,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"dijit/form/RadioButton", "LeagueScheduler/widgetgen",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
-	"put-selector/put",
+	"LeagueScheduler/idmgrSingleton", "put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys,
-		registry, Tooltip, Button, RadioButton, WidgetGen, EditGrid, baseinfoSingleton,
+		registry, Tooltip, Button, RadioButton, WidgetGen, EditGrid,
+		baseinfoSingleton, idmgrSingleton,
 		put) {
 		var constant = {
 			// entry_pt id's
@@ -18,24 +19,32 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			keyup_handle:null, tooltip_list:null, totalrows_num:0,
 			schedutil_obj:null, activegrid_colname:"",
 			config_status:0, gridtooltip_list:null,
-			btntxtid_list:null, op_type:"", op_prefix:"",
+			btntxtid_list:null, op_type:"", op_prefix:"", idmgr_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
+				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
+					id:this.idproperty, op_type:this.op_type});
 				this.tooltip_list = new Array();
+				/*
 				this.btntxtid_list = new Array();
 				this.btntxtid_list.push({op_type:"advance", btn_id:"infobtn_id",
-					text_id:"infotxt_id"});
+					text_id:"infotxt_id", cpane_id:"textbtncpane_id"});
 				this.btntxtid_list.push({op_type:"wizard", id:"div_id",
-					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id"})
+					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id",
+					cpane_id:this.idmgr_obj.textbtncpane_id})
 				// tourndiv maps to the same id's as div
 				this.btntxtid_list.push({op_type:"wizard", id:"tourndiv_id",
-					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id"})
+					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id",
+					cpane_id:this.idmgr_obj.textbtncpane_id})
 				this.btntxtid_list.push({op_type:"wizard", id:"field_id",
-					btn_id:"wizfieldinfobtn_id", text_id:"wizfieldinfotxt_id"})
+					btn_id:"wizfieldinfobtn_id", text_id:"wizfieldinfotxt_id",
+					cpane_id:this.idmgr_obj.textbtncpane_id})
 				this.btntxtid_list.push({op_type:"wizard", id:"pref_id",
-					btn_id:"wizprefinfobtn_id", text_id:"wizprefinfotxt_id"})
+					btn_id:"wizprefinfobtn_id", text_id:"wizprefinfotxt_id",
+					cpane_id:this.idmgr_obj.textbtncpane_id})
 				this.btntxtid_list.push({op_type:"wizard", id:"team_id",
-					btn_id:"wizteaminfobtn_id", text_id:"wizteaminfotxt_id"})
+					btn_id:"wizteaminfobtn_id", text_id:"wizteaminfotxt_id",
+					cpane_id:this.idmgr_obj.textbtncpane_id}) */
 				// use to create op-type unique id strings local to this file
 				this.op_prefix = this.op_type.substring(0,3);
 			},
@@ -296,9 +305,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var swapcpane_flag = args_obj.swapcpane_flag;
 				var newgrid_flag = args_obj.newgrid_flag;
 				var entry_pt = args_obj.entry_pt;
-				var btntxtid_obj = this.getbtntxtid_obj(op_type, idproperty);
-				var text_id = btntxtid_obj.text_id;
-				var btn_id = btntxtid_obj.btn_id;
+				var text_id = this.idmgr_obj.text_id;
+				var btn_id = this.idmgr_obj.btn_id;
 				var text_node = dom.byId(text_id);
 				var text_str = text_node_str + ": <b>"+this.activegrid_colname+"</b>";
 				text_node.innerHTML = text_str;
@@ -328,9 +336,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// parse args object
 				var op_type = ('op_type' in args_obj)?args_obj.op_type:"advance";
 				var idproperty = args_obj.idproperty;
-				var btntxtid_obj = this.getbtntxtid_obj(op_type, idproperty);
-				var text_id = btntxtid_obj.text_id;
-				var btn_id = btntxtid_obj.btn_id;
+				var text_id = this.idmgr_obj.text_id;
+				var btn_id = this.idmgr_obj.btn_id;
 				var text_node = dom.byId(text_id);
 				text_node.innerHTML = args_obj.text_str;
 				var updatebtn_str = args_obj.updatebtn_str;
@@ -446,18 +453,23 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			getbtntxtid_obj: function (op_type, idproperty) {
 				var text_id = null;
 				var btn_id = null;
+				var cpane_id = null;
+				var idmatch_obj = null;
 				var idmatch_list = this.getmatch_list(this.btntxtid_list,
 					'op_type', op_type)
 				if (op_type == "advance") {
-					text_id = idmatch_list[0].text_id;
-					btn_id = idmatch_list[0].btn_id;
+					idmatch_obj = idmatch_list[0];
+					text_id = idmatch_obj.text_id;
+					btn_id = idmatch_obj.btn_id;
+					cpane_id = idmatch_obj.cpane_id;
 				} else  {
-					var idmatch_obj = this.getuniquematch_obj(idmatch_list, 'id',
+					idmatch_obj = this.getuniquematch_obj(idmatch_list, 'id',
 						idproperty);
 					text_id = idmatch_obj.text_id;
 					btn_id = idmatch_obj.btn_id;
+					cpane_id = idmatch_obj.cpane_id;
 				}
-				return {text_id:text_id, btn_id:btn_id}
+				return {text_id:text_id, btn_id:btn_id, cpane_id:cpane_id}
 			},
 			enable_gridtooltips: function(grid) {
 				var gridhelp_list = this.get_gridhelp_list();

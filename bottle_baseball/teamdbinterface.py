@@ -23,7 +23,7 @@ class TeamDBInterface:
                     for x in teaminfo['af_field_str'].split(',')]
             else:
                 teaminfo['af_field_list'] = []
-        document_list = [{k.upper():v for k,v in x.items()} for x in info_list]
+        document_list = [{k.upper():v for k,v in x.items()} for x in teaminfo_list]
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
             id_str='TEAM_ID')
