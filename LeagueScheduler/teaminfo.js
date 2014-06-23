@@ -139,7 +139,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					var divselect_widget = new Select({
 						//name:name_str,
 						options:option_list,
-						onChange: lang.hitch(this, this.set_team_select, eventoptions_obj)
+						onChange: lang.hitch(this, this.create_team_grid, eventoptions_obj)
 					}, divselect_node);
 				} else {
 					// reset option list, with initial selection back to default
@@ -150,7 +150,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					p_stage: "config", entry_pt:constant.init});
 				//this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
-			set_team_select: function(options_obj, div_id_event) {
+			create_team_grid: function(options_obj, div_id_event) {
 				var option_list = options_obj.option_list;
 				var topdiv_node = options_obj.topdiv_node;
 				var text_id = this.idmgr_obj.text_id;
@@ -231,26 +231,19 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_id+'</strong></label><br>';
 						checkbox_list.push(idstr);
 					}, this)
+					var options_obj = {checkbox_list:checkbox_list, id:object.id}
+					var button_id = this.op_prefix+"tmfield_btn"+team_id+"_id";
+					// add button through adding declarative description into
+					// content string instead of instantiating directly and adding
+					// using addChild() - the latter does not work in a subsequent
+					// loop when the checkbox content string has to be reassigned but
+					// the button already exists.  Reassinging the content nullifies
+					// the child button widget, but it is not possible to do another
+					// addChild() with the button widget
+					content_str += "<button data-dojo-type='dijit/form/Button' class ='info' type='submit' id='"+button_id+"'>Save</button>";
+				} else {
+					content_str = "Insufficient prior configuration: Check to make sure both division and fields are defined first"
 				}
-				var options_obj = {checkbox_list:checkbox_list, id:object.id}
-				var button_id = this.op_prefix+"tmfield_btn"+team_id+"_id";
-				// add button through adding declarative description into
-				// content string instead of instantiating directly and adding
-				// using addChild() - the latter does not work in a subsequent
-				// loop when the checkbox content string has to be reassigned but
-				// the button already exists.  Reassinging the content nullifies
-				// the child button widget, but it is not possible to do another
-				// addChild() with the button widget
-				content_str += "<button data-dojo-type='dijit/form/Button' class ='info' type='submit' id='"+button_id+"'>Save</button>";
-				/*
-				var button_widget = registry.byId(button_id);
-				if (!button_widget) {
-					button_widget = new Button({
-						label:"Save", class:"info", id:button_id, type:"submit",
-						onClick: lang.hitch(this, this.af_dialogbtn_process,
-							options_obj)
-					})
-				} */
 				// define parameters for the tooltip dialog
 				var tipdialog_prefix = this.op_prefix+"tmfield_tdialog";
 				var tipdialog_id = tipdialog_prefix+team_id+"_id";
@@ -260,10 +253,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						id:tipdialog_id,
 						content:content_str
 					})
-					//tipdialog_widget.addChild(button_widget);
 				} else {
 					tipdialog_widget.set("content", content_str);
-					//tipdialog_widget.addChild(button_widget);
+				}
+				if (this.divfield_list) {
+					// set callback for button in dialogtooltip
+					var button_widget = registry.byId(button_id);
+					if (!button_widget) {
+						button_widget.set("onClick",
+							lang.hitch(this, this.af_dialogbtn_process, options_obj))
+					} else {
+						console.log("Error: teaminfo af_field render - tooltipdialog button should exist")
+					}
 				}
 				// define parameters for the ddown button embedded in grid cell
 				var team_ddown_prefix = this.op_prefix+"tmfield_ddown";
@@ -299,7 +300,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					store_elem.af_field_str = value_str;
 					this.editgrid.schedInfoStore.put(store_elem);
 				}
-				console.log("afprocess")
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
@@ -319,12 +319,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var team_cpane = new ContentPane({
 					id:this.idmgr_obj.numcpane_id,
 				})
-				// Note form under the cpane like other infoobj's however
-				/*
-				var team_form = new Form({
-					id:this.idmgr_obj.form_id
-				})
-				team_cpane.addChild(team_form); */
 				this.pstackcontainer.addChild(team_cpane);
 				// add txt + button cpane
 				var txtbtn_cpane = new ContentPane({

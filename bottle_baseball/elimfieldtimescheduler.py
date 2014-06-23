@@ -52,11 +52,11 @@ class EliminationFieldTimeScheduler:
                 index = self.dindexerGet(d_id)
                 if index is not None:
                     division = self.divinfo_list[index]
-                    # check existence of key 'fields' - if it exists, append to list of fields, if not create
-                    if 'fields' in division:
-                        division['fields'].append(f_id)
+                    # check existence of key 'divfield_list' - if it exists, append to list of fields, if not create
+                    if 'divfield_list' in division:
+                        division['divfield_list'].append(f_id)
                     else:
-                        division['fields'] = [f_id]
+                        division['divfield_list'] = [f_id]
 
     def generateSchedule(self, totalmatch_list):
         tmindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
@@ -91,7 +91,7 @@ class EliminationFieldTimeScheduler:
             # the union of fields for each div
             # another option is to  call set.update (see fieldtimeschedule fset)
             fieldset = reduce(set.union,
-                              map(set,[self.divinfo_list[self.dindexerGet(x)]['fields'] for x in connected_div_list]))
+                              map(set,[self.divinfo_list[self.dindexerGet(x)]['divfield_list'] for x in connected_div_list]))
             field_list = list(fieldset)
             max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['max_slot_index'] for f in field_list)
             endtime_list = [(f,parser.parse(self.tfieldinfo_list[self.tfindexerGet(f)]['end_time'])) for f in field_list]

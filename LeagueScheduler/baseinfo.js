@@ -25,26 +25,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
 					id:this.idproperty, op_type:this.op_type});
 				this.tooltip_list = new Array();
-				/*
-				this.btntxtid_list = new Array();
-				this.btntxtid_list.push({op_type:"advance", btn_id:"infobtn_id",
-					text_id:"infotxt_id", cpane_id:"textbtncpane_id"});
-				this.btntxtid_list.push({op_type:"wizard", id:"div_id",
-					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id",
-					cpane_id:this.idmgr_obj.textbtncpane_id})
-				// tourndiv maps to the same id's as div
-				this.btntxtid_list.push({op_type:"wizard", id:"tourndiv_id",
-					btn_id:"wizdivinfobtn_id", text_id:"wizdivinfotxt_id",
-					cpane_id:this.idmgr_obj.textbtncpane_id})
-				this.btntxtid_list.push({op_type:"wizard", id:"field_id",
-					btn_id:"wizfieldinfobtn_id", text_id:"wizfieldinfotxt_id",
-					cpane_id:this.idmgr_obj.textbtncpane_id})
-				this.btntxtid_list.push({op_type:"wizard", id:"pref_id",
-					btn_id:"wizprefinfobtn_id", text_id:"wizprefinfotxt_id",
-					cpane_id:this.idmgr_obj.textbtncpane_id})
-				this.btntxtid_list.push({op_type:"wizard", id:"team_id",
-					btn_id:"wizteaminfobtn_id", text_id:"wizteaminfotxt_id",
-					cpane_id:this.idmgr_obj.textbtncpane_id}) */
 				// use to create op-type unique id strings local to this file
 				this.op_prefix = this.op_type.substring(0,3);
 			},
@@ -234,13 +214,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var data_list = server_data[options_obj.serverdata_key];
 				// extract configuration status from server. integer value 0/1
 				var config_status = server_data[options_obj.serverstatus_key];
-				/*
-				var serverdb_type = server_data.db_type;
-				if (serverdb_type != this.db_type) {
-					// db_type retruned from server should match up with this obj's
-					// db_type; if not, reanalyze
-					console.log("createEditGrid: warning: check db_type/serverdb_type logic");
-				} */
 				this.totalrows_num = data_list.length;
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
@@ -449,27 +422,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						return item[key] == value;
 					});
 				return match_list;
-			},
-			getbtntxtid_obj: function (op_type, idproperty) {
-				var text_id = null;
-				var btn_id = null;
-				var cpane_id = null;
-				var idmatch_obj = null;
-				var idmatch_list = this.getmatch_list(this.btntxtid_list,
-					'op_type', op_type)
-				if (op_type == "advance") {
-					idmatch_obj = idmatch_list[0];
-					text_id = idmatch_obj.text_id;
-					btn_id = idmatch_obj.btn_id;
-					cpane_id = idmatch_obj.cpane_id;
-				} else  {
-					idmatch_obj = this.getuniquematch_obj(idmatch_list, 'id',
-						idproperty);
-					text_id = idmatch_obj.text_id;
-					btn_id = idmatch_obj.btn_id;
-					cpane_id = idmatch_obj.cpane_id;
-				}
-				return {text_id:text_id, btn_id:btn_id, cpane_id:cpane_id}
 			},
 			enable_gridtooltips: function(grid) {
 				var gridhelp_list = this.get_gridhelp_list();

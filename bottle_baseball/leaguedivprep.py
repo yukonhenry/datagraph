@@ -94,11 +94,11 @@ for field in _field_info:
 		index = _div_indexer.get(d_id)
 		if index is not None:
 			division = _league_div[index]
-			# check existence of key 'fields' - if it exists, append to list of fields, if not create
-			if 'fields' in division:
-				division['fields'].append(f_id)
+			# check existence of key 'divfield_list' - if it exists, append to list of fields, if not create
+			if 'divfield_list' in division:
+				division['divfield_list'].append(f_id)
 			else:
-				division['fields'] = [f_id]
+				division['divfield_list'] = [f_id]
 
 # for tournament fields - node U10 is div_id 1 and so on
 _tournament_field_info = [
@@ -295,7 +295,7 @@ def getDivFieldEdgeWeight_list():
         # even through we are using a bipartite graph structure, node names between
         # the column nodes need to be distinct, or else edge (1,2) and (2,1) are not distinguished.
         # instead use edge (1, f2), (2, f1) - use 'f' prefix for field nodes
-        df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in _league_div for y in x['fields']])
+        df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in _league_div for y in x['divfield_list']])
         div_nodes, field_nodes = bipartite.sets(df_biparG)
         deg_fnodes = {f:df_biparG.degree(f) for f in field_nodes}
         # effective edge sum lists for each division, the sum of the weights of the connected fields;

@@ -45,9 +45,9 @@ class SchedMaster:
         else:
             self.fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schedmaster:init: field config not complete=%s" % (fieldcol_name,))
-        # create list of div_ids that do not have a 'fields' key
-        divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'fields' not in x]
-        # if there are div_id's with no 'fields' key, create it
+        # create list of div_ids that do not have a 'divfield_list' key
+        divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'divfield_list' not in x]
+        # if there are div_id's with no 'divfield_list' key, create it
         if divreqfields_list:
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
         # get pref list information, if any
@@ -106,19 +106,26 @@ class SchedMaster:
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
     def divfield_correlate(self, fieldinfo_list, dbInterface, div_list):
+        # use set to keep track of unique div_id's that have fields attached to them
+        divset = set()
         for fieldinfo in fieldinfo_list:
             field_id = fieldinfo['field_id']
             for div_id in fieldinfo['primaryuse_list']:
                 if div_id in div_list:
                     index = self.divinfo_indexerGet(div_id)
                     if index is not None:
+                        divset.update(div_id)
                         divinfo = self.divinfo_list[index]
-                        # check existence of key 'fields' - if it exists, append to list of fields, if not create
-                        if 'fields' in divinfo:
-                            divinfo['fields'].append(field_id)
+                        # check existence of key 'divfield_list' - if it exists, append to list of fields, if not create
+                        if 'divfield_list' in divinfo:
+                            divinfo['divfield_list'].append(field_id)
                         else:
-                            divinfo['fields'] = [field_id]
-                        dbInterface.updateDBDivFields(divinfo)
+                            divinfo['divfield_list'] = [field_id]
+                        #dbInterface.updateDBDivFields(divinfo)
+        # save to db
+        for div_id in divset:
+            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+            dbInterface.updateDBDivFields(divinfo)
 
     def get_schedule(self, idproperty, propid, div_age="", div_gen=""):
         if idproperty == 'div_id':
@@ -126,7 +133,7 @@ class SchedMaster:
             game_list = self.sdbInterface.get_schedule(idproperty,
                 div_age=divinfo['div_age'], div_gen=divinfo['div_gen'])
             # also get fields info tied to div
-            fieldname_dict= {x:self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name'] for x in divinfo['fields']}
+            fieldname_dict= {x:self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name'] for x in divinfo['divfield_list']}
             return {'game_list':game_list, 'fieldname_dict':fieldname_dict}
         elif idproperty == 'field_id':
             fieldinfo = self.fieldinfo_list[self.fieldinfo_indexerGet(propid)]
@@ -147,7 +154,7 @@ class SchedMaster:
                 fieldinfo_tuple=self.fieldinfo_tuple)
             divfield_list = [{'field_id':x,
                 'field_name':self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name']}
-                for x in divinfo['fields']]
+                for x in divinfo['divfield_list']]
             return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
 '''
     def getsched_status(self):

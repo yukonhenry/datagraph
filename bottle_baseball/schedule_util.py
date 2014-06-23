@@ -194,7 +194,7 @@ def getDivFieldEdgeWeight_list(divinfo_tuple, fieldinfo_list):
     # even through we are using a bipartite graph structure, node names between
     # the column nodes need to be distinct, or else edge (1,2) and (2,1) are not distinguished.
     # instead use edge (1, f2), (2, f1) - use 'f' prefix for field nodes
-    df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in divinfo_list for y in x['fields']])
+    df_biparG.add_edges_from([(x['div_id'],'f'+str(y)) for x in divinfo_list for y in x['divfield_list']])
     div_nodes, field_nodes = bipartite.sets(df_biparG)
     deg_fnodes = {f:df_biparG.degree(f) for f in field_nodes}
     # effective edge sum lists for each division, the sum of the weights of the connected fields;

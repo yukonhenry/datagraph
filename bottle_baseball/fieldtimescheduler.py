@@ -964,10 +964,10 @@ class FieldTimeScheduleGenerator:
             # take one of those connected divisions and iterate through each division
             for div_id in connected_div_list:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                divfields = divinfo['fields']
+                divfield_list = divinfo['divfield_list']
                 totalteams = divinfo['totalteams']
                 div_totalgamedays = divinfo['totalgamedays']
-                fset.update(divfields)  #incremental union to set of shareable fields
+                fset.update(divfield_list)  #incremental union to set of shareable fields
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
                 # see also python-in-nutshell
                 # convert gameinterval into datetime.timedelta object
@@ -982,7 +982,7 @@ class FieldTimeScheduleGenerator:
                 # amongst connected divisions and add to list
                 matchlist_len_list.append(len(divmatch_dict['match_list']))
                 # describe target fair field usage cout
-                divfields_num = len(divfields)
+                divfield_num = len(divfield_list)
                 # get number of games scheduled for each team in dvision
                 numgames_list = divmatch_dict['numgames_list']
                 logging.debug("divsion=%d numgames_list=%s",div_id,numgames_list)
@@ -991,12 +991,12 @@ class FieldTimeScheduleGenerator:
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
                 # used for field balancing
-                numgamesperfield_list = [[n/divfields_num]
-                                         if n%divfields_num==0 else [n/divfields_num,n/divfields_num+1]
+                numgamesperfield_list = [[n/divfield_num]
+                                         if n%divfield_num==0 else [n/divfield_num,n/divfield_num+1]
                                          for n in numgames_list]
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
-                fmetrics_list = [{'field_id':x, 'count':0} for x in divfields]
+                fmetrics_list = [{'field_id':x, 'count':0} for x in divfield_list]
                 # note below totalteams*[fmetrics_list] only does a shallow copy; use deepcopy
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(totalteams)]
                 fieldmetrics_list.append({'div_id':div_id, 'tfmetrics':tfmetrics_list})
@@ -2204,7 +2204,7 @@ class FieldTimeScheduleGenerator:
             field_id_set = set()
             for div_id in connected_div:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                field_id_list = divinfo['fields']
+                field_id_list = divinfo['divfield_list']
                 field_id_set.update(field_id_list)
                 # get number of gamedays per week required by div
                 div_numgdaysperweek = divinfo['numgdaysperweek']

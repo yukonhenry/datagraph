@@ -93,7 +93,7 @@ def leaguedivinfo(tid):
 		age = div['div_age']
 		gender = div['div_gen']
 		game_list = _dbInterface.findDivisionSchedule(age, gender)
-		a = json.dumps({"game_list":game_list, "fields":div['fields']})
+		a = json.dumps({"game_list":game_list, "divfield_list":div['divfield_list']})
 		return callback_name+'('+a+')'
 	else:
 		return False
@@ -225,7 +225,7 @@ def schedulemetrics(div_id):
     div_tuple = getAgeGenderDivision(div_id)
     metrics_list = _dbInterface.getMetrics(div_tuple.age, div_tuple.gender,
                                           divisionData)
-    a = json.dumps({'fields':divisionData['fields'], 'metrics':metrics_list})
+    a = json.dumps({'divfield_list':divisionData['divfield_list'], 'metrics':metrics_list})
     return callback_name+'('+a+')'
 
 # create new db collection based on new schedule parameters (currently for tournament format)

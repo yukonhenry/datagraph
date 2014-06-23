@@ -806,7 +806,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var divstr_list = baseinfoSingleton.get_watch_obj(
 						'divstr_list', this.op_type, 'field_id');
 					if (divstr_list && divstr_list.length > 0) {
-						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list,field_id);
+						var primaryuse_obj = this.create_primaryuse_dialog(divstr_list, field_id);
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
 						TDialog = primaryuse_obj.tdialog;
 						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
@@ -903,20 +903,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var div_list = tdialogprop_obj.div_list;
 				var display_str = "";
 				var value_str = "";
+				//var value_list = new Array();
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
 						// create str to display in button
 						display_str += div_list[index]+',';
 						// create str to store (str of integer id elements)
-						value_str += checkbox_reg.get("value")+',';
+						var check_value = checkbox_reg.get("value");
+						value_str += check_value+',';
+						//value_list.push(parseInt(check_value));
 					}
 				});
-				// trim off last comma
-				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
-				display_str = display_str.substring(0, display_str.length-1);
-				value_str = value_str.substring(0, value_str.length-1);
-				if (this.editgrid) {
+				if (this.editgrid && value_str) {
+					// trim off last comma
+					// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
+					display_str = display_str.substring(0, display_str.length-1);
+					value_str = value_str.substring(0, value_str.length-1);
 					var store_elem = this.editgrid.schedInfoStore.get(field_id);
 					store_elem.primaryuse_str = value_str;
 					this.editgrid.schedInfoStore.put(store_elem);
@@ -1192,9 +1195,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// selected from a list that includes only fully complete configs
 				// however, there is a chance that a non-config-complete fieldgrid
 				// was saved to the server.
-                if (config_status) {
-                    var divstr_list = arrayUtil.map(info_list,
-                        function(item, index) {
+				if (config_status) {
+					var divstr_list = arrayUtil.map(info_list,
+						function(item, index) {
                             // return both the divstr (string) and div_id value
                             // value used as the value for the checkbox in the fieldinfo grid dropdown
                             return {'divstr':item.div_age + item.div_gen,
@@ -1204,10 +1207,40 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
                     // fieldinfo obj
                     baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
                     	this.op_type, 'field_id');
-                }
+				}
 				return data_list;
 			},
 			modify_toserver_data: function(raw_result) {
+				// first create mapping of div_id to field_id_list (as opposed to
+				// field_id to div_id_list which is done in this grid/column)
+				// and save to divinfo db
+				var map_divfield_list = new Array();
+				arrayUtil.forEach(raw_result, function(item) {
+					var field_id = item.field_id;
+					// convert primaryuse string into div_id integer array
+					var div_id_list = arrayUtil.map(item.primaryuse_str.split(','),
+					function(item2) {
+						return parseInt(item2);
+					})
+					arrayUtil.forEach(div_id_list, function(div_id) {
+						// loop through div_id_list for that field - for each div_id
+						// create a reverse map that points to a list of field_id's
+						// for that div_id
+						// first see if there is an entry where the div_id matches
+						var match_obj = arrayUtil.filter(map_divfield_list,
+						function(item) {
+							return (item.div_id == div_id)
+						})[0];
+						if (match_obj) {
+							// if div_id matches, append current field_id to the field_id_list
+							match_obj.field_id_list.push(field_id);
+						} else {
+							// if not create a new div_id/field list obj element
+							map_divfield_list.push({div_id:div_id,
+								field_id_list:[field_id]})
+						}
+					})
+				})
 				// modify store data before sending data to server
 				var newlist = new Array();
 				// for the field grid data convert Data objects to str

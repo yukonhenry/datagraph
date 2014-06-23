@@ -350,7 +350,7 @@ class MongoDBInterface:
                 field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST], match_id_CONST:field_game[match_id_CONST], round_CONST:field_game[round_CONST]})
         return field_game_list
 
-    def getimeslot_metrics(self, div_age, div_gen, divfields, fieldinfo_tuple):
+    def getimeslot_metrics(self, div_age, div_gen, divfield_list, fieldinfo_tuple):
         ''' find number of earlies/latest slots for each team
         '''
         fieldinfo_list = fieldinfo_tuple.dict_list
@@ -361,10 +361,10 @@ class MongoDBInterface:
         # calendar dates, it is ok to combine the search for early latest game counters
         # into one aggreation command per 'fieldday' as the counters are still
         # 'linearly independent'
-        max_totalfielddays = max(fieldinfo_list[fieldinfo_indexerGet(x)]['totalfielddays'] for x in divfields)
+        max_totalfielddays = max(fieldinfo_list[fieldinfo_indexerGet(x)]['totalfielddays'] for x in divfield_list)
         for fieldday_id in range(1, max_totalfielddays+1):
             res_list = self.collection.aggregate([
-                {"$match":{venue_CONST:{"$in":divfields},
+                {"$match":{venue_CONST:{"$in":divfield_list},
                 fieldday_id_CONST:fieldday_id}},
                 {"$group":{'_id':{'start_time':"$START_TIME", 'venue':"$VENUE"},
                 'data':{"$push":{'home':"$HOME", 'away':"$AWAY",
@@ -487,7 +487,7 @@ class MongoDBInterface:
 
     def getMetrics(self, age, gender, divisionData):
         numTeams = divisionData['totalteams']
-        fields = divisionData['fields']
+        fields = divisionData['divfield_list']
         totalgamedays = divisionData['totalgamedays']
         ELcounter_tuple = self.getTimeSlotMetrics(age, gender, fields, totalgamedays)
         earliest_counter_dict = ELcounter_tuple.earliest
@@ -517,8 +517,8 @@ class MongoDBInterface:
         '''Updated information of computing metrics for generated schedule'''
         logging.debug("dbinterface:getfairness_metrics: age %s gen %s",div_age, div_gen)
         totalteams = divinfo['totalteams']
-        divfields = divinfo['fields']
-        ELcounter_tuple = self.getimeslot_metrics(div_age, div_gen, divfields,
+        divfield_list = divinfo['divfield_list']
+        ELcounter_tuple = self.getimeslot_metrics(div_age, div_gen, divfield_list,
             fieldinfo_tuple)
         earliest_counter_dict = ELcounter_tuple.earliest
         latest_counter_dict = ELcounter_tuple.latest
@@ -535,7 +535,7 @@ class MongoDBInterface:
                 home_CONST:team_id}).count()
             homegames_ratio = float(homegames_total)/float(games_total)
             field_count_list = []
-            for field_id in divfields:
+            for field_id in divfield_list:
                 #field_name = fieldinfo_list[fieldinfo_indexerGet(field_id)]
                 field_count = self.collection.find(
                     {div_age_CONST:div_age, div_gen_CONST:div_gen,

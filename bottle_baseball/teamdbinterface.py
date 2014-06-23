@@ -21,6 +21,7 @@ class TeamDBInterface:
             if teaminfo['af_field_str']:
                 teaminfo['af_field_list'] = [int(x)
                     for x in teaminfo['af_field_str'].split(',')]
+                del teaminfo['af_field_str']
             else:
                 teaminfo['af_field_list'] = []
         document_list = [{k.upper():v for k,v in x.items()} for x in teaminfo_list]

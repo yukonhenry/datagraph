@@ -59,9 +59,9 @@ class RRDBInterface:
         # ref http://stackoverflow.com/questions/5646798/mongodb-updating-subdocument
         # for updating subdocument
         div_id = divinfo['div_id']
-        field_list = divinfo['fields']
+        divfield_list = divinfo['divfield_list']
         query_obj = {"DIV_ID":div_id}
-        operator_obj = {"FIELDS":field_list}
+        operator_obj = {"DIVFIELD_LIST":divfield_list}
         self.dbinterface.updatedoc(query_obj, "$set", operator_obj)
 
     def drop_collection(self):

@@ -161,6 +161,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var config_status = this.info_obj.checkconfig_status(raw_result);
 				this.info_obj.update_configdone(config_status, gridstatus_node);
 				var storedata_json = null;
+				var storedata_json = null;
 				var server_path = this.server_path;
 				var server_key = this.server_key || "";
 				var server_key_obj = {};

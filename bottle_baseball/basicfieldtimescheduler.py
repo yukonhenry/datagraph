@@ -878,7 +878,7 @@ class BasicFieldTimeScheduleGenerator:
             for div_id in connected_div_list:
                 divindex = self.leaguediv_indexerGet(div_id)
                 divinfo = self.leaguediv[divindex]
-                divfields = divinfo['fields']
+                divfields = divinfo['divfield_list']
                 numteams = divinfo['totalteams']
                 fset.update(divfields)  #incremental union to set of shareable fields
                 # http://docs.python.org/2/library/datetime.html#timedelta-objects
