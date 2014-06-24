@@ -20,8 +20,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			ntextbox_str:'Enter Number of Tourn Divisions',
 		};
 		return declare(baseinfo, {
-			infogrid_store:null, idproperty:constant.idproperty_str,
-			db_type:constant.db_type,
+			idproperty:constant.idproperty_str, db_type:constant.db_type,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -108,7 +107,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					form_reg:form_reg,
 					entrynum_reg:inputnum_reg,
 					server_path:"create_newdbcol/",
-					server_key:"info_data",
 					text_node_str: constant.text_node_str,
 					grid_id:constant.grid_id,
 					updatebtn_str:constant.updatebtn_str,

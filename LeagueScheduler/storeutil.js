@@ -258,52 +258,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					args_list:args_list, label_str: "Division Info",
 					menu_index:0}
 				this.create_divmenu(args_obj);
-				// create team_id submenu
-				/*
-				var widgetgen_obj = new WidgetGen({
-					storeutil_obj:this.storeutil_obj,
-					server_interface:this.server_interface
-				});
-				args_obj = {label_str:"Team Info", id:"team_id",
-					parent_ddown_reg:editddown_menu, divargs_list:args_list,
-					menu_index:2, info_obj:teaminfo_obj,
-					widgetgen_obj:widgetgen_obj}
-				this.create_editonlymenu(args_obj); */
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
 				this.uistackmgr.create_grid_stack(advanced_cpane);
-			},
-			create_editonlymenu: function(args_obj) {
-				// ADVANCE MENU target, used right now for teaminfo edit; bring
-				// up divinfo collections to select from
-				var parent_ddown_widget = args_obj.parent_ddown_reg;
-				var ddown_widget = new DropDownMenu();
-				var popup_widget = new PopupMenuItem({
-					label:args_obj.label_str,
-					popup:ddown_widget
-				})
-				parent_ddown_widget.addChild(popup_widget, args_obj.menu_index)
-				var info_obj = args_obj.info_obj;
-				var widgetgen_obj = args_obj.widgetgen_obj;
-				arrayUtil.forEach(args_obj.divargs_list, function(item) {
-					// get db collection listings for each div type (rrdb and tourndb)
-					var match_obj = this.getuniquematch_obj(constant.idtopmenu_list,
-					'id', item.id);
-					var db_ddown_widget= new DropDownMenu();
-					var db_popup_widget = new PopupMenuItem({
-						label:match_obj.label_str,
-						popup:db_ddown_widget
-					})
-					ddown_widget.addChild(db_popup_widget);
-					var db_type = match_obj.db_type;
-					// create respective db menu
-					var db_list = this.getfromdb_store_value(db_type, 'name');
-					// note info_obj points back to teaminfo_obj
-					this.schedutil_obj.generateDBCollection_smenu(
-						db_ddown_widget, db_list,
-						widgetgen_obj, widgetgen_obj.get_leagueparam_frommenu_list,
-						info_obj);
-				}, this)
 			},
 			create_dropdown_menu: function(ddownmenu_widget, db_type, widgetgen_obj, info_obj) {
 				// WIZARD MENU target

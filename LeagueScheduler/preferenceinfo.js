@@ -21,7 +21,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			text_node_str: 'Preference List Name',
 		};
 		return declare(baseinfo, {
-			infogrid_store:null, idproperty:constant.idproperty_str,
+			idproperty:constant.idproperty_str,
 			db_type:constant.db_type, today:null, idmgr_obj:null,
 			//divstr_colname, divstr_db_type, widgetgen are all member var's
 			// that have to do with the db_type radiobutton /
@@ -210,7 +210,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					form_reg:form_reg,
 					entrynum_reg:inputnum_reg,
 					server_path:"create_newdbcol/",
-					server_key:'info_data',
 					text_node_str: constant.text_node_str,
 					grid_id:this.idmgr_obj.grid_id,
 					updatebtn_str:constant.updatebtn_str,

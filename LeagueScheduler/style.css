@@ -143,6 +143,9 @@ div.bar {
 .empty_smallgap {
     margin-left:25px;
 }
+.empty_tinygap {
+    margin-left:10px;
+}
 .empty_smallgap_color {
     margin-left:25px;
     color:orange;

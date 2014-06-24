@@ -149,20 +149,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// it decides to put the pcontainerdiv_node first. (the button node
 				// shows up after the pcontainerdiv)
 				//var ddbtn_node = put(topdiv_node, "button[type=button]");
-				/*
-				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					idstr_obj.radiobtn1_id, idstr_obj.radiobtn2_id,
-					constant.init_db_type,
-					this, this.radio1_callback, this.radio2_callback,
-					"team_id");
-				var ddmenu_widget = new DropDownMenu()
-				var ddbtn_widget = new DropDownButton({
-					class:"primary",
-					label:"Select League",
-					//style:"margin-left:25px",
-					dropDown:ddmenu_widget,
-					style:"margin-right:12px"
-				}, ddbtn_node); */
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,
 					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,

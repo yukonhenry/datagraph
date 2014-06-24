@@ -34,7 +34,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 			numweeks:12
 		};
 		return declare(baseinfo, {
-			infogrid_store:null, idproperty:constant.idproperty_str,
+			idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
 			base_numweeks:0, widgetgen:null,
 			constructor: function(args) {
@@ -175,7 +175,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 					form_reg:form_reg,
 					entrynum_reg:inputnum_reg,
 					server_path:"create_newdbcol/",
-					server_key:'info_data',
 					text_node_str: constant.text_node_str,
 					grid_id:grid_id,
 					updatebtn_str:constant.updatebtn_str,

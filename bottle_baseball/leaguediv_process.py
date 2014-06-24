@@ -58,8 +58,6 @@ http://bottlepy.org/docs/dev/tutorial.html#request-routing
 def leaguedivinfo_all():
     callback_name = request.query.callback
     ldata_tuple = getLeagueDivInfo()
-    field_tuple = getFieldInfo()
-    dbstatus = _dbInterface.getSchedStatus()
     rrdbcol_list = _dbInterface.getScheduleCollection(DB_Col_Type.RoundRobin)
     tourndbcol_list = _dbInterface.getScheduleCollection(DB_Col_Type.ElimTourn)
     #cupschedcol_list = _dbInterface.getCupScheduleCollections()
@@ -67,11 +65,8 @@ def leaguedivinfo_all():
     newscheddb_list = _dbInterface.getScheduleCollection(DB_Col_Type.GeneratedSchedule)
     prefdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.PreferenceInfo)
     teamdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.TeamInfo)
-    logging.info("leaguedivprocess:leaguedivinfo:dbstatus=%d",dbstatus)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
-                    "field_info":field_tuple.dict_list,
                     "creation_time":time.asctime(),
-                    "dbstatus":dbstatus,
                     "rrdbcollection_list":rrdbcol_list,
                     "fielddb_list": fielddb_list,
                     "tourndbcollection_list":tourndbcol_list,
@@ -250,6 +245,15 @@ def create_newdbcol(db_type, newcol_name):
         raise CodeLogicError("leaguedivprocess:create_newdbcol: db_type not recognized db_type=%s" % (db_type,))
     _routelogic_obj.dbinterface_obj = dbInterface
     a = json.dumps({'test':'divasdf'})
+    return callback_name+'('+a+')'
+
+@route('/update_dbcol/<db_type>/<col_name>')
+def update_dbcol(db_type, col_name):
+    callback_name = request.query.callback
+    update_data_str = request.query.update_data
+    dbInterface = select_db_interface(db_type, col_name)
+    dbInterface.updateDB(update_data_str)
+    a = json.dumps({'test':'updateasdf'})
     return callback_name+'('+a+')'
 
 @route('/delete_dbcol/<db_type>/<delcol_name>')

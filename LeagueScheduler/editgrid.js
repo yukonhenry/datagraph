@@ -29,12 +29,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// ref https://github.com/SitePen/dgrid/wiki/OnDemandList-and-OnDemandGrid
 				// Observable Memory + dgrid has issues - switching to Memory only
 				if (this.idproperty == 'div_id' ||
-					this.idproperty == 'tourndiv_id' ) {
+					this.idproperty == 'tourndiv_id') {
 				//	|| this.idproperty == 'pref_id') {
 					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 				} else if (this.idproperty == 'team_id') {
 					// for team_id, the store idproperty is the default "id" field
-					this.schedInfoStore = new Memory({data:this.griddata_list});
+					this.schedInfoStore = new Memory({data:this.griddata_list,
+						idProperty:"divteam_id"});
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
 				}
@@ -110,15 +111,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 							this.info_obj.rendercell_flag = true;
 						}
 				}));
-				/*
-				if (this.refresh_handle)
-					this.refresh_handle.remove();
-				this.refresh_handle = this.schedInfoGrid.on(
-					"dgrid-refresh-complete", lang.hitch(this, function(event) {
-					if (this.idproperty == 'pref_id') {
-						this.info_obj.create_gridselect(event.grid);
-					}
-				})); */
 			},
 			manageCellSelect: function() {
 				if (this.cellselect_handle)
@@ -212,13 +204,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					this.info_obj.infogrid_store = this.schedInfoStore;
 				}
 			},
-			addreplace_store: function(colname, griddata_list, query_obj) {
+			addreplace_store: function(args_obj) {
 				//reference http://www.sitepen.com/blog/2013/09/06/dojo-faq-how-can-i-add-filtering-controls-to-dgrid/
 				// Note we should be setting filtering queries to the store, instead
 				// of doing setData everytime new data comes in
 				// setData does not work with observable stores - see comment in fieldinfo.js
 				// Add to Store - with filtering query_obj passed in
-				this.colname = colname;
+				var griddata_list = args_obj.griddata_list;
+				var query_obj = args_obj.query_obj;
+				var store_idproperty = args_obj.store_idproperty;
+				this.colname = args_obj.colname;
 				if (this.schedInfoStore.query(query_obj).total == 0) {
 					// query produces empty, so add griddata_list elements
 					// (but not setData because we are not resetting all data, e.g.
@@ -230,7 +225,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					// query produced results, so we will overwrite any data existing
 					// in the store with new griddata data
 					arrayUtil.forEach(griddata_list, function(item) {
-						if (this.schedInfoStore.get(item.id)) {
+						if (this.schedInfoStore.get(item[store_idproperty])) {
 							this.schedInfoStore.put(item);
 						} else {
 							this.schedInfoStore.add(item);

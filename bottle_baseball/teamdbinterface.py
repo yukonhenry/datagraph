@@ -17,28 +17,14 @@ class TeamDBInterface:
 
     def writeDB(self, info_str, config_status, divstr_colname, divstr_db_type):
         teaminfo_list = json.loads(info_str)
-        for teaminfo in teaminfo_list:
-            if teaminfo['af_field_str']:
-                teaminfo['af_field_list'] = [int(x)
-                    for x in teaminfo['af_field_str'].split(',')]
-                del teaminfo['af_field_str']
-            else:
-                teaminfo['af_field_list'] = []
         document_list = [{k.upper():v for k,v in x.items()} for x in teaminfo_list]
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
-            id_str='TEAM_ID')
-
-    def write_constraint_status(self, cstatus_list):
-        operator = "$set"
-        for cstatus in cstatus_list:
-            query_obj = {'TEAM_ID':cstatus['team_id']}
-            operator_obj = {'SATISFY':cstatus['status']}
-            self.dbinterface.updatedoc(query_obj, operator, operator_obj)
+            id_str='DIVTEAM_ID')
 
     def readDB(self):
         # readDB is for returning to client UI
-        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('TEAM_ID')
+        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DIVTEAM_ID')
         rawlist = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname
@@ -53,7 +39,7 @@ class TeamDBInterface:
 
     def readDBraw(self):
         # readDBraw if for db reads from within py code
-        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('TEAM_ID')
+        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DIVTEAM_ID')
         rawlist = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname

@@ -67,14 +67,15 @@ class DB_Col_Type(Enum):
     TeamInfo = 6
 
 class MongoDBInterface:
-    def __init__(self, mongoClient, collection_name='games',
-                 db_col_type=DB_Col_Type.RoundRobin):
+    def __init__(self, mongoClient, collection_name=None, db_col_type=DB_Col_Type.RoundRobin):
+        # default db name is schedule_db
         self.schedule_db = mongoClient.schedule_db
-#        self.collection = self.schedule_db.games
-        self.collection = self.schedule_db[collection_name]
-        self.sched_type = str(db_col_type)
-        if not self.collection.find_one({sched_status_CONST:{"$exists":True}}):
-            self.collection.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type})
+        if collection_name:
+            self.collection = self.schedule_db[collection_name]
+            self.sched_type = str(db_col_type)
+            if not self.collection.find_one({sched_status_CONST:{"$exists":True},
+                sched_type_CONST:self.sched_type}):
+                self.collection.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type})
 
     def insertdoc(self, document):
         docID = self.collection.insert(document)

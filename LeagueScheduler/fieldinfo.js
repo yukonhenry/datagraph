@@ -31,8 +31,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			default_fieldevent_str:"Sports"
 		};
 		return declare(baseinfo, {
- 			idproperty:constant.idproperty_str,
-			calendar_store:null, calendar_id:1,
+ 			idproperty:constant.idproperty_str, calendar_store:null,
+ 			calendar_id:1,
 			fieldselect_widget:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,
 			starttime_handle:null, tooltip:null,
@@ -41,8 +41,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			field_id:0, old_field_id:-1,
 			dupfieldselect_reg:null,
 			rendercell_flag:true, today:null, widgetgen:null,
-			divstr_colname:"", divstr_db_type:"rrdb",
-			infogrid_store:null, calendarmapobj_list:null,
+			divstr_colname:"", divstr_db_type:"rrdb", calendarmapobj_list:null,
 			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
 			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
 			delta_store:null,
@@ -167,7 +166,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					form_reg:form_reg,
 					entrynum_reg:inputnum_reg,
 					server_path:"create_newdbcol/",
-					server_key:'info_data',
 					text_node_str: constant.text_node_str,
 					grid_id:this.idmgr_obj.grid_id,
 					updatebtn_str:constant.updatebtn_str,
@@ -1233,14 +1231,41 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						})[0];
 						if (match_obj) {
 							// if div_id matches, append current field_id to the field_id_list
-							match_obj.field_id_list.push(field_id);
+							match_obj.divfield_list.push(field_id);
 						} else {
 							// if not create a new div_id/field list obj element
 							map_divfield_list.push({div_id:div_id,
-								field_id_list:[field_id]})
+								divfield_list:[field_id]})
 						}
 					})
 				})
+				// if we created the div to divfield map, then save it -
+				// first see if there is a local divinfo store that we can write to
+				if (map_divfield_list) {
+					var idproperty = (this.divstr_db_type == "rrdb")?'div_id':'tourndiv_id';
+					var divinfo_obj = baseinfoSingleton.get_obj(idproperty,
+						this.op_type);
+					if (divinfo_obj && divinfo_obj.infogrid_store &&
+						divinfo_obj.activegrid_colname == this.divstr_colname) {
+						// if local store exists, then write divfield information
+						// into the local store
+						var infogrid_store = divinfo_obj.infogrid_store;
+						arrayUtil.forEach(map_divfield_list, function(map_obj) {
+							var store_obj = infogrid_store.get(map_obj.div_id);
+							if (store_obj) {
+								store_obj.divfield_list = map_obj.divfield_list;
+								infogrid_store.put(store_obj);
+							}
+						})
+					}
+					// send divfield update to server (regardless of whether there
+					// is local store or not)
+					var storedata_json = JSON.stringify(map_divfield_list);
+					var server_key_obj = {update_data:storedata_json}
+					this.server_interface.getServerData(
+						"update_dbcol/"+this.divstr_db_type+'/'+this.divstr_colname,
+						this.server_interface.server_ack, server_key_obj);
+				}
 				// modify store data before sending data to server
 				var newlist = new Array();
 				// for the field grid data convert Data objects to str

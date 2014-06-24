@@ -21,6 +21,14 @@ class RRDBInterface:
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
         self.dbinterface.updateInfoDocument(document_list, config_status, 'DIV_ID')
 
+    def updateDB(self, update_data_str):
+        # right now this update operation is hardcoded to update divfield_list only
+        update_data_list = json.loads(update_data_str)
+        for update_obj in update_data_list:
+            query_obj = {'DIV_ID':update_obj['div_id']}
+            operator_obj = {"DIVFIELD_LIST":update_obj['divfield_list']}
+            self.dbinterface.updatedoc(query_obj, "$set", operator_obj)
+
     def readDB(self):
         liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
         divlist = liststatus_tuple.list

@@ -20,6 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			schedutil_obj:null, activegrid_colname:"",
 			config_status:0, gridtooltip_list:null,
 			btntxtid_list:null, op_type:"", op_prefix:"", idmgr_obj:null,
+			infogrid_store:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -56,7 +57,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var newgrid_flag = args_obj.newgrid_flag;
 					var grid_id = args_obj.grid_id;
 					var server_path = args_obj.server_path;
-					var server_key = args_obj.server_key;
 					var cellselect_flag = args_obj.cellselect_flag;
 					var text_node_str = args_obj.text_node_str;
 					var updatebtn_str = args_obj.updatebtn_str;
@@ -97,7 +97,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 								idproperty:this.idproperty,
 								server_path:server_path,
-								server_key:server_key,
+								server_key:"info_data",
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
 								uistackmgr_type:this.uistackmgr_type,
@@ -196,7 +196,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var item = options_obj.item;
 				// define key for object returned from server to get
 				// status of configuration - config_status
-				options_obj.serverstatus_key = 'config_status'
+				options_obj.serverstatus_key = "config_status";
 				this.server_interface.getServerData(
 					options_obj.getserver_path+options_obj.db_type+'/'+item,
 					lang.hitch(this, this.createEditGrid), null, options_obj);

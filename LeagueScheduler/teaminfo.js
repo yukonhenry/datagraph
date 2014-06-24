@@ -23,7 +23,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
 		return declare(baseinfo, {
-			infogrid_store:null, idproperty:constant.idproperty_str,
+			idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
 			//divstr_colname, divstr_db_type, widgetgen are all member var's
 			// that have to do with the db_type radiobutton /
@@ -45,7 +45,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							style:"width:auto"
 						}
 					}, TextBox, "click"),
-					af_field_str:{label:"Field Affinity",
+					af_field_list:{label:"Field Affinity",
 						renderCell: lang.hitch(this, this.af_field_render)
 					}
 				};
@@ -93,13 +93,19 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.getserver_path = 'get_dbcol/'
 				options_obj.db_type = constant.db_type;
-				this.inherited(arguments);
+				var item = options_obj.item;
+				// define key for object returned from server to get
+				// status of configuration - config_status
+				options_obj.serverstatus_key = "config_status";
+				this.server_interface.getServerData(
+					options_obj.getserver_path+options_obj.db_type+'/'+item,
+					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			getInitialList: function(num, div_id) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
-					info_list.push({team_id:i, team_name:"", af_field_str:"",
-					div_id:div_id, id:"div"+div_id+"team"+i});
+					info_list.push({team_id:i, team_name:"", af_field_list:[],
+					div_id:div_id, divteam_id:"div"+div_id+"team"+i});
 				}
 				return info_list;
 			},
@@ -107,7 +113,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var gridhelp_list = [
 					{id:'team_id', help_str:"Identifier, Non-Editable"},
 					{id:'team_name', help_str:"Enter Team Name or Identifier"},
-					{id:"af_field_str", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
+					{id:"af_field_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
 				]
 				return gridhelp_list;
 			},
@@ -151,9 +157,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				//this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
 			create_team_grid: function(options_obj, div_id_event) {
+				// create_team_grid may be called even if there is an existing grid:
+				// a different division may be selected.  In that case a local
+				// sotre will exist
 				var option_list = options_obj.option_list;
 				var topdiv_node = options_obj.topdiv_node;
 				var text_id = this.idmgr_obj.text_id;
+				var args_obj = null;
 				var span_node = dom.byId(text_id);
 				if (!span_node) {
 					put(topdiv_node, "span.empty_smallgap[id=$]", text_id);
@@ -172,8 +182,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// name for the team list in teaminfo obj is restricted to be
 				// a division id name
 				this.activegrid_colname = this.divstr_colname;
-				var info_list = this.getInitialList(this.totalrows_num,
-					div_id_event);
+				// check if there is a local store
+				var info_list = null;
+				if (this.infogrid_store) {
+					info_list = this.infogrid_store.query({div_id:div_id_event})
+				}
+				if (!info_list || info_list.length == 0) {
+					info_list = this.getInitialList(this.totalrows_num,
+						div_id_event);
+				}
 				// query object for the store - use query to filter display to grid
 				// in this example, show only the data where div_id matches -
 				// div_id is determined by the division select
@@ -199,8 +216,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						newgrid_flag:true
 					}
 				} else {
-					this.editgrid.addreplace_store(this.activegrid_colname,
-						info_list, query_obj);
+					args_obj = {
+						colname:this.activegrid_colname, griddata_list:info_list,
+						query_obj:query_obj, store_idproperty:"divteam_id"
+					}
+					this.editgrid.addreplace_store(args_obj);
+					// next args_obj is for reconfig_infobtn
 					args_obj = {
 						newgrid_flag:false
 					}
@@ -214,13 +235,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				args_obj.op_type = this.op_type;
 				this.reconfig_infobtn(args_obj);
 			},
-			af_field_render: function(object, data, node) {
+			af_field_render: function(object, data_list, node) {
 				var team_id = object.team_id;
 				// define parameters for the dialogtooltip that pops up in each
 				// grid cell after ddown btn is clicked
 				var content_str = "";
 				var checkbox_list = new Array();
+				var span_id = "";
 				if (this.divfield_list) {
+					// this.divfield_list gets set prior to call to create grid
+					// and will indicate the checkboxes required
 					// create content_str for the checkboxes and labels that
 					// will populate the tooltipdialog
 					arrayUtil.forEach(this.divfield_list, function(field_id) {
@@ -231,8 +255,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_id+'</strong></label><br>';
 						checkbox_list.push(idstr);
 					}, this)
-					var options_obj = {checkbox_list:checkbox_list, id:object.id}
+					var options_obj = {checkbox_list:checkbox_list, divteam_id:object.divteam_id,
+						topdiv_node:node, }
 					var button_id = this.op_prefix+"tmfield_btn"+team_id+"_id";
+					// create span_id for text display next to dropdown
+					span_id = "span"+button_id;
+					// pass it to af_process event handler too
+					options_obj.span_id = span_id;
 					// add button through adding declarative description into
 					// content string instead of instantiating directly and adding
 					// using addChild() - the latter does not work in a subsequent
@@ -256,10 +285,22 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				} else {
 					tipdialog_widget.set("content", content_str);
 				}
+				var display_str = "";
 				if (this.divfield_list) {
+					// enable checkboxes if render gets passed with data from
+					// the store
+					display_str = "";
+					arrayUtil.forEach(data_list, function(field_id) {
+						var idstr = this.op_prefix+"tmfield_checkbox"+team_id+
+							field_id+"_id";
+						var checkbox_widget = registry.byId(idstr);
+						checkbox_widget.set("checked", true);
+						display_str += field_id+',';
+					}, this)
 					// set callback for button in dialogtooltip
 					var button_widget = registry.byId(button_id);
-					if (!button_widget) {
+					// button widget should already exist at this point
+					if (button_widget) {
 						button_widget.set("onClick",
 							lang.hitch(this, this.af_dialogbtn_process, options_obj))
 					} else {
@@ -279,25 +320,50 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, ddown_node)
 					//team_ddown_widget.startup();
 				}
+				if (display_str.length > 0) {
+					// trim off last comma
+					display_str = display_str.substring(0,
+						display_str.length-1);
+					// write to node next to dropdown buton
+					var span_node = dom.byId(span_id);
+					if (!span_node) {
+						span_node = put(node, "span.empty_tinygap[id=$]",
+							span_id, display_str);
+					} else {
+						span_node.innerHTML = display_str;
+					}
+				}
 			},
 			af_dialogbtn_process: function(options_obj, event) {
 				//callback function for affinity field tooltipdialog button
 				var checkbox_list = options_obj.checkbox_list;
-				var id = options_obj.id;
-				var value_str = "";
+				var divteam_id = options_obj.divteam_id;
+				var topdiv_node = options_obj.topdiv_node;
+				var span_id = options_obj.span_id;
+				var value_list = new Array();
+				var display_str = "";
 				// loop through each checkbox to see if there is a value
 				arrayUtil.forEach(checkbox_list, function(checkbox_id) {
 					var checkbox_widget = registry.byId(checkbox_id);
-					if (checkbox_widget.get("checked")) {
+					var checkbox_value = checkbox_widget.get("value");
+					if (checkbox_value) {
 						// create str to store (str of integer id elements)
-						value_str += checkbox_widget.get("value")+',';
+						value_list.push(parseInt(checkbox_value));
+						display_str += checkbox_value+',';
 					}
 				})
 				// trim off last comma
-				value_str = value_str.substring(0, value_str.length-1);
+				display_str = display_str.substring(0, display_str.length-1);
+				var span_node = dom.byId(span_id);
+				if (!span_node) {
+					span_node = put(topdiv_node, "span.empty_tinygap[id=$]",
+						span_id, display_str);
+				} else {
+					span_node.innerHTML = display_str;
+				}
 				if (this.editgrid) {
-					var store_elem = this.editgrid.schedInfoStore.get(id);
-					store_elem.af_field_str = value_str;
+					var store_elem = this.editgrid.schedInfoStore.get(divteam_id);
+					store_elem.af_field_list = value_list;
 					this.editgrid.schedInfoStore.put(store_elem);
 				}
 			},
