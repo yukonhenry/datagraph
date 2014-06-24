@@ -44,7 +44,6 @@ define(["dojo/dom", "dojo/_base/declare","dojo/_base/lang",
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {
 						var divisioncode = this.select_reg.get("value");
 						options_obj.divisioncode = divisioncode;
-						options_obj.idproperty = 'sched_id';
 						options_obj.cellselect_flag = false;
 						options_obj.text_node_str = 'Schedule Name';
 						options_obj.grid_id = 'schedinfogrid_id';

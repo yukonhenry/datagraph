@@ -29,7 +29,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			// that have to do with the db_type radiobutton /
 			// league select drop down
 			divstr_colname:"", divstr_db_type:"rrdb", widgetgen:null,
-			divfield_list:null,
+			divfield_list:null, serverinfo_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -73,6 +73,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// switch to blank cpane
 				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 				this.checkdelete_txtbtn();
+				this.serverinfo_list = null;
 			},
 			getServerDBInfo: function(options_obj) {
 				// note third parameter maps to query object, which in this case
@@ -81,25 +82,24 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
+				// switch gstack cpane to blank
+				// how pstack cpane will go direct to config
+				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
+				// delete text btn nodes so that we can recreate them again
+				this.checkdelete_txtbtn();
 				if (!('op_type' in options_obj))
 					options_obj.op_type = this.op_type;
-				options_obj.idproperty = constant.idproperty_str;
-				options_obj.server_path = "create_newdbcol/";
 				options_obj.serverdata_key = 'info_list';
-				options_obj.server_key = 'info_data';
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = constant.text_node_str;
 				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.getserver_path = 'get_dbcol/'
-				options_obj.db_type = constant.db_type;
 				var item = options_obj.item;
 				// define key for object returned from server to get
 				// status of configuration - config_status
-				options_obj.serverstatus_key = "config_status";
-				this.server_interface.getServerData(
-					options_obj.getserver_path+options_obj.db_type+'/'+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
+				this.server_interface.getServerData("get_dbcol/"+
+					constant.db_type+'/'+options_obj.item,
+					lang.hitch(this, this.prepgrid_data));
 			},
 			getInitialList: function(num, div_id) {
 				var info_list = new Array();
@@ -116,6 +116,22 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					{id:"af_field_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
 				]
 				return gridhelp_list;
+			},
+			prepgrid_data: function(server_data) {
+				// handler for teamid server data
+				// first extract divstr info - colname and db_type
+				var divstr_obj = server_data.divstr_obj;
+				if (divstr_obj.config_status) {
+					this.divstr_colname = divstr_obj.colname;
+					this.divstr_db_type = divstr_obj.db_type;
+				}
+				// get data that swill be sent to store to create grid
+				this.serverinfo_list = server_data.info_list;
+				var divstr_list = divstr_obj.info_list;
+				arrayUtil.forEach(divstr_list, function(item) {
+					item.divstr = item.div_age+item.div_gen;
+				})
+				this.set_div_select(divstr_list);
 			},
 			set_div_select: function(divstr_list) {
 				var option_list = [{label:"Select Division", value:"",
@@ -184,27 +200,20 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.activegrid_colname = this.divstr_colname;
 				// check if there is a local store
 				var info_list = null;
-				if (this.infogrid_store) {
-					info_list = this.infogrid_store.query({div_id:div_id_event})
-				}
-				if (!info_list || info_list.length == 0) {
-					info_list = this.getInitialList(this.totalrows_num,
-						div_id_event);
-				}
 				// query object for the store - use query to filter display to grid
 				// in this example, show only the data where div_id matches -
 				// div_id is determined by the division select
 				var query_obj = {div_id:div_id_event}
 				if (this.is_newgrid_required()) {
 					var columnsdef_obj = this.getcolumnsdef_obj();
+					info_list = this.getInitialList(this.totalrows_num,
+						div_id_event);
 					this.editgrid = new EditGrid({
 						griddata_list:info_list,
 						colname:this.activegrid_colname,
 						server_interface:this.server_interface,
 						grid_id:this.idmgr_obj.grid_id,
 						idproperty:this.idproperty,
-						server_path:"create_newdbcol/",
-						server_key:'info_data',
 						cellselect_flag:false,
 						info_obj:this,
 						uistackmgr_type:this.uistackmgr_type,
@@ -216,11 +225,26 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						newgrid_flag:true
 					}
 				} else {
-					args_obj = {
-						colname:this.activegrid_colname, griddata_list:info_list,
-						query_obj:query_obj, store_idproperty:"divteam_id"
+					if (this.infogrid_store) {
+						if (this.infogrid_store.query(query_obj).total == 0) {
+							// if div_id data does not exist, add initilization data
+							info_list = this.getInitialList(this.totalrows_num,
+								div_id_event);
+							args_obj = {
+								colname:this.activegrid_colname,
+								griddata_list:info_list, queryonly_flag:false,
+								query_obj:query_obj, store_idproperty:"divteam_id"
+							}
+						} else {
+							// store already provides data for the div_id, just
+							// do a store query switch
+							args_obj = {colname:this.activegrid_colname,
+								queryonly_flag:true, query_obj:query_obj}
+						}
+						this.editgrid.addreplace_store(args_obj);
+					} else {
+						console.log("Code Logic Error:teaminfo:create_team_grid: store should exist");
 					}
-					this.editgrid.addreplace_store(args_obj);
 					// next args_obj is for reconfig_infobtn
 					args_obj = {
 						newgrid_flag:false

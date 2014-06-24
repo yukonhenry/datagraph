@@ -8,6 +8,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 	         arrayUtil, date, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
 		ToggleButton, Tooltip, baseinfoSingleton) {
+		var constant = {
+			createserver_path:"create_newdbcol/",
+			toserver_key:"info_data"
+		}
 		return declare(null, {
 			griddata_list:null,
 			server_interface:null, colname:null,
@@ -17,7 +21,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			errorHandle:null, datachangeHandle:null, header_handle:null,
 			idproperty:null,
 			cellselect_flag:false, cellselect_handle:null, refresh_handle:null,
-			server_path:"", server_key:"",
 			info_obj:null, uistackmgr_type:null, storeutil_obj:null, db_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -154,8 +157,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				this.info_obj.update_configdone(config_status, gridstatus_node);
 				var storedata_json = null;
 				var storedata_json = null;
-				var server_path = this.server_path;
-				var server_key = this.server_key || "";
 				var server_key_obj = {};
 				if (this.idproperty == "field_id" || this.idproperty == "pref_id" ||
 					this.idproperty == "team_id") {
@@ -177,12 +178,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				} else {
 					storedata_json = JSON.stringify(raw_result);
 				}
-				server_key_obj[server_key] = storedata_json;
+				server_key_obj[constant.toserver_key] = storedata_json;
 				server_key_obj.config_status = config_status;
 				//server_key_obj.db_type = this.db_type;
 				//var options_obj = {item:this.colname};  // is this needed?
 				this.server_interface.getServerData(
-					server_path+this.db_type+'/'+this.colname,
+					constant.createserver_path+this.db_type+'/'+this.colname,
 					this.server_interface.server_ack, server_key_obj);
 				// add to select db store (for dropdowns)
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);
@@ -210,27 +211,30 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				// of doing setData everytime new data comes in
 				// setData does not work with observable stores - see comment in fieldinfo.js
 				// Add to Store - with filtering query_obj passed in
-				var griddata_list = args_obj.griddata_list;
-				var query_obj = args_obj.query_obj;
-				var store_idproperty = args_obj.store_idproperty;
 				this.colname = args_obj.colname;
-				if (this.schedInfoStore.query(query_obj).total == 0) {
-					// query produces empty, so add griddata_list elements
-					// (but not setData because we are not resetting all data, e.g.
-					// data that was outside of the query)
-					arrayUtil.forEach(griddata_list, function(item) {
-						this.schedInfoStore.add(item);
-					}, this)
-				} else {
-					// query produced results, so we will overwrite any data existing
-					// in the store with new griddata data
-					arrayUtil.forEach(griddata_list, function(item) {
-						if (this.schedInfoStore.get(item[store_idproperty])) {
-							this.schedInfoStore.put(item);
-						} else {
+				var query_obj = args_obj.query_obj;
+				var queryonly_flag = args_obj.queryonly_flag;
+				if (!queryonly_flag) {
+					var griddata_list = args_obj.griddata_list;
+					var store_idproperty = args_obj.store_idproperty;
+					if (this.schedInfoStore.query(query_obj).total == 0) {
+						// query produces empty, so add griddata_list elements
+						// (but not setData because we are not resetting all data, e.g.
+						// data that was outside of the query)
+						arrayUtil.forEach(griddata_list, function(item) {
 							this.schedInfoStore.add(item);
-						}
-					}, this)
+						}, this)
+					} else {
+						// query produced results, so we will overwrite any data existing
+						// in the store with new griddata data
+						arrayUtil.forEach(griddata_list, function(item) {
+							if (this.schedInfoStore.get(item[store_idproperty])) {
+								this.schedInfoStore.put(item);
+							} else {
+								this.schedInfoStore.add(item);
+							}
+						}, this)
+					}
 				}
 				this.schedInfoGrid.set("query", query_obj);
 				this.schedInfoGrid.refresh();

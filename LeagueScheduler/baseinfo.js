@@ -12,6 +12,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		var constant = {
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
+			serverstatus_key:"config_status"
 		};
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr_type:null,
@@ -56,7 +57,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var entrynum_reg = args_obj.entrynum_reg;
 					var newgrid_flag = args_obj.newgrid_flag;
 					var grid_id = args_obj.grid_id;
-					var server_path = args_obj.server_path;
 					var cellselect_flag = args_obj.cellselect_flag;
 					var text_node_str = args_obj.text_node_str;
 					var updatebtn_str = args_obj.updatebtn_str;
@@ -96,8 +96,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								grid_id:grid_id,
 								//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 								idproperty:this.idproperty,
-								server_path:server_path,
-								server_key:"info_data",
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
 								uistackmgr_type:this.uistackmgr_type,
@@ -194,11 +192,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
 				var item = options_obj.item;
+				var getserver_path = "get_dbcol/";
 				// define key for object returned from server to get
 				// status of configuration - config_status
-				options_obj.serverstatus_key = "config_status";
 				this.server_interface.getServerData(
-					options_obj.getserver_path+options_obj.db_type+'/'+item,
+					getserver_path+options_obj.db_type+'/'+item,
 					lang.hitch(this, this.createEditGrid), null, options_obj);
 			},
 			createEditGrid: function(server_data, options_obj) {
@@ -206,14 +204,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
 				this.activegrid_colname = options_obj.item;
 				var columnsdef_obj = this.getcolumnsdef_obj();
-				var idproperty = options_obj.idproperty;
+				var idproperty = this.idproperty;
 				// if server data is fielddb information, then we need to do
 				// some data conversion (convert to date obj) before passing onto grid
 				// Note server_key is key for outgoing request
 				// serverdata_key is for incoming data
 				var data_list = server_data[options_obj.serverdata_key];
 				// extract configuration status from server. integer value 0/1
-				var config_status = server_data[options_obj.serverstatus_key];
+				var config_status = server_data[constant.serverstatus_key];
 				this.totalrows_num = data_list.length;
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
@@ -241,8 +239,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						grid_id:options_obj.grid_id,
 						//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						idproperty:idproperty,
-						server_path:options_obj.server_path,
-						server_key:options_obj.server_key,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:this,
 						uistackmgr_type:this.uistackmgr_type,

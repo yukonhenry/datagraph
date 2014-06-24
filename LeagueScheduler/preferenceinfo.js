@@ -209,7 +209,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					dbname_reg:dbname_reg,
 					form_reg:form_reg,
 					entrynum_reg:inputnum_reg,
-					server_path:"create_newdbcol/",
 					text_node_str: constant.text_node_str,
 					grid_id:this.idmgr_obj.grid_id,
 					updatebtn_str:constant.updatebtn_str,
@@ -229,15 +228,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// at the server)
 				if (!('op_type' in options_obj))
 					options_obj.op_type = this.op_type;
-				options_obj.idproperty = constant.idproperty_str;
-				options_obj.server_path = "create_newdbcol/";
 				options_obj.serverdata_key = 'info_list';
-				options_obj.server_key = 'info_data';
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Preference List Name";
 				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.getserver_path = 'get_dbcol/'
 				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},

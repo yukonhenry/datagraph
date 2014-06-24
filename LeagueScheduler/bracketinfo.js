@@ -55,7 +55,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare","dojo/_base/lang","dojo/_
 					this.select_reg_handle = this.select_reg.on("change", lang.hitch(this, function(evt) {
 						var divisioncode = this.select_reg.get("value");
 						options_obj.divisioncode = divisioncode;
-						options_obj.idproperty = 'match_id';
+						//options_obj.idproperty = 'match_id';
 						options_obj.cellselect_flag = false;
 						this.server_interface.getServerData("get_scheddbcol/"+item,
 							lang.hitch(this, this.convertServerDataFormat),
