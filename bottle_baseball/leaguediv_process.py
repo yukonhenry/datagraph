@@ -75,24 +75,6 @@ def leaguedivinfo_all():
                     "teamdb_list":teamdb_list})
     return callback_name+'('+a+')'
 
-# Get per-division schedule
-@route('/leaguedivinfo/<tid:int>', method='GET')
-def leaguedivinfo(tid):
-	callback_name = request.query.callback
-	ldata_tuple = getLeagueDivInfo()
-	ldata_divinfo = ldata_tuple.dict_list
-	leaguediv_indexerGet = ldata_tuple.indexerGet
-	divindex = leaguediv_indexerGet(tid)
-	if divindex is not None:
-		div = ldata_divinfo[divindex]
-		age = div['div_age']
-		gender = div['div_gen']
-		game_list = _dbInterface.findDivisionSchedule(age, gender)
-		a = json.dumps({"game_list":game_list, "divfield_list":div['divfield_list']})
-		return callback_name+'('+a+')'
-	else:
-		return False
-
 @route('/getalldivschedule')
 def get_alldivSchedule():
     # http://docs.mongodb.org/manual/tutorial/create-a-unique-index/

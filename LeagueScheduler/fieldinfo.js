@@ -1210,6 +1210,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var map_divfield_list = new Array();
 				arrayUtil.forEach(raw_result, function(item) {
 					var field_id = item.field_id;
+					var field_name = item.field_name;
 					// convert primaryuse string into div_id integer array
 					var div_id_list = arrayUtil.map(item.primaryuse_str.split(','),
 					function(item2) {
@@ -1226,11 +1227,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						})[0];
 						if (match_obj) {
 							// if div_id matches, append current field_id to the field_id_list
-							match_obj.divfield_list.push(field_id);
+							match_obj.divfield_list.push({field_id:field_id,
+								field_name:field_name});
 						} else {
 							// if not create a new div_id/field list obj element
 							map_divfield_list.push({div_id:div_id,
-								divfield_list:[field_id]})
+								divfield_list:[{field_id:field_id, field_name:field_name}]});
 						}
 					})
 				})

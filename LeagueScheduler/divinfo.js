@@ -206,9 +206,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					info_list.push({div_id:i, div_age:"", div_gen:"",
-						totalteams:2, numweeks:this.base_numweeks,
+						totalteams:10, numweeks:this.base_numweeks,
 						numgdaysperweek:1, totalgamedays:this.base_numweeks,
-						gameinterval:1, mingap_days:1, maxgap_days:2});
+						gameinterval:60, mingap_days:1, maxgap_days:2});
 				}
 				return info_list;
 			},

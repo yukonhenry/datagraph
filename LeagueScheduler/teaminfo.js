@@ -73,6 +73,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// switch to blank cpane
 				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 				this.checkdelete_txtbtn();
+				// null out member var that tracks server data
 				this.serverinfo_list = null;
 			},
 			getServerDBInfo: function(options_obj) {
@@ -125,7 +126,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.divstr_colname = divstr_obj.colname;
 					this.divstr_db_type = divstr_obj.db_type;
 				}
-				// get data that swill be sent to store to create grid
+				// get data that will be sent to store to create grid
 				this.serverinfo_list = server_data.info_list;
 				var divstr_list = divstr_obj.info_list;
 				arrayUtil.forEach(divstr_list, function(item) {
@@ -206,8 +207,21 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var query_obj = {div_id:div_id_event}
 				if (this.is_newgrid_required()) {
 					var columnsdef_obj = this.getcolumnsdef_obj();
-					info_list = this.getInitialList(this.totalrows_num,
+					if (this.serverinfo_list) {
+						// if server data is available use that
+						info_list = this.serverinfo_list;
+						// check that the server data includes current
+						// div_id data; if not, append initialization data
+						if (!arrayUtil.some(info_list, function(item) {
+							return item.div_id == div_id_event;
+						})) {
+							info_list.concat(this.getInitialList(
+								this.totalrows_num, div_id_event));
+						}
+					} else {
+						info_list = this.getInitialList(this.totalrows_num,
 						div_id_event);
+					}
 					this.editgrid = new EditGrid({
 						griddata_list:info_list,
 						colname:this.activegrid_colname,
@@ -226,10 +240,23 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}
 				} else {
 					if (this.infogrid_store) {
-						if (this.infogrid_store.query(query_obj).total == 0) {
-							// if div_id data does not exist, add initilization data
-							info_list = this.getInitialList(this.totalrows_num,
-								div_id_event);
+						if (this.serverinfo_list || this.infogrid_store.query(query_obj).total == 0) {
+							if (this.serverinfo_list) {
+								// if server data exists, use that
+								info_list = this.serverinfo_list;
+								// check that the server data includes current
+								// div_id data; if not, append initialization data
+								if (!arrayUtil.some(info_list, function(item) {
+									return item.div_id == div_id_event;
+								})) {
+									info_list.concat(this.getInitialList(
+										this.totalrows_num, div_id_event));
+								}
+							} else {
+								// if div_id data does not exist, add initilization data
+								info_list = this.getInitialList(
+									this.totalrows_num, div_id_event);
+							}
 							args_obj = {
 								colname:this.activegrid_colname,
 								griddata_list:info_list, queryonly_flag:false,
@@ -258,6 +285,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				args_obj.entry_pt = constant.init;
 				args_obj.op_type = this.op_type;
 				this.reconfig_infobtn(args_obj);
+				// null out server data tracking
+				this.serverinfo_list = null;
 			},
 			af_field_render: function(object, data_list, node) {
 				var team_id = object.team_id;
@@ -271,13 +300,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// and will indicate the checkboxes required
 					// create content_str for the checkboxes and labels that
 					// will populate the tooltipdialog
-					arrayUtil.forEach(this.divfield_list, function(field_id) {
+					arrayUtil.forEach(this.divfield_list, function(item) {
+						var field_id = item.field_id;
+						var field_name = item.field_name;
 						var idstr = this.op_prefix+"tmfield_checkbox"+team_id+
 							field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+
 						idstr+
-						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_id+'</strong></label><br>';
-						checkbox_list.push(idstr);
+						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_name+'</strong></label><br>';
+						checkbox_list.push({id:idstr, field_name:field_name});
 					}, this)
 					var options_obj = {checkbox_list:checkbox_list, divteam_id:object.divteam_id,
 						topdiv_node:node, }
@@ -309,17 +340,21 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				} else {
 					tipdialog_widget.set("content", content_str);
 				}
+				//tipdialog_widget.startup();
 				var display_str = "";
 				if (this.divfield_list) {
 					// enable checkboxes if render gets passed with data from
 					// the store
-					display_str = "";
 					arrayUtil.forEach(data_list, function(field_id) {
 						var idstr = this.op_prefix+"tmfield_checkbox"+team_id+
 							field_id+"_id";
 						var checkbox_widget = registry.byId(idstr);
 						checkbox_widget.set("checked", true);
-						display_str += field_id+',';
+						var match_obj = arrayUtil.filter(this.divfield_list,
+						function(item) {
+							return item.field_id == field_id
+						})[0]
+						display_str += match_obj.field_name+',';
 					}, this)
 					// set callback for button in dialogtooltip
 					var button_widget = registry.byId(button_id);
@@ -344,6 +379,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, ddown_node)
 					//team_ddown_widget.startup();
 				}
+				// if there is data, display checked fieldnames next to dropdown
 				if (display_str.length > 0) {
 					// trim off last comma
 					display_str = display_str.substring(0,
@@ -367,13 +403,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var value_list = new Array();
 				var display_str = "";
 				// loop through each checkbox to see if there is a value
-				arrayUtil.forEach(checkbox_list, function(checkbox_id) {
+				arrayUtil.forEach(checkbox_list, function(item) {
+					var checkbox_id = item.id;
+					var field_name = item.field_name;
 					var checkbox_widget = registry.byId(checkbox_id);
 					var checkbox_value = checkbox_widget.get("value");
 					if (checkbox_value) {
 						// create str to store (str of integer id elements)
 						value_list.push(parseInt(checkbox_value));
-						display_str += checkbox_value+',';
+						display_str += field_name+',';
 					}
 				})
 				// trim off last comma
