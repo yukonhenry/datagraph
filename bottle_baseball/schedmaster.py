@@ -50,6 +50,8 @@ class SchedMaster:
         # if there are div_id's with no 'divfield_list' key, create it
         if divreqfields_list:
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
+        else:
+            self.simplifydivfield_list()
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list
@@ -121,11 +123,12 @@ class SchedMaster:
                             divinfo['divfield_list'].append(field_id)
                         else:
                             divinfo['divfield_list'] = [field_id]
-                        #dbInterface.updateDBDivFields(divinfo)
+'''
         # save to db
         for div_id in divset:
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             dbInterface.updateDBDivFields(divinfo)
+'''
 
     def get_schedule(self, idproperty, propid, div_age="", div_gen=""):
         if idproperty == 'div_id':
