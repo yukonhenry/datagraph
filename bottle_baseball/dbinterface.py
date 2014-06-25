@@ -94,10 +94,19 @@ class MongoDBInterface:
         else:
             return 1
 
+    def check_docexists(self, key):
+        # use key to check if doc exists - return boolean
+        if self.collection.find({"SCHED_TYPE":self.sched_type,
+            key:{"$exists":True}}, {key:1}).limit(1):
+            return True
+        else:
+            return False
 
     def getdoc(self, query_obj, projection_obj, findone_flag=False):
+        # https://blog.serverdensity.com/checking-if-a-document-exists-mongodb-slow-findone-vs-find/
+        # use limit(1) instead based on recommendation above rather than find_one
         if findone_flag:
-            return self.collection.find_one(query_obj, projection_obj)
+            return self.collection.find(query_obj, projection_obj).limit(1)
         else:
             return self.collection.find(query_obj, projection_obj)
 

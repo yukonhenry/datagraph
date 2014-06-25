@@ -216,7 +216,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			get_gridhelp_list: function() {
 				var gridhelp_list = [
 					{id:'field_id', help_str:"Identifier, Non-Editable"},
-					{id:'field_name', help_str:"Enter Field Name, click to edit"},
+					{id:'field_name', help_str:"Enter Field Name, click cell to edit"},
 					{id:'primaryuse_str', help_str:"Select Division(s) that are using the field, click to bring up checkbox list"},
 					{id:'start_date', help_str:"Specify Date when field availability begins"},
 					{id:'end_date', help_str:"Specify Date when field availability ends"},

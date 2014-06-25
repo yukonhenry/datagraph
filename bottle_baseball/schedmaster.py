@@ -4,6 +4,7 @@ from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from scheddbinterface import SchedDBInterface
 from prefdbinterface import PrefDBInterface
+from teamdbinterface import TeamDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from collections import namedtuple
@@ -25,7 +26,7 @@ class SchedMaster:
             dbInterface = TournDBInterface(mongoClient, divcol_name)
         else:
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
-        dbtuple = dbInterface.readDBraw();
+        dbtuple = dbInterface.readDBraw()
         if dbtuple.config_status == 1:
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
@@ -52,6 +53,13 @@ class SchedMaster:
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
         else:
             self.simplifydivfield_list()
+        # get team-related field affinity information, if any
+        # use divcol_name as it shares collection name w divinfo
+        '''
+        tmdbInterface = TeamDBInterface(mongoClient, divcol_name)
+        if tmdbInterface.check_docexists():
+            tmdbtuple = tmdbInterface.readDBraw()
+        '''
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list
@@ -123,12 +131,18 @@ class SchedMaster:
                             divinfo['divfield_list'].append(field_id)
                         else:
                             divinfo['divfield_list'] = [field_id]
-'''
+        '''
         # save to db
         for div_id in divset:
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             dbInterface.updateDBDivFields(divinfo)
-'''
+        '''
+
+    def simplifydivfield_list(self):
+        for divinfo in self.divinfo_list:
+            if 'divfield_list' in divinfo:
+                new_list = [x['field_id'] for x in divinfo['divfield_list']]
+                divinfo['divfield_list'] = new_list
 
     def get_schedule(self, idproperty, propid, div_age="", div_gen=""):
         if idproperty == 'div_id':

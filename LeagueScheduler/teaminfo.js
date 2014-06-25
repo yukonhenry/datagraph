@@ -45,7 +45,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							style:"width:auto"
 						}
 					}, TextBox, "click"),
-					af_field_list:{label:"Field Affinity",
+					af_list:{label:"Field Affinity",
 						renderCell: lang.hitch(this, this.af_field_render)
 					}
 				};
@@ -105,8 +105,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getInitialList: function(num, div_id) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
-					info_list.push({team_id:i, team_name:"", af_field_list:[],
-					div_id:div_id, divteam_id:"div"+div_id+"team"+i});
+					info_list.push({team_id:i, team_name:"", af_list:[],
+					div_id:div_id, dt_id:"div"+div_id+"team"+i});
 				}
 				return info_list;
 			},
@@ -114,7 +114,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var gridhelp_list = [
 					{id:'team_id', help_str:"Identifier, Non-Editable"},
 					{id:'team_name', help_str:"Enter Team Name or Identifier"},
-					{id:"af_field_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
+					{id:"af_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
 				]
 				return gridhelp_list;
 			},
@@ -260,7 +260,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							args_obj = {
 								colname:this.activegrid_colname,
 								griddata_list:info_list, queryonly_flag:false,
-								query_obj:query_obj, store_idproperty:"divteam_id"
+								query_obj:query_obj, store_idproperty:"dt_id"
 							}
 						} else {
 							// store already provides data for the div_id, just
@@ -310,7 +310,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						'" value="'+field_id+'"><label for="'+idstr+'"> Field:<strong>'+field_name+'</strong></label><br>';
 						checkbox_list.push({id:idstr, field_name:field_name});
 					}, this)
-					var options_obj = {checkbox_list:checkbox_list, divteam_id:object.divteam_id,
+					var options_obj = {checkbox_list:checkbox_list, dt_id:object.dt_id,
 						topdiv_node:node, }
 					var button_id = this.op_prefix+"tmfield_btn"+team_id+"_id";
 					// create span_id for text display next to dropdown
@@ -397,7 +397,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			af_dialogbtn_process: function(options_obj, event) {
 				//callback function for affinity field tooltipdialog button
 				var checkbox_list = options_obj.checkbox_list;
-				var divteam_id = options_obj.divteam_id;
+				var dt_id = options_obj.dt_id;
 				var topdiv_node = options_obj.topdiv_node;
 				var span_id = options_obj.span_id;
 				var value_list = new Array();
@@ -424,8 +424,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					span_node.innerHTML = display_str;
 				}
 				if (this.editgrid) {
-					var store_elem = this.editgrid.schedInfoStore.get(divteam_id);
-					store_elem.af_field_list = value_list;
+					var store_elem = this.editgrid.schedInfoStore.get(dt_id);
+					store_elem.af_list = value_list;
 					this.editgrid.schedInfoStore.put(store_elem);
 				}
 			},

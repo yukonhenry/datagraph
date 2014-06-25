@@ -38,7 +38,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				} else if (this.idproperty == 'team_id') {
 					// for team_id, the store idproperty is the default "id" field
 					this.schedInfoStore = new Memory({data:this.griddata_list,
-						idProperty:"divteam_id"});
+						idProperty:"dt_id"});
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
 				}

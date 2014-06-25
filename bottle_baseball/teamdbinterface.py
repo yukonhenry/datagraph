@@ -20,11 +20,16 @@ class TeamDBInterface:
         document_list = [{k.upper():v for k,v in x.items()} for x in teaminfo_list]
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
-            id_str='DIVTEAM_ID')
+            id_str='DT_ID')
+
+    def check_docexists(self):
+        # use DT_ID key to see if any teaminfo doc exists
+        return self.dbinterface.check_docexists("DT_ID")
+
 
     def readDB(self):
         # readDB is for returning to client UI
-        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DIVTEAM_ID')
+        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DT_ID')
         rawlist = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname
@@ -39,7 +44,7 @@ class TeamDBInterface:
 
     def readDBraw(self):
         # readDBraw if for db reads from within py code
-        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DIVTEAM_ID')
+        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DT_ID')
         rawlist = liststatus_qtuple.list
         config_status = liststatus_qtuple.config_status
         divstr_colname = liststatus_qtuple.divstr_colname

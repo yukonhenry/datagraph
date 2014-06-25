@@ -279,7 +279,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				} else if (db_type == 'fielddb') {
 					this.fg_select.addOption(soption_obj);
 				} else if (db_type == 'prefdb') {
-					this.pref_select.removeOption(index)
+					this.pref_select.addOption(index)
 				}
 			},
 			is_serverdata_required: function(options_obj) {
