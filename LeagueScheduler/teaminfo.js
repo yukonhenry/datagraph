@@ -62,6 +62,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			modifyserver_data: function(data_list, divstr_obj) {
 			},
 			modify_toserver_data: function(raw_result) {
+				var newlist = arrayUtil.map(raw_result, function(item) {
+					// leave out dt_id to send to server (recreate when
+					// data returned from server)
+					return {tm_id:item.tm_id, tm_name:item.tm_name,
+						af_list:item.af_list, div_id:item.div_id}
+				})
+				return newlist;
 			},
 			initialize: function(newgrid_flag, op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;

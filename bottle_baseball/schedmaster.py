@@ -58,8 +58,10 @@ class SchedMaster:
         tmdbInterface = TeamDBInterface(mongoClient, divcol_name)
         if tmdbInterface.check_docexists():
             tmdbtuple = tmdbInterface.readDBraw()
-            tminfo_list = tmdbtuple.list
-
+            tminfo_list = [{'div_id':x['div_id'], 'tm_id':x['tm_id'],
+                'af_list':x['af_list']} for x in tmdbtuple.list]
+            tminfo_indexerGet = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x[0] and p['tm_id']==x[1]]
+            tminfo_tuple = _List_Indexer(tminfo_list, tminfo_indexerGet)
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list
