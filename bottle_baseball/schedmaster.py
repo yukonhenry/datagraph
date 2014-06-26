@@ -55,11 +55,11 @@ class SchedMaster:
             self.simplifydivfield_list()
         # get team-related field affinity information, if any
         # use divcol_name as it shares collection name w divinfo
-        '''
         tmdbInterface = TeamDBInterface(mongoClient, divcol_name)
         if tmdbInterface.check_docexists():
             tmdbtuple = tmdbInterface.readDBraw()
-        '''
+            tminfo_list = tmdbtuple.list
+
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list

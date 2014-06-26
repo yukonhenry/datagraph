@@ -38,8 +38,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
-					team_id: "ID",
-					team_name: editor({label:"Team Name", autoSave:true,
+					tm_id: "ID",
+					tm_name: editor({label:"Team Name", autoSave:true,
 						editorArgs:{
 							trim:true, //propercase:true,
 							style:"width:auto"
@@ -105,15 +105,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getInitialList: function(num, div_id) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
-					info_list.push({team_id:i, team_name:"", af_list:[],
-					div_id:div_id, dt_id:"div"+div_id+"team"+i});
+					info_list.push({tm_id:i, tm_name:"", af_list:[],
+					div_id:div_id, dt_id:"dv"+div_id+"tm"+i});
 				}
 				return info_list;
 			},
 			get_gridhelp_list: function() {
 				var gridhelp_list = [
-					{id:'team_id', help_str:"Identifier, Non-Editable"},
-					{id:'team_name', help_str:"Enter Team Name or Identifier"},
+					{id:'tm_id', help_str:"Identifier, Non-Editable"},
+					{id:'tm_name', help_str:"Enter Team Name or Identifier"},
 					{id:"af_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
 				]
 				return gridhelp_list;
@@ -207,7 +207,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var query_obj = {div_id:div_id_event}
 				if (this.is_newgrid_required()) {
 					var columnsdef_obj = this.getcolumnsdef_obj();
-					if (this.serverinfo_list) {
+					if (this.serverinfo_list && this.serverinfo_list.length > 0) {
 						// if server data is available use that
 						info_list = this.serverinfo_list;
 						// check that the server data includes current
@@ -241,7 +241,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				} else {
 					if (this.infogrid_store) {
 						if (this.serverinfo_list || this.infogrid_store.query(query_obj).total == 0) {
-							if (this.serverinfo_list) {
+							if (this.serverinfo_list && this.serverinfo_list.length > 0) {
 								// if server data exists, use that
 								info_list = this.serverinfo_list;
 								// check that the server data includes current
@@ -289,7 +289,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.serverinfo_list = null;
 			},
 			af_field_render: function(object, data_list, node) {
-				var team_id = object.team_id;
+				var tm_id = object.tm_id;
 				// define parameters for the dialogtooltip that pops up in each
 				// grid cell after ddown btn is clicked
 				var content_str = "";
@@ -303,7 +303,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					arrayUtil.forEach(this.divfield_list, function(item) {
 						var field_id = item.field_id;
 						var field_name = item.field_name;
-						var idstr = this.op_prefix+"tmfield_checkbox"+team_id+
+						var idstr = this.op_prefix+"tmfield_checkbox"+tm_id+
 							field_id+"_id";
 						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+
 						idstr+
@@ -312,7 +312,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, this)
 					var options_obj = {checkbox_list:checkbox_list, dt_id:object.dt_id,
 						topdiv_node:node, }
-					var button_id = this.op_prefix+"tmfield_btn"+team_id+"_id";
+					var button_id = this.op_prefix+"tmfield_btn"+tm_id+"_id";
 					// create span_id for text display next to dropdown
 					span_id = "span"+button_id;
 					// pass it to af_process event handler too
@@ -330,7 +330,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				// define parameters for the tooltip dialog
 				var tipdialog_prefix = this.op_prefix+"tmfield_tdialog";
-				var tipdialog_id = tipdialog_prefix+team_id+"_id";
+				var tipdialog_id = tipdialog_prefix+tm_id+"_id";
 				var tipdialog_widget = registry.byId(tipdialog_id);
 				if (!tipdialog_widget) {
 					var tipdialog_widget = new TooltipDialog({
@@ -346,7 +346,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// enable checkboxes if render gets passed with data from
 					// the store
 					arrayUtil.forEach(data_list, function(field_id) {
-						var idstr = this.op_prefix+"tmfield_checkbox"+team_id+
+						var idstr = this.op_prefix+"tmfield_checkbox"+tm_id+
 							field_id+"_id";
 						var checkbox_widget = registry.byId(idstr);
 						checkbox_widget.set("checked", true);
@@ -368,7 +368,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				// define parameters for the ddown button embedded in grid cell
 				var team_ddown_prefix = this.op_prefix+"tmfield_ddown";
-				var team_ddown_id = team_ddown_prefix+team_id+"_id";
+				var team_ddown_id = team_ddown_prefix+tm_id+"_id";
 				var team_ddown_widget = registry.byId(team_ddown_id);
 				if (!team_ddown_widget) {
 					var ddown_node = put(node, "div");

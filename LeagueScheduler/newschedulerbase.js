@@ -87,6 +87,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", op_prefix:"", opconstant_obj:null,
+			pref_select_value:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -552,14 +553,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data(constant.fair_id, dbstatus)
-				// add cpane to display constraint satisfaction
-				args_obj = {
-					suffix_id:this.opconstant_obj.newprefcpane_id,
-					content_str:"<div id='"+this.opconstant_obj.newprefcpane_txt_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_grid_id+"'></div><br>",
-					title_suffix:' by Preference',
+				// add cpane to display constraint satisfaction only if preferences
+				// were specified
+				if (this.pref_select_value) {
+					args_obj = {
+						suffix_id:this.opconstant_obj.newprefcpane_id,
+						content_str:"<div id='"+this.opconstant_obj.newprefcpane_txt_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_grid_id+"'></div><br>",
+						title_suffix:' by Preference',
+					}
+					this.createnewsched_pane(args_obj);
+					this.prepgrid_data(constant.pref_id, dbstatus);
 				}
-				this.createnewsched_pane(args_obj);
-				this.prepgrid_data(constant.pref_id, dbstatus);
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
