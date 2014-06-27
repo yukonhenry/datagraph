@@ -72,6 +72,8 @@ class MongoDBInterface:
         self.schedule_db = mongoClient.schedule_db
         if collection_name:
             self.collection = self.schedule_db[collection_name]
+            # fyi sched_type with str(db_col_type) is important as without str
+            # encapsulation there is a runtime encode error
             self.sched_type = str(db_col_type)
             if not self.collection.find_one({sched_status_CONST:{"$exists":True},
                 sched_type_CONST:self.sched_type}):

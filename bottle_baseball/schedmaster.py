@@ -12,6 +12,8 @@ import logging
 from sched_exceptions import CodeLogicError
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
+_List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
+
 
 # main class for launching schedule generator
 # Handling round-robin season-long schedules.  May extend to handle other schedule
@@ -60,8 +62,12 @@ class SchedMaster:
             tmdbtuple = tmdbInterface.readDBraw()
             tminfo_list = [{'div_id':x['div_id'], 'tm_id':x['tm_id'],
                 'af_list':x['af_list']} for x in tmdbtuple.list]
-            tminfo_indexerGet = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x[0] and p['tm_id']==x[1]]
-            tminfo_tuple = _List_Indexer(tminfo_list, tminfo_indexerGet)
+            tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x[0] and p['tm_id']==x[1]][0]
+            # _List_IndexerM gets dereferenced using indexerMatch instead of
+            # indexerGet
+            tminfo_tuple = _List_IndexerM(tminfo_list, tminfo_indexerMatch)
+        else:
+            tminfo_tupe = None
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list
@@ -80,7 +86,8 @@ class SchedMaster:
                     dbinterface=self.sdbInterface,
                     divinfo_tuple=divinfo_tuple,
                     fieldinfo_tuple=self.fieldinfo_tuple,
-                    prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface)
+                    prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
+                    tminfo_tupe=tminfo_tuple)
             else:
                 prefinfo_tuple = _List_IndexerGM(None, None, None)
                 raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))
@@ -88,13 +95,15 @@ class SchedMaster:
                 self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
                     dbinterface=self.sdbInterface,
                     divinfo_tuple=divinfo_tuple,
-                    fieldinfo_tuple=self.fieldinfo_tuple)
+                    fieldinfo_tuple=self.fieldinfo_tuple,
+                    tminfo_tuple=tminfo_tuple)
         else:
             # save schedule generation parameters in db
             self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
             self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
                 dbinterface=self.sdbInterface,
-                divinfo_tuple=divinfo_tuple, fieldinfo_tuple=self.fieldinfo_tuple)
+                divinfo_tuple=divinfo_tuple, fieldinfo_tuple=self.fieldinfo_tuple,
+                tminfo_tuple=tminfo_tuple)
         self.schedcol_name = schedcol_name
 
     def generate(self):
@@ -108,7 +117,7 @@ class SchedMaster:
             match_list = match.generateMatchList()
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
                 'numgames_list':match.numgames_list,
-                'roundgameslots_num':match.gameslotsperday}
+                'gameslots_perround_num':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
