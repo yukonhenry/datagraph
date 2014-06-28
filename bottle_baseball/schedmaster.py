@@ -120,7 +120,7 @@ class SchedMaster:
             match_list = match.generateMatchList()
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
                 'numgames_list':match.numgames_list,
-                'gameslots_perround_num':match.gameslotsperday}
+                'gameslots_perrnd_num':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
