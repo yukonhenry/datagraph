@@ -928,7 +928,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var config_btn = registry.byId(fielddatesbtn_id);
 					if (!config_btn) {
 						config_btn = new Button({
-							label:"Config Venue"+field_id,
+							label:"Config Exceptions",
 							id:fielddatesbtn_id,
 							onClick: lang.hitch(this, function() {
 								this.edit_calendar(field_id);

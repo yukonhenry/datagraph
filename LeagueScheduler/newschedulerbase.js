@@ -383,7 +383,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.pref_select_value = evt;
 					}),
 					name_str:"pref_select",
-					label_str:"Select Preferece List",
+					label_str:"Select Preference List",
 					put_trail_spacing:"span.empty_gap"
 				}
 				this.pref_select = this.widgetgen.create_select(prefargs_obj);

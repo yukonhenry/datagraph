@@ -45,7 +45,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							style:"width:auto"
 						}
 					}, TextBox, "click"),
-					af_list:{label:"Field Affinity",
+					af_list:{label:"Home Field(s)",
 						renderCell: lang.hitch(this, this.af_field_render)
 					}
 				};
@@ -380,7 +380,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				if (!team_ddown_widget) {
 					var ddown_node = put(node, "div");
 					team_ddown_widget = new DropDownButton({
-						label:"Field Affinity",
+						label:"Home Field(s)",
 						class:"info",
 						dropDown:tipdialog_widget
 					}, ddown_node)

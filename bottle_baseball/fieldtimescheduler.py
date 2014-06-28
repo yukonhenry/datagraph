@@ -94,7 +94,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_list = []
         self.timegap_indexerMatch = None
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, rd_fieldcount, requiredslots_num, submin=0):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, rd_fieldcount, requiredslots_num, home_hf_list, away_hf_list, submin=0):
         # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
@@ -115,6 +115,19 @@ class FieldTimeScheduleGenerator:
         requiredslots_perfield = int(ceil(float(requiredslots_num)/len(rd_fieldcount)))
         maxedout_field = None
         almostmaxed_field = None
+
+        # first ensure both lists are sorted according to field
+        # note when calling the sorted function, the list is only shallow-copied.
+        # changing a field in the dictionary element in the sorted list also changes the dict
+        # in the original list
+        # we should make a copy of the list first before sorting
+        sorted_homemetrics_list = sorted(homemetrics_list, key=itemgetter('field_id'))
+        sorted_awaymetrics_list = sorted(awaymetrics_list, key=itemgetter('field_id'))
+        # get full home and away (e.g. home field for 'away'-designated teams)
+        home_field_list = [x['field_id'] for x in sorted_homemetrics_list]
+        away_field_list = [x['field_id'] for x in sorted_awaymetrics_list]
+        home_hf_list = home_hf_list if home_hf_list else home_field_list
+        away_hf_list = away_hf_list if away_hf_list else away_field_list
         # get count/field dict with maximum count
         maxgd = max(rd_fieldcount, key=itemgetter('count'))
         #for gd in rd_fieldcount:
@@ -127,14 +140,6 @@ class FieldTimeScheduleGenerator:
         elif diff >= -1:
             almostmaxed_field = maxgd['field_id']
             penalty = diff + 2 # impose additive penalty
-
-        # first ensure both lists are sorted according to field
-        # note when calling the sorted function, the list is only shallow-copied.
-        # changing a field in the dictionary element in the sorted list also changes the dict
-        # in the original list
-        # we should make a copy of the list first before sorting
-        sorted_homemetrics_list = sorted(homemetrics_list, key=itemgetter('field_id'))
-        sorted_awaymetrics_list = sorted(awaymetrics_list, key=itemgetter('field_id'))
 
         homecount_list = [x['count'] for x in sorted_homemetrics_list]
         awaycount_list = [x['count'] for x in sorted_awaymetrics_list]
@@ -1002,7 +1007,6 @@ class FieldTimeScheduleGenerator:
                                          if n%divfield_num==0 else [n/divfield_num,n/divfield_num+1]
                                          for n in numgames_list]
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
-
                 fmetrics_list = [{'field_id':x, 'count':0} for x in divfield_list]
                 # note below totalteams*[fmetrics_list] only does a shallow copy; use deepcopy
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(totalteams)]
@@ -1051,7 +1055,6 @@ class FieldTimeScheduleGenerator:
             # and div2 is using fields[2,3] (field 2 is shared but not 1 and 3)
 
             fieldmetrics_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(fieldmetrics_list)).get(x)
-            targetfieldcount_indexer = dict((p['div_id'],i) for i,p in enumerate(targetfieldcount_list))
             divtotalel_indexer =  dict((p['div_id'],i) for i,p in enumerate(divtotal_el_list))
             self.cel_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.current_earlylate_list)).get(x)
             self.tel_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.target_earlylate_list)).get(x)
@@ -1173,12 +1176,19 @@ class FieldTimeScheduleGenerator:
                     # entries
                     datesortedfield_list = self.datesort_fields(minmaxdate_list,
                         minmaxdate_indexerGet, field_list)
+                    # get homefield_list for both home and away teams
+                    home_hf_list = self.tminfo_list[
+                        self.tminfo_indexerMatch((div_id, home_id))]['af_list']
+                    away_hf_list = self.tminfo_list[
+                        self.tminfo_indexerMatch((div_id, away_id))]['af_list']
                     # next get list of fields sorted by sumcount priorities
                     # each elem is a dict with
                     # {'sumcount':x, 'field_list'[x,y,z...]}
                     # sumcount-based optimization is driven by field balancing
                     # criteria
-                    sumsortedfield_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list, rd_fieldcount_list, requiredslots_num)
+                    sumsortedfield_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list,
+                        rd_fieldcount_list, requiredslots_num, home_hf_list,
+                        away_hf_list)
                     if not sumsortedfield_list:
                         raise FieldAvailabilityError(div_id)
                     logging.debug("rrgenobj while True loop:")
@@ -2274,12 +2284,8 @@ class FieldTimeScheduleGenerator:
                     # do the next check: affinity fields.  See if affinity field
                     # requests are too concentrated on a specific fields or set
                     # of fields
-                    if fieldcounter_list:
-                        # if the counter list exists, there is at least one team
-                        # that has expressed field affinity
-                        for fc_dict in fieldcounter_list:
-                            field_id = fc_dict['field_id']
-                            eff_count = fc_dict['eff_count']
+                    # implementation TBD, leave pass in for now
+                    pass
                 continue
             break
         else:
