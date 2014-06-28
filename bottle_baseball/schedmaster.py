@@ -60,12 +60,15 @@ class SchedMaster:
         tmdbInterface = TeamDBInterface(mongoClient, divcol_name)
         if tmdbInterface.check_docexists():
             tmdbtuple = tmdbInterface.readDBraw()
-            tminfo_list = [{'div_id':x['div_id'], 'tm_id':x['tm_id'],
-                'af_list':x['af_list']} for x in tmdbtuple.list]
-            tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x[0] and p['tm_id']==x[1]][0]
+            tminfo_list = [{'dt_id':x['dt_id'], 'div_id':x['div_id'],
+                'tm_id':x['tm_id'], 'af_list':x['af_list']}
+                for x in tmdbtuple.list]
+            tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
+            tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x]
             # _List_IndexerM gets dereferenced using indexerMatch instead of
             # indexerGet
-            tminfo_tuple = _List_IndexerM(tminfo_list, tminfo_indexerMatch)
+            tminfo_tuple = _List_IndexerGM(tminfo_list, tminfo_indexerGet,
+                tminfo_indexerMatch)
         else:
             tminfo_tupe = None
         # get pref list information, if any

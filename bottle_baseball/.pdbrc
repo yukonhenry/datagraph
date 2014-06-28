@@ -19,11 +19,10 @@
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
 #b elimfieldtimescheduler.py:338
 #b schedmaster.py:51
-#b schedmaster.py:63
-#b fielddbinterface.py:1766
-b fieldtimescheduler.py:1184
-#b fieldtimescheduler.py:941
-#b fieldtimescheduler.py:1747
+#b schedmaster.py:65
+#b fielddbinterface.py:1192
+b fieldtimescheduler.py:149
+b fieldtimescheduler.py:1192
 #b dbinterface.py:613
 #b leaguediv_process.py:240
 #b schedule_util.py:265

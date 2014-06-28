@@ -69,6 +69,10 @@ class FieldTimeScheduleGenerator:
         # team list use is optional also - contains field affinity info
         if tminfo_tuple:
             self.tminfo_list = tminfo_tuple.dict_list
+            # for indexerGet, parameter is two-tuple (div_id, tm_id)
+            # returns None or index into tminfo_list
+            self.tminfo_indexerGet = tminfo_tuple.indexerGet
+            # for indexerMatch
             self.tminfo_indexerMatch = tminfo_tuple.indexerMatch
         else:
             self.tminfo_list = None
@@ -116,18 +120,6 @@ class FieldTimeScheduleGenerator:
         maxedout_field = None
         almostmaxed_field = None
 
-        # first ensure both lists are sorted according to field
-        # note when calling the sorted function, the list is only shallow-copied.
-        # changing a field in the dictionary element in the sorted list also changes the dict
-        # in the original list
-        # we should make a copy of the list first before sorting
-        sorted_homemetrics_list = sorted(homemetrics_list, key=itemgetter('field_id'))
-        sorted_awaymetrics_list = sorted(awaymetrics_list, key=itemgetter('field_id'))
-        # get full home and away (e.g. home field for 'away'-designated teams)
-        home_field_list = [x['field_id'] for x in sorted_homemetrics_list]
-        away_field_list = [x['field_id'] for x in sorted_awaymetrics_list]
-        home_hf_list = home_hf_list if home_hf_list else home_field_list
-        away_hf_list = away_hf_list if away_hf_list else away_field_list
         # get count/field dict with maximum count
         maxgd = max(rd_fieldcount, key=itemgetter('count'))
         #for gd in rd_fieldcount:
@@ -140,7 +132,13 @@ class FieldTimeScheduleGenerator:
         elif diff >= -1:
             almostmaxed_field = maxgd['field_id']
             penalty = diff + 2 # impose additive penalty
-
+        # first ensure both lists are sorted according to field
+        # note when calling the sorted function, the list is only shallow-copied.
+        # changing a field in the dictionary element in the sorted list also changes the dict
+        # in the original list
+        # we should make a copy of the list first before sorting
+        sorted_homemetrics_list = sorted(homemetrics_list, key=itemgetter('field_id'))
+        sorted_awaymetrics_list = sorted(awaymetrics_list, key=itemgetter('field_id'))
         homecount_list = [x['count'] for x in sorted_homemetrics_list]
         awaycount_list = [x['count'] for x in sorted_awaymetrics_list]
         home_field_list = [x['field_id'] for x in sorted_homemetrics_list]
@@ -149,6 +147,12 @@ class FieldTimeScheduleGenerator:
         if (set(home_field_list) != set(away_field_list)):
             logging.error("home and away teams have different field lists %s %s",home_field_list, away_field_list)
             raise FieldConsistencyError(home_field_list, away_field_list)
+        # get full home field lists(e.g. home field for 'away'-designated teams)
+        # if there are no fields specified, then default to full list for that
+        # team; else predicate can be either home_field_list or away_field_list
+        home_hf_list = home_hf_list if home_hf_list else home_field_list
+        away_hf_list = away_hf_list if away_hf_list else away_field_list
+
         if maxedout_field:
             maxedout_ind = home_field_list.index(maxedout_field)
             # when scaling, increment by 1 as fieldcount maybe 0
@@ -1177,18 +1181,19 @@ class FieldTimeScheduleGenerator:
                     datesortedfield_list = self.datesort_fields(minmaxdate_list,
                         minmaxdate_indexerGet, field_list)
                     # get homefield_list for both home and away teams
-                    home_hf_list = self.tminfo_list[
-                        self.tminfo_indexerMatch((div_id, home_id))]['af_list']
-                    away_hf_list = self.tminfo_list[
-                        self.tminfo_indexerMatch((div_id, away_id))]['af_list']
+                    hf_list = []
+                    for idtype in [home_id, away_id]:
+                        tmindex = self.tminfo_indexerGet((div_id, idtype))
+                        # remember append order follows idtype iteration
+                        hf_list.append(self.tminfo_list[tmindex]['af_list'] if tmindex is not None else None)
                     # next get list of fields sorted by sumcount priorities
                     # each elem is a dict with
                     # {'sumcount':x, 'field_list'[x,y,z...]}
                     # sumcount-based optimization is driven by field balancing
                     # criteria
                     sumsortedfield_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list,
-                        rd_fieldcount_list, requiredslots_num, home_hf_list,
-                        away_hf_list)
+                        rd_fieldcount_list, requiredslots_num, hf_list[0],
+                        hf_list[1])
                     if not sumsortedfield_list:
                         raise FieldAvailabilityError(div_id)
                     logging.debug("rrgenobj while True loop:")
@@ -2251,10 +2256,11 @@ class FieldTimeScheduleGenerator:
                         div_id)
                     break
                 fieldcounter_list = [];
-                if self.tminfo_list:
+                if self.tminfo_list and self.tminfo_indexerMatch(div_id):
                     div_totalteams = divinfo['totalteams']
                     for tm_id in range(1, div_totalteams+1):
-                        tminfo = self.tminfo_list[self.tminfo_indexerMatch((div_id, tm_id))]
+                        tminfo = self.tminfo_list[self.tminfo_indexerGet(
+                            (div_id, tm_id))]
                         af_list = tminfo['af_list']
                         if af_list:
                             c_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldcounter_list)).get(x)
@@ -2265,6 +2271,7 @@ class FieldTimeScheduleGenerator:
                             # the effective weight of how much it wants to use that
                             # field is factored by a weight which is the inverse of
                             # the number of fields it is asking affinity to
+                            # NOTE the use of this weighted fieldcounter_list is TBD
                             for f in af_list:
                                 c_index = c_indexerGet(f)
                                 if c_index:
