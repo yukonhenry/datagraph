@@ -119,7 +119,7 @@ class SchedMaster:
             match = MatchGenerator(totalteams, totalgamedays)
             match_list = match.generateMatchList()
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
-                'numgames_list':match.numgames_list,
+                'numgames_perteam_list':match.numgames_perteam_list,
                 'gameslots_perrnd_num':match.gameslotsperday}
             totalmatch_list.append(args_obj)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)

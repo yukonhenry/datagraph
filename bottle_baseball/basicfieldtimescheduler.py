@@ -897,15 +897,15 @@ class BasicFieldTimeScheduleGenerator:
                 # describe target fair field usage cout
                 divfields_num = len(divfields)
                 # get number of games scheduled for each team in dvision
-                numgames_list = divmatch_dict['numgames_list']
-                logging.debug("divsion=%d numgames_list=%s",div_id,numgames_list)
+                numgames_perteam_list = divmatch_dict['numgames_perteam_list']
+                logging.debug("divsion=%d numgames_perteam_list=%s",div_id,numgames_perteam_list)
                 # for each team, number of games targeted for each field.
                 # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
                 # or it can be a two element range (floor(#teams/#fields), same floor+1)
                 # the target number of games per fields is the same for each field
                 numgamesperfield_list = [[n/divfields_num]
                                          if n%divfields_num==0 else [n/divfields_num,n/divfields_num+1]
-                                         for n in numgames_list]
+                                         for n in numgames_perteam_list]
                 targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
 
                 fmetrics_list = [{'field_id':x, 'count':0} for x in divfields]
