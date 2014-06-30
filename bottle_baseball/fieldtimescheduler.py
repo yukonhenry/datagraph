@@ -102,7 +102,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_list = []
         self.timegap_indexerMatch = None
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num, hf_list, field_list, aggregate_tuple, submin=0):
+    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num, hf_list, field_list, aggregnorm_tuple, submin=0):
         # NOTE: Calling this function assumes we are trying to balance across fields
         # return field_id(s) (can be more than one) that corresponds to the minimum
         # count in the two metrics list.  the minimum should map to the same field in both
@@ -134,6 +134,7 @@ class FieldTimeScheduleGenerator:
         # for the round is meaningless (control var not part of domain set)
         eff_rd_fcount_list = [x for x in rd_fieldcount_list
             if x['field_id'] in hfunion_set]
+        erd_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(eff_rd_fcount_list)).get(x)
         eff_homemetrics_list = [x for x in homemetrics_list
             if x['field_id'] in hfunion_set]
         eff_awaymetrics_list = [x for x in awaymetrics_list
@@ -143,27 +144,40 @@ class FieldTimeScheduleGenerator:
         # note we are using the number of all fields instead of the number
         # of fields from the filtered list as the required (or the target)
         # slot number should be based on all fields available for entire div
-        for field_in in hfunion_set:
-            pass
-        requiredslots_perfield = int(ceil(
-            float(reqslots_perrnd_num)/len(rd_fieldcount_list)))
+        # get aggregate home field weight list
+        norm_hfweight_list = aggregnorm_tuple.dict_list
+        # get sum of weights so that we can compute norm
+        #sumweight = sum(x['aggregweight'] for x in ag_hfweight_list)
+        # normalize each of the weights
+        #norm_hfweight_list = [{'field_id':x['field_id'],
+        #    'normweight':x['aggregweight']/sumweight} for x in ag_hfweight_list]
+        # compute the required slots for each field by multiplying the total
+        # required slots per round times the normalized weighting factor
+        reqslots_list = [{'field_id':x['field_id'], 'count':int(ceil(float(reqslots_perrnd_num)*x['normweight']))} for x in norm_hfweight_list]
+        req_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reqslots_list)).get(x)
+        diff_count_list = [{'field_id':x,
+            'diff_count':eff_rd_fcount_list[erd_indexerGet(x)]['count'] -
+            reqslots_list[req_indexerGet(x)]['count']} for x in hfunion_set]
+        maxdiff_dict = max(diff_count_list, key=itemgetter('diff_count'))
+        #requiredslots_perfield = int(ceil(
+        #    float(reqslots_perrnd_num)/len(rd_fieldcount_list)))
         maxedout_field = None
         almostmaxed_field = None
-
+        maxdiff = maxdiff_dict['diff_count']
         # get count/field dict with maximum count
         # assign penalty costs for fields that have either already exceeded
         # or close to exceeing the maximum
-        maxgd = max(eff_rd_fcount_list, key=itemgetter('count'))
+        #maxgd = max(eff_rd_fcount_list, key=itemgetter('count'))
         #for gd in eff_rd_fcount_list:
-        diff = maxgd['count'] - requiredslots_perfield
-        if diff >= 0:
+        #diff = maxgd['count'] - requiredslots_perfield
+        if maxdiff >= 0:
             #******** cost function
             # 1 is a slack term, arbitrary
-            maxedout_field = maxgd['field_id']
-            penalty = (diff + 1)*2
-        elif diff >= -1:
-            almostmaxed_field = maxgd['field_id']
-            penalty = diff + 2 # impose additive penalty
+            maxedout_field = maxdiff_dict['field_id']
+            penalty = (maxdiff + 1)*2
+        elif maxdiff >= -1:
+            almostmaxed_field = maxdiff_dict['field_id']
+            penalty = maxdiff + 2 # impose additive penalty
         # first ensure both lists are sorted according to field
         # note when calling the sorted function, the list is only shallow-copied.
         # changing a field in the dictionary element in the sorted list also changes the dict
@@ -188,8 +202,8 @@ class FieldTimeScheduleGenerator:
             # correspond to the maxed field for both homecount and awaycount lists
             homecount_list[maxedout_ind] = (homecount_list[maxedout_ind]+1)*penalty
             awaycount_list[maxedout_ind] = (awaycount_list[maxedout_ind]+1)*penalty
-            logging.info("ftscheduler:findMinCountField: field=%d maxed out, required=%d ind=%d penalty=%d",
-                         maxedout_field, requiredslots_perfield, maxedout_ind, penalty)
+            logging.info("ftscheduler:findMinCountField: field=%d maxed out, required=%s ind=%d penalty=%d",
+                         maxedout_field, maxdiff_dict, maxedout_ind, penalty)
             logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
                          homecount_list, awaycount_list)
         elif almostmaxed_field:
@@ -200,8 +214,8 @@ class FieldTimeScheduleGenerator:
             # if count is approaching the limit, give an additive penalty
             homecount_list[almost_ind] += penalty
             awaycount_list[almost_ind] += penalty
-            logging.info("ftscheduler:findMinCountField: field=%d Almost Target, required=%d ind=%d",
-                         almostmaxed_field, requiredslots_perfield, almost_ind)
+            logging.info("ftscheduler:findMinCountField: field=%d Almost Target, required=%s ind=%d",
+                         almostmaxed_field, maxdiff_dict, almost_ind)
             logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
                          homecount_list, awaycount_list)
 
@@ -1116,7 +1130,7 @@ class FieldTimeScheduleGenerator:
             # matches generated by the match generator
             reqslots_perrnd_num = sum(totalmatch_list[totalmatch_indexerGet(d)]['gameslots_perrnd_num']
                 for d in connected_div_list)
-            aggregate_tuple = self.aggregate_hfweight_list(connected_div_list)
+            aggregnorm_tuple = self.get_aggregnorm_hfweight_list(connected_div_list)
             for round_id in range(1,max(matchlist_len_list)+1):
                 # counters below count how many time each field is used for every
                 # round; reset for each round/gameday
@@ -1222,7 +1236,7 @@ class FieldTimeScheduleGenerator:
                     # criteria
                     sumsortedfield_list = self.findMinimumCountField(home_fieldmetrics_list, away_fieldmetrics_list,
                         rd_fieldcount_list, reqslots_perrnd_num, hf_list,
-                        field_list, aggregate_tuple)
+                        field_list, aggregnorm_tuple)
                     if not sumsortedfield_list:
                         raise FieldAvailabilityError(div_id)
                     logging.debug("rrgenobj while True loop:")
@@ -1304,7 +1318,7 @@ class FieldTimeScheduleGenerator:
                 logging.debug("ftscheduler: divlist=%s end of round=%d rd_fieldcount_list=%s",
                               connected_div_list, round_id, rd_fieldcount_list)
             self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
-            # now work on time balanceing
+            # now work on time rebalanceing
             self.ReTimeBalance(fset, connected_div_list)
             self.ManualSwapTeams(fset, connected_div_list)
             if self.prefinfo_list:
@@ -2341,7 +2355,7 @@ class FieldTimeScheduleGenerator:
         ''' Create weighted list of home fields, with weights calculated as a
             weighted average of home fields for all teams in a particular
             division.  Format for each division:
-            [{field_id:x1, totalweight:y1}, {field_id:x2, totalweight:y2} etc
+            [{field_id:x1, aggregweight:y1}, {field_id:x2, aggregweight:y2} etc
         '''
         div_id_list = [x['div_id'] for x in self.divinfo_list]
         homefield_weight_list = list()
@@ -2368,42 +2382,48 @@ class FieldTimeScheduleGenerator:
                     for af in af_list:
                         dindex = dindexerGet(af)
                         if dindex is not None:
-                            hfweight_list[dindex]['totalweight'] += weight
+                            hfweight_list[dindex]['aggregweight'] += weight
                         else:
                             hfweight_list.append({'field_id':af,
-                                'totalweight':weight})
+                                'aggregweight':weight})
                 # We will not be normalizing the weights as the absolute weight value
                 # summed across all teams in the division will be necesary when
                 # combining weights with another division
-                #sumweight = sum(x['totalweight'] for x in hfweight_list)
-                #hfweight_list = [x['totalweight']/sumweight for x in hfweight_list]
+                #sumweight = sum(x['aggregweight'] for x in hfweight_list)
+                #hfweight_list = [x['aggregweight']/sumweight for x in hfweight_list]
             else:
                 #
                 totalteams = divinfo['totalteams']
-                totalweight = float(totalteams)/len(divfield_list)
-                hfweight_list = [{'field_id':x, 'totalweight':totalweight}
+                aggregweight = float(totalteams)/len(divfield_list)
+                hfweight_list = [{'field_id':x, 'aggregweight':aggregweight}
                     for x in divfield_list]
             homefield_weight_list.append({'div_id':div_id, 'hfweight_list':hfweight_list})
             hf_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(homefield_weight_list)).get(x)
         return _List_Indexer(homefield_weight_list, hf_indexerGet)
 
-    def aggregate_hfweight_list(self, connected_div_list):
+    def get_aggregnorm_hfweight_list(self, connected_div_list):
         ''' Aggregate home field weight list based on divisions that make up the
-        connected_div_list.  Simply sum over totalweight values for each field.
-        No need to normalize here.'''
-        aggreg_weight_list = list()
+        connected_div_list.  Simply sum over aggregweight values for each field.
+        Go ahead and normalize the results also
+        Note weight key is changed to normweight for a normalized dict entry'''
+        norm_weight_list = list()
+        sumweight = 0
         for div_id in connected_div_list:
             hfweight_list = self.homefield_weight_list[
                 self.hfweight_indexerGet(div_id)]['hfweight_list']
             for hfweight in hfweight_list:
-                aindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(aggreg_weight_list)).get(x)
+                aindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(norm_weight_list)).get(x)
                 field_id = hfweight['field_id']
+                aggregweight = hfweight['aggregweight']
                 aindex = aindexerGet(field_id)
                 if aindex is not None:
-                    aggreg_weight_list[aindex]['totalweight'] += hfweight['totalweight']
+                    norm_weight_list[aindex]['normweight'] += aggregweight
                 else:
-                    aggreg_weight_list.append({'field_id':field_id,
-                        'totalweight':hfweight['totalweight']})
-        a_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(aggreg_weight_list)).get(x)
-        return _List_Indexer(aggreg_weight_list, a_indexerGet)
-
+                    norm_weight_list.append({'field_id':field_id,
+                        'normweight':aggregweight})
+                sumweight += aggregweight
+        # calculate total weight across all fields so we can normalize
+        for norm_weight in norm_weight_list:
+            norm_weight['normweight'] /= sumweight
+        nindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(norm_weight_list)).get(x)
+        return _List_Indexer(norm_weight_list, nindexerGet)
