@@ -2441,15 +2441,26 @@ class FieldTimeScheduleGenerator:
         nindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(norm_weight_list)).get(x)
         return _List_Indexer(norm_weight_list, nindexerGet)
 
-    def calc_expectedteamfield_num(self, ngperteam_list):
-        targetuse_list = list()
+    def calc_expectedtfield_distribution_list(self, ngperteam_list):
+        ''' Determine division-wide target distribution of number of games for each
+        field in the divlist for the whole season'''
+        targetfield_distribution_list = list()
         for ngperteam_dict in ngperteam_list:
             div_id = ngperteam_dict['div_id']
+            # get total games for current division - sum games for each team, divide
+            # by 2
+            div_totalgames = sum(ngperteam_dict['numgames_list'])/2
             hfweight_list = self.homefield_weight_list[self.hfweight_indexerGet(div_id)]['hfweight_list']
             inv_sumweight = 1.0/sum(x['aggregweight'] for x in hfweight_list)
-            target_list = [{'team_id':team_id, 'tmtarget_list':[{'field_id':y['field_id'], 'target':y['aggregweight']*inv_sumweight*numgames} for y in hfweight_list]} for team_id,numgames in enumerate(ngperteam_dict['numgames_list'], start=1)]
-            targetuse_list.append({'div_id':div_id, 'target_list':target_list})
-        tindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(targetuse_list)).get(x)
-        return _List_Indexer(targetuse_list, tindexerGet)
+            distribution_list = [{'field_id':x['field_id'], 'count':x['aggregweight']*inv_sumweight*div_totalgames} for x in hfweight_list]
+            #target_list = [{'team_id':team_id, 'tmtarget_list':[{'field_id':y['field_id'], 'target':y['aggregweight']*inv_sumweight*numgames} for y in hfweight_list]} for team_id,numgames in enumerate(ngperteam_dict['numgames_list'], start=1)]
+            targetfield_distribution_list.append({'div_id':div_id,
+                'distribution_list':distribution_list})
+        tindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(targetfield_distribution_list)).get(x)
+        return _List_Indexer(targetfield_distribution_list, tindexerGet)
+
+    def init_teamhomefield_list(self):
+        ''' Create per-team weights for each home field(s) specified (if any) for each team.'''
+        pass
 
 
