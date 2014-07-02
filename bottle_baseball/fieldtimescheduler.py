@@ -1322,7 +1322,8 @@ class FieldTimeScheduleGenerator:
                     logging.info("-----to next game------")
                 logging.debug("ftscheduler: divlist=%s end of round=%d rd_fieldcount_list=%s",
                               connected_div_list, round_id, rd_fieldcount_list)
-            self.calc_expectedteamfield_num(numgames_perteam_list)
+            self.calc_divexpectedtfield_distribution_list(numgames_perteam_list)
+            self.calc_teamexpectedfield_distribution_list(totalmatch_tuple, connected_div_list)
             self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
             # now work on time rebalanceing
             self.ReTimeBalance(fset, connected_div_list)
@@ -2392,6 +2393,9 @@ class FieldTimeScheduleGenerator:
                     # weight is a dilution factor when multple home fields are
                     # assigned to a team
                     weight = 1.0/len(af_list)
+                    # save weight to tminfo_list; af_weight applies to each
+                    # af_list entry
+                    self.tminfo_list[index]['af_weight'] = weight
                     for af in af_list:
                         dindex = dindexerGet(af)
                         if dindex is not None:
@@ -2441,9 +2445,14 @@ class FieldTimeScheduleGenerator:
         nindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(norm_weight_list)).get(x)
         return _List_Indexer(norm_weight_list, nindexerGet)
 
-    def calc_expectedtfield_distribution_list(self, ngperteam_list):
+    def calc_divexpectedtfield_distribution_list(self, ngperteam_list):
         ''' Determine division-wide target distribution of number of games for each
-        field in the divlist for the whole season'''
+        field in the divlist for the whole season
+        NOTE: do we need to extend expected field distribtuion to the
+        connected div list level?  We will be extending the expected field
+        distribution down to the team level below
+        ngperteam_list includes numgames per team info for divs in the current
+        connected_div_list'''
         targetfield_distribution_list = list()
         for ngperteam_dict in ngperteam_list:
             div_id = ngperteam_dict['div_id']
@@ -2451,7 +2460,11 @@ class FieldTimeScheduleGenerator:
             # by 2
             div_totalgames = sum(ngperteam_dict['numgames_list'])/2
             hfweight_list = self.homefield_weight_list[self.hfweight_indexerGet(div_id)]['hfweight_list']
+            # get inverse of sum - used for weight normalization
             inv_sumweight = 1.0/sum(x['aggregweight'] for x in hfweight_list)
+            # get expected field distribution at the macro division usage level.
+            # Multiply total number of games (per division) by normalized weight
+            # of each field
             distribution_list = [{'field_id':x['field_id'], 'count':x['aggregweight']*inv_sumweight*div_totalgames} for x in hfweight_list]
             #target_list = [{'team_id':team_id, 'tmtarget_list':[{'field_id':y['field_id'], 'target':y['aggregweight']*inv_sumweight*numgames} for y in hfweight_list]} for team_id,numgames in enumerate(ngperteam_dict['numgames_list'], start=1)]
             targetfield_distribution_list.append({'div_id':div_id,
@@ -2459,8 +2472,18 @@ class FieldTimeScheduleGenerator:
         tindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(targetfield_distribution_list)).get(x)
         return _List_Indexer(targetfield_distribution_list, tindexerGet)
 
-    def init_teamhomefield_list(self):
-        ''' Create per-team weights for each home field(s) specified (if any) for each team.'''
-        pass
-
+    def calc_teamexpectedfield_distribution_list(self, totalmatch_tuple, connected_div_list):
+        ''' Calculate team-specific target distribution of number of games for each
+        field in the divlist for the whole season.  Target distribtuion requires
+        knowledge of game match pairups - based on game matchup use normalized
+        field weights for both home and away teams; sum across all matchups to
+        get expected field distribution for the whole season for the specified
+        team. '''
+        totalmatch_list = totalmatch_tuple.dict_list
+        tindexerGet = totalmatch_tuple.indexerGet
+        for div_id in connected_div_list:
+            divinfo_list = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+            totalteams = divinfo_list['totalteams']
+            match_list = totalmatch_list[tindexerGet(div_id)]['match_list']
+            for team_id in range(1, totalteams+1):
 
