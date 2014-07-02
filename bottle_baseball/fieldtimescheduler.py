@@ -2485,32 +2485,65 @@ class FieldTimeScheduleGenerator:
         team. '''
         totalmatch_list = totalmatch_tuple.dict_list
         tindexerGet = totalmatch_tuple.indexerGet
+        connected_div_sumweight_list = list()
         for div_id in connected_div_list:
             div_sumweight_list = list()
             divinfo_list = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             totalteams = divinfo_list['totalteams']
+            # get match information for the division
             match_list = totalmatch_list[tindexerGet(div_id)]['match_list']
-            for team_id in range(1, totalteams+1):
-                tm_sumweight_list = list()
-                tm_sw_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(tmsumweight_list)).get(x)
-                tminfo = self.tminfo_list[self.tminfo_indexerGet((div_id, team_id))]
-                tm_effweight_list = tminfo['effweight_list']
-                eindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(effweight_list)).get(x)
-                # get list of opponents that team_id plays across season
-                opponent_list = self.get_opponent_list(match_list, team_id)
-                # get the effective (normalized) weight list for each field for
-                # each opponent in the opponent list
-                opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self.tminfo_list[self.tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
-                for opponent_weight_dict in opponent_weight_list:
-                    opp_effweight_list = opponent_weight_dict['effweight_list']
-                    for opp_effweight_dict in opp_effweight_list:
-                        field_id = opp_effweight_dict['field_id']
-                        opp_effweight = opp_effweight_dit['effweight']
-                        tm_effweight = tm_effweight_list[eindexerGet(field_id)]
-                        tm_sw_index = tm_sw_indexerGet(field_id)
-                        if tm_sw_index:
-                            tm_sumweight_list[tm_sw_index]['sumweight'] += (tm_effweight+opp_effweight)*0.5
-
+            tmindex_list = self.tminfo_indexerMatch(div_id)
+            if tmindex_list:
+                divtminfo_list = [self.tminfo_list[index] for index in tmindex_list]
+                tmindexerGet = lambda x: dict((p['tm_id'],i) for i,p in enumerate(divtminfo_list)).get(x)
+                for team_id in range(1, totalteams+1):
+                    # iterate through each team
+                    #reftminfo = self.tminfo_list[self.tminfo_indexerGet((div_id, team_id))]
+                    reftminfo = divtminfo_list[tmindexerGet(team_id)]
+                    reftm_effweight_list = reftminfo['effweight_list']
+                    eff_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_effweight_list)).get(x)
+                    # get list of opponents that team_id plays across season
+                    opponent_list = self.get_opponent_list(match_list, team_id)
+                    # get the effective (normalized) weight list for each field for
+                    # each opponent in the opponent list
+                    opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self.tminfo_list[self.tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
+                    # initialize weight sum list that we are going to compute for earch
+                    # reference team_id; establish season cumulative weights for
+                    # specified team for each field
+                    reftm_sumweight_list = list()
+                    reftm_sw_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_sumweight_list)).get(x)
+                    for opponent_weight_dict in opponent_weight_list:
+                        # iterate through weight list data for each opponent
+                        # get the effective weight information for each field relevant
+                        # to the current specified opponent
+                        opp_effweight_list = opponent_weight_dict['effweight_list']
+                        for opp_effweight_dict in opp_effweight_list:
+                            field_id = opp_effweight_dict['field_id']
+                            opp_effweight = opp_effweight_dict['effweight']
+                            # get effective weight information for current reference
+                            # team
+                            reftm_effweight = reftm_effweight_list[eff_indexerGet(field_id)]['effweight']
+                            # we always average out the field weight contributions
+                            # from the reference and current opponent id
+                            field_effweight = (reftm_effweight+opp_effweight)*0.5
+                            reftm_sw_index = reftm_sw_indexerGet(field_id)
+                            if reftm_sw_index is not None:
+                                # if index for field_id already exists, then we need to
+                                # add to the running sum of the effective weight for
+                                # that field_id
+                                reftm_sumweight_list[reftm_sw_index]['sumweight'] += field_effweight
+                            else:
+                                reftm_sumweight_list.append({'field_id':field_id,
+                                    'sumweight':field_effweight})
+                    div_sumweight_list.append({'team_id':team_id,
+                        'sumweight_list':reftm_sumweight_list})
+            else:
+                # self.tminfo has no entries - this should default to all field_id's
+                # as equal
+                div_sumweight_list = None
+            connected_div_sumweight_list.append({'div_id':div_id,
+                'div_sw_list':div_sumweight_list})
+        return connected_div_sumweight_list
 
     def get_opponent_list(self, match_list, team_id):
         '''Given team_id, find non-unique opponents throughout season.  If team
