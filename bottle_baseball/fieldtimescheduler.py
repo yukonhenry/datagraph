@@ -2395,7 +2395,6 @@ class FieldTimeScheduleGenerator:
                     weight = 1.0/len(af_list)
                     # save weight to tminfo_list; af_weight applies to each
                     # af_list entry
-                    self.tminfo_list[index]['af_weight'] = weight
                     for af in af_list:
                         dindex = dindexerGet(af)
                         if dindex is not None:
@@ -2403,6 +2402,11 @@ class FieldTimeScheduleGenerator:
                         else:
                             hfweight_list.append({'field_id':af,
                                 'aggregweight':weight})
+                    # create list of effective weights for the current team_id
+                    # if field is in af_list (affinity field list), then weight is
+                    # inverset of number of fields in af_list, otherwise it is 0
+                    effweight_list = [{'field_id':x, 'effweight':weight} if x in af_list else {'field_id':x, 'effweight':0.0} for x in divfield_list]
+                    self.tminfo_list[index]['effweight_list'] = effweight_list
                 # We will not be normalizing the weights as the absolute weight value
                 # summed across all teams in the division will be necesary when
                 # combining weights with another division
@@ -2482,8 +2486,45 @@ class FieldTimeScheduleGenerator:
         totalmatch_list = totalmatch_tuple.dict_list
         tindexerGet = totalmatch_tuple.indexerGet
         for div_id in connected_div_list:
+            div_sumweight_list = list()
             divinfo_list = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             totalteams = divinfo_list['totalteams']
             match_list = totalmatch_list[tindexerGet(div_id)]['match_list']
             for team_id in range(1, totalteams+1):
+                tm_sumweight_list = list()
+                tm_sw_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(tmsumweight_list)).get(x)
+                tminfo = self.tminfo_list[self.tminfo_indexerGet((div_id, team_id))]
+                tm_effweight_list = tminfo['effweight_list']
+                eindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(effweight_list)).get(x)
+                # get list of opponents that team_id plays across season
+                opponent_list = self.get_opponent_list(match_list, team_id)
+                # get the effective (normalized) weight list for each field for
+                # each opponent in the opponent list
+                opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self.tminfo_list[self.tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
+                for opponent_weight_dict in opponent_weight_list:
+                    opp_effweight_list = opponent_weight_dict['effweight_list']
+                    for opp_effweight_dict in opp_effweight_list:
+                        field_id = opp_effweight_dict['field_id']
+                        opp_effweight = opp_effweight_dit['effweight']
+                        tm_effweight = tm_effweight_list[eindexerGet(field_id)]
+                        tm_sw_index = tm_sw_indexerGet(field_id)
+                        if tm_sw_index:
+                            tm_sumweight_list[tm_sw_index]['sumweight'] += (tm_effweight+opp_effweight)*0.5
+
+
+    def get_opponent_list(self, match_list, team_id):
+        '''Given team_id, find non-unique opponents throughout season.  If team
+        plays an opponent multiple times, list that opponent as many times as
+        they are played. '''
+        opponent_list = list()
+        for perround_data in match_list:
+            perround_game_list = perround_data['GAME_TEAM']
+            for game in perround_game_list:
+                if game['HOME'] == team_id:
+                    opponent_list.append(game['AWAY'])
+                    break
+                if game['AWAY'] == team_id:
+                    opponent_list.append(game['HOME'])
+                    break
+        return opponent_list
 
