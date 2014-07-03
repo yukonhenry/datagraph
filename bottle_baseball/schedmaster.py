@@ -70,7 +70,7 @@ class SchedMaster:
             tminfo_tuple = _List_IndexerGM(tminfo_list, tminfo_indexerGet,
                 tminfo_indexerMatch)
         else:
-            tminfo_tupe = None
+            tminfo_tuple = None
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list

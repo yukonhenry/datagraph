@@ -99,7 +99,7 @@ class MongoDBInterface:
     def check_docexists(self, key):
         # use key to check if doc exists - return boolean
         if self.collection.find({"SCHED_TYPE":self.sched_type,
-            key:{"$exists":True}}, {key:1}).limit(1):
+            key:{"$exists":True}}, {key:1}).limit(1).count() > 0:
             return True
         else:
             return False

@@ -1,6 +1,6 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
-from itertools import groupby, chain
+from itertools import groupby, chain, product
 from schedule_util import roundrobin, all_same, all_value, enum, shift_list, \
     bipartiteMatch, getConnectedDivisionGroup, getDivFieldEdgeWeight_list,\
     all_isless, find_ge, find_le
@@ -564,6 +564,65 @@ class FieldTimeScheduleGenerator:
                                  for tmetrics in tfmetrics)
             fieldcountdiff_list.append({'div_id':div_id, 'fcountdiff_num':fcountdiff_num})
         return fieldcountdiff_list
+
+    def CompareDivFieldDistribution(self, connected_div_list, fieldmetrics_list,
+        findexerGet, divref_tuple):
+        ''' Compare division level field distribution to reference (expected)
+        distribution '''
+        divref_list = divref_tuple.dict_list
+        dindexerGet = divref_tuple.indexerGet
+        actualref_diff_list = list()
+        for div_id in connected_div_list:
+            # get reference division-wide field count
+            ref_distrib_list = divref_list[dindexerGet(div_id)]['distrib_list']
+            rindexerGet = lambda x: dict((p['field_id'],i)
+                for i,p in enumerate(ref_distrib_list)).get(x)
+            field_list = [x['field_id'] for x in ref_distrib_list]
+            # get measured
+            tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
+            # sum up per-team field use to get division-wide field use metrics
+            actual_distrib_list = [{'field_id':field_id,
+                'sumcount': sum(x['count'] for y in tfmetrics for x in y
+                    if x['field_id']==field_id)} for field_id in field_list]
+            aindexerGet = lambda x: dict((p['field_id'],i)
+                for i,p in enumerate(actual_distrib_list)).get(x)
+            # for each field get difference - acutal-reference
+            diff_distrib_list = [{'field_id':f,
+                'diffcount':actual_distrib_list[aindexerGet(f)]['sumcount'] -
+                ref_distrib_list[rindexerGet(f)]['sumcount']} for f in field_list]
+            actualref_diff_list.append({'div_id':div_id,
+                'distrib_list':diff_distrib_list})
+        aindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(actualref_diff_list)).get(x)
+        return _List_Indexer(actualref_diff_list, aindexerGet)
+
+    def CompareTeamFieldDistribution(self, connected_div_list, fieldmetrics_list,
+        findexerGet, tmref_tuple):
+        ''' Get actual-reference for field distribution counts at the per-team
+        level '''
+        tmref_list = tmref_tuple.dict_list
+        tindexerGet = tmref_tuple.indexerGet
+        connected_diffweight_list = list()
+        for div_id in connected_div_list:
+            # get team reference
+            div_sumweight_list = tmref_list[tindexerGet(div_id)]['div_sw_list']
+            dindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(div_sumweight_list)).get(x)
+            # get actual team counts for each field
+            tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
+            div_diffweight_list = list()
+            for team_id, actualtm_count_list in enumerate(tfmetrics, start=1):
+                reftm_sumweight_list = div_sumweight_list[dindexerGet(team_id)]['sumweight_list']
+                rindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_sumweight_list)).get(x)
+                diffweight_list = [{'field_id':x['field_id'],
+                    'diffweight':x['count'] -
+                    reftm_sumweight_list[rindexerGet(x['field_id'])]['sumweight']}
+                    for x in actualtm_count_list]
+                div_diffweight_list.append({'team_id':team_id,
+                    'diffweight_list':diffweight_list})
+            connected_diffweight_list.append({'div_id':div_id,
+                'div_diffweight_list':div_diffweight_list})
+        cindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(
+            connected_diffweight_list)).get(x)
+        return _List_Indexer(connected_diffweight_list, cindexerGet)
 
     def IncDecELCounters(self, teams, el_type, increment):
         ''' inc/dec early/late counters based on el type and inc/dec flag '''
@@ -1322,10 +1381,12 @@ class FieldTimeScheduleGenerator:
                     logging.info("-----to next game------")
                 logging.debug("ftscheduler: divlist=%s end of round=%d rd_fieldcount_list=%s",
                               connected_div_list, round_id, rd_fieldcount_list)
-            self.calc_divexpectedtfield_distribution_list(numgames_perteam_list)
-            self.calc_teamexpectedfield_distribution_list(totalmatch_tuple, connected_div_list)
-            self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
-            # now work on time rebalanceing
+            # First cut correct schedule is complete at this point, but re-measure
+            # and re-iterate on field balance/distribution
+            self.ReFieldBalanceIteration(connected_div_list, fieldmetrics_list,
+                fieldmetrics_indexerGet, commondates_list, numgames_perteam_list,
+                totalmatch_tuple)
+            # and then work on time rebalanceing
             self.ReTimeBalance(fset, connected_div_list)
             self.ManualSwapTeams(fset, connected_div_list)
             if self.prefinfo_list:
@@ -1674,9 +1735,25 @@ class FieldTimeScheduleGenerator:
                     tel_target_list[team1_id-1], tel_target_list[team2_id-1] = \
                                                   tel_target_list[team2_id-1], tel_target_list[team1_id-1]
 
-
-
-    def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list):
+    def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list,
+        fieldmetrics_indexerGet, commondates_list, numgames_perteam_list,
+        totalmatch_tuple):
+        ''' Top level function after initial schedule is created to see if
+        scheduled field distribution is balanced with respect to tminfo
+        configurations and expected field distributions, both at the division
+        and team level.  For measure how closely schedule meets reference target,
+        and then interate until targets are met. '''
+        divexpected_tuple = self.calc_divreffield_distribution_list(
+            numgames_perteam_list)
+        teamexpected_tuple = self.calc_teamreffield_distribution_list(
+            totalmatch_tuple, connected_div_list)
+        validate_flag = self.validate_divteam_refcount(divexpected_tuple,
+            teamexpected_tuple)
+        if validate_flag:
+            divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
+                fieldmetrics_list, fieldmetrics_indexerGet, divexpected_tuple)
+            teamdiff_tuple = self.CompareTeamFieldDistribution(connected_div_list,
+                fieldmetrics_list, fieldmetrics_indexerGet, teamexpected_tuple)
         old_balcount_list = self.CountFieldBalance(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
@@ -2375,7 +2452,10 @@ class FieldTimeScheduleGenerator:
         homefield_weight_list = list()
         for div_id in div_id_list:
             # iterate thorugh each div
-            index_list = self.tminfo_indexerMatch(div_id)
+            if self.tminfo_indexerMatch:
+                index_list = self.tminfo_indexerMatch(div_id)
+            else:
+                index_list = None
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             divfield_list = divinfo['divfield_list']
             # see if there are any tminfo entries for the current div
@@ -2449,7 +2529,7 @@ class FieldTimeScheduleGenerator:
         nindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(norm_weight_list)).get(x)
         return _List_Indexer(norm_weight_list, nindexerGet)
 
-    def calc_divexpectedtfield_distribution_list(self, ngperteam_list):
+    def calc_divreffield_distribution_list(self, ngperteam_list):
         ''' Determine division-wide target distribution of number of games for each
         field in the divlist for the whole season
         NOTE: do we need to extend expected field distribtuion to the
@@ -2462,21 +2542,23 @@ class FieldTimeScheduleGenerator:
             div_id = ngperteam_dict['div_id']
             # get total games for current division - sum games for each team, divide
             # by 2
-            div_totalgames = sum(ngperteam_dict['numgames_list'])/2
+            # Note - leave out the divide-by-2 factor now, as metrics we compare against are straight aggregation of matche counts which double counts
+            # home and away team contributions
+            div_totalgames = sum(ngperteam_dict['numgames_list'])
             hfweight_list = self.homefield_weight_list[self.hfweight_indexerGet(div_id)]['hfweight_list']
             # get inverse of sum - used for weight normalization
             inv_sumweight = 1.0/sum(x['aggregweight'] for x in hfweight_list)
             # get expected field distribution at the macro division usage level.
             # Multiply total number of games (per division) by normalized weight
             # of each field
-            distribution_list = [{'field_id':x['field_id'], 'count':x['aggregweight']*inv_sumweight*div_totalgames} for x in hfweight_list]
+            distribution_list = [{'field_id':x['field_id'], 'sumcount':x['aggregweight']*inv_sumweight*div_totalgames} for x in hfweight_list]
             #target_list = [{'team_id':team_id, 'tmtarget_list':[{'field_id':y['field_id'], 'target':y['aggregweight']*inv_sumweight*numgames} for y in hfweight_list]} for team_id,numgames in enumerate(ngperteam_dict['numgames_list'], start=1)]
             targetfield_distribution_list.append({'div_id':div_id,
-                'distribution_list':distribution_list})
+                'distrib_list':distribution_list})
         tindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(targetfield_distribution_list)).get(x)
         return _List_Indexer(targetfield_distribution_list, tindexerGet)
 
-    def calc_teamexpectedfield_distribution_list(self, totalmatch_tuple, connected_div_list):
+    def calc_teamreffield_distribution_list(self, totalmatch_tuple, connected_div_list):
         ''' Calculate team-specific target distribution of number of games for each
         field in the divlist for the whole season.  Target distribtuion requires
         knowledge of game match pairups - based on game matchup use normalized
@@ -2543,7 +2625,9 @@ class FieldTimeScheduleGenerator:
                 div_sumweight_list = None
             connected_div_sumweight_list.append({'div_id':div_id,
                 'div_sw_list':div_sumweight_list})
-        return connected_div_sumweight_list
+            cindexerGet = lambda x: dict((p['div_id'],i)
+                for i,p in enumerate(connected_div_sumweight_list)).get(x)
+        return _List_Indexer(connected_div_sumweight_list, cindexerGet)
 
     def get_opponent_list(self, match_list, team_id):
         '''Given team_id, find non-unique opponents throughout season.  If team
@@ -2561,3 +2645,42 @@ class FieldTimeScheduleGenerator:
                     break
         return opponent_list
 
+    def validate_divteam_refcount(self, divref_tuple, teamref_tuple):
+        ''' Validate division reference field distribution list calculation
+        against team reference field distribution calculation.  Aggregate of
+        team reference field distribution should match distribution count
+        for division reference.'''
+        divref_list = divref_tuple.dict_list
+        dindexerGet = divref_tuple.indexerGet
+        teamref_list = teamref_tuple.dict_list
+        tindexerGet = teamref_tuple.indexerGet
+        validate_flag = False
+        for divref in divref_list:
+            # we will make comparisons against each div_id record in the divison-
+            # wide field distribution list
+            div_id = divref['div_id']
+            ref_distrib_list = divref['distrib_list']
+            rindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(ref_distrib_list)).get(x)
+            # get list of relevant fields
+            field_list = [x['field_id'] for x in ref_distrib_list]
+            # get distribution for team-baed field distribution refereence counts
+            teamref_sw_list = teamref_list[tindexerGet(div_id)]['div_sw_list']
+            teamref_sum_list = [{'field_id':f,
+                'sumweight':sum(x['sumweight'] for y in teamref_sw_list for x in y['sumweight_list'] if x['field_id']==f)}
+                for f in field_list]
+            tmindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(teamref_sum_list)).get(x)
+            # format for division-wide and team-specific field distribution list
+            # by example:
+            # pp ref_distrib_list [{'field_id': 1, 'sumcount': 66.0}, {'field_id': 2, 'sumcount': 54.0}]
+            #  pp teamref_sum_list [{'field_id': 1, 'sumweight': 66.0}, {'field_id': 2, 'sumweight': 54.0}]
+            diff_sum = sum(abs(teamref_sum_list[tmindexerGet(f)]['sumweight'] -
+                ref_distrib_list[rindexerGet(f)]['sumcount']) for f in field_list)
+            if diff_sum > 1e-5:
+                # diff_sum should be virtually 0.0; 1e-5 is just set for float
+                # allowances
+                raise CodeLogicError('ftscheduler:validate_divteam_refcount: diff is %f divref=%s teamref=%s' %
+                    (diff_sum, ref_distrib_list, teamref_sum_list))
+                break
+        else:
+            validate_flag = True
+        return validate_flag

@@ -26,7 +26,6 @@ class TeamDBInterface:
         # use DT_ID key to see if any teaminfo doc exists
         return self.dbinterface.check_docexists("DT_ID")
 
-
     def readDB(self):
         # readDB is for returning to client UI
         liststatus_qtuple = self.dbinterface.getInfoPlusDocument('DT_ID')
