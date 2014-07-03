@@ -98,6 +98,11 @@ class MongoDBInterface:
 
     def check_docexists(self, key):
         # use key to check if doc exists - return boolean
+        # Note an empty result still produces a cursor object to be returned from
+        # the find().limit(1) statement, which makes the if .. check always
+        # succeed regardless if there is a result or not.
+        # To make the test a correct one, append with .count() statement to make
+        # sure the cursor result contains an element
         if self.collection.find({"SCHED_TYPE":self.sched_type,
             key:{"$exists":True}}, {key:1}).limit(1).count() > 0:
             return True
