@@ -33,6 +33,7 @@ verypositive_CONST = 1e6
 balanceweight_CONST = 2
 time_iteration_max_CONST = 18
 field_iteration_max_CONST = 10
+mindiff_count_max_CONST = 1
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -677,7 +678,7 @@ class FieldTimeScheduleGenerator:
                 diff = hi_use['count']-lo_use['count']
                 if diff > 1:
                     # if the difference between max and min is greater than a threshold
-                    # (1 in this case), that meas the current team_id is favoring
+                    # (1 in this case), that means the current team_id is favoring
                     # the use of hifield_id over lofield_id. See if it is possible to
                     # move a game between two fields if they are available on the
                     # same day
@@ -1762,8 +1763,11 @@ class FieldTimeScheduleGenerator:
             numgames_perteam_list)
         teamexpected_tuple = self.calc_teamreffield_distribution_list(
             totalmatch_tuple, connected_div_list)
-        validate_flag = self.validate_divteam_refcount(divexpected_tuple,
-            teamexpected_tuple)
+        if teamexpected_tuple:
+            validate_flag = self.validate_divteam_refcount(divexpected_tuple,
+                teamexpected_tuple)
+        else:
+            validate_flag = False
         if validate_flag:
             divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
                 fieldmetrics_list, fieldmetrics_indexerGet, divexpected_tuple)
@@ -1772,9 +1776,10 @@ class FieldTimeScheduleGenerator:
         old_balcount_list = self.CountFieldBalance(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
-        iteration_count = 1
-        logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s", iteration_count,
-                      old_balcount_list)
+        overall_iteration_count = 1
+        mindifff_count = -1
+        logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s",
+            overall_iteration_count, old_balcount_list)
         while True:
             rebalance_count = self.ReFieldBalance(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
             balcount_list = self.CountFieldBalance(connected_div_list,fieldmetrics_list, fieldmetrics_indexerGet)
@@ -1784,19 +1789,34 @@ class FieldTimeScheduleGenerator:
                              balcount_list[bal_indexerGet(div_id)]['fcountdiff_num']}
                             for div_id in connected_div_list]
             logging.debug("ftscheduler:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
-                          iteration_count, balcount_list, balance_diff)
-            #print 'field iteration=', iteration_count, 'balance count=', balcount_list, 'diff=', balance_diff
-            if all(x['diff'] < 1 for x in balance_diff) or iteration_count >= field_iteration_max_CONST:
+                          overall_iteration_count, balcount_list, balance_diff)
+            if all(x['diff'] < 1 for x in balance_diff):
+                if mindiff_count > 0:
+                    # mindiff_count counts how long we are stuck at the minimum
+                    # balance diff
+                    # if we already at the minimum diff, increment counter.
+                    # We still want to iterate with ReFieldBalance() as there may
+                    # not yet be convergence on which team_id has settled on a
+                    # minimum balance diff e.g. if two or more teams are oscillating
+                    # between having the min balance diff value, we should continue
+                    # to iterate several more times.
+                    mindiff_count += 1
+                else:
+                    # first time we are in min balance diff, so initialize count
+                    mindiff_count = 1
+            else:
+                mindiff_count = -1
+            if mindiff_count >= mindiff_count_max_CONST or overall_iteration_count >= field_iteration_max_CONST:
                 logging.debug("ftscheduler:refieldbalance: FINISHED FIELD iteration connected_div %s", connected_div_list)
                 print 'finished field iteration div=', connected_div_list
-                if iteration_count >= field_iteration_max_CONST:
+                if overall_iteration_count >= field_iteration_max_CONST:
                     logging.debug("ftscheduler:refieldbalance: iteration count exceeded max=%d", field_iteration_max_CONST)
                     print 'FINISHED but Iteration count > Max'
                 break
             else:
                 old_balcount_list = balcount_list
                 old_bal_indexerGet = bal_indexerGet
-                iteration_count += 1
+                overall_iteration_count += 1
 
 
     def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len):
@@ -2580,6 +2600,8 @@ class FieldTimeScheduleGenerator:
         field weights for both home and away teams; sum across all matchups to
         get expected field distribution for the whole season for the specified
         team. '''
+        if not self.tminfo_list or not self.tminfo_indexerMatch:
+            return None
         totalmatch_list = totalmatch_tuple.dict_list
         tindexerGet = totalmatch_tuple.indexerGet
         connected_div_sumweight_list = list()
