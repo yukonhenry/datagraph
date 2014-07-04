@@ -124,8 +124,12 @@ class FieldTimeScheduleGenerator:
         # get full home field lists(e.g. home field for 'away'-designated teams)
         # if there are no fields specified, then default to full list for that
         # team
-        home_hf_set = set(hf_list[0]) if hf_list[0] else set(field_list)
-        away_hf_set = set(hf_list[1]) if hf_list[1] else set(field_list)
+        if hf_list:
+            home_hf_set = set(hf_list[0]) if hf_list[0] else set(field_list)
+            away_hf_set = set(hf_list[1]) if hf_list[1] else set(field_list)
+        else:
+            home_hf_set = set(field_list)
+            away_hf_set = set(field_list)
         # hfunion_list represents the union of designated (or default) home fields
         # e.g. the list of assignalbe fields
         hfunion_set = set.union(home_hf_set, away_hf_set)
@@ -140,10 +144,11 @@ class FieldTimeScheduleGenerator:
         eff_awaymetrics_list = [x for x in awaymetrics_list
             if x['field_id'] in hfunion_set]
         # Calc first order target max number of games per field per round
-        # assuming each field should carry equal share.
+        # assuming each field should carry equal share (old note for equal field
+        # balancing)
         # note we are using the number of all fields instead of the number
         # of fields from the filtered list as the required (or the target)
-        # slot number should be based on all fields available for entire div
+        # slot number should be based on all fields available for entire div.
         # get aggregate home field weight list
         norm_hfweight_list = aggregnorm_tuple.dict_list
         # get sum of weights so that we can compute norm
@@ -605,6 +610,10 @@ class FieldTimeScheduleGenerator:
         for div_id in connected_div_list:
             # get team reference
             div_sumweight_list = tmref_list[tindexerGet(div_id)]['div_sw_list']
+            if not div_sumweight_list:
+                # if no team weight list for current division, skip comparison and
+                # go to next div_id
+                continue
             dindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(div_sumweight_list)).get(x)
             # get actual team counts for each field
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
@@ -1288,11 +1297,17 @@ class FieldTimeScheduleGenerator:
                         minmaxdate_indexerGet, field_list)
                     # get homefield_list for both home and away teams
                     # hf_list will be a two-element list
-                    hf_list = []
-                    for homeaway_id in [home_id, away_id]:
-                        tmindex = self.tminfo_indexerGet((div_id, homeaway_id))
-                        # remember append order follows idtype iteration
-                        hf_list.append(self.tminfo_list[tmindex]['af_list'] if tmindex is not None else None)
+                    # Note there are many cases where hf_list will be None or even
+                    # if hf_list is a list, one or both elements may be None
+                    if self.tminfo_indexerMatch and \
+                        self.tminfo_indexerMatch(div_id):
+                        hf_list = []
+                        for homeaway_id in [home_id, away_id]:
+                            tmindex = self.tminfo_indexerGet((div_id, homeaway_id))
+                            # remember append order follows idtype iteration
+                            hf_list.append(self.tminfo_list[tmindex]['af_list'] if tmindex is not None else None)
+                    else:
+                        hf_list = None
                     # next get list of fields sorted by sumcount priorities
                     # each elem is a dict with
                     # {'sumcount':x, 'field_list'[x,y,z...]}
@@ -2665,6 +2680,10 @@ class FieldTimeScheduleGenerator:
             field_list = [x['field_id'] for x in ref_distrib_list]
             # get distribution for team-baed field distribution refereence counts
             teamref_sw_list = teamref_list[tindexerGet(div_id)]['div_sw_list']
+            if not teamref_sw_list:
+                # if there is no team-based distribution for current div, skip
+                # comparison and go to next div
+                continue
             teamref_sum_list = [{'field_id':f,
                 'sumweight':sum(x['sumweight'] for y in teamref_sw_list for x in y['sumweight_list'] if x['field_id']==f)}
                 for f in field_list]
