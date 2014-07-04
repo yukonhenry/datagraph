@@ -1764,11 +1764,15 @@ class FieldTimeScheduleGenerator:
         teamexpected_tuple = self.calc_teamreffield_distribution_list(
             totalmatch_tuple, connected_div_list)
         if teamexpected_tuple:
+            # ensure reference field distribution count - one for div-level, and
+            # the other for team-level - is consistent between the two
             validate_flag = self.validate_divteam_refcount(divexpected_tuple,
                 teamexpected_tuple)
         else:
             validate_flag = False
         if validate_flag:
+            # only if the reference count is consistent between each other -
+            # get difference between actual and ref
             divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
                 fieldmetrics_list, fieldmetrics_indexerGet, divexpected_tuple)
             teamdiff_tuple = self.CompareTeamFieldDistribution(connected_div_list,
