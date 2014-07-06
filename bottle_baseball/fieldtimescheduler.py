@@ -679,8 +679,8 @@ class FieldTimeScheduleGenerator:
                 if diff > 1:
                     # if the difference between max and min is greater than a threshold
                     # (1 in this case), that means the current team_id is favoring
-                    # the use of hifield_id over lofield_id. See if it is possible to
-                    # move a game between two fields if they are available on the
+                    # the use of hifield_id over lofield_id. See if it is possible
+                    # to move a game between two fields if they are available on the
                     # same day
                     hifield_id = hi_use['field_id']
                     lofield_id = lo_use['field_id']
@@ -735,14 +735,22 @@ class FieldTimeScheduleGenerator:
                             logging.debug('ftscheduler:refieldbalance: hi_slot=%d el_measure=%d lastslot=%d',
                                           hi_slot, el_measure, lastTrue_slot)
 
-                            # Next find out who the opponent team is, then find out the field count (for the max count
-                            # field) for that opponent team.  We need the count for the opponent because it will affect
-                            # it's field count if the game is moved away from the max count field
+                            # Next find out who the opponent team is, then find out
+                            # the field count (for the max count field and also the
+                            # count for the min count field it) for that opponent
+                            # team.
+                            # We need the count for the opponent because it will
+                            # affect it's field count if the game is moved away
+                            # from the max count field
                             oppteam_id = hi_teams[home_CONST] if hi_teams[away_CONST]==team_id else hi_teams[away_CONST]
                             hifield_opp_count = self.getFieldTeamCount(tfmetrics, hifield_id, oppteam_id)
                             lofield_opp_count = self.getFieldTeamCount(tfmetrics, lofield_id, oppteam_id)
                             # the measure for opponent team - desirability to swap out this game - is just the difference
-                            # between max and min field counts
+                            # between max and min field counts as the potential swap
+                            # will occur from the high count field to the low count
+                            # field, i.e. the larger the difference, the more
+                            # benefit we will get for moving the game to the min
+                            # count field.
                             opp_measure = hifield_opp_count - lofield_opp_count
                             # *****
                             # Calculate Total cost for swapping out the hifield_id game (with the designated team_id) in the
@@ -751,7 +759,12 @@ class FieldTimeScheduleGenerator:
                             # opponent team max min field count diff (opp_measure) +
                             # we might want to scale the opp_measure over the el_measure as we are focused on field
                             # balacning - leave equal weight for now
-                            hi_total_cost = el_measure + balanceweight_CONST*opp_measure
+                            # Adjust cost function by subtracting 1 from
+                            # opp_measure before multiplying by weight because we
+                            # want a penalty to be applied if a 0 opp_measure is
+                            # selected as it disrupts an equal balance between
+                            # fields
+                            hi_total_cost = el_measure + balanceweight_CONST*(opp_measure-1)
                             # summarize all the info and metrics for the swapped-out game from the max count field
                             # hi_team_metrics_list persists outside of this current gameday and is used to choose the
                             # best match involving the maxfteam out of all the gamedays to swap out
@@ -772,6 +785,8 @@ class FieldTimeScheduleGenerator:
                             # falls under the 0 or last slot
                             # move some fields to general for loop as list comprehension gets too messy.
                             lo_sstatus_list = lo_ftstatus['sstatus_list']
+                            # for current game date, find team info that has a game
+                            # scheduled on the low count field
                             today_lofield_info = [{'slot_index':i,
                                 'teams':j['teams']}
                                 for i,j in enumerate(lo_sstatus_list) if j['isgame']]
@@ -799,6 +814,18 @@ class FieldTimeScheduleGenerator:
                                 linfo['hi_slot_el_cost'] = self.getELcost_by_slot(
                                     hi_slot, lteams, lastTrue_slot, incoming=1)
                                 # calculate min field teams to swap out from the min field slot to max field slot
+                                # as the home and away teams will move away from
+                                # the low count field, the best candidate is where
+                                # the difference between the 'low count' field and
+                                # 'high count' field is the highest (because the low
+                                # count field will decrease and high count will
+                                # increase - note 'low' and 'high' terms are with
+                                # respect to the home and away teams that will be
+                                # moving away from the high count field.  For the
+                                # teams moving into the 'high count' field, the
+                                # terms 'low' and 'high' may be confusing because
+                                # for them the 'low count' field may actually have
+                                # a higher count value than the 'high count' field)
                                 homeswap_cost = linfo['homelo_count']-linfo['homehi_count']
                                 awayswap_cost = linfo['awaylo_count']-linfo['awayhi_count']
                                 linfo['fieldswap_cost'] = homeswap_cost + awayswap_cost
@@ -807,8 +834,13 @@ class FieldTimeScheduleGenerator:
                                 # swap out cost for lofield_id matches + early/late cost for min field match -
                                 # cost for maxf teams to come into the min field slot -
                                 # cost for lofield_id teams to go into max field slot
-                                linfo['totalswap_cost'] = balanceweight_CONST*linfo['fieldswap_cost'] + linfo['el_cost'] \
-                                  - balanceweight_CONST*linfo['hi_teams_in_cost'] - linfo['hi_slot_el_cost']
+                                #*********************
+                                # subtract fieldswap_cost by 1 to add penalty if
+                                # there is already balance between hi and lo count
+                                # fields
+                                linfo['totalswap_cost'] = balanceweight_CONST*(linfo['fieldswap_cost']-1) + \
+                                    linfo['el_cost'] - \
+                                    balanceweight_CONST*linfo['hi_teams_in_cost'] - linfo['hi_slot_el_cost']
                             sorted_lofield_info = sorted(today_lofield_info, key=itemgetter('totalswap_cost'), reverse=True)
                             max_linfo = max(today_lofield_info, key=itemgetter('totalswap_cost'))
                             max_linfo['fieldday_id'] = lo_fieldday_id
