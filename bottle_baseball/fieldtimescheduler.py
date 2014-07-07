@@ -32,8 +32,8 @@ verynegative_CONST = -1e6
 verypositive_CONST = 1e6
 balanceweight_CONST = 2
 time_iteration_max_CONST = 18
-field_iteration_max_CONST = 10
-mindiff_count_max_CONST = 1
+field_iteration_max_CONST = 15
+mindiff_count_max_CONST = 4
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -601,6 +601,40 @@ class FieldTimeScheduleGenerator:
         aindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(actualref_diff_list)).get(x)
         return _List_Indexer(actualref_diff_list, aindexerGet)
 
+    def identify_control_div(self, divdiff_tuple):
+        ''' return divisions that have any diffcount greater than 1
+        '''
+        divdiff_list = divdiff_tuple.dict_list
+        '''
+        correction_div_list = list()
+        for divdiff in divdiff_list:
+            distrib_list = divdiff['distrib_list']
+            if any(abs(x['diffcount']) > 1.0 for x in distrib_list):
+                correction_div_list.append(divdiff['div_id'])
+        '''
+        control_div_list = [x['div_id'] for x in divdiff_list
+            if any(abs(y['diffcount']) > 1.0 for y in x['distrib_list'])]
+        return control_div_list
+
+    def apply_teamdiff_control(self, teamdiff_tuple, cdiv_list, fmetrics_list,
+        findexerGet):
+        teamdiff_list = teamdiff_tuple.dict_list
+        tindexerGet = teamdiff_tuple.indexerGet
+        # get div_id's covered in teamdiff_list - it may be a proper subset of
+        # cdiv_list
+        td_div_list = [x['div_id'] for x in teamdiff_list]
+        # div_id's to iterate through is intersection of cdiv_list and td_div_list
+        div_set = set.intersection(set(td_div_list), set(cdiv_list))
+        for div_id in div_set:
+            div_diffweight_list = teamdiff_list[tindexerGet(div_id)]['div_diffweight_list']
+            for team_diffweight in div_diffweight_list:
+                team_id = team_diffweight['team_id']
+                diffweight_list = team_diffweight['diffweight_list']
+                max_diffweight_dict = max(diffweight_list,
+                    key=itemgetter("diffweight"))
+                max_field_id = max_diffweight_dict['field_id']
+                max_diffweight = max_diffweight_dict['diffweight']
+
     def CompareTeamFieldDistribution(self, connected_div_list, fieldmetrics_list,
         findexerGet, tmref_tuple):
         ''' Get actual-reference for field distribution counts at the per-team
@@ -764,7 +798,9 @@ class FieldTimeScheduleGenerator:
                             # want a penalty to be applied if a 0 opp_measure is
                             # selected as it disrupts an equal balance between
                             # fields
-                            hi_total_cost = el_measure + balanceweight_CONST*(opp_measure-1)
+                            # Also Add in diff value, which is the measure for the
+                            # current team id
+                            hi_total_cost = el_measure + balanceweight_CONST*(opp_measure-1+diff)
                             # summarize all the info and metrics for the swapped-out game from the max count field
                             # hi_team_metrics_list persists outside of this current gameday and is used to choose the
                             # best match involving the maxfteam out of all the gamedays to swap out
@@ -840,7 +876,7 @@ class FieldTimeScheduleGenerator:
                                 # fields
                                 linfo['totalswap_cost'] = balanceweight_CONST*(linfo['fieldswap_cost']-1) + \
                                     linfo['el_cost'] - \
-                                    balanceweight_CONST*linfo['hi_teams_in_cost'] - linfo['hi_slot_el_cost']
+                                    linfo['hi_teams_in_cost'] - linfo['hi_slot_el_cost']
                             sorted_lofield_info = sorted(today_lofield_info, key=itemgetter('totalswap_cost'), reverse=True)
                             max_linfo = max(today_lofield_info, key=itemgetter('totalswap_cost'))
                             max_linfo['fieldday_id'] = lo_fieldday_id
@@ -1789,31 +1825,38 @@ class FieldTimeScheduleGenerator:
         ''' Top level function after initial schedule is created to see if
         scheduled field distribution is balanced with respect to tminfo
         configurations and expected field distributions, both at the division
-        and team level.  For measure how closely schedule meets reference target,
-        and then interate until targets are met. '''
+        and team level.  First measure how closely schedule meets reference target,
+        and then interate until targets are met.
+        divexpected_tuple and divdiff_tuple will exist even if tminfo is not
+        configured and we are targetin an all-equal-field distribution
+        '''
         divexpected_tuple = self.calc_divreffield_distribution_list(
             numgames_perteam_list)
+        divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
+            fieldmetrics_list, fieldmetrics_indexerGet, divexpected_tuple)
         teamexpected_tuple = self.calc_teamreffield_distribution_list(
             totalmatch_tuple, connected_div_list)
         if teamexpected_tuple:
-            # ensure reference field distribution count - one for div-level, and
-            # the other for team-level - is consistent between the two
+            # if teamexpected_tuple exists, ensure reference field distribution
+            # count - one for div-level, and the other for team-level - is
+            # consistent between the two
             validate_flag = self.validate_divteam_refcount(divexpected_tuple,
                 teamexpected_tuple)
-        else:
-            validate_flag = False
-        if validate_flag:
-            # only if the reference count is consistent between each other -
-            # get difference between actual and ref
-            divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
-                fieldmetrics_list, fieldmetrics_indexerGet, divexpected_tuple)
-            teamdiff_tuple = self.CompareTeamFieldDistribution(connected_div_list,
-                fieldmetrics_list, fieldmetrics_indexerGet, teamexpected_tuple)
+            if validate_flag:
+                teamdiff_tuple = self.CompareTeamFieldDistribution(
+                    connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
+                    teamexpected_tuple)
+                control_div_list = self.identify_control_div(divdiff_tuple)
+                self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
+                    fieldmetrics_list, fieldmetrics_indexerGet)
+            else:
+                raise CodeLogicError(
+                    "ftscheduler:ReFieldBalanceIteration:validation between div and team ref counts failed")
         old_balcount_list = self.CountFieldBalance(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
         overall_iteration_count = 1
-        mindifff_count = -1
+        mindiff_count = -1
         logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s",
             overall_iteration_count, old_balcount_list)
         while True:

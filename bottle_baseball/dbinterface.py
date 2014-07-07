@@ -585,8 +585,8 @@ class MongoDBInterface:
     def resetSchedStatus_col(self):
         # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
         self.collection.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:0, sched_type_CONST:self.sched_type}},
-                              upsert=True, safe=True)
+            {"$set":{sched_status_CONST:0, sched_type_CONST:self.sched_type}},
+            upsert=True)
 
     def setSchedStatus_col(self):
         self.collection.update({sched_status_CONST:{"$exists":True}},
