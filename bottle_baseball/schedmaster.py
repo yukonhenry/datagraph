@@ -60,10 +60,14 @@ class SchedMaster:
         tmdbInterface = TeamDBInterface(mongoClient, divcol_name)
         if tmdbInterface.check_docexists():
             tmdbtuple = tmdbInterface.readDBraw()
+            # recreate tminfo_list from db read, but leave out fields such as
+            # team name which is not needed for schedule generation
             tminfo_list = [{'dt_id':x['dt_id'], 'div_id':x['div_id'],
                 'tm_id':x['tm_id'], 'af_list':x['af_list']}
                 for x in tmdbtuple.list]
+            # indexerGet for specific div_id and team_id match
             tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
+            # indexermatch for list of team matches for specified div_id
             tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x]
             # _List_IndexerM gets dereferenced using indexerMatch instead of
             # indexerGet

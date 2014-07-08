@@ -83,7 +83,8 @@ class FieldTimeScheduleGenerator:
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
         # get connected divisions through shared fields
-        self.connected_div_components = getConnectedDivisionGroup(self.fieldinfo_list, key='primaryuse_list')
+        self.connected_div_components = getConnectedDivisionGroup(
+            self.fieldinfo_list, key='primaryuse_list')
         fstatus_tuple = self.getFieldSeasonStatus_list()
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
@@ -624,21 +625,28 @@ class FieldTimeScheduleGenerator:
         # cdiv_list
         td_div_list = [x['div_id'] for x in teamdiff_list]
         # div_id's to iterate through is intersection of cdiv_list and td_div_list
+        # note td_div shoudl always be a proper subset of cdiv
         div_set = set.intersection(set(td_div_list), set(cdiv_list))
         for div_id in div_set:
-            # get list of team diff weights for specified division, if data
-            # for division exists
-            div_diffweight_list = teamdiff_list[tindexerGet(div_id)]['div_diffweight_list']
+            # get list of team diff weights for specified division
+            divteam_diffweight_list = teamdiff_list[tindexerGet(div_id)]['div_diffweight_list']
+            dtindexerGet = lambda x: dict((p['team_id'],i)
+                for i,p in enumerate(divteam_diffweight_list)).get(x)
+            # get current field count metrics for specified div_id
             tfmetrics = fmetrics_list[findexerGet(div_id)]['tfmetrics']
-            for team_diffweight in div_diffweight_list:
+            for team_diffweight in divteam_diffweight_list:
                 # iterate through each team_id and it's diff weight list
+                # get reference team id and it's diffweights for each field
                 team_id = team_diffweight['team_id']
                 diffweight_list = team_diffweight['diffweight_list']
                 # sort diffweights from highest to lowest
                 sorted_diffweight_list = sorted(diffweight_list,
                     key=itemgetter("diffweight"), reverse=True)
-                # get maximum and minimum diff weights and corresponding
-                # field_id's
+                # get maximum and minimum diff weights for specified team_id
+                # and their corresponding field_id's
+                # NOTE we will need to generalize from just working with the
+                # max and min diffweights and field_id's to working through the
+                # entire diffweight_list to find the optimal swap.
                 max_dict = sorted_diffweight_list[0]
                 max_field_id = max_dict['field_id']
                 max_diffweight = max_dict['diffweight']
@@ -687,8 +695,8 @@ class FieldTimeScheduleGenerator:
                         oppmin_field_count = self.getFieldTeamCount(tfmetrics, min_field_id, oppteam_id)
     def CompareTeamFieldDistribution(self, connected_div_list, fieldmetrics_list,
         findexerGet, tmref_tuple):
-        ''' Get actual-reference for field distribution counts at the per-team
-        level '''
+        ''' Get actual-reference (minus, subtraction) for field distribution
+        counts at the per-team level '''
         tmref_list = tmref_tuple.dict_list
         tindexerGet = tmref_tuple.indexerGet
         connected_diffweight_list = list()
@@ -2624,10 +2632,12 @@ class FieldTimeScheduleGenerator:
             divfield_list = divinfo['divfield_list']
             # see if there are any tminfo entries for the current div
             if index_list:
-                # if there is, create the weight list
+                # if there is, create the weight list for each field
+                # weight list is defined as the aggregate, the sume of field weights
+                # for team (tminfo entry)
                 hfweight_list = list()
                 for index in index_list:
-                    # index_list iteration is equivalent
+                    # get indexer into current hfweight_list iteration
                     dindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(hfweight_list)).get(x)
                     af_list = self.tminfo_list[index]['af_list']
                     if not af_list:
