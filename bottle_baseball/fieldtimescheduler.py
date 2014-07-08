@@ -617,7 +617,7 @@ class FieldTimeScheduleGenerator:
         return control_div_list
 
     def apply_teamdiff_control(self, teamdiff_tuple, cdiv_list, fmetrics_list,
-        findexerGet):
+        findexerGet, commondates_list):
         teamdiff_list = teamdiff_tuple.dict_list
         tindexerGet = teamdiff_tuple.indexerGet
         # get div_id's covered in teamdiff_list - it may be a proper subset of
@@ -626,15 +626,65 @@ class FieldTimeScheduleGenerator:
         # div_id's to iterate through is intersection of cdiv_list and td_div_list
         div_set = set.intersection(set(td_div_list), set(cdiv_list))
         for div_id in div_set:
+            # get list of team diff weights for specified division, if data
+            # for division exists
             div_diffweight_list = teamdiff_list[tindexerGet(div_id)]['div_diffweight_list']
+            tfmetrics = fmetrics_list[findexerGet(div_id)]['tfmetrics']
             for team_diffweight in div_diffweight_list:
+                # iterate through each team_id and it's diff weight list
                 team_id = team_diffweight['team_id']
                 diffweight_list = team_diffweight['diffweight_list']
-                max_diffweight_dict = max(diffweight_list,
-                    key=itemgetter("diffweight"))
-                max_field_id = max_diffweight_dict['field_id']
-                max_diffweight = max_diffweight_dict['diffweight']
-
+                # sort diffweights from highest to lowest
+                sorted_diffweight_list = sorted(diffweight_list,
+                    key=itemgetter("diffweight"), reverse=True)
+                # get maximum and minimum diff weights and corresponding
+                # field_id's
+                max_dict = sorted_diffweight_list[0]
+                max_field_id = max_dict['field_id']
+                max_diffweight = max_dict['diffweight']
+                min_dict = sorted_diffweight_list[len(sorted_diffweight_list)-1]
+                min_field_id = min_dict['field_id']
+                min_diffweight = min_dict['diffweight']
+                # get max and min slot status lists and corresponding indexerget
+                # functions
+                max_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(max_field_id)]['slotstatus_list']
+                max_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(max_ftstatus_list)).get(x)
+                min_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(min_field_id)]['slotstatus_list']
+                min_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(min_ftstatus_list)).get(x)
+                for commondates_dict in commondates_list:
+                    # get fieldday_id that corresponds to field_id for current
+                    # common date; commondates_dict[map_dict] key:value is
+                    # field_id:fielday_id
+                    max_fieldday_id = commondates_dict['map_dict'][max_field_id]
+                    min_fieldday_id = commondates_dict['map_dict'][min_field_id]
+                    # get fieldstatus list for the max and min fieldday_id
+                    max_ftstatus = max_ftstatus_list[max_indexerGet(max_fieldday_id)]
+                    min_ftstatus = min_ftstatus_list[min_indexerGet(min_fieldday_id)]
+                    # see if the reference team is playing on the max_field_id on
+                    # the current game date.  If so, get game data.
+                    max_fieldmatch_list = [{'slot_index':i,
+                        'start_time':j['start_time'], 'teams':j['teams']}
+                        for i,j in enumerate(max_ftstatus['sstatus_list'])
+                        if j['isgame'] and j['teams']['div_id']==div_id and
+                        (j['teams'][home_CONST]==team_id or
+                            j['teams'][away_CONST]==team_id)]
+                    if max_fieldmatch_list:
+                        # NOTE: assume there is only one game per day, but need to
+                        # generalize
+                        max_fieldmatch = max_fieldmatch_list[0]
+                        max_teams = max_fieldmatch['teams']
+                        # get information necessary to determine early/late slot
+                        # costs
+                        max_isgame_list = [x['isgame'] for x in max_ftstatus['sstatus_list']]
+                        max_lastTrue_slot = len(max_isgame_list)-1-max_isgame_list[::-1].index(True)
+                        # get early/late cost from current scheduled slot for
+                        # reference team
+                        max_el_measure = self.getELcost_by_slot(
+                            max_fieldmatch['slot_index'], max_teams,
+                            max_lastTrue_slot)
+                        oppteam_id = max_teams[home_CONST] if max_teams[away_CONST]==team_id else max_teams[away_CONST]
+                        oppmax_field_count = self.getFieldTeamCount(tfmetrics, max_field_id, oppteam_id)
+                        oppmin_field_count = self.getFieldTeamCount(tfmetrics, min_field_id, oppteam_id)
     def CompareTeamFieldDistribution(self, connected_div_list, fieldmetrics_list,
         findexerGet, tmref_tuple):
         ''' Get actual-reference for field distribution counts at the per-team
@@ -1848,7 +1898,7 @@ class FieldTimeScheduleGenerator:
                     teamexpected_tuple)
                 control_div_list = self.identify_control_div(divdiff_tuple)
                 self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
-                    fieldmetrics_list, fieldmetrics_indexerGet)
+                    fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
             else:
                 raise CodeLogicError(
                     "ftscheduler:ReFieldBalanceIteration:validation between div and team ref counts failed")
