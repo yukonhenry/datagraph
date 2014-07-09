@@ -1,7 +1,4 @@
-datagraph
-=========
-
-Data Graph - this repository includes the league scheduler software, along with unrelated experimentation nlp processing/visualization code utilizing nltk and d3js.
+##Data Graph - this repository includes the league scheduler software, along with unrelated experimentation nlp processing/visualization code utilizing nltk and d3js.
 
 Sports League Scheduling Software:
 -------------------------
@@ -13,7 +10,7 @@ This software aims to rigorously solve this as a combinatorial optimization prob
 - Constraints: Limits or irregularity with field/time availability
 - Preferences: Best effort attempt to meet prioritized time preferences.
 
-### Demo code continously available on http://www.yukontr.com/apps/LeagueScheduler/
+#### Demo code continously available on http://www.yukontr.com/apps/LeagueScheduler/
 
 ### Implementation:
 Algorithm implmentation in Python on a hosted (cloud) backend server, with storage of schedule and configuration information on a key:value db (mongodb).  Web-based UI implemented in js, utilizing dojo framework.  dojo components such as dgrid and dojox calendar are utiized.  UI<->backend data exchange through http rest-like interface.
@@ -23,7 +20,7 @@ Algorithm implmentation in Python on a hosted (cloud) backend server, with stora
 * leaguescheduler directory includes js code for UI.  scheduler.js is the main js module loaded from index.hmtl.  UI code follows two separate paths (for wizard, and 'advanced' UI - for content pane creation, but merge together once the per-pane UI components are generated.  Dojo framework provides the infrastructure, with heavy use of dgrid, dodjox calendar, and local dojo store
 
 
-###Dev Installation Notes:
+####Dev Installation Notes:
 1. Dbootstrap install: ref https://github.com/thesociable/dbootstrap (install from workspace project dir)
 
 2. Node.js installation: http://stackoverflow.com/questions/7214474/how-to-keep-up-with-the-latest-versions-of-nodejs-in-ubuntu-ppa-compiling
@@ -38,5 +35,5 @@ Algorithm implmentation in Python on a hosted (cloud) backend server, with stora
 
 7. git clone --recursive git://github.com/thesociable/dbootstrap.git (from workspace dir)
 
-##Any questions or comments should be directed to henry@yukontr.com
+###Any questions or comments should be directed to henry@yukontr.com
 
