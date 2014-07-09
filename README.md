@@ -2,7 +2,7 @@ Sports League Scheduling Software:
 -------------------------
 This production level software implements league scheduler (both round robin and tournament) software for amateur sports leagues.  There are unique characterizations with amateur sports leagues, mainly driven by scarcity of resources and an abundance of constraints and preferences.  Further adding to the complexity is that the consumer of a schedule has many audiences, and given that, the definition of a 'good' or optimal schedule may have competing interests.  For example, field spaces may be limited and hours restricted, but at the same time must be fairly shared.  Participants in the leagues may have many time and distance constraints.  
 
-This software aims to rigorously solve this as a combinatorial optimization problem with defined cost functions and constraints.
+This software aims to rigorously solve this as a nonlinear programming (discrete) optimization problem with defined cost functions and constraints.
 
 - Cost function:  Defined to maximize fairness - field use and time use fairness.
 - Constraints: Limits or irregularity with field/time availability
@@ -30,5 +30,5 @@ Algorithm implmentation in Python on a hosted (cloud) backend server, with stora
 
 ### Other code in datagraph respository
 Note this repository also includes experimental nlp+visualization code utilizing nltk and d3js
-###Any questions or comments should be directed to henry@yukontr.com
+####Any questions or comments should be directed to henry@yukontr.com
 
