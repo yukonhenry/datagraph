@@ -22,8 +22,8 @@
 #b schedmaster.py:65
 #b fielddbinterface.py:1192
 #b fieldtimescheduler.py:679, div_id==1 and team_id==2
-b fieldtimescheduler.py:632
-#b fieldtimescheduler.py:1835
+b fieldtimescheduler.py:168
+b fieldtimescheduler.py:1257
 #b dbinterface.py:101
 #b leaguediv_process.py:240
 #b schedule_util.py:265

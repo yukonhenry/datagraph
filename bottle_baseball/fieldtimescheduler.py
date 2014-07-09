@@ -160,7 +160,14 @@ class FieldTimeScheduleGenerator:
         #    'normweight':x['aggregweight']/sumweight} for x in ag_hfweight_list]
         # compute the required slots for each field by multiplying the total
         # required slots per round times the normalized weighting factor
-        reqslots_list = [{'field_id':x['field_id'], 'count':int(ceil(float(reqslots_perrnd_num)*x['normweight']))} for x in norm_hfweight_list]
+        reqslots_list = [{'field_id':x['field_id'], 'count':int(round(float(reqslots_perrnd_num)*x['normweight']))} for x in norm_hfweight_list]
+        if sum(x['count'] for x in reqslots_list) != reqslots_perrnd_num:
+            # if sum of per-field counts do not equal the total req slots for
+            # connected div, force it
+            rlen = len(reqslots_list)
+            partialsum = sum(x['count'] for x in reqslots_list[:rlen])
+            reqslots_list[rlen-1] = reqslots_perrnd_num - partialsum
+
         req_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reqslots_list)).get(x)
         diff_count_list = [{'field_id':x,
             'diff_count':eff_rd_fcount_list[erd_indexerGet(x)]['count'] -
@@ -648,15 +655,17 @@ class FieldTimeScheduleGenerator:
                 # max and min diffweights and field_id's to working through the
                 # entire diffweight_list to find the optimal swap.
                 max_dict = sorted_diffweight_list[0]
-                max_field_id = max_dict['field_id']
                 max_diffweight = max_dict['diffweight']
+                if max_diffweight > 0.99:
+                    max_field_id = max_dict['field_id']
+                    max_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(max_field_id)]['slotstatus_list']
+                    max_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(max_ftstatus_list)).get(x)
                 min_dict = sorted_diffweight_list[len(sorted_diffweight_list)-1]
                 min_field_id = min_dict['field_id']
                 min_diffweight = min_dict['diffweight']
                 # get max and min slot status lists and corresponding indexerget
                 # functions
-                max_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(max_field_id)]['slotstatus_list']
-                max_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(max_ftstatus_list)).get(x)
+
                 min_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(min_field_id)]['slotstatus_list']
                 min_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(min_ftstatus_list)).get(x)
                 for commondates_dict in commondates_list:
@@ -2738,7 +2747,54 @@ class FieldTimeScheduleGenerator:
         knowledge of game match pairups - based on game matchup use normalized
         field weights for both home and away teams; sum across all matchups to
         get expected field distribution for the whole season for the specified
-        team. '''
+        team. Sum of the expected field distribution per field, summed across
+        all fields in the divlist should equal the total number of games that the
+        team plays.
+        Example: 6 total teams (T1 through T6, each teams plays 5 games total,
+        )round robin
+        3 Fields: F1, F2, F3
+        AF (affinity/home field) configuration for [F1, F2, F3]:
+        T1: [1,1,0]  (F1, F2 configured as home affinity)
+        T2: [1,1,0]
+        T3: [1,1,0]
+        T4: [1,1,0]
+        T5: [1,1,0]
+        T6: [0,0,1]
+        Above simulates a league where 5 local teams T1 thru T5 utilize F1, F2 for
+        their home games;  T6 is a remote team that utilizes F3 for their home games
+        If a team has multiple home field affinities, then assume the goal is to
+        have an equal number of games amongst them.  So for the above, the
+        weighted configuration for each team becomes:
+        WT1: [0.5, 0.5, 0]
+        WT2: [0.5, 0.5, 0]
+        WT3: [0.5, 0.5, 0]
+        WT4: [0.5, 0.5, 0]
+        WT5: [0.5, 0.5, 0]
+        WT6: [0,0,1]
+
+        T1 plays matches T1vT2, T1vT3, T1vT4, T1vT5, T1vT6
+        Field weights for each match involving T1:
+        T1vT2: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT3: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT4: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT5: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT6: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        Aggregate over each field to get aggregate field distribution for T1:
+        T1 field distribution over 5 games:
+        2.25(games@)F1 + 2.25(games@)F2 + 0.5(games@)F3
+
+        Given identical AF configs for T1 thru T5, T2 thru T5 will have the same
+        field distribution as T1
+
+        T6 matches:
+        T6vT1: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT2: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT3: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT4: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT5: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        Aggregate distribution for T6 over 5 games:
+        1.25(games@)F1 + 1.25(games@)F2 + 2.5(games@)F3
+        '''
         if not self.tminfo_list or not self.tminfo_indexerMatch:
             return None
         totalmatch_list = totalmatch_tuple.dict_list
