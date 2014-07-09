@@ -1,7 +1,22 @@
 datagraph
 =========
 
-Data Graph experiments - this repository includes the league scheduler software, along with some experimentation code for d3js and nltk.
+Data Graph - this repository includes the league scheduler software, along with unrelated experimentation nlp processing/visualization code utilizing nltk and d3js.
+
+Sports League Scheduling Software:
+This production level software implements league scheduler (both round robin and tournament) software for amateur sports leagues.  There are unique characterizations with amateur sports leagues, mainly driven by scarcity of resources and an abudance of constraints and preferences.  Further adding to the complexity is that the consumer of a schedule has many audiences, and given that, the definition of a 'good' or optimal schedule may have competing interests.  For example, field spaces may be limited and hours restricted, but at the same time must be fairly shared.  Particpants in the leagues may have many time and distance constraints.  
+
+This software aims to rigorously solve this as a combinatorial optimization problem with defined cost functions and constraints.
+
+Cost function:  Defined to maximize fairness - field use and time use fairness.
+Constraints: Limits or irregularity with field/time availability
+Preferences: Best effort attempt to meet prioritized time preferences.
+
+-------------
+Demo code continously available on http://www.yukontr.com/apps/LeagueScheduler/
+--------------
+Implementation:
+Algorithm implmentation in Python on a hosted (cloud) backend server, with storage of schedule and configuration information on a key:value db (mongodb).  Web-based UI implemented in js, utilizing dojo framework.  dojo components such as dgrid and dojox calendar are utiized.  UI<->backend data exchange through http rest-like interface.
 
 Code Structure:
 bottle_baseball directory includes py code that implements the schduling algorithm.  Entry pt is schedstart.py.  leaguedivprocess.py implements that bottle framework that routes incoming requests from the UI.  xxdbinterface.py implements various db interface requests.  schedmaster.py implements entry point for schedule generation.  matchgenerator.py implements time/place independent match generation, with xxfieldtimescheduler.py implementing time/venue assignments.
@@ -10,7 +25,7 @@ leaguescheduler directory includes js code for UI.  scheduler.js is the main js 
 
 ------------
 
-Dev Installation:
+Dev Installation Notes:
 1)Dbootstrap install: ref https://github.com/thesociable/dbootstrap (install from workspace project dir)
 
 2)Node.js installation: http://stackoverflow.com/questions/7214474/how-to-keep-up-with-the-latest-versions-of-nodejs-in-ubuntu-ppa-compiling
@@ -24,4 +39,7 @@ Dev Installation:
 6)Install node_modules/stylus with global option (sudo npm install stylus -g)
 
 7)git clone --recursive git://github.com/thesociable/dbootstrap.git (from workspace dir)
+
+-------------------------
+Any questions or comments should be directed to henry@yukontr.com
 
