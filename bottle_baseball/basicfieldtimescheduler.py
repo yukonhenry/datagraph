@@ -4,7 +4,7 @@ from itertools import groupby
 from schedule_util import roundrobin, all_same, all_value, enum, shift_list, bipartiteMatch
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
-from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, getDivFieldEdgeWeight_list, \
+from leaguedivprep import getAgeGenderDivision, getFieldSeasonStatus_list, \
      getConnectedDivisions, getLeagueDivInfo, getFieldInfo, getTeamTimeConstraintInfo, getSwapTeamInfo
 import logging
 from operator import itemgetter
