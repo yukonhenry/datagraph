@@ -1,7 +1,7 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
-from itertools import chain, product
-from schedule_util import roundrobin, all_value, enum, shift_list, \
+from itertools import chain
+from schedule_util import roundrobin, enum, shift_list, \
     getConnectedDivisionGroup, all_isless, find_ge, find_le
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
@@ -226,6 +226,13 @@ class FieldTimeScheduleGenerator:
             # get per-team field distribution list
             teamrefdistrib_tuple = self.calc_teamreffield_distribution_list(
                 totalmatch_tuple, connected_div_list)
+            if teamrefdistrib_tuple:
+                teamrefdistrib_list = teamrefdistrib_tuple.dict_list
+                # indexerGet is to get div_id subcomponent
+                trindexerGet = teamrefdistrib_tuple.indexerGet
+            else:
+                teamrefdistrib_list = None
+                trindexerGet = None
             for round_id in range(1,max(matchlist_len_list)+1):
                 # counters below count how many time each field is used for every
                 # round; reset for each round/gameday
@@ -258,14 +265,13 @@ class FieldTimeScheduleGenerator:
                     div_id = rrgame['div_id']
                     teamfieldmetrics_list = fieldmetrics_list[fieldmetrics_indexerGet(div_id)]['tfmetrics']
                     gameinterval = rrgame['gameinterval']
-
                     gameinfo = rrgame['game']
                     home_id = gameinfo[home_CONST]
                     away_id = gameinfo[away_CONST]
-
                     home_fieldmetrics_list = teamfieldmetrics_list[home_id-1]
                     away_fieldmetrics_list = teamfieldmetrics_list[away_id-1]
-
+                    hfindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list)).get(x)
+                    afindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list)).get(x)
                     tel_index = tel_indexerGet(div_id)
                     target_el_list = self.timebalancer.target_earlylate_list[tel_index]['target_list']
                     home_targetel_dict = target_el_list[home_id-1]
@@ -318,16 +324,18 @@ class FieldTimeScheduleGenerator:
                     datesortedfield_list = self.datesort_fields(minmaxdate_list,
                         minmaxdate_indexerGet, field_list)
                     # get homefield_list for both home and away teams
-                    # hf_list will be a two-element list
+                    # hf_list will be a two-element list, with each elem a dict
+                    # containing team_id and af_list information
                     # Note there are many cases where hf_list will be None or even
                     # if hf_list is a list, one or both elements may be None
                     if self.tminfo_indexerMatch and \
                         self.tminfo_indexerMatch(div_id):
                         hf_list = []
-                        for homeaway_id in [home_id, away_id]:
-                            tmindex = self.tminfo_indexerGet((div_id, homeaway_id))
+                        for team_id in [home_id, away_id]:
+                            tmindex = self.tminfo_indexerGet((div_id, team_id))
                             # remember append order follows idtype iteration
-                            hf_list.append(self.tminfo_list[tmindex]['af_list'] if tmindex is not None else None)
+                            hf_list.append({'team_id': team_id,
+                                'af_list':self.tminfo_list[tmindex]['af_list'] if tmindex is not None else None})
                     else:
                         hf_list = None
                     # Finding the initial venue/time assignament for the current
@@ -337,12 +345,16 @@ class FieldTimeScheduleGenerator:
                     # field availability, and then determining the optimal time
                     # slot.
                     # ----------------------------------
-                    # First get list of prioritized fields
+                    # First get team reference information if it exists
+                    if teamrefdistrib_list and trindexerGet:
+                        divteamref_list = teamrefdistrib_list[trindexerGet(div_id)]['div_sw_list']
+                    else:
+                        divteamref_list = None
                     sumsortedfield_list = self.fieldbalancer.findMinimumCountField(
                         home_fieldmetrics_list, away_fieldmetrics_list,
                         rd_fieldcount_list, reqslots_perrnd_num, hf_list,
                         field_list, aggregnorm_tuple, divrefdistrib_tuple,
-                        teamrefdistrib_tuple)
+                        divteamref_list)
                     if not sumsortedfield_list:
                         raise FieldAvailabilityError(div_id)
                     logging.debug("rrgenobj while True loop:")
@@ -408,10 +420,8 @@ class FieldTimeScheduleGenerator:
                         raise CodeLogicError("ftscheduler:generate: sstatus game_date %s does not match w computed game_date %s" % (game_date, computedgame_date))
                     else:
                         logging.debug("ftscheduler:generate: game played date %s time %s", game_date, gametime.time())
-                    home_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(home_fieldmetrics_list))
-                    away_fieldmetrics_indexer = dict((p['field_id'],i) for i,p in enumerate(away_fieldmetrics_list))
-                    home_fieldmetrics_list[home_fieldmetrics_indexer.get(field_id)]['count'] += 1
-                    away_fieldmetrics_list[away_fieldmetrics_indexer.get(field_id)]['count'] += 1
+                    home_fieldmetrics_list[hfindexerGet(field_id)]['count'] += 1
+                    away_fieldmetrics_list[afindexerGet(field_id)]['count'] += 1
                     rd_fieldcount_list[rd_fieldcount_indexerGet(field_id)]['count'] += 1
                     self.updatetimegap_list(div_id, home_id, away_id, game_date,
                         gametime+gameinterval)

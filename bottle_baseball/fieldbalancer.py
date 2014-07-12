@@ -31,7 +31,10 @@ class FieldBalancer:
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
         self.timebalancer = timebalancer
 
-    def findMinimumCountField(self, homemetrics_list, awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num, hf_list, field_list, aggregnorm_tuple, divrefdistrib_tuple, teamrefdistrib_tuple, submin=0):
+    def findMinimumCountField(self, homemetrics_list,
+        awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num,
+        hf_list, field_list, aggregnorm_tuple, divref_tuple, divteamref_list,
+        submin=0):
         # This method returns an ordered list of candidate fields to the ftschedler,
         # which makes an initial field/date/time schedule assignment for the match.
         # The field list is ordered according to the cost function value for each
@@ -56,8 +59,10 @@ class FieldBalancer:
         # if there are no fields specified, then default to full list for that
         # team
         if hf_list:
-            home_hf_set = set(hf_list[0]) if hf_list[0] else set(field_list)
-            away_hf_set = set(hf_list[1]) if hf_list[1] else set(field_list)
+            home_af_list = hf_list[0]['af_list']
+            away_af_list = hf_list[1]['af_list']
+            home_hf_set = set(home_af_list) if home_af_list else set(field_list)
+            away_hf_set = set(away_af_list) if away_af_list else set(field_list)
         else:
             home_hf_set = set(field_list)
             away_hf_set = set(field_list)
@@ -78,6 +83,26 @@ class FieldBalancer:
         # field counter for away team
         eff_awaymetrics_list = [x for x in awaymetrics_list
             if x['field_id'] in hfunion_set]
+        ehindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(eff_homemetrics_list)).get(x)
+        eaindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(eff_awaymetrics_list)).get(x)
+        if divteamref_list and hf_list:
+            # per team field distribution info is available - compare run time
+            # field counts for team against reference
+            dtindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(divteamref_list)).get(x)
+            home_id = hf_list[0]['team_id']
+            away_id = hf_list[1]['team_id']
+            home_sumweight_list = divteamref_list[dtindexerGet(home_id)]['sumweight_list']
+            away_sumweight_list = divteamref_list[dtindexerGet(away_id)]['sumweight_list']
+            hsindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_sumweight_list)).get(x)
+            asindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_sumweight_list)).get(x)
+            home_diffcount_list = [{'field_id':x,
+                'diffcount':eff_homemetrics_list[ehindexerGet(x)]['count'] -
+                home_sumweight_list[hsindexerGet(x)]['sumweight']}
+                for x in hfunion_set]
+            away_diffcount_list = [{'field_id':x,
+                'diffcount':eff_awaymetrics_list[eaindexerGet(x)]['count'] -
+                away_sumweight_list[asindexerGet(x)]['sumweight']}
+                for x in hfunion_set]
         # Calc first order target max number of games per field per round
         # assuming each field should carry equal share (old note for equal field
         # balancing)
