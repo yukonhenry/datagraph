@@ -218,12 +218,17 @@ class FieldTimeScheduleGenerator:
             # get normalized field weights aggregated over all divisions in the
             # connected_div_list
             aggregnorm_tuple = self.get_aggregnorm_hfweight_list(connected_div_list)
-            # get the reference (target) field distrbution counts for this
+            # get the reference (target) field distribution counts for this
             # division.  Count value is a float and may have fractional
             # component.
+            # first get per-div field distribution list (there will always be a
+            # non-null return value)
             divrefdistrib_tuple = self.calc_divreffield_distribution_list(
                 numgames_perteam_list)
-            # get per-team field distribution list
+            divrefdistrib_list = divrefdistrib_tuple.dict_list
+            drindexerGet = divrefdistrib_tuple.indexerGet
+            # get per-team field distribution list - return may be null if
+            # af_list was not configured for any division
             teamrefdistrib_tuple = self.calc_teamreffield_distribution_list(
                 totalmatch_tuple, connected_div_list)
             if teamrefdistrib_tuple:
@@ -345,16 +350,17 @@ class FieldTimeScheduleGenerator:
                     # field availability, and then determining the optimal time
                     # slot.
                     # ----------------------------------
-                    # First get team reference information if it exists
+                    # get team reference information if it exists
                     if teamrefdistrib_list and trindexerGet:
                         divteamref_list = teamrefdistrib_list[trindexerGet(div_id)]['div_sw_list']
                     else:
                         divteamref_list = None
+                    # also get div reference count info
+                    divref_list = divrefdistrib_list[drindexerGet(div_id)]['distrib_list']
                     sumsortedfield_list = self.fieldbalancer.findMinimumCountField(
                         home_fieldmetrics_list, away_fieldmetrics_list,
                         rd_fieldcount_list, reqslots_perrnd_num, hf_list,
-                        field_list, aggregnorm_tuple, divrefdistrib_tuple,
-                        divteamref_list)
+                        field_list, aggregnorm_tuple, divref_list, divteamref_list)
                     if not sumsortedfield_list:
                         raise FieldAvailabilityError(div_id)
                     logging.debug("rrgenobj while True loop:")

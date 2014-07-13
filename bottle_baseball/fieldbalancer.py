@@ -33,7 +33,7 @@ class FieldBalancer:
 
     def findMinimumCountField(self, homemetrics_list,
         awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num,
-        hf_list, field_list, aggregnorm_tuple, divref_tuple, divteamref_list,
+        hf_list, field_list, aggregnorm_tuple, divref_list, divteamref_list,
         submin=0):
         # This method returns an ordered list of candidate fields to the ftschedler,
         # which makes an initial field/date/time schedule assignment for the match.
@@ -96,13 +96,19 @@ class FieldBalancer:
             hsindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_sumweight_list)).get(x)
             asindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_sumweight_list)).get(x)
             home_diffcount_list = [{'field_id':x,
-                'diffcount':eff_homemetrics_list[ehindexerGet(x)]['count'] -
-                home_sumweight_list[hsindexerGet(x)]['sumweight']}
+                'diffcount':home_sumweight_list[hsindexerGet(x)]['sumweight'] -eff_homemetrics_list[ehindexerGet(x)]['count']}
                 for x in hfunion_set]
             away_diffcount_list = [{'field_id':x,
-                'diffcount':eff_awaymetrics_list[eaindexerGet(x)]['count'] -
-                away_sumweight_list[asindexerGet(x)]['sumweight']}
+                'diffcount':away_sumweight_list[asindexerGet(x)]['sumweight'] -eff_awaymetrics_list[eaindexerGet(x)]['count']}
                 for x in hfunion_set]
+        else:
+            # note there seems to be a weird pdb problem here - pdb does not break
+            # if a pass statement is placed here and a breakpoint added; if the
+            # pass statement is replaced with any other statement like a simple
+            # print statement, pdb breaks as expected when control flow passes
+            # through
+            drindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(divref_list)).get(x)
+
         # Calc first order target max number of games per field per round
         # assuming each field should carry equal share (old note for equal field
         # balancing)
