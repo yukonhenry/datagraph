@@ -23,9 +23,9 @@
 #b fielddbinterface.py:1192
 #b fieldtimescheduler.py:679, div_id==1 and team_id==2
 #b fieldtimescheduler.py:266
-#b fieldtimescheduler.py:354
-b fieldbalancer.py:110
-#b fieldbalancer.py:93
+#b fieldtimescheduler.py:1346
+#b fieldbalancer.py:1346
+b fieldbalancer.py:140
 #b fieldbalancer.py:101
 #b dbinterface.py:101
 #b leaguediv_process.py:240

@@ -85,7 +85,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_indexerMatch = None
         self.timebalancer = TimeBalancer(fstatus_tuple)
         self.fieldbalancer = FieldBalancer(divinfo_tuple, fstatus_tuple,
-            self.timebalancer)
+            tminfo_tuple, self.timebalancer)
 
     def generateSchedule(self, totalmatch_tuple):
         totalmatch_list = totalmatch_tuple.dict_list
@@ -101,7 +101,7 @@ class FieldTimeScheduleGenerator:
             # note following counters can be initialized within the connected_div_components
             # loop because the divisions are completely isolated from each other
             # outside of the inner div_id/connected_div_list loop below
-            targetfieldcount_list = []
+            # fieldmetrics_list tracks per-team field counts
             fieldmetrics_list = []
             divtotal_el_list = []
             matchlist_len_list = []
@@ -133,17 +133,6 @@ class FieldTimeScheduleGenerator:
                 numgames_perteam_list.append({'div_id':div_id,
                     'numgames_list':divmatch_dict['numgames_perteam_list']})
                 reqslots_perrnd_num += divmatch_dict['gameslots_perrnd_perdiv']
-                # for each team, number of games targeted for each field.
-                # similar to homeaway balancing number can be scalar (if #teams/#fields is mod 0)
-                # or it can be a two element range (floor(#teams/#fields), same floor+1)
-                # the target number of games per fields is the same for each field
-                # used for field balancing
-                '''
-                numgamesperfield_list = [[n/divfield_num]
-                                         if n%divfield_num==0 else [n/divfield_num,n/divfield_num+1]
-                                         for n in numgames_perteam_list]
-                targetfieldcount_list.append({'div_id':div_id, 'targetperfield':numgamesperfield_list})
-                '''
                 fmetrics_list = [{'field_id':x, 'count':0} for x in divfield_list]
                 # note below totalteams*[fmetrics_list] only does a shallow copy; use deepcopy
                 tfmetrics_list = [deepcopy(fmetrics_list) for i in range(totalteams)]
@@ -177,9 +166,8 @@ class FieldTimeScheduleGenerator:
                     'last_date':_absolute_earliest_date,
                     'last_endtime':-1, 'team_id':x}
                     for x in range(1, totalteams+1)])
-            logging.debug('ftscheduler: target num games per fields=%s',targetfieldcount_list)
             logging.debug('ftscheduler: target early late games=%s divtotal target=%s',
-                          self.timebalancer.target_earlylate_list, divtotal_el_list)
+                self.timebalancer.target_earlylate_list, divtotal_el_list)
             # we are assuming still below that all fields in fset are shared by the field-sharing
             # divisions, i.e. we are not sufficiently handing cases where div1 uses fields [1,2]
             # and div2 is using fields[2,3] (field 2 is shared but not 1 and 3)
@@ -229,7 +217,7 @@ class FieldTimeScheduleGenerator:
             drindexerGet = divrefdistrib_tuple.indexerGet
             # get per-team field distribution list - return may be null if
             # af_list was not configured for any division
-            teamrefdistrib_tuple = self.calc_teamreffield_distribution_list(
+            teamrefdistrib_tuple = self.fieldbalancer.calc_teamreffield_distribution_list(
                 totalmatch_tuple, connected_div_list)
             if teamrefdistrib_tuple:
                 teamrefdistrib_list = teamrefdistrib_tuple.dict_list
@@ -1286,13 +1274,15 @@ class FieldTimeScheduleGenerator:
         return commonmap_list
 
     def init_homefieldweight_list(self):
-        ''' Create weighted list of home fields, with weights calculated as a
-            weighted average of home fields for all teams in a particular
-            division.  Format for each division:
-            [{field_id:x1, aggregweight:y1}, {field_id:x2, aggregweight:y2} etc
-            If there is tminfo data, we still create home field weights as we
-            default to all divfields being potential homefields.
-            Thus there is always a non-null return value.
+        ''' This method creates two effective outputs, though the way we output
+        (one as a return value and the other as assignment to a member variable)
+        might not be the best of soft eng practices.
+        First output (return value) is the aggregated home field weights for each
+        field, aggregated over one division.
+        Second output (assignemt to another key of self.tminfo) is the per-team
+        field distribution weight 0.0-1.0 based on the af_list configuration.
+        (If there is no af_list config, default to weight 1.0/divfields) The
+        fractional per-field weights should sum to 1.0
         '''
         div_id_list = [x['div_id'] for x in self.divinfo_list]
         homefield_weight_list = list()
@@ -1306,7 +1296,8 @@ class FieldTimeScheduleGenerator:
             divfield_list = divinfo['divfield_list']
             # see if there are any tminfo entries for the current div
             if index_list:
-                # if there is, create the weight list for each field
+                # if there is at least one tminfo entry for the div, then
+                # create the weight list for each field
                 # weight list is defined as the aggregate, the sume of field weights
                 # for team (tminfo entry)
                 hfweight_list = list()
@@ -1338,11 +1329,24 @@ class FieldTimeScheduleGenerator:
                 # We will not be normalizing the weights as the absolute weight value
                 # summed across all teams in the division will be necesary when
                 # combining weights with another division
-                #sumweight = sum(x['aggregweight'] for x in hfweight_list)
-                #hfweight_list = [x['aggregweight']/sumweight for x in hfweight_list]
             else:
                 # default to equal weights if the div has no tminfo config
+                # create tminfo entry for effweight_list.  tminfo entries that
+                # we are creating here will be fore memory only
+                # dt_id, tm_id, div_id, along with effweight_list keys will be
+                # created, but af_list not created.  Will not be stored in db.
+                effweight = 1.0/len(divfield_list)
+                effweight_list = [{'field_id':x, 'effweight':effweight}
+                    for x in divfield_list]
                 totalteams = divinfo['totalteams']
+                # create the default field distribution list to each team in div
+                divtminfo_list = [{'div_id':div_id, 'tm_id':tm_id,
+                    'dt_id':"dv"+str(div_id)+"tm"+str(tm_id),
+                    'effweight_list':effweight_list}]
+                if not self.tminfo_list:
+                    self.tminfo_list = divtminfo_list
+                else:
+                    self.tminfo_list.extend(divtminfo_list)
                 aggregweight = float(totalteams)/len(divfield_list)
                 hfweight_list = [{'field_id':x, 'aggregweight':aggregweight}
                     for x in divfield_list]
@@ -1399,145 +1403,11 @@ class FieldTimeScheduleGenerator:
             # get expected field distribution at the macro division usage level.
             # Multiply total number of games (per division) by normalized weight
             # of each field
+            # x['aggregweight']*inv_sumweight is the fractional ration of total
+            # games in div that should be hosted in field x
             distribution_list = [{'field_id':x['field_id'], 'sumcount':x['aggregweight']*inv_sumweight*div_totalgames} for x in hfweight_list]
             #target_list = [{'team_id':team_id, 'tmtarget_list':[{'field_id':y['field_id'], 'target':y['aggregweight']*inv_sumweight*numgames} for y in hfweight_list]} for team_id,numgames in enumerate(ngperteam_dict['numgames_list'], start=1)]
             targetfield_distribution_list.append({'div_id':div_id,
                 'distrib_list':distribution_list})
         tindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(targetfield_distribution_list)).get(x)
         return _List_Indexer(targetfield_distribution_list, tindexerGet)
-
-    def calc_teamreffield_distribution_list(self, totalmatch_tuple, connected_div_list):
-        ''' Calculate team-specific target distribution of number of games for each
-        field in the divlist for the whole season.  Target distribtuion requires
-        knowledge of game match pairups - based on game matchup use normalized
-        field weights for both home and away teams; sum across all matchups to
-        get expected field distribution for the whole season for the specified
-        team. Sum of the expected field distribution per field, summed across
-        all fields in the divlist should equal the total number of games that the
-        team plays.
-        Example: 6 total teams (T1 through T6, each teams plays 5 games total,
-        )round robin
-        3 Fields: F1, F2, F3
-        AF (affinity/home field) configuration for [F1, F2, F3]:
-        T1: [1,1,0]  (F1, F2 configured as home affinity)
-        T2: [1,1,0]
-        T3: [1,1,0]
-        T4: [1,1,0]
-        T5: [1,1,0]
-        T6: [0,0,1]
-        Above simulates a league where 5 local teams T1 thru T5 utilize F1, F2 for
-        their home games;  T6 is a remote team that utilizes F3 for their home games
-        If a team has multiple home field affinities, then assume the goal is to
-        have an equal number of games amongst them.  So for the above, the
-        weighted configuration for each team becomes:
-        WT1: [0.5, 0.5, 0]
-        WT2: [0.5, 0.5, 0]
-        WT3: [0.5, 0.5, 0]
-        WT4: [0.5, 0.5, 0]
-        WT5: [0.5, 0.5, 0]
-        WT6: [0,0,1]
-
-        T1 plays matches T1vT2, T1vT3, T1vT4, T1vT5, T1vT6
-        Field weights for each match involving T1:
-        T1vT2: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
-        T1vT3: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
-        T1vT4: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
-        T1vT5: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
-        T1vT6: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
-        Aggregate over each field to get aggregate field distribution for T1:
-        T1 field distribution over 5 games:
-        2.25(games@)F1 + 2.25(games@)F2 + 0.5(games@)F3
-
-        Given identical AF configs for T1 thru T5, T2 thru T5 will have the same
-        field distribution as T1
-
-        T6 matches:
-        T6vT1: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
-        T6vT2: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
-        T6vT3: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
-        T6vT4: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
-        T6vT5: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
-        Aggregate distribution for T6 over 5 games:
-        1.25(games@)F1 + 1.25(games@)F2 + 2.5(games@)F3
-        '''
-        if not self.tminfo_list or not self.tminfo_indexerMatch:
-            return None
-        totalmatch_list = totalmatch_tuple.dict_list
-        tindexerGet = totalmatch_tuple.indexerGet
-        connected_div_sumweight_list = list()
-        for div_id in connected_div_list:
-            div_sumweight_list = list()
-            divinfo_list = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-            totalteams = divinfo_list['totalteams']
-            # get match information for the division
-            match_list = totalmatch_list[tindexerGet(div_id)]['match_list']
-            tmindex_list = self.tminfo_indexerMatch(div_id)
-            if tmindex_list:
-                divtminfo_list = [self.tminfo_list[index] for index in tmindex_list]
-                tmindexerGet = lambda x: dict((p['tm_id'],i) for i,p in enumerate(divtminfo_list)).get(x)
-                for team_id in range(1, totalteams+1):
-                    # iterate through each team
-                    #reftminfo = self.tminfo_list[self.tminfo_indexerGet((div_id, team_id))]
-                    reftminfo = divtminfo_list[tmindexerGet(team_id)]
-                    reftm_effweight_list = reftminfo['effweight_list']
-                    eff_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_effweight_list)).get(x)
-                    # get list of opponents that team_id plays across season
-                    opponent_list = self.get_opponent_list(match_list, team_id)
-                    # get the effective (normalized) weight list for each field for
-                    # each opponent in the opponent list
-                    opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self.tminfo_list[self.tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
-                    # initialize weight sum list that we are going to compute for earch
-                    # reference team_id; establish season cumulative weights for
-                    # specified team for each field
-                    reftm_sumweight_list = list()
-                    reftm_sw_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_sumweight_list)).get(x)
-                    for opponent_weight_dict in opponent_weight_list:
-                        # iterate through weight list data for each opponent
-                        # get the effective weight information for each field relevant
-                        # to the current specified opponent
-                        opp_effweight_list = opponent_weight_dict['effweight_list']
-                        for opp_effweight_dict in opp_effweight_list:
-                            field_id = opp_effweight_dict['field_id']
-                            opp_effweight = opp_effweight_dict['effweight']
-                            # get effective weight information for current reference
-                            # team
-                            reftm_effweight = reftm_effweight_list[eff_indexerGet(field_id)]['effweight']
-                            # we always average out the field weight contributions
-                            # from the reference and current opponent id
-                            field_effweight = (reftm_effweight+opp_effweight)*0.5
-                            reftm_sw_index = reftm_sw_indexerGet(field_id)
-                            if reftm_sw_index is not None:
-                                # if index for field_id already exists, then we need to
-                                # add to the running sum of the effective weight for
-                                # that field_id
-                                reftm_sumweight_list[reftm_sw_index]['sumweight'] += field_effweight
-                            else:
-                                reftm_sumweight_list.append({'field_id':field_id,
-                                    'sumweight':field_effweight})
-                    div_sumweight_list.append({'team_id':team_id,
-                        'sumweight_list':reftm_sumweight_list})
-            else:
-                # self.tminfo has no entries - this should default to all field_id's
-                # as equal
-                div_sumweight_list = None
-            connected_div_sumweight_list.append({'div_id':div_id,
-                'div_sw_list':div_sumweight_list})
-            cindexerGet = lambda x: dict((p['div_id'],i)
-                for i,p in enumerate(connected_div_sumweight_list)).get(x)
-        return _List_Indexer(connected_div_sumweight_list, cindexerGet)
-
-    def get_opponent_list(self, match_list, team_id):
-        '''Given team_id, find non-unique opponents throughout season.  If team
-        plays an opponent multiple times, list that opponent as many times as
-        they are played. '''
-        opponent_list = list()
-        for perround_data in match_list:
-            perround_game_list = perround_data['GAME_TEAM']
-            for game in perround_game_list:
-                if game['HOME'] == team_id:
-                    opponent_list.append(game['AWAY'])
-                    break
-                if game['AWAY'] == team_id:
-                    opponent_list.append(game['HOME'])
-                    break
-        return opponent_list

@@ -12,8 +12,8 @@ def main():
     #logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)
     logging.basicConfig(level=logging.DEBUG)
     now = time.strftime("%c")
-    logging.debug("Current time is %s", now)
-    logging.debug("Version: 0.0.0.3c")
+    logging.debug("Current time is %s",now)
+    logging.debug("Version: 0.0.0.3m")
     if socket.gethostname() == 'web380.webfaction.com':
         run(port = 31032, server = 'cherrypy')
 #        run(host='localhost',port = 31032)  # check webfaction port setting

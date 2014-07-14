@@ -24,11 +24,22 @@ time_format_CONST = '%H:%M'
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
 class FieldBalancer:
-    def __init__(self, divinfo_tuple, fstatus_tuple, timebalancer):
+    def __init__(self, divinfo_tuple, fstatus_tuple, tminfo_tuple, timebalancer):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
+        if tminfo_tuple:
+            self.tminfo_list = tminfo_tuple.dict_list
+            # for indexerGet, parameter is two-tuple (div_id, tm_id)
+            # returns None or index into tminfo_list
+            self.tminfo_indexerGet = tminfo_tuple.indexerGet
+            # for indexerMatch
+            self.tminfo_indexerMatch = tminfo_tuple.indexerMatch
+        else:
+            self.tminfo_list = None
+            self.tminfo_indexerGet = None
+            self.tminfo_indexerMatch = None
         self.timebalancer = timebalancer
 
     def findMinimumCountField(self, homemetrics_list,
@@ -98,17 +109,42 @@ class FieldBalancer:
             home_diffcount_list = [{'field_id':x,
                 'diffcount':home_sumweight_list[hsindexerGet(x)]['sumweight'] -eff_homemetrics_list[ehindexerGet(x)]['count']}
                 for x in hfunion_set]
+            hdindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_diffcount_list)).get(x)
             away_diffcount_list = [{'field_id':x,
                 'diffcount':away_sumweight_list[asindexerGet(x)]['sumweight'] -eff_awaymetrics_list[eaindexerGet(x)]['count']}
                 for x in hfunion_set]
+            adindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_diffcount_list)).get(x)
+            for diffcount_list in [home_diffcount_list, away_diffcount_list]:
+                for diffcount_dict in diffcount_list:
+                    diffcount = diffcount_dict['diffcount']
+                    if diffcount <= 0:
+                        # count has exceeded reference, define penalty
+                        penalty = abs(diffcount-1)*2
+                        diffcount_dict['diffcount'] = (diffcount-1)*penalty
+                    elif diffcount == 1:
+                        # count is approaching reference, define penalty
+                        penalty = 3
+                        diffcount_dict['diffcount'] += 3
+            # cost function is determined by summing home and away team field
+            # distribution counts (counts taken into account penalty as calculated)
+            # above
+            sumdiffcount_list = [{'field_id':x,
+                'sumdiffcount':home_diffcount_list[hdindexerGet(x)]['diffcount'] + away_diffcount_list[adindexerGet(x)]['diffcount']} for x in hfunion_set]
+            # get unique set of sumdiffcount values
+            uniquecount_list = list(
+                set([x['sumdiffcount'] for x in sumdiffcount_list]))
+            sorted_sumdiffcount_list = [{'sumdiffcount':x,
+                'field_list':[y['field_id'] for y in sumdiffcount_list if y['sumdiffcount']==x]} for x in uniquecount_list]
+            sorted_sumdiffcount_list.sort(key=itemgetter('sumdiffcount'),
+                reverse=True)
+            return sorted_sumdiffcount_list
         else:
             # note there seems to be a weird pdb problem here - pdb does not break
             # if a pass statement is placed here and a breakpoint added; if the
             # pass statement is replaced with any other statement like a simple
             # print statement, pdb breaks as expected when control flow passes
             # through
-            drindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(divref_list)).get(x)
-
+            raise CodeLogicError("fbalancer:findMinimumCount: divteamref_list or hf_list is None")
         # Calc first order target max number of games per field per round
         # assuming each field should carry equal share (old note for equal field
         # balancing)
@@ -180,10 +216,10 @@ class FieldBalancer:
             # correspond to the maxed field for both homecount and awaycount lists
             homecount_list[maxedout_ind] = (homecount_list[maxedout_ind]+1)*penalty
             awaycount_list[maxedout_ind] = (awaycount_list[maxedout_ind]+1)*penalty
-            logging.info("ftscheduler:findMinCountField: field=%d maxed out, required=%s ind=%d penalty=%d",
-                         maxedout_field, maxdiff_dict, maxedout_ind, penalty)
-            logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
-                         homecount_list, awaycount_list)
+            logging.info("fbalancer:findMinCountField: field=%d maxed out, required=%s ind=%d penalty=%d",
+                maxedout_field, maxdiff_dict, maxedout_ind, penalty)
+            logging.info("fbalancer:findMinCountField: weighted lists home=%s away=%s",
+                homecount_list, awaycount_list)
         elif almostmaxed_field:
             # if the current field count is almost (one less than) the target count, then incrementally
             # the home/away count list for the field as a penalty - this will incrementally 'slow down'
@@ -192,9 +228,9 @@ class FieldBalancer:
             # if count is approaching the limit, give an additive penalty
             homecount_list[almost_ind] += penalty
             awaycount_list[almost_ind] += penalty
-            logging.info("ftscheduler:findMinCountField: field=%d Almost Target, required=%s ind=%d",
+            logging.info("fbalancer:findMinCountField: field=%d Almost Target, required=%s ind=%d",
                 almostmaxed_field, maxdiff_dict, almost_ind)
-            logging.info("ftscheduler:findMinCountField: weighted lists home=%s away=%s",
+            logging.info("fbalancer:findMinCountField: weighted lists home=%s away=%s",
                 homecount_list, awaycount_list)
         # get min
         sumcount_list = [x+y for (x,y) in zip(homecount_list, awaycount_list)]
@@ -459,16 +495,16 @@ class FieldBalancer:
                             if j['isgame'] and j['teams']['div_id']==div_id and
                             (j['teams'][home_CONST]==team_id or j['teams'][away_CONST]==team_id)]
                         if len(today_hifield_info_list) > 1:
-                            logging.info("ftscheduler:rebalance:today maxfieldinfo_list entry len is %d",
+                            logging.info("fbalancer:rebalance:today maxfieldinfo_list entry len is %d",
                                 len(today_hifield_info_list))
                             #raise CodeLogicError('ftschedule:rebalance: There should only be one game per gameday')
                         if today_hifield_info_list:
-                            logging.info("ftscheduler:refieldbalance: div=%d hifieldday=%d lofieldday=%d hifield_id=%d lofield_id=%d",
+                            logging.info("fbalancer:refieldbalance: div=%d hifieldday=%d lofieldday=%d hifield_id=%d lofield_id=%d",
                                 div_id, hi_fieldday_id, lo_fieldday_id,
                                 hifield_id, lofield_id)
                             # assuming one game per team per day when taking 0-element
                             today_hifield_info = today_hifield_info_list[0]
-                            logging.debug("ftscheduler:refieldbalance: hifield_id info=%s", today_hifield_info)
+                            logging.debug("fbalancer:refieldbalance: hifield_id info=%s", today_hifield_info)
                             # if there is game being played on the max count field by the current team, then first find out
                             # find out how the potential time slot change associated with the field move might affect
                             #early/late time slot counters
@@ -479,7 +515,7 @@ class FieldBalancer:
                             hi_teams = today_hifield_info['teams']
                             el_measure = self.timebalancer.getELcost_by_slot(
                                 hi_slot, hi_teams, lastTrue_slot)
-                            logging.debug('ftscheduler:refieldbalance: hi_slot=%d el_measure=%d lastslot=%d',
+                            logging.debug('fbalancer:refieldbalance: hi_slot=%d el_measure=%d lastslot=%d',
                                 hi_slot, el_measure, lastTrue_slot)
                             # Next find out who the opponent team is, then find out
                             # the field count (for the max count field and also the
@@ -525,7 +561,7 @@ class FieldBalancer:
                                 'el_measure':el_measure,
                                 'hi_total_cost':hi_total_cost}
                             hi_team_metrics_list.append(hi_team_metrics)
-                            logging.debug('ftscheduler:refieldbalance: hifield_id team metrics=%s', hi_team_metrics)
+                            logging.debug('fbalancer:refieldbalance: hifield_id team metrics=%s', hi_team_metrics)
                             # Now we are going to find all the teams (not just in this div but also all field-shared divs)
                             # using the minimum count field
                             # and then find the measures for each field - which is both the lofield_id counts for the home and
@@ -602,10 +638,10 @@ class FieldBalancer:
                                 'hi_lastTrue_slot':lastTrue_slot,
                                 'total_cost':max_linfo['totalswap_cost']+hi_team_metrics['hi_total_cost']}
                             gameday_totalcost_list.append(gameday_totalcost)
-                            #logging.debug('ftscheduler:refieldbalance: lofield_info=%s', today_lofield_info)
-                            #logging.debug('ftscheduler:refieldbalance: sorted lofield_id=%s', today_lofield_info)
-                            logging.debug('ftscheduler:refieldbalance: max lofield_id=%s', max_linfo)
-                            logging.debug('ftscheduler:refieldbalance: totalcost=%s', gameday_totalcost)
+                            #logging.debug('fbalancer:refieldbalance: lofield_info=%s', today_lofield_info)
+                            #logging.debug('fbalancer:refieldbalance: sorted lofield_id=%s', today_lofield_info)
+                            logging.debug('fbalancer:refieldbalance: max lofield_id=%s', max_linfo)
+                            logging.debug('fbalancer:refieldbalance: totalcost=%s', gameday_totalcost)
                     # ******
                     # maximize cost by just taking max of total_cost on list
                     max_totalcost = max(gameday_totalcost_list, key=itemgetter('total_cost'))
@@ -620,14 +656,14 @@ class FieldBalancer:
                     max_lo_slot = max_totalcost['lo_slot']
                     max_lo_lastTrue_slot = max_totalcost['lo_lastTrue_slot']
                     max_hi_lastTrue_slot = max_totalcost['hi_lastTrue_slot']
-                    logging.debug('ftscheduler:refieldbalance: totalcost_list=%s', gameday_totalcost_list)
-                    logging.debug('ftscheduler:refieldbalance: maximum cost info=%s', max_totalcost)
+                    logging.debug('fbalancer:refieldbalance: totalcost_list=%s', gameday_totalcost_list)
+                    logging.debug('fbalancer:refieldbalance: maximum cost info=%s', max_totalcost)
 
-                    logging.debug('ftscheduler:refieldbalance: swapping div=%d team=%d playing opponent=%d on %s hifieldday=%d to lofieldday=%d from slot=%d field=%d',
+                    logging.debug('fbalancer:refieldbalance: swapping div=%d team=%d playing opponent=%d on %s hifieldday=%d to lofieldday=%d from slot=%d field=%d',
                         div_id, team_id, max_oppteam_id, common_date,
                         max_hi_fieldday_id,
                         max_lo_fieldday_id, max_hi_slot, hifield_id)
-                    logging.debug('ftscheduler:refieldbalance: swap with match div=%d, home=%d away=%d, slot=%d field=%d',
+                    logging.debug('fbalancer:refieldbalance: swap with match div=%d, home=%d away=%d, slot=%d field=%d',
                         max_lo_div_id, max_lo_home_id, max_lo_away_id,
                         max_lo_slot, lofield_id)
                     # ready to swap matches
@@ -691,13 +727,13 @@ class FieldBalancer:
                 #    fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
             else:
                 raise CodeLogicError(
-                    "ftscheduler:ReFieldBalanceIteration:validation between div and team ref counts failed")
+                    "fbalancer:ReFieldBalanceIteration:validation between div and team ref counts failed")
         old_balcount_list = self.CountFieldBalance(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
         overall_iteration_count = 1
         mindiff_count = -1
-        logging.debug("ftscheduler:refieldbalance: iteration=%d 1st balance count=%s",
+        logging.debug("fbalancer:refieldbalance: iteration=%d 1st balance count=%s",
             overall_iteration_count, old_balcount_list)
         while True:
             rebalance_count = self.ReFieldBalance(connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
@@ -707,7 +743,7 @@ class FieldBalancer:
                              'diff':old_balcount_list[old_bal_indexerGet(div_id)]['fcountdiff_num'] -
                              balcount_list[bal_indexerGet(div_id)]['fcountdiff_num']}
                             for div_id in connected_div_list]
-            logging.debug("ftscheduler:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
+            logging.debug("fbalancer:refieldbalance: continuing iteration=%d balance count=%s diff=%s",
                           overall_iteration_count, balcount_list, balance_diff)
             if all(x['diff'] < 1 for x in balance_diff):
                 if mindiff_count > 0:
@@ -726,10 +762,10 @@ class FieldBalancer:
             else:
                 mindiff_count = -1
             if mindiff_count >= mindiff_count_max_CONST or overall_iteration_count >= field_iteration_max_CONST:
-                logging.debug("ftscheduler:refieldbalance: FINISHED FIELD iteration connected_div %s", connected_div_list)
+                logging.debug("fbalancer:refieldbalance: FINISHED FIELD iteration connected_div %s", connected_div_list)
                 print 'finished field iteration div=', connected_div_list
                 if overall_iteration_count >= field_iteration_max_CONST:
-                    logging.debug("ftscheduler:refieldbalance: iteration count exceeded max=%d", field_iteration_max_CONST)
+                    logging.debug("fbalancer:refieldbalance: iteration count exceeded max=%d", field_iteration_max_CONST)
                     print 'FINISHED but Iteration count > Max'
                 break
             else:
@@ -740,7 +776,7 @@ class FieldBalancer:
 
     def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len):
         ''' shift gameday timeslots '''
-        logging.debug("ftscheduler:compaction:shiftGameDayslots isgamelist=%s, field=%d gameday=%d src_begin=%d dst_begin=%d len=%d",
+        logging.debug("fbalancer:compaction:shiftGameDayslots isgamelist=%s, field=%d gameday=%d src_begin=%d dst_begin=%d len=%d",
                       isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len)
         src_end = src_begin + shift_len
         dst_end = dst_begin + shift_len
@@ -758,7 +794,7 @@ class FieldBalancer:
                 try:
                     nextTrue_ind = isgame_list[i:].index(True)
                 except ValueError:
-                    logging.error("ftscheduler:compact:shiftGameDayslots last game ends at %d", i-1)
+                    logging.error("fbalancer:compact:shiftGameDayslots last game ends at %d", i-1)
                     for k in range(j, dst_end):
                         fieldstatus_round[k]['isgame'] = False
                 else:
@@ -810,9 +846,148 @@ class FieldBalancer:
             if diff_sum > 1e-5:
                 # diff_sum should be virtually 0.0; 1e-5 is just set for float
                 # allowances
-                raise CodeLogicError('ftscheduler:validate_divteam_refcount: diff is %f divref=%s teamref=%s' %
+                raise CodeLogicError('fbalancer:validate_divteam_refcount: diff is %f divref=%s teamref=%s' %
                     (diff_sum, ref_distrib_list, teamref_sum_list))
                 break
         else:
             validate_flag = True
         return validate_flag
+
+    def calc_teamreffield_distribution_list(self, totalmatch_tuple, connected_div_list):
+        ''' Calculate team-specific target distribution of number of games for each
+        field in the divlist for the whole season.  Target distribtuion requires
+        knowledge of game match pairups - based on game matchup use normalized
+        field weights for both home and away teams; sum across all matchups to
+        get expected field distribution for the whole season for the specified
+        team. Sum of the expected field distribution per field, summed across
+        all fields in the divlist should equal the total number of games that the
+        team plays.
+        Example: 6 total teams (T1 through T6, each teams plays 5 games total,
+        )round robin
+        3 Fields: F1, F2, F3
+        AF (affinity/home field) configuration for [F1, F2, F3]:
+        T1: [1,1,0]  (F1, F2 configured as home affinity)
+        T2: [1,1,0]
+        T3: [1,1,0]
+        T4: [1,1,0]
+        T5: [1,1,0]
+        T6: [0,0,1]
+        Above simulates a league where 5 local teams T1 thru T5 utilize F1, F2 for
+        their home games;  T6 is a remote team that utilizes F3 for their home games
+        If a team has multiple home field affinities, then assume the goal is to
+        have an equal number of games amongst them.  So for the above, the
+        weighted configuration for each team becomes:
+        WT1: [0.5, 0.5, 0]
+        WT2: [0.5, 0.5, 0]
+        WT3: [0.5, 0.5, 0]
+        WT4: [0.5, 0.5, 0]
+        WT5: [0.5, 0.5, 0]
+        WT6: [0,0,1]
+
+        T1 plays matches T1vT2, T1vT3, T1vT4, T1vT5, T1vT6
+        Field weights for each match involving T1:
+        T1vT2: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT3: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT4: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT5: (0.5F1 + 0.5F2 + 0.5F1 + 0.5F2)/2 = 0.5F1 + 0.5F2
+        T1vT6: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        Aggregate over each field to get aggregate field distribution for T1:
+        T1 field distribution over 5 games:
+        2.25(games@)F1 + 2.25(games@)F2 + 0.5(games@)F3
+
+        Given identical AF configs for T1 thru T5, T2 thru T5 will have the same
+        field distribution as T1
+
+        T6 matches:
+        T6vT1: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT2: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT3: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT4: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        T6vT5: (0.5F1 + 0.5F2 + 1F3)/2 = 0.25F1+ 0.25F2 + 0.5F3
+        Aggregate distribution for T6 over 5 games:
+        1.25(games@)F1 + 1.25(games@)F2 + 2.5(games@)F3
+        '''
+        if not self.tminfo_list or not self.tminfo_indexerMatch:
+            return None
+        totalmatch_list = totalmatch_tuple.dict_list
+        tindexerGet = totalmatch_tuple.indexerGet
+        connected_div_sumweight_list = list()
+        for div_id in connected_div_list:
+            div_sumweight_list = list()
+            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+            totalteams = divinfo['totalteams']
+            # get match information for the division
+            match_list = totalmatch_list[tindexerGet(div_id)]['match_list']
+            tmindex_list = self.tminfo_indexerMatch(div_id)
+            if tmindex_list:
+                divtminfo_list = [self.tminfo_list[index] for index in tmindex_list]
+                tmindexerGet = lambda x: dict((p['tm_id'],i) for i,p in enumerate(divtminfo_list)).get(x)
+                for team_id in range(1, totalteams+1):
+                    # iterate through each team
+                    #reftminfo = self.tminfo_list[self.tminfo_indexerGet((div_id, team_id))]
+                    reftminfo = divtminfo_list[tmindexerGet(team_id)]
+                    reftm_effweight_list = reftminfo['effweight_list']
+                    eff_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_effweight_list)).get(x)
+                    # get list of opponents that team_id plays across season
+                    opponent_list = self.get_opponent_list(match_list, team_id)
+                    # get the effective (normalized) weight list for each field for
+                    # each opponent in the opponent list
+                    opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self.tminfo_list[self.tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
+                    # initialize weight sum list that we are going to compute for earch
+                    # reference team_id; establish season cumulative weights for
+                    # specified team for each field
+                    reftm_sumweight_list = list()
+                    # rem indexerGet lambda gets evaluated at run-time when
+                    # reftm_sumweight_list is an actual list w contents
+                    reftm_sw_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_sumweight_list)).get(x)
+                    for opponent_weight_dict in opponent_weight_list:
+                        # iterate through weight list data for each opponent
+                        # get the effective weight information for each field relevant
+                        # to the current specified opponent
+                        opp_effweight_list = opponent_weight_dict['effweight_list']
+                        for opp_effweight_dict in opp_effweight_list:
+                            field_id = opp_effweight_dict['field_id']
+                            opp_effweight = opp_effweight_dict['effweight']
+                            # get effective weight information for current reference
+                            # team
+                            reftm_effweight = reftm_effweight_list[eff_indexerGet(field_id)]['effweight']
+                            # we always average out the field weight contributions
+                            # from the reference and current opponent id
+                            field_effweight = (reftm_effweight+opp_effweight)*0.5
+                            reftm_sw_index = reftm_sw_indexerGet(field_id)
+                            if reftm_sw_index is not None:
+                                # if index for field_id already exists, then we need to
+                                # add to the running sum of the effective weight for
+                                # that field_id
+                                reftm_sumweight_list[reftm_sw_index]['sumweight'] += field_effweight
+                            else:
+                                reftm_sumweight_list.append({'field_id':field_id,
+                                    'sumweight':field_effweight})
+                    div_sumweight_list.append({'team_id':team_id,
+                        'sumweight_list':reftm_sumweight_list})
+            else:
+                # infex list from tminfo should always exist as we also created
+                # default tminfo even when tminfo is not configured and not read
+                # from db
+                raise CodeLogicError("fbalancer:tmfino_list not detected")
+            connected_div_sumweight_list.append({'div_id':div_id,
+                'div_sw_list':div_sumweight_list})
+            cindexerGet = lambda x: dict((p['div_id'],i)
+                for i,p in enumerate(connected_div_sumweight_list)).get(x)
+        return _List_Indexer(connected_div_sumweight_list, cindexerGet)
+
+    def get_opponent_list(self, match_list, team_id):
+        '''Given team_id, find non-unique opponents throughout season.  If team
+        plays an opponent multiple times, list that opponent as many times as
+        they are played. '''
+        opponent_list = list()
+        for perround_data in match_list:
+            perround_game_list = perround_data['GAME_TEAM']
+            for game in perround_game_list:
+                if game['HOME'] == team_id:
+                    opponent_list.append(game['AWAY'])
+                    break
+                if game['AWAY'] == team_id:
+                    opponent_list.append(game['HOME'])
+                    break
+        return opponent_list
