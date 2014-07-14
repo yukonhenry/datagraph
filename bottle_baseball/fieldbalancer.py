@@ -11,11 +11,12 @@ from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, 
 from math import ceil, floor
 from collections import namedtuple
 
-home_CONST = 'HOME'
-away_CONST = 'AWAY'
+HOME = 'HOME'
+AWAY = 'AWAY'
 balanceweight_CONST = 2
 field_iteration_max_CONST = 15
 mindiff_count_max_CONST = 4
+MAX_ABS_DIFFWEIGHT = 0.51
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -133,6 +134,7 @@ class FieldBalancer(object):
             away_sumweight_list = divteamref_list[dtindexerGet(away_id)]['sumweight_list']
             hsindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_sumweight_list)).get(x)
             asindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_sumweight_list)).get(x)
+            # diff is reference - current running count (think control)
             home_diffcount_list = [{'field_id':x,
                 'diffcount':home_sumweight_list[hsindexerGet(x)]['sumweight'] -eff_homemetrics_list[ehindexerGet(x)]['count']}
                 for x in hfunion_set]
@@ -141,6 +143,8 @@ class FieldBalancer(object):
                 'diffcount':away_sumweight_list[asindexerGet(x)]['sumweight'] -eff_awaymetrics_list[eaindexerGet(x)]['count']}
                 for x in hfunion_set]
             adindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_diffcount_list)).get(x)
+            # *****************************
+            # Review penalty weight constants here
             for diffcount_list in [home_diffcount_list, away_diffcount_list]:
                 for diffcount_dict in diffcount_list:
                     diffcount = diffcount_dict['diffcount']
@@ -291,6 +295,15 @@ class FieldBalancer(object):
         count = metrics_list[metrics_indexerGet(field_id)]['count']
         return count
 
+    def get_teamfield_diffweight(self, divteam_diffweight_list, dtindexerGet,
+        team_id, field_list):
+        ''' get diffweights for designated team and field id '''
+        team_diffweight_list = divteam_diffweight_list[dtindexerGet(team_id)]['diffweight_list']
+        findexerGet = lambda x: dict((p['field_id'],i)
+            for i,p in enumerate(team_diffweight_list)).get(x)
+        return [team_diffweight_list[findexerGet(f)]['diffweight']
+            for f in field_list]
+
     def CountFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet):
         fieldcountdiff_list = []
         for div_id in connected_div_list:
@@ -324,40 +337,51 @@ class FieldBalancer(object):
                     if x['field_id']==field_id)} for field_id in field_list]
             aindexerGet = lambda x: dict((p['field_id'],i)
                 for i,p in enumerate(actual_distrib_list)).get(x)
-            # for each field get difference - acutal-reference
+            # for each field get difference: reference - actual
             diff_distrib_list = [{'field_id':f,
-                'diffcount':actual_distrib_list[aindexerGet(f)]['sumcount'] -
-                ref_distrib_list[rindexerGet(f)]['sumcount']} for f in field_list]
+                'diffcount':ref_distrib_list[rindexerGet(f)]['sumcount'] -actual_distrib_list[aindexerGet(f)]['sumcount']
+                } for f in field_list]
             actualref_diff_list.append({'div_id':div_id,
                 'distrib_list':diff_distrib_list})
         aindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(actualref_diff_list)).get(x)
         return _List_Indexer(actualref_diff_list, aindexerGet)
 
-    def identify_control_div(self, divdiff_tuple):
-        ''' return divisions that have any diffcount greater than 1
+    def identify_control_div(self, teamdiff_tuple):
+        ''' return divisions that have any abs teamdiffcount greater than 0.49
+        example teamdiff_list structure [
+            {'div_id': 1, 'div_diffweight_list': [
+                {'team_id': 1, 'diffweight_list':
+                    [{'diffweight': 0.0, 'field_id': 1},
+                    {'diffweight': 0.0, 'field_id': 2}]
+                },
+                {'team_id':2, 'diffweight_list':[]}
+            },
+            {'div_id':2, 'div_diffweight_list':[]}, ....
+        ]
         '''
-        divdiff_list = divdiff_tuple.dict_list
+        teamdiff_list = teamdiff_tuple.dict_list
         '''
-        correction_div_list = list()
-        for divdiff in divdiff_list:
-            distrib_list = divdiff['distrib_list']
-            if any(abs(x['diffcount']) > 1.0 for x in distrib_list):
-                correction_div_list.append(divdiff['div_id'])
+        non-list comprehension implementation
+        control_div_set = set()
+        for divteamdiff_dict in teamdiff_list:
+            div_id = divteamdiff_dict['div_id']
+            for divteamdiff in divteamdiff_dict['div_diffweight_list']:
+                if any(abs(x['diffweight']) > 0.49 for x in divteamdiff['diffweight_list']):
+                    control_div_set.update(div_id)
+                    break
         '''
-        control_div_list = [x['div_id'] for x in divdiff_list
-            if any(abs(y['diffcount']) > 1.0 for y in x['distrib_list'])]
+        # alternate list comprehension - don't know which is more efficient as
+        # the above has a break statement that prevents all teams from being searched
+        control_div_list = [x['div_id'] for x in teamdiff_list
+            if any(abs(z['diffweight']) > MAX_ABS_DIFFWEIGHT for y in x['div_diffweight_list'] for z in y['diffweight_list'])]
         return control_div_list
 
     def apply_teamdiff_control(self, teamdiff_tuple, cdiv_list, fmetrics_list,
         findexerGet, commondates_list):
         teamdiff_list = teamdiff_tuple.dict_list
         tindexerGet = teamdiff_tuple.indexerGet
-        # get div_id's covered in teamdiff_list - it may be a proper subset of
-        # cdiv_list
-        td_div_list = [x['div_id'] for x in teamdiff_list]
-        # div_id's to iterate through is intersection of cdiv_list and td_div_list
-        # note td_div shoudl always be a proper subset of cdiv
-        div_set = set.intersection(set(td_div_list), set(cdiv_list))
+        # create set in case there are div_id duplicates
+        div_set = set(cdiv_list)
         for div_id in div_set:
             # get list of team diff weights for specified division
             divteam_diffweight_list = teamdiff_list[tindexerGet(div_id)]['div_diffweight_list']
@@ -370,87 +394,114 @@ class FieldBalancer(object):
                 # get reference team id and it's diffweights for each field
                 team_id = team_diffweight['team_id']
                 diffweight_list = team_diffweight['diffweight_list']
-                # sort diffweights from highest to lowest
-                sorted_diffweight_list = sorted(diffweight_list,
-                    key=itemgetter("diffweight"), reverse=True)
-                # get maximum and minimum diff weights for specified team_id
-                # and their corresponding field_id's
-                # NOTE we will need to generalize from just working with the
-                # max and min diffweights and field_id's to working through the
-                # entire diffweight_list to find the optimal swap.
-                max_dict = sorted_diffweight_list[0]
-                max_diffweight = max_dict['diffweight']
-                if max_diffweight > 0.99:
-                    max_field_id = max_dict['field_id']
-                    max_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(max_field_id)]['slotstatus_list']
-                    max_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(max_ftstatus_list)).get(x)
-                min_dict = sorted_diffweight_list[len(sorted_diffweight_list)-1]
-                min_field_id = min_dict['field_id']
-                min_diffweight = min_dict['diffweight']
-                # get max and min slot status lists and corresponding indexerget
-                # functions
-
-                min_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(min_field_id)]['slotstatus_list']
-                min_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(min_ftstatus_list)).get(x)
-                for commondates_dict in commondates_list:
-                    # get fieldday_id that corresponds to field_id for current
-                    # common date; commondates_dict[map_dict] key:value is
-                    # field_id:fielday_id
-                    max_fieldday_id = commondates_dict['map_dict'][max_field_id]
-                    min_fieldday_id = commondates_dict['map_dict'][min_field_id]
-                    # get fieldstatus list for the max and min fieldday_id
-                    max_ftstatus = max_ftstatus_list[max_indexerGet(max_fieldday_id)]
-                    min_ftstatus = min_ftstatus_list[min_indexerGet(min_fieldday_id)]
-                    # see if the reference team is playing on the max_field_id on
-                    # the current game date.  If so, get game data.
-                    max_fieldmatch_list = [{'slot_index':i,
-                        'start_time':j['start_time'], 'teams':j['teams']}
-                        for i,j in enumerate(max_ftstatus['sstatus_list'])
-                        if j['isgame'] and j['teams']['div_id']==div_id and
-                        (j['teams'][home_CONST]==team_id or
-                            j['teams'][away_CONST]==team_id)]
-                    if max_fieldmatch_list:
-                        # NOTE: assume there is only one game per day, but need to
-                        # generalize
-                        max_fieldmatch = max_fieldmatch_list[0]
-                        max_teams = max_fieldmatch['teams']
+                dfindexerGet = lambda x: dict((p['field_id'],i)
+                    for i,p in enumerate(diffweight_list)).get(x)
+                # sort diffweights from lowest to highest
+                # large neg value indicates field is oversubscribed (ref-actual)
+                diffweight_list.sort(key=itemgetter("diffweight"))
+                # get smallest weight value
+                over_dict = diffweight_list[0]
+                over_diffweight = over_dict['diffweight']
+                if over_diffweight < -MAX_ABS_DIFFWEIGHT:
+                    # if smallest weight exceedes -max value, we will have swap
+                    # candidates
+                    #over_field_list = [x['field_id'] for x in diffweight_list
+                    #    if x['diffweight'] < -MAX_ABS_DIFFWEIGHT]
+                    # first keep it simple where we identify the most over-
+                    # subscribed and under-subscribed fields and try to swap
+                    # between them (instead of trying to see if we can swap
+                    # amongst secondary subscribed fields)
+                    over_field_id = over_dict['field_id']
+                    over_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(over_field_id)]['slotstatus_list']
+                    ovindexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(over_ftstatus_list)).get(x)
+                    # swap in candidate below (undersusbscribed)
+                    under_dict = diffweight_list[len(diffweight_list)-1]
+                    under_field_id = under_dict['field_id']
+                    under_diffweight = under_dict['diffweight']
+                    # benefit to swap out reference team from oversubscribed field
+                    # to undersubscribed field =
+                    # -(oversubscribed cost - undersubscribed cost)
+                    # = undersubscribed cost - oversubscribed cost
+                    # the minus sign outside of the parentheses is to make the cost
+                    # positive as typically oversubscribed will be a neg value and
+                    # undersubscribed a positive value
+                    teamswap_benefit_cost = under_diffweight - over_diffweight
+                    # get max and min slot status lists and corresponding indexerget
+                    # functions
+                    under_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(under_field_id)]['slotstatus_list']
+                    unindexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(under_ftstatus_list)).get(x)
+                    for cdates_dict in commondates_list:
+                        # get fieldday_id that corresponds to field_id for current
+                        # common date; commondates_dict[map_dict] key:value is
+                        # field_id:fielday_id
+                        over_fday_id = cdates_dict['map_dict'][over_field_id]
+                        under_fday_id = cdates_dict['map_dict'][under_field_id]
+                        #get fieldstatus list for the over and under fieldday_id
+                        over_ftstatus = over_ftstatus_list[ovindexerGet(over_fday_id)]
+                        under_ftstatus = under_ftstatus_list[unindexerGet(under_fday_id)]
+                        # see if the re team is playing on the over field on
+                        # the current game date.  If so, get game data.
+                        over_fieldmatch_list = [{'slot_index':i,
+                            'start_time':j['start_time'], 'teams':j['teams']}
+                            for i,j in enumerate(over_ftstatus['sstatus_list'])
+                            if j['isgame'] and j['teams']['div_id']==div_id and
+                            (j['teams'][HOME]==team_id or
+                                j['teams'][AWAY]==team_id)]
+                        if not over_fieldmatch_list:
+                            continue # go to the next common date
+                        # NOTE: assume only one game per day for now
+                        over_fieldmatch = over_fieldmatch_list[0]
+                        over_teams = over_fieldmatch['teams']
                         # get information necessary to determine early/late slot
                         # costs
-                        max_isgame_list = [x['isgame'] for x in max_ftstatus['sstatus_list']]
-                        max_lastTrue_slot = len(max_isgame_list)-1-max_isgame_list[::-1].index(True)
-                        # get early/late cost from current scheduled slot for
-                        # reference team
-                        max_el_measure = self.timebalancer.getELcost_by_slot(
-                            max_fieldmatch['slot_index'], max_teams,
-                            max_lastTrue_slot)
-                        oppteam_id = max_teams[home_CONST] if max_teams[away_CONST]==team_id else max_teams[away_CONST]
-                        oppmax_field_count = self.getFieldTeamCount(tfmetrics, max_field_id, oppteam_id)
-                        oppmin_field_count = self.getFieldTeamCount(tfmetrics, min_field_id, oppteam_id)
+                        over_isgame_list = [x['isgame'] for x in over_ftstatus['sstatus_list']]
+                        over_lastTrue_slot = len(over_isgame_list)-1-over_isgame_list[::-1].index(True)
+                        # eve though we are not doing time balancing here, take
+                        # into account time balance penalty into const function
+                        over_el_measure = self.timebalancer.getELcost_by_slot(
+                            over_fieldmatch['slot_index'], over_teams,
+                            over_lastTrue_slot)
+                        # get opponent team info and it's current counts for the
+                        # over and undersubscribed fields
+                        oppteam_id = over_teams[HOME] if over_teams[AWAY]==team_id else over_teams[AWAY]
+                        # get the opponent team diffweights corresponding to the
+                        # over and under subscribed fields
+                        [opp_over_diffweight, opp_under_diffweight] = self.get_teamfield_diffweight(
+                            divteam_diffweight_list, dtindexerGet, oppteam_id,
+                            [over_field_id, under_field_id])
+                        opp_teamswap_benefit_cost = opp_under_diffweight - \
+                            opp_over_diffweight
+                        pass
+                else:
+                    # no swap candidates, got to next team_id
+                    continue
+
     def CompareTeamFieldDistribution(self, connected_div_list, fieldmetrics_list,
-        findexerGet, tmref_tuple):
+        findexerGet, teamref_tuple):
         ''' Get actual-reference (minus, subtraction) for field distribution
         counts at the per-team level '''
-        tmref_list = tmref_tuple.dict_list
-        tindexerGet = tmref_tuple.indexerGet
+        teamref_list = teamref_tuple.dict_list
+        tindexerGet = teamref_tuple.indexerGet
         connected_diffweight_list = list()
         for div_id in connected_div_list:
             # get team reference
-            div_sumweight_list = tmref_list[tindexerGet(div_id)]['div_sw_list']
+            div_sumweight_list = teamref_list[tindexerGet(div_id)]['div_sw_list']
             if not div_sumweight_list:
                 # if no team weight list for current division, skip comparison and
                 # go to next div_id
+                # actually this should never happen as sw_list should always exist
+                # even when af_list is not configured
                 continue
             dindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(div_sumweight_list)).get(x)
             # get actual team counts for each field
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
             div_diffweight_list = list()
-            for team_id, actualtm_count_list in enumerate(tfmetrics, start=1):
-                reftm_sumweight_list = div_sumweight_list[dindexerGet(team_id)]['sumweight_list']
-                rindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_sumweight_list)).get(x)
+            for team_id, teamcount_list in enumerate(tfmetrics, start=1):
+                refteam_sumweight_list = div_sumweight_list[dindexerGet(team_id)]['sumweight_list']
+                rindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(refteam_sumweight_list)).get(x)
                 diffweight_list = [{'field_id':x['field_id'],
-                    'diffweight':x['count'] -
-                    reftm_sumweight_list[rindexerGet(x['field_id'])]['sumweight']}
-                    for x in actualtm_count_list]
+                    'diffweight':refteam_sumweight_list[rindexerGet(x['field_id'])]['sumweight'] - x['count']}
+                    for x in teamcount_list]
                 div_diffweight_list.append({'team_id':team_id,
                     'diffweight_list':diffweight_list})
             connected_diffweight_list.append({'div_id':div_id,
@@ -462,8 +513,8 @@ class FieldBalancer(object):
     def IncDecFieldMetrics(self, fieldmetrics_list, findexerGet, field_id, teams, increment=True):
         ''' increment/decrement fieldmetrics_list, based on field and team (inc/dec) flag '''
         div_id = teams['div_id']
-        home_id = teams[home_CONST]
-        away_id = teams[away_CONST]
+        home_id = teams[HOME]
+        away_id = teams[AWAY]
         tfmetrics_list = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
         home_fieldmetrics_list = tfmetrics_list[home_id-1]
         away_fieldmetrics_list = tfmetrics_list[away_id-1]
@@ -520,7 +571,7 @@ class FieldBalancer(object):
                             'teams':j['teams']}
                             for i,j in enumerate(hi_ftstatus['sstatus_list'])
                             if j['isgame'] and j['teams']['div_id']==div_id and
-                            (j['teams'][home_CONST]==team_id or j['teams'][away_CONST]==team_id)]
+                            (j['teams'][HOME]==team_id or j['teams'][AWAY]==team_id)]
                         if len(today_hifield_info_list) > 1:
                             logging.info("fbalancer:rebalance:today maxfieldinfo_list entry len is %d",
                                 len(today_hifield_info_list))
@@ -551,7 +602,7 @@ class FieldBalancer(object):
                             # We need the count for the opponent because it will
                             # affect it's field count if the game is moved away
                             # from the max count field
-                            oppteam_id = hi_teams[home_CONST] if hi_teams[away_CONST]==team_id else hi_teams[away_CONST]
+                            oppteam_id = hi_teams[HOME] if hi_teams[AWAY]==team_id else hi_teams[AWAY]
                             hifield_opp_count = self.getFieldTeamCount(tfmetrics, hifield_id, oppteam_id)
                             lofield_opp_count = self.getFieldTeamCount(tfmetrics, lofield_id, oppteam_id)
                             # the measure for opponent team - desirability to swap out this game - is just the difference
@@ -571,7 +622,7 @@ class FieldBalancer(object):
                             # Adjust cost function by subtracting 1 from
                             # opp_measure before multiplying by weight because we
                             # want a penalty to be applied if a 0 opp_measure is
-                            # selected as it disrupts an equal balance between
+                            # selected as it disrupts an already-achieved equal balance between
                             # fields
                             # Also Add in diff value, which is the measure for the
                             # current team id
@@ -606,8 +657,8 @@ class FieldBalancer(object):
                             lo_lastTrue_slot = len(lo_isgame_list)-1-lo_isgame_list[::-1].index(True)
                             for linfo in today_lofield_info:
                                 lteams = linfo['teams']
-                                lhome = lteams[home_CONST]
-                                laway = lteams[away_CONST]
+                                lhome = lteams[HOME]
+                                laway = lteams[AWAY]
                                 ltfmetrics = fieldmetrics_list[findexerGet(lteams['div_id'])]['tfmetrics']
                                 linfo['homelo_count'] = self.getFieldTeamCount(ltfmetrics, lofield_id, lhome)
                                 linfo['homehi_count'] = self.getFieldTeamCount(ltfmetrics, hifield_id, lhome)
@@ -678,8 +729,8 @@ class FieldBalancer(object):
                     max_hi_slot = max_totalcost['hi_slot']
                     max_lo_teams = max_totalcost['lo_teams']
                     max_lo_div_id = max_lo_teams['div_id']
-                    max_lo_home_id = max_lo_teams[home_CONST]
-                    max_lo_away_id = max_lo_teams[away_CONST]
+                    max_lo_home_id = max_lo_teams[HOME]
+                    max_lo_away_id = max_lo_teams[AWAY]
                     max_lo_slot = max_totalcost['lo_slot']
                     max_lo_lastTrue_slot = max_totalcost['lo_lastTrue_slot']
                     max_hi_lastTrue_slot = max_totalcost['hi_lastTrue_slot']
@@ -734,27 +785,15 @@ class FieldBalancer(object):
         configurations and expected field distributions, both at the division
         and team level.  First measure how closely schedule meets reference target,
         and then interate until targets are met.
-        divrefdistrib_tuple and divdiff_tuple will exist even if tminfo is not
-        configured and we are targetin an all-equal-field distribution
         '''
         divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet, divrefdistrib_tuple)
-        if teamrefdistrib_tuple:
-            # if teamrefdistrib_tuple exists, ensure reference field distribution
-            # count - one for div-level, and the other for team-level - is
-            # consistent between the two
-            validate_flag = self.validate_divteam_refcount(divrefdistrib_tuple,
-                teamrefdistrib_tuple)
-            if validate_flag:
-                teamdiff_tuple = self.CompareTeamFieldDistribution(
-                    connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
-                    teamrefdistrib_tuple)
-                control_div_list = self.identify_control_div(divdiff_tuple)
-                #self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
-                #    fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
-            else:
-                raise CodeLogicError(
-                    "fbalancer:ReFieldBalanceIteration:validation between div and team ref counts failed")
+        teamdiff_tuple = self.CompareTeamFieldDistribution(
+            connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
+            teamrefdistrib_tuple)
+        control_div_list = self.identify_control_div(teamdiff_tuple)
+        self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
+            fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
         old_balcount_list = self.CountFieldBalance(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
@@ -836,13 +875,11 @@ class FieldBalancer(object):
                 finally:
                     break
 
-    def validate_divteam_refcount(self, divref_tuple, teamref_tuple):
+    def validate_divteam_refcount(self, divref_list, teamref_tuple):
         ''' Validate division reference field distribution list calculation
         against team reference field distribution calculation.  Aggregate of
         team reference field distribution should match distribution count
         for division reference.'''
-        divref_list = divref_tuple.dict_list
-        dindexerGet = divref_tuple.indexerGet
         teamref_list = teamref_tuple.dict_list
         tindexerGet = teamref_tuple.indexerGet
         validate_flag = False
@@ -934,8 +971,6 @@ class FieldBalancer(object):
         Aggregate distribution for T6 over 5 games:
         1.25(games@)F1 + 1.25(games@)F2 + 2.5(games@)F3
         '''
-        if not self._tminfo_list or not self._tminfo_indexerMatch:
-            return None
         totalmatch_list = totalmatch_tuple.dict_list
         tindexerGet = totalmatch_tuple.indexerGet
         connected_div_sumweight_list = list()
