@@ -23,24 +23,51 @@ time_format_CONST = '%H:%M'
 
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
-class FieldBalancer:
+class FieldBalancer(object):
     def __init__(self, divinfo_tuple, fstatus_tuple, tminfo_tuple, timebalancer):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
         if tminfo_tuple:
-            self.tminfo_list = tminfo_tuple.dict_list
+            self._tminfo_list = tminfo_tuple.dict_list
             # for indexerGet, parameter is two-tuple (div_id, tm_id)
             # returns None or index into tminfo_list
-            self.tminfo_indexerGet = tminfo_tuple.indexerGet
+            self._tminfo_indexerGet = tminfo_tuple.indexerGet
             # for indexerMatch
-            self.tminfo_indexerMatch = tminfo_tuple.indexerMatch
+            self._tminfo_indexerMatch = tminfo_tuple.indexerMatch
         else:
-            self.tminfo_list = None
-            self.tminfo_indexerGet = None
-            self.tminfo_indexerMatch = None
+            self._tminfo_list = None
+            self._tminfo_indexerGet = None
+            self._tminfo_indexerMatch = None
         self.timebalancer = timebalancer
+
+    # define setter getter methods
+    # Ensure class inherits from object
+    # ref http://stackoverflow.com/questions/598077/why-does-foo-setter-in-python-not-work-for-me
+    @property
+    def tminfo_list(self):
+        return self._tminfo_list
+
+    @tminfo_list.setter
+    def tminfo_list(self, value):
+        self._tminfo_list = value
+
+    @property
+    def tminfo_indexerGet(self):
+        return self._tminfo_indexerGet
+
+    @tminfo_indexerGet.setter
+    def tminfo_indexerGet(self, value):
+        self._tminfo_indexerGet = value
+
+    @property
+    def tminfo_indexerMatch(self):
+        return self._tminfo_indexerMatch
+
+    @tminfo_indexerMatch.setter
+    def tminfo_indexerMatch(self, value):
+        self._tminfo_indexerMatch = value
 
     def findMinimumCountField(self, homemetrics_list,
         awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num,
@@ -907,7 +934,7 @@ class FieldBalancer:
         Aggregate distribution for T6 over 5 games:
         1.25(games@)F1 + 1.25(games@)F2 + 2.5(games@)F3
         '''
-        if not self.tminfo_list or not self.tminfo_indexerMatch:
+        if not self._tminfo_list or not self._tminfo_indexerMatch:
             return None
         totalmatch_list = totalmatch_tuple.dict_list
         tindexerGet = totalmatch_tuple.indexerGet
@@ -918,13 +945,13 @@ class FieldBalancer:
             totalteams = divinfo['totalteams']
             # get match information for the division
             match_list = totalmatch_list[tindexerGet(div_id)]['match_list']
-            tmindex_list = self.tminfo_indexerMatch(div_id)
+            tmindex_list = self._tminfo_indexerMatch(div_id)
             if tmindex_list:
-                divtminfo_list = [self.tminfo_list[index] for index in tmindex_list]
+                divtminfo_list = [self._tminfo_list[index] for index in tmindex_list]
                 tmindexerGet = lambda x: dict((p['tm_id'],i) for i,p in enumerate(divtminfo_list)).get(x)
                 for team_id in range(1, totalteams+1):
                     # iterate through each team
-                    #reftminfo = self.tminfo_list[self.tminfo_indexerGet((div_id, team_id))]
+                    #reftminfo = self._tminfo_list[self._tminfo_indexerGet((div_id, team_id))]
                     reftminfo = divtminfo_list[tmindexerGet(team_id)]
                     reftm_effweight_list = reftminfo['effweight_list']
                     eff_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(reftm_effweight_list)).get(x)
@@ -932,7 +959,7 @@ class FieldBalancer:
                     opponent_list = self.get_opponent_list(match_list, team_id)
                     # get the effective (normalized) weight list for each field for
                     # each opponent in the opponent list
-                    opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self.tminfo_list[self.tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
+                    opponent_weight_list = [{'opp_id':opp_id, 'effweight_list':self._tminfo_list[self._tminfo_indexerGet((div_id, opp_id))]['effweight_list']} for opp_id in opponent_list]
                     # initialize weight sum list that we are going to compute for earch
                     # reference team_id; establish season cumulative weights for
                     # specified team for each field

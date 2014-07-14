@@ -27,7 +27,7 @@ time_format_CONST = '%H:%M'
 
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
-class TimeBalancer:
+class TimeBalancer(object):
     def __init__(self, fstatus_tuple):
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet

@@ -63,9 +63,6 @@ class FieldTimeScheduleGenerator:
             self.tminfo_list = None
             self.tminfo_indexerGet = None
             self.tminfo_indexerMatch = None
-        wtuple = self.init_homefieldweight_list()
-        self.homefield_weight_list = wtuple.dict_list
-        self.hfweight_indexerGet = wtuple.indexerGet
         # get connected divisions through shared fields
         self.connected_div_components = getConnectedDivisionGroup(
             self.fieldinfo_list, key='primaryuse_list')
@@ -86,6 +83,9 @@ class FieldTimeScheduleGenerator:
         self.timebalancer = TimeBalancer(fstatus_tuple)
         self.fieldbalancer = FieldBalancer(divinfo_tuple, fstatus_tuple,
             tminfo_tuple, self.timebalancer)
+        wtuple = self.init_homefieldweight_list()
+        self.homefield_weight_list = wtuple.dict_list
+        self.hfweight_indexerGet = wtuple.indexerGet
 
     def generateSchedule(self, totalmatch_tuple):
         totalmatch_list = totalmatch_tuple.dict_list
@@ -368,7 +368,8 @@ class FieldTimeScheduleGenerator:
                             # if there are two or more fields that can be assigned
                             # for the given date, then find the priority amongst
                             # those fields
-                            prioritized_list = self.prioritizefield_list(datefield_list, sumsortedfield_list,key="sumcount")
+                            prioritized_list = self.prioritizefield_list(datefield_list, sumsortedfield_list,
+                                key="sumdiffcount")
                             for p_dict in prioritized_list:
                                 # go through the ordered list of fields
                                 field_id = p_dict['field_id']
@@ -1333,8 +1334,8 @@ class FieldTimeScheduleGenerator:
                 # default to equal weights if the div has no tminfo config
                 # create tminfo entry for effweight_list.  tminfo entries that
                 # we are creating here will be fore memory only
-                # dt_id, tm_id, div_id, along with effweight_list keys will be
-                # created, but af_list not created.  Will not be stored in db.
+                # dt_id, tm_id, div_id, af_list, along with effweight_list keys
+                # will be created.  Will not be stored in db.
                 effweight = 1.0/len(divfield_list)
                 effweight_list = [{'field_id':x, 'effweight':effweight}
                     for x in divfield_list]
@@ -1342,7 +1343,8 @@ class FieldTimeScheduleGenerator:
                 # create the default field distribution list to each team in div
                 divtminfo_list = [{'div_id':div_id, 'tm_id':tm_id,
                     'dt_id':"dv"+str(div_id)+"tm"+str(tm_id),
-                    'effweight_list':effweight_list}]
+                    'effweight_list':effweight_list, 'af_list':divfield_list[:]}
+                    for tm_id in range(1, totalteams+1)]
                 if not self.tminfo_list:
                     self.tminfo_list = divtminfo_list
                 else:
@@ -1351,7 +1353,13 @@ class FieldTimeScheduleGenerator:
                 hfweight_list = [{'field_id':x, 'aggregweight':aggregweight}
                     for x in divfield_list]
             homefield_weight_list.append({'div_id':div_id, 'hfweight_list':hfweight_list})
-            hf_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(homefield_weight_list)).get(x)
+        if not self.tminfo_indexerGet:
+            self.tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in enumerate(self.tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
+            self.tminfo_indexerMatch = lambda x: [i for i,p in enumerate(self.tminfo_list) if p['div_id'] == x]
+            self.fieldbalancer.tminfo_list = self.tminfo_list
+            self.fieldbalancer.tminfo_indexerGet = self.tminfo_indexerGet
+            self.fieldbalancer.tminfo_indexerMatch = self.tminfo_indexerMatch
+        hf_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(homefield_weight_list)).get(x)
         return _List_Indexer(homefield_weight_list, hf_indexerGet)
 
     def get_aggregnorm_hfweight_list(self, connected_div_list):
