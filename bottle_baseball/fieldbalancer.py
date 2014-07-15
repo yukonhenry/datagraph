@@ -13,7 +13,7 @@ from collections import namedtuple
 
 HOME = 'HOME'
 AWAY = 'AWAY'
-balanceweight_CONST = 2
+BALANCEWEIGHT = 2
 field_iteration_max_CONST = 15
 mindiff_count_max_CONST = 4
 MAX_ABS_DIFFWEIGHT = 0.51
@@ -430,6 +430,8 @@ class FieldBalancer(object):
                     # functions
                     under_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(under_field_id)]['slotstatus_list']
                     unindexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(under_ftstatus_list)).get(x)
+                    over_swapteam_metrics_list = list()
+                    under_swapteam_metrics_list = list()
                     for cdates_dict in commondates_list:
                         # get fieldday_id that corresponds to field_id for current
                         # common date; commondates_dict[map_dict] key:value is
@@ -442,7 +444,7 @@ class FieldBalancer(object):
                         # see if the re team is playing on the over field on
                         # the current game date.  If so, get game data.
                         over_fieldmatch_list = [{'slot_index':i,
-                            'start_time':j['start_time'], 'teams':j['teams']}
+                            'teams':j['teams']}
                             for i,j in enumerate(over_ftstatus['sstatus_list'])
                             if j['isgame'] and j['teams']['div_id']==div_id and
                             (j['teams'][HOME]==team_id or
@@ -452,15 +454,17 @@ class FieldBalancer(object):
                         # NOTE: assume only one game per day for now
                         over_fieldmatch = over_fieldmatch_list[0]
                         over_teams = over_fieldmatch['teams']
+                        over_slot_index = over_fieldmatch['slot_index']
                         # get information necessary to determine early/late slot
                         # costs
                         over_isgame_list = [x['isgame'] for x in over_ftstatus['sstatus_list']]
                         over_lastTrue_slot = len(over_isgame_list)-1-over_isgame_list[::-1].index(True)
-                        # eve though we are not doing time balancing here, take
+                        # even though we are not doing time balancing here, take
                         # into account time balance penalty into const function
-                        over_el_measure = self.timebalancer.getELcost_by_slot(
-                            over_fieldmatch['slot_index'], over_teams,
-                            over_lastTrue_slot)
+                        # the higher the measure, the more we want to move it away
+                        # from the over_field because el targets are exceeded
+                        over_el_cost = self.timebalancer.getELcost_by_slot(
+                            over_slot_index, over_teams, over_lastTrue_slot)
                         # get opponent team info and it's current counts for the
                         # over and undersubscribed fields
                         oppteam_id = over_teams[HOME] if over_teams[AWAY]==team_id else over_teams[AWAY]
@@ -469,9 +473,75 @@ class FieldBalancer(object):
                         [opp_over_diffweight, opp_under_diffweight] = self.get_teamfield_diffweight(
                             divteam_diffweight_list, dtindexerGet, oppteam_id,
                             [over_field_id, under_field_id])
+                        # seen notes above teamswap_benefit_cost on why benefit
+                        # cost is under-over (instead of over-under) (we want
+                        # cost to be positive)
                         opp_teamswap_benefit_cost = opp_under_diffweight - \
                             opp_over_diffweight
-                        pass
+                        # We are ready for calculating the cost (measure of
+                        # desirability) to swap out the match game from the
+                        # oversubscribed field
+                        # The cost will consiste: early/late measure (non-zero
+                        # only is slot is 0 or last slot; positive only if at least
+                        # one of the teams have already exceeded target);
+                        # ref team benefit cost; opponent team benefit cost;
+                        # a scaling factore is applied to the latter two as field
+                        # cost crieteria is weighted more than early/late penalty
+                        # costs
+                        over_swapout_cost = over_el_cost + \
+                            BALANCEWEIGHT*(teamswap_benefit_cost+opp_teamswap_benefit_cost)
+                        over_swapout_metrics = {
+                            'team':team_id, 'oppteam_id':oppteam_id,
+                            'fieldday_id':over_fday_id,
+                            'swapout_cost':over_swapout_cost
+                        }
+                        over_swapteam_metrics_list.append(over_swapout_metrics)
+                        # Now we are going to search through the undersubscribed
+                        # field to find a match to swap;
+                        # Search in other div's also, but only if they are part
+                        # of the control div list (don't distrib fully balanced
+                        # divs)
+                        under_fieldmatch_list = [{'slot_index':i,
+                            'teams':j['teams']}
+                            for i,j in enumerate(under_ftstatus['sstatus_list'])
+                            if j['isgame'] and j['teams']['div_id'] in div_set]
+                        if not under_fieldmatch_list:
+                            continue # go to the next common date
+                        under_isgame_list = [x['isgame'] for x in under_ftstatus['sstatus_list']]
+                        under_lastTrue_slot = len(under_isgame_list)-1-under_isgame_list[::-1].index(True)
+                        for under_fieldmatch in under_fieldmatch_list:
+                            under_teams = under_fieldmatch['teams']
+                            uhome_id = under_teams[HOME]
+                            uaway_id = under_teams[AWAY]
+                            under_slot_index = under_fieldmatch['slot_index']
+                            # get cost (desirability to swap out) because of el_cost
+                            # for underfield match
+                            under_el_cost = self.timebalancer.getELcost_by_slot(
+                                under_slot_index, under_teams, under_lastTrue_slot)
+                            # get el_cost for moving the under field match team to
+                            # the slot of the over field match.  Note get cost value
+                            # assuming that the swap has already been made -
+                            # appropriate subtractive term will be added for total
+                            # cost calculation
+                            # Note slot index and lastTrue slot are for over field
+                            # match
+                            under_to_over_el_cost = self.timebalancer.getELcost_by_slot(over_slot_index, under_teams,
+                                over_lastTrue_slot)
+                            # get diffweight of home_id from match at underfield
+                            # for both the underfield but also at overfield -
+                            # both needed to calculate costs moving from under
+                            # field to overfield
+                            [underhome_overfield_diffweight,
+                            underhome_underfield_diffweight] = \
+                                self.get_teamfield_diffweight(
+                                divteam_diffweight_list, dtindexerGet, uhome_id,
+                                [over_field_id, under_field_id])
+                            [underaway_overfield_diffweight,
+                            underaway_underfield_diffweight] = \
+                                self.get_teamfield_diffweight(
+                                divteam_diffweight_list, dtindexerGet, uaway_id,
+                                [over_field_id, under_field_id])
+
                 else:
                     # no swap candidates, got to next team_id
                     continue
@@ -626,7 +696,7 @@ class FieldBalancer(object):
                             # fields
                             # Also Add in diff value, which is the measure for the
                             # current team id
-                            hi_total_cost = el_measure + balanceweight_CONST*(opp_measure-1+diff)
+                            hi_total_cost = el_measure + BALANCEWEIGHT*(opp_measure-1+diff)
                             # summarize all the info and metrics for the swapped-out game from the max count field
                             # hi_team_metrics_list persists outside of this current gameday and is used to choose the
                             # best match involving the maxfteam out of all the gamedays to swap out
@@ -700,7 +770,7 @@ class FieldBalancer(object):
                                 # subtract fieldswap_cost by 1 to add penalty if
                                 # there is already balance between hi and lo count
                                 # fields
-                                linfo['totalswap_cost'] = balanceweight_CONST*(linfo['fieldswap_cost']-1) + \
+                                linfo['totalswap_cost'] = BALANCEWEIGHT*(linfo['fieldswap_cost']-1) + \
                                     linfo['el_cost'] - \
                                     linfo['hi_teams_in_cost'] - linfo['hi_slot_el_cost']
                             sorted_lofield_info = sorted(today_lofield_info, key=itemgetter('totalswap_cost'), reverse=True)
