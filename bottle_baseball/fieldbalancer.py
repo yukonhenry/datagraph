@@ -424,23 +424,24 @@ class FieldBalancer(object):
                     # = undersubscribed cost - oversubscribed cost
                     # the minus sign outside of the parentheses is to make the cost
                     # positive as typically oversubscribed will be a neg value and
-                    # undersubscribed a positive value
+                    # undersubscribed a positive value; also we will be taking a
+                    # max of the total cost so we want teamswap_benefit_cost to be
+                    # positive
                     teamswap_benefit_cost = under_diffweight - over_diffweight
                     # get max and min slot status lists and corresponding indexerget
                     # functions
                     under_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(under_field_id)]['slotstatus_list']
                     unindexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(under_ftstatus_list)).get(x)
-                    over_swapteam_metrics_list = list()
-                    under_swapteam_metrics_list = list()
+                    fieldday_totalcost_list = list()
                     for cdates_dict in commondates_list:
                         # get fieldday_id that corresponds to field_id for current
                         # common date; commondates_dict[map_dict] key:value is
                         # field_id:fielday_id
-                        over_fday_id = cdates_dict['map_dict'][over_field_id]
-                        under_fday_id = cdates_dict['map_dict'][under_field_id]
+                        over_fieldday_id = cdates_dict['map_dict'][over_field_id]
+                        under_fieldday_id = cdates_dict['map_dict'][under_field_id]
                         #get fieldstatus list for the over and under fieldday_id
-                        over_ftstatus = over_ftstatus_list[ovindexerGet(over_fday_id)]
-                        under_ftstatus = under_ftstatus_list[unindexerGet(under_fday_id)]
+                        over_ftstatus = over_ftstatus_list[ovindexerGet(over_fieldday_id)]
+                        under_ftstatus = under_ftstatus_list[unindexerGet(under_fieldday_id)]
                         # see if the re team is playing on the over field on
                         # the current game date.  If so, get game data.
                         over_fieldmatch_list = [{'slot_index':i,
@@ -492,10 +493,9 @@ class FieldBalancer(object):
                             BALANCEWEIGHT*(teamswap_benefit_cost+opp_teamswap_benefit_cost)
                         over_swapout_metrics = {
                             'team':team_id, 'oppteam_id':oppteam_id,
-                            'fieldday_id':over_fday_id,
+                            'fieldday_id':over_fieldday_id,
                             'swapout_cost':over_swapout_cost
                         }
-                        over_swapteam_metrics_list.append(over_swapout_metrics)
                         # Now we are going to search through the undersubscribed
                         # field to find a match to swap;
                         # Search in other div's also, but only if they are part
@@ -527,6 +527,10 @@ class FieldBalancer(object):
                             # match
                             under_to_over_el_cost = self.timebalancer.getELcost_by_slot(over_slot_index, under_teams,
                                 over_lastTrue_slot)
+                            # also get el_cost for moving the over field match team
+                            # to under field match slot
+                            over_to_under_el_cost = self.timebalancer.getELcost_by_slot(under_slot_index, over_teams,
+                                under_lastTrue_slot)
                             # get diffweight of home_id from match at underfield
                             # for both the underfield but also at overfield -
                             # both needed to calculate costs moving from under
@@ -536,12 +540,43 @@ class FieldBalancer(object):
                                 self.get_teamfield_diffweight(
                                 divteam_diffweight_list, dtindexerGet, uhome_id,
                                 [over_field_id, under_field_id])
+                            # home swap cost for under field match is
+                            # (we will be taking max)
+                            # rem diffweight is ref-actual so diff is negative
+                            # for oversubscribed value
+                            # -(under field diff - over field diff)
+                            under_homeswap_cost = underhome_overfield_diffweight -\
+                                underhome_underfield_diffweight
+                            # similar calculations for underfield match away team
                             [underaway_overfield_diffweight,
                             underaway_underfield_diffweight] = \
                                 self.get_teamfield_diffweight(
                                 divteam_diffweight_list, dtindexerGet, uaway_id,
                                 [over_field_id, under_field_id])
-
+                            under_awayswap_cost = underaway_overfield_diffweight -\
+                                underaway_underfield_diffweight
+                            under_swap_cost = under_homeswap_cost + under_awayswap_cost
+                            # calculate totalswap cost for this under field match
+                            # rem cost is desirability to swap - optimal match is
+                            # based on maxmization of cost function
+                            under_fieldmatch['totalswap_cost'] = \
+                                BALANCEWEIGHT*under_swap_cost + under_el_cost - \
+                                over_to_under_el_cost - under_to_over_el_cost
+                        max_under_fieldmatch = max(under_fieldmatch_list,
+                            key=itemgetter('totalswap_cost'))
+                        fieldday_totalcost = {
+                            'oppteam_id':oppteam_id,
+                            'over_fieldday_id':over_fieldday_id,
+                            'under_fieldday_id':under_fieldday_id,
+                            'over_slot_index':over_slot_index,
+                            'under_slot_index':max_under_fieldmatch['slot_index'],
+                            'under_teams':max_under_fieldmatch['teams'],
+                            'over_lastTrue_slot':over_lastTrue_slot,
+                            'under_lastTrue_slot':under_lastTrue_slot,
+                            'total_cost':max_under_fieldmatch['totalswap_cost'] +\
+                                over_swapout_cost
+                        }
+                        fieldday_totalcost_list.append(fieldday_totalcost)
                 else:
                     # no swap candidates, got to next team_id
                     continue
@@ -618,7 +653,6 @@ class FieldBalancer(object):
                     hi_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(hifield_id)]['slotstatus_list']
                     lo_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(lofield_id)]['slotstatus_list']
                     hi_team_metrics_list = []
-                    lo_team_metrics_list = []
                     gameday_totalcost_list = []
                     #for fieldday_id, (hi_ftstatus, lo_ftstatus) in enumerate(zip(hi_ftstatus_list, lo_ftstatus_list),start=1):
                     for commondates_dict in commondates_list:
@@ -775,8 +809,6 @@ class FieldBalancer(object):
                                     linfo['hi_teams_in_cost'] - linfo['hi_slot_el_cost']
                             sorted_lofield_info = sorted(today_lofield_info, key=itemgetter('totalswap_cost'), reverse=True)
                             max_linfo = max(today_lofield_info, key=itemgetter('totalswap_cost'))
-                            max_linfo['fieldday_id'] = lo_fieldday_id
-                            lo_team_metrics_list.append(max_linfo)
                             gameday_totalcost = {'hi_fieldday_id':hi_fieldday_id,
                                 'lo_fieldday_id':lo_fieldday_id,
                                 'hi_slot':hi_slot, 'oppteam_id':oppteam_id,
