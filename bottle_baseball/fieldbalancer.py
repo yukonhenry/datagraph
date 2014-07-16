@@ -18,6 +18,7 @@ field_iteration_max_CONST = 15
 mindiff_count_max_CONST = 4
 MAX_ABS_DIFFWEIGHT = 0.51
 MAX_FIELDBALANCE_ITERATION_COUNT = 100
+VERY_LARGE = 1e6
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -362,7 +363,7 @@ class FieldBalancer(object):
         '''
         teamdiff_list = teamdiff_tuple.dict_list
         convergence_list = [{'div_id':x['div_id'],
-            'convergence_count':sum()} for x in teamdiff_list]
+            'convergence_count':sum(abs(z['diffweight']) > MAX_ABS_DIFFWEIGHT for y in x['div_diffweight_list'] for z in y['diffweight_list'])} for x in teamdiff_list]
         '''
         non-list comprehension implementation
         control_div_set = set()
@@ -377,7 +378,9 @@ class FieldBalancer(object):
         # the above has a break statement that prevents all teams from being searched
         control_div_list = [x['div_id'] for x in teamdiff_list
             if any(abs(z['diffweight']) > MAX_ABS_DIFFWEIGHT for y in x['div_diffweight_list'] for z in y['diffweight_list'])]
-        return control_div_list
+        dual_list_tuple = namedtuple('dual_list_tuple',
+            'convergence_list control_div_list')
+        return dual_list_tuple(convergence_list, control_div_list)
 
     def apply_teamdiff_control(self, teamdiff_tuple, cdiv_list,
         fieldmetrics_list, findexerGet, commondates_list):
@@ -949,19 +952,38 @@ class FieldBalancer(object):
         and team level.  First measure how closely schedule meets reference target,
         and then interate until targets are met.
         '''
+        min_convergence_count = VERY_LARGE
         divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet, divrefdistrib_tuple)
-        for iteration_count in range(1, MAX_FIELDBALANCE_ITERATION_COUNT+1):
+        iteration_count = 1
+        stuck_min_count = 0
+        while iteration_count <= MAX_FIELDBALANCE_ITERATION_COUNT and \
+            stuck_min_count < 10:
             logging.debug("fbalancer:refbalanceiteration at iteration=%d" % (iteration_count,))
             teamdiff_tuple = self.CompareTeamFieldDistribution(
                 connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
                 teamrefdistrib_tuple)
-            control_div_list = self.identify_control_div(teamdiff_tuple)
+            dual_list_tuple = self.identify_control_div(teamdiff_tuple)
+            control_div_list = dual_list_tuple.control_div_list
+            convergence_list = dual_list_tuple.convergence_list
             if not control_div_list:
                 logging.info("fbalancer:refbalanceiteration ****Field Convergence achieved at iteration=%d" % (iteration_count,))
                 break
-            self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
-                fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
+            else:
+                total_convergence_count = sum(x['convergence_count']
+                    for x in convergence_list)
+                if total_convergence_count < min_convergence_count:
+                    min_convergence_count = total_convergence_count
+                    stuck_min_count = 1
+                elif total_convergence_count == min_convergence_count:
+                    stuck_min_count += 1
+                else:
+                    stuck_min_count = -1
+                self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
+                    fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
+                logging.debug("fbalancer:ReFieldBalanceIteration: iteration count=%d stuck_min_count=%d convergence_list=%s" %
+                    (iteration_count, stuck_min_count, convergence_list))
+                iteration_count += 1
         else:
             logging.info("fbalancer:refbalanceiteration Field Convergence iteration Maxed out at %d without convergence" % (iteration_count,))
         return True
