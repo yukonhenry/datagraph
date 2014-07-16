@@ -17,6 +17,7 @@ BALANCEWEIGHT = 2
 field_iteration_max_CONST = 15
 mindiff_count_max_CONST = 4
 MAX_ABS_DIFFWEIGHT = 0.51
+MAX_FIELDBALANCE_ITERATION_COUNT = 100
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -360,6 +361,8 @@ class FieldBalancer(object):
         ]
         '''
         teamdiff_list = teamdiff_tuple.dict_list
+        convergence_list = [{'div_id':x['div_id'],
+            'convergence_count':sum()} for x in teamdiff_list]
         '''
         non-list comprehension implementation
         control_div_set = set()
@@ -376,8 +379,8 @@ class FieldBalancer(object):
             if any(abs(z['diffweight']) > MAX_ABS_DIFFWEIGHT for y in x['div_diffweight_list'] for z in y['diffweight_list'])]
         return control_div_list
 
-    def apply_teamdiff_control(self, teamdiff_tuple, cdiv_list, fmetrics_list,
-        findexerGet, commondates_list):
+    def apply_teamdiff_control(self, teamdiff_tuple, cdiv_list,
+        fieldmetrics_list, findexerGet, commondates_list):
         teamdiff_list = teamdiff_tuple.dict_list
         tindexerGet = teamdiff_tuple.indexerGet
         # create set in case there are div_id duplicates
@@ -388,7 +391,7 @@ class FieldBalancer(object):
             dtindexerGet = lambda x: dict((p['team_id'],i)
                 for i,p in enumerate(divteam_diffweight_list)).get(x)
             # get current field count metrics for specified div_id
-            tfmetrics = fmetrics_list[findexerGet(div_id)]['tfmetrics']
+            tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
             for team_diffweight in divteam_diffweight_list:
                 # iterate through each team_id and it's diff weight list
                 # get reference team id and it's diffweights for each field
@@ -452,6 +455,8 @@ class FieldBalancer(object):
                                 j['teams'][AWAY]==team_id)]
                         if not over_fieldmatch_list:
                             continue # go to the next common date
+                        elif len(over_fieldmatch_list) > 1:
+                            logging.info("fbalancer:applytdiffcontrol:over field match list has more than on match for div %d, team %d on date %s" % (div_id, team_id, cdates_dict['date']))
                         # NOTE: assume only one game per day for now
                         over_fieldmatch = over_fieldmatch_list[0]
                         over_teams = over_fieldmatch['teams']
@@ -576,10 +581,68 @@ class FieldBalancer(object):
                             'total_cost':max_under_fieldmatch['totalswap_cost'] +\
                                 over_swapout_cost
                         }
+                        logging.debug("fbalancer:applytdiffcontrol:fieldday totalcost=%s" % (fieldday_totalcost,))
                         fieldday_totalcost_list.append(fieldday_totalcost)
+                    # find fieldday and match data that gives max totalcost
+                    max_totalcost = max(fieldday_totalcost_list,
+                        key=itemgetter('total_cost'))
+                    # get fieldday_ids that give max totalcost (fieldday id will
+                    # typcially be the same, but can be different because fieldday
+                    # id sequence is unique to the field)
+                    max_over_fieldday_id = max_totalcost['over_fieldday_id']
+                    max_under_fieldday_id = max_totalcost['under_fieldday_id']
+                    # get match slot indexes into respective fielddays
+                    max_over_slot_index = max_totalcost['over_slot_index']
+                    max_under_slot_index = max_totalcost['under_slot_index']
+                    # get sstatus lists for over and under fields
+                    max_over_sstatus_list = over_ftstatus_list[ovindexerGet(
+                        max_over_fieldday_id)]['sstatus_list']
+                    max_under_sstatus_list = under_ftstatus_list[unindexerGet(
+                        max_under_fieldday_id)]['sstatus_list']
+                    # get match info for over and under fields
+                    max_over_teams = max_over_sstatus_list[max_over_slot_index]['teams']
+                    max_under_teams = max_under_sstatus_list[max_under_slot_index]['teams']
+                    # perform consistency check with max_over_teams - should map
+                    # to reference team and its opponent
+                    max_home = max_over_teams[HOME]
+                    max_away = max_over_teams[AWAY]
+                    max_oppteam = max_totalcost['oppteam_id']
+                    if not (max_over_teams['div_id'] == div_id and
+                        (max_home == team_id or max_away == team_id) and
+                        (max_home == max_oppteam or max_away == max_oppteam)):
+                        raise CodeLogicError("fbalancer:applytdiffcontrol:optimal max overutilized field match %s does not match with ref div %d team %d oppontent %d" % (max_over_teams,
+                            div_id, team_id, max_oppteam))
+                        return None
+                    logging.debug("fbalancer:applytdiffcontrol: before swap max_over_teams=%s max_under_teams=%s div=%d ref team=%d oppteam=%d" %
+                        (max_over_teams, max_under_teams, div_id, team_id,
+                        max_totalcost['oppteam_id']))
+                    # do match swap
+                    max_over_sstatus_list[max_over_slot_index]['teams'] = \
+                        max_under_teams
+                    max_under_sstatus_list[max_under_slot_index]['teams'] = \
+                        max_over_teams
+                    # increment/decrement fieldmetrics
+                    # max overf teams moves out of over field_id, so decrement
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet,
+                        over_field_id, max_over_teams, increment=False)
+                    # max overf teams moves into under field_id, increment
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet,
+                        under_field_id, max_over_teams, increment=True)
+                    # max underf teams moves out of under field_id, decrement
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet,
+                        under_field_id, max_under_teams, increment=False)
+                    # max underf teams moves into over field_id, increment
+                    self.IncDecFieldMetrics(fieldmetrics_list, findexerGet,
+                        over_field_id, max_over_teams, increment=True)
+                    # next adjust EL counters for max overf and underf teams
+                    self.timebalancer.updateSlotELCounters(max_over_slot_index,
+                        max_under_slot_index, max_over_teams, max_under_teams,
+                        lastTrue_slot1 = max_totalcost['over_lastTrue_slot'],
+                        lastTrue_slot2 = max_totalcost['under_lastTrue_slot'])
                 else:
-                    # no swap candidates, got to next team_id
+                    # no swap candidates, got to next team id
                     continue
+        return True
 
     def CompareTeamFieldDistribution(self, connected_div_list, fieldmetrics_list,
         findexerGet, teamref_tuple):
@@ -633,7 +696,6 @@ class FieldBalancer(object):
             away_fieldmetrics_list[away_fieldmetrics_indexerGet(field_id)]['count'] -= 1
 
     def ReFieldBalance(self, connected_div_list, fieldmetrics_list, findexerGet, commondates_list):
-        rebalance_count = 0
         for div_id in connected_div_list:
             divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
             tfmetrics = fieldmetrics_list[findexerGet(div_id)]['tfmetrics']
@@ -876,8 +938,7 @@ class FieldBalancer(object):
                     self.timebalancer.updateSlotELCounters(max_hi_slot, max_lo_slot, hi_teams, lo_teams,
                         lastTrue_slot1 = max_hi_lastTrue_slot,
                         lastTrue_slot2 = max_lo_lastTrue_slot)
-                #team_id += 1
-        return rebalance_count
+        return True
 
     def ReFieldBalanceIteration(self, connected_div_list, fieldmetrics_list,
         fieldmetrics_indexerGet, commondates_list, numgames_perteam_list,
@@ -890,12 +951,21 @@ class FieldBalancer(object):
         '''
         divdiff_tuple = self.CompareDivFieldDistribution(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet, divrefdistrib_tuple)
-        teamdiff_tuple = self.CompareTeamFieldDistribution(
-            connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
-            teamrefdistrib_tuple)
-        control_div_list = self.identify_control_div(teamdiff_tuple)
-        self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
-            fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
+        for iteration_count in range(1, MAX_FIELDBALANCE_ITERATION_COUNT+1):
+            logging.debug("fbalancer:refbalanceiteration at iteration=%d" % (iteration_count,))
+            teamdiff_tuple = self.CompareTeamFieldDistribution(
+                connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
+                teamrefdistrib_tuple)
+            control_div_list = self.identify_control_div(teamdiff_tuple)
+            if not control_div_list:
+                logging.info("fbalancer:refbalanceiteration ****Field Convergence achieved at iteration=%d" % (iteration_count,))
+                break
+            self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
+                fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
+        else:
+            logging.info("fbalancer:refbalanceiteration Field Convergence iteration Maxed out at %d without convergence" % (iteration_count,))
+        return True
+        '''
         old_balcount_list = self.CountFieldBalance(connected_div_list,
             fieldmetrics_list, fieldmetrics_indexerGet)
         old_bal_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(old_balcount_list)).get(x)
@@ -941,6 +1011,7 @@ class FieldBalancer(object):
                 old_bal_indexerGet = bal_indexerGet
                 overall_iteration_count += 1
         return True
+        '''
 
     def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len):
         ''' shift gameday timeslots '''
