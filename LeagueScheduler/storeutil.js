@@ -383,11 +383,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var db_type = match_obj.db_type;
 				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
-				/*
-				this.schedutil_obj.generateDB_smenu(db_list, ddownmenu_widget,
-					this.wizuistackmgr, this.wizuistackmgr.check_getServerDBInfo,
-					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
-						op_type:"wizard"}); */
 				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
 					db_list, this.wizuistackmgr,
 					this.wizuistackmgr.check_getServerDBInfo,

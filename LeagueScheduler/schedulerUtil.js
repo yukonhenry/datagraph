@@ -113,38 +113,21 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
 				});  //foreach
 			},  //createTeamSchedLinks
-			generateDB_smenu: function(dbcollection_list, smenu_reg, sched_context, serv_function, options_obj) {
-				var options_obj = options_obj || {};
-				// for checkinfg if property exists in obj
-				// http://www.nczonline.net/blog/2010/07/27/determining-if-an-object-property-exists/
-				// http://stackoverflow.com/questions/135448/how-do-i-check-to-see-if-an-object-has-a-property-in-javascript
-				// Need to test if it works when properties are methods
-				// move to assign columnsdef_obj in the respective info_obj's
-				// before call to createeditgrid
-				/*
-				if ('info_obj' in options_obj &&
-					'getcolumnsdef_obj' in options_obj.info_obj) {
-					var columnsdef_obj = options_obj.info_obj.getcolumnsdef_obj();
-					options_obj.columnsdef_obj = columnsdef_obj;
-				} */
-				this.generateDBCollection_smenu(smenu_reg, dbcollection_list, sched_context, serv_function, options_obj);
-			},
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
 				var options_obj = options_obj || {};
 				arrayUtil.forEach(submenu_list, function(item, index) {
-					options_obj.item = item;
+					// a new copy of options_obj needs to be created before
+					// assigning a different item value for each menu entry
+					// however lang.clone does not work as objects in options_obj
+					// are initiated by calling constructors
+					// http://dojotoolkit.org/documentation/tutorials/1.10/augmenting_objects/
+					var dupoptions_obj = declare.safeMixin({}, options_obj);
+					dupoptions_obj.item = item;
 					var smenuitem = new MenuItem({label: item,
 						onClick: lang.hitch(onclick_context, onclick_func,
-							options_obj)
-						/*
-						onClick: function() {
-							// update options_obj in actual onclick handler
-							// when it is called
-							options_obj.item = item;
-							var onclick_direct = lang.hitch(onclick_context, onclick_func);
-							onclick_direct(options_obj);} */
+							dupoptions_obj)
 					});
     				submenu_reg.addChild(smenuitem);
 				});  // context should be function
@@ -154,35 +137,10 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				//submenu_reg.set("onItemClick", lang.hitch(onclick_context, onclick_func, options_obj));
 				if (typeof options_obj.db_type !== 'undefined') {
 					var dbmenureg_list = this.get_dbmenureg_list(options_obj.db_type);
+					// note options_obj does not include item value
 					dbmenureg_list.push({reg:submenu_reg,
 						context:onclick_context, func:onclick_func,
 						options_obj:options_obj});
-					/*
-					if (db_type == 'rrdb') {
-						this.rrdbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func,
-							options_obj:options_obj});
-					} else if (db_type == 'tourndb') {
-						this.tdbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func,
-							options_obj:options_obj});
-					} else if (db_type == 'fielddb') {
-						this.fielddbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func,
-							options_obj:options_obj});
-					} else if (db_type == 'newscheddb') {
-						this.nsdbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func,
-							options_obj:options_obj});
-					} else if (db_type == 'prefdb') {
-						this.prefdbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func,
-							options_obj:options_obj});
-					} else if (db_type == 'teamdb') {
-						this.teamdbmenureg_list.push({reg:submenu_reg,
-							context:onclick_context, func:onclick_func,
-							options_obj:options_obj});
-					} */
 				}
 			},
 			default_alert: function(options_obj) {
@@ -203,9 +161,13 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
 					var dbmenureg = dbmenudata.reg;
 					var options_obj = dbmenudata.options_obj;
-					options_obj.item = item_name;
+					// use safemixin to prevent copying of objects to reinitialize
+					// with constructors
+					var dupoptions_obj = declare.safeMixin({}, options_obj);
+					dupoptions_obj.item = item_name;
 					var smenuitem = new MenuItem({label:item_name,
-						onClick:lang.hitch(dbmenudata.context, dbmenudata.func, options_obj)});
+						onClick:lang.hitch(dbmenudata.context, dbmenudata.func,
+							dupoptions_obj)});
     				dbmenureg.addChild(smenuitem, insertIndex);
 				});
 			},
