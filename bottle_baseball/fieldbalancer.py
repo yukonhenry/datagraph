@@ -341,7 +341,8 @@ class FieldBalancer(object):
                 for i,p in enumerate(actual_distrib_list)).get(x)
             # for each field get difference: reference - actual
             diff_distrib_list = [{'field_id':f,
-                'diffcount':ref_distrib_list[rindexerGet(f)]['sumcount'] -actual_distrib_list[aindexerGet(f)]['sumcount']
+                'diffcount':actual_distrib_list[aindexerGet(f)]['sumcount'] -
+                    ref_distrib_list[rindexerGet(f)]['sumcount']
                 } for f in field_list]
             actualref_diff_list.append({'div_id':div_id,
                 'distrib_list':diff_distrib_list})
@@ -433,7 +434,7 @@ class FieldBalancer(object):
                     # undersubscribed a positive value; also we will be taking a
                     # max of the total cost so we want teamswap_benefit_cost to be
                     # positive
-                    teamswap_benefit_cost = under_diffweight - over_diffweight
+                    teamswap_benefit_cost = over_diffweight - under_diffweight
                     # get max and min slot status lists and corresponding indexerget
                     # functions
                     under_ftstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(under_field_id)]['slotstatus_list']
@@ -485,8 +486,8 @@ class FieldBalancer(object):
                         # seen notes above teamswap_benefit_cost on why benefit
                         # cost is under-over (instead of over-under) (we want
                         # cost to be positive)
-                        opp_teamswap_benefit_cost = opp_under_diffweight - \
-                            opp_over_diffweight
+                        opp_teamswap_benefit_cost = opp_over_diffweight - \
+                            opp_under_diffweight
                         # We are ready for calculating the cost (measure of
                         # desirability) to swap out the match game from the
                         # oversubscribed field
@@ -553,16 +554,16 @@ class FieldBalancer(object):
                             # rem diffweight is ref-actual so diff is negative
                             # for oversubscribed value
                             # -(under field diff - over field diff)
-                            under_homeswap_cost = underhome_overfield_diffweight -\
-                                underhome_underfield_diffweight
+                            under_homeswap_cost = underhome_underfield_diffweight -\
+                                underhome_overfield_diffweight
                             # similar calculations for underfield match away team
                             [underaway_overfield_diffweight,
                             underaway_underfield_diffweight] = \
                                 self.get_teamfield_diffweight(
                                 divteam_diffweight_list, dtindexerGet, uaway_id,
                                 [over_field_id, under_field_id])
-                            under_awayswap_cost = underaway_overfield_diffweight -\
-                                underaway_underfield_diffweight
+                            under_awayswap_cost = underaway_underfield_diffweight -\
+                                underaway_overfield_diffweight
                             under_swap_cost = under_homeswap_cost + under_awayswap_cost
                             # calculate totalswap cost for this under field match
                             # rem cost is desirability to swap - optimal match is
@@ -671,7 +672,8 @@ class FieldBalancer(object):
                 refteam_sumweight_list = div_sumweight_list[dindexerGet(team_id)]['sumweight_list']
                 rindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(refteam_sumweight_list)).get(x)
                 diffweight_list = [{'field_id':x['field_id'],
-                    'diffweight':refteam_sumweight_list[rindexerGet(x['field_id'])]['sumweight'] - x['count']}
+                    'diffweight':x['count'] - \
+                    refteam_sumweight_list[rindexerGet(x['field_id'])]['sumweight']}
                     for x in teamcount_list]
                 div_diffweight_list.append({'team_id':team_id,
                     'diffweight_list':diffweight_list})
@@ -980,7 +982,7 @@ class FieldBalancer(object):
                     stuck_min_count += 1
                 else:
                     stuck_min_count = -1
-               logging.debug("fbalancer:ReFbalanceIteration: iteration count=%d stuck_min_count=%d convergence_list=%s" %
+                logging.debug("fbalancer:ReFbalanceIteration: iteration count=%d stuck_min_count=%d convergence_list=%s" %
                     (iteration_count, stuck_min_count, convergence_list))
                 self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
                     fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
