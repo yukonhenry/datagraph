@@ -963,6 +963,7 @@ class FieldBalancer(object):
             teamdiff_tuple = self.CompareTeamFieldDistribution(
                 connected_div_list, fieldmetrics_list, fieldmetrics_indexerGet,
                 teamrefdistrib_tuple)
+            logging.debug("fbalancer:refbalanceiteration: teamdif=%s" % (teamdiff_tuple.dict_list,))
             dual_list_tuple = self.identify_control_div(teamdiff_tuple)
             control_div_list = dual_list_tuple.control_div_list
             convergence_list = dual_list_tuple.convergence_list
@@ -979,10 +980,11 @@ class FieldBalancer(object):
                     stuck_min_count += 1
                 else:
                     stuck_min_count = -1
+               logging.debug("fbalancer:ReFbalanceIteration: iteration count=%d stuck_min_count=%d convergence_list=%s" %
+                    (iteration_count, stuck_min_count, convergence_list))
                 self.apply_teamdiff_control(teamdiff_tuple, control_div_list,
                     fieldmetrics_list, fieldmetrics_indexerGet, commondates_list)
-                logging.debug("fbalancer:ReFieldBalanceIteration: iteration count=%d stuck_min_count=%d convergence_list=%s" %
-                    (iteration_count, stuck_min_count, convergence_list))
+                logging.debug("fbalancer:reFbalanceiteration: fmetrics after applycontrol=%s" % (fieldmetrics_list,))
                 iteration_count += 1
         else:
             logging.info("fbalancer:refbalanceiteration Field Convergence iteration Maxed out at %d without convergence" % (iteration_count,))

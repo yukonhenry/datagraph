@@ -26,7 +26,7 @@
 #b fieldtimescheduler.py:430
 #b fieldbalancer.py:1346
 #b fieldbalancer.py:955
-b fieldbalancer.py:986
+b fieldbalancer.py:985
 #b dbinterface.py:101
 #b leaguediv_process.py:240
 #b schedule_util.py:265
