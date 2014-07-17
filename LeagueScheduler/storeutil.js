@@ -236,7 +236,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					dropDown:editddown_menu
 				})
 				advanced_cpane.addChild(editddown_btn);
-				//var parent_ddown_reg = registry.byId("configmenu_id");
 				var teaminfo_obj = null;
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;

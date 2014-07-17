@@ -409,7 +409,7 @@ class FieldBalancer(object):
                 # get smallest weight value
                 over_dict = diffweight_list[0]
                 over_diffweight = over_dict['diffweight']
-                if over_diffweight < -MAX_ABS_DIFFWEIGHT:
+                if over_diffweight > MAX_ABS_DIFFWEIGHT:
                     # if smallest weight exceedes -max value, we will have swap
                     # candidates
                     #over_field_list = [x['field_id'] for x in diffweight_list
@@ -499,7 +499,7 @@ class FieldBalancer(object):
                         # cost crieteria is weighted more than early/late penalty
                         # costs
                         over_swapout_cost = over_el_cost + \
-                            BALANCEWEIGHT*(teamswap_benefit_cost+opp_teamswap_benefit_cost)
+                            BALANCEWEIGHT*opp_teamswap_benefit_cost
                         over_swapout_metrics = {
                             'team':team_id, 'oppteam_id':oppteam_id,
                             'fieldday_id':over_fieldday_id,
@@ -531,13 +531,16 @@ class FieldBalancer(object):
                             # the slot of the over field match.  Note get cost value
                             # assuming that the swap has already been made -
                             # appropriate subtractive term will be added for total
-                            # cost calculation
+                            # cost calculation, as the higher the value, the less
+                            # desirable to make the swap
                             # Note slot index and lastTrue slot are for over field
                             # match
                             under_to_over_el_cost = self.timebalancer.getELcost_by_slot(over_slot_index, under_teams,
                                 over_lastTrue_slot)
                             # also get el_cost for moving the over field match team
                             # to under field match slot
+                            # the higher the el_cost, the less desirable to swap in
+                            # (this term will be subtracted)
                             over_to_under_el_cost = self.timebalancer.getELcost_by_slot(under_slot_index, over_teams,
                                 under_lastTrue_slot)
                             # get diffweight of home_id from match at underfield
@@ -551,9 +554,10 @@ class FieldBalancer(object):
                                 [over_field_id, under_field_id])
                             # home swap cost for under field match is
                             # (we will be taking max)
-                            # rem diffweight is ref-actual so diff is negative
-                            # for oversubscribed value
-                            # -(under field diff - over field diff)
+                            # rem diffweight is actual-ref so diff will be positive
+                            # if the field is oversubscribed, and negative if under-
+                            # subscribed - ideally we want to find teams that are
+                            # oversubscrubed in the under field
                             under_homeswap_cost = underhome_underfield_diffweight -\
                                 underhome_overfield_diffweight
                             # similar calculations for underfield match away team
@@ -637,7 +641,7 @@ class FieldBalancer(object):
                         under_field_id, max_under_teams, increment=False)
                     # max underf teams moves into over field_id, increment
                     self.IncDecFieldMetrics(fieldmetrics_list, findexerGet,
-                        over_field_id, max_over_teams, increment=True)
+                        over_field_id, max_under_teams, increment=True)
                     # next adjust EL counters for max overf and underf teams
                     self.timebalancer.updateSlotELCounters(max_over_slot_index,
                         max_under_slot_index, max_over_teams, max_under_teams,
