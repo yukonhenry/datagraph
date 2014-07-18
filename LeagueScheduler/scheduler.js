@@ -16,12 +16,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
 		"LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil",
 		"LeagueScheduler/tourndivinfo", "LeagueScheduler/wizardlogic",
-		"LeagueScheduler/teaminfo",
+		"LeagueScheduler/teaminfo", "LeagueScheduler/exclusioninfo",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic,
-		TeamInfo) {
+		TeamInfo, ExclusionInfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var ldata_array = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
@@ -50,6 +50,10 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
 		var teaminfo_obj = new TeamInfo(
+			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
+				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
+				op_type:"advance"});
+		var exclusioninfo_obj = new ExclusionInfo(
 			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
 				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
