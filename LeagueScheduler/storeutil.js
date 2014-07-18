@@ -28,7 +28,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				{id:'pref_id', label_str:"Scheduling Preferences",
 					help_str:"Configure Preferences List",
 					mbaritem_id:"prefmbaritem_id", db_type:'prefdb'},
-				{id:'team_id', label_str:"Specify Teams", help_str:"Configure Team-specific information/constraints", db_type:'teamdb'}
+				{id:'team_id', label_str:"Specify Teams", help_str:"Configure Team-specific information/constraints", db_type:'teamdb'},
+				{id:'exclusion_id', label_str:"Specify Time Exclusions", help_str:"Configure any teams that should avoid time conflicts",
+					db_type:'exclusiondb'}
 			],
 			initmenu_list:[
 				{id:'div_id', label_str:"Create New Division Info",
@@ -42,7 +44,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				{id:'pref_id', label_str:"Create New Preference List",
 					help_str:"To Create Preferences, Click Here"},
 				{id:'team_id', label_str:"Create New Team List",
-					help_str:"To Create Team List, Click Here"}
+					help_str:"To Create Team List, Click Here"},
+				{id:'exclusion_id', label_str:"Create New Exclusions List",
+					help_str:"To Create Exclusions List, Click Here"}
 			],
 			editmenu_list:[
 				{id:'div_id', db_type:'rrdb', label_str:"Edit Division Info",
@@ -58,6 +62,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				{id:'pref_id', db_type:'prefdb', label_str:"Edit Preference List",
 					help_str:"To Edit, Click and Select Previously Saved Preference List Name"},
 				{id:'team_id', db_type:'teamdb', label_str:"Edit Team List",
+					help_str:"To Edit, Click and Select Previously Division/Team List Name"},
+				{id:'exclusion_id', db_type:'exclusiondb',
+					label_str:"Edit Team List",
 					help_str:"To Edit, Click and Select Previously Division/Team List Name"}
 			],
 			delmenu_list:[
@@ -74,7 +81,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				{id:'pref_id', db_type:'prefdb', label_str:"Delete Preference List",
 					help_str:"To Delete, Click and Select Previously Saved Team List Name"},
 				{id:'team_id', db_type:'teamdb', label_str:"Delete Team List",
-					help_str:"To Delete, Click and Select Previously Saved Team List Name"}
+					help_str:"To Delete, Click and Select Previously Saved Team List Name"},
+				{id:'exclusion_id', db_type:'exclusiondb',
+					label_str:"Delete Exclusion List",
+					help_str:"To Delete, Click and Select Previously Saved Exclusion List Name"}
 			],
 			delserver_path:"delete_dbcol/"
 		};

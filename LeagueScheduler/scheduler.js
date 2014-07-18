@@ -59,7 +59,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				op_type:"advance"});
 		var leaguediv_func = function(ldata) {
 			var ldata_array = ldata.leaguedivinfo;
-
 			//schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
 			// generate links for individual team schedules
 			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
@@ -71,13 +70,15 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var newscheddb_list = ldata.newscheddb_list;
 			var prefdb_list = ldata.prefdb_list;
 			var teamdb_list = ldata.teamdb_list;
+			var exclusiondb_list = ldata.exclusiondb_list;
 			var data_list = [
 				{db_type:'rrdb', db_list:rrdbcollection_list},
 				{db_type:'tourndb', db_list:tourndbcollection_list},
 				{db_type:'fielddb', db_list:fielddb_list},
 				{db_type:'newscheddb', db_list:newscheddb_list},
 				{db_type:'prefdb', db_list:prefdb_list},
-				{db_type:'teamdb', db_list:teamdb_list}];
+				{db_type:'teamdb', db_list:teamdb_list},
+				{db_type:'exclusiondb', db_list:exclusiondb_list}];
 			// store initial data returned from server
 			storeutil_obj.store_init_data(data_list)
 			// create initial wizard UI
@@ -90,6 +91,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				{id:'team_id', info_obj:teaminfo_obj},
 				{id:'pref_id', info_obj:preferenceinfo_obj},
 				{id:'newsched_id', info_obj:newschedbase_obj},
+				{id:'exclusion_id', info_obj:exclusioninfo_obj}
 			]
 			storeutil_obj.init_advanced_UI(info_obj_list);
 			console.log("load basic info complete");

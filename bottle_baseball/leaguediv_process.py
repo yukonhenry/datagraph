@@ -65,6 +65,7 @@ def leaguedivinfo_all():
     newscheddb_list = _dbInterface.getScheduleCollection(DB_Col_Type.GeneratedSchedule)
     prefdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.PreferenceInfo)
     teamdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.TeamInfo)
+    exclusiondb_list = _dbInterface.getScheduleCollection(DB_Col_Type.ExclusionInfo)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "rrdbcollection_list":rrdbcol_list,
@@ -72,7 +73,8 @@ def leaguedivinfo_all():
                     "tourndbcollection_list":tourndbcol_list,
                     "newscheddb_list":newscheddb_list,
                     "prefdb_list":prefdb_list,
-                    "teamdb_list":teamdb_list})
+                    "teamdb_list":teamdb_list,
+                    "exclusiondb_list":exclusiondb_list})
     return callback_name+'('+a+')'
 
 @route('/getalldivschedule')
