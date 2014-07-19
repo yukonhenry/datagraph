@@ -64,7 +64,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				{id:'team_id', db_type:'teamdb', label_str:"Edit Team List",
 					help_str:"To Edit, Click and Select Previously Division/Team List Name"},
 				{id:'exclusion_id', db_type:'exclusiondb',
-					label_str:"Edit Team List",
+					label_str:"Edit Exclusion List",
 					help_str:"To Edit, Click and Select Previously Division/Team List Name"}
 			],
 			delmenu_list:[
@@ -212,6 +212,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				// ADVANCE MENU target
 				// save data to local db and create menu structure for advanced
 				// pane
+				// Note: Order in of single-level items in Menu structure is
+				// determined by order of objects in info_obj_list
 				var args_list = new Array();
 				//var editpane = registry.byId("editPane");
 				var tabcontainer = registry.byId("tabcontainer_id")
@@ -246,7 +248,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					dropDown:editddown_menu
 				})
 				advanced_cpane.addChild(editddown_btn);
-				var teaminfo_obj = null;
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;
 					if (id == 'div_id' || id == 'tourndiv_id') {

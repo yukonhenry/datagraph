@@ -2,11 +2,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dojo/keys",
 	"dijit/registry", "dijit/Tooltip", "dijit/form/Button",
 	"dijit/form/RadioButton", "LeagueScheduler/widgetgen",
+	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton", "put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, keys,
-		registry, Tooltip, Button, RadioButton, WidgetGen, EditGrid,
+		registry, Tooltip, Button, RadioButton, WidgetGen, Form, StackContainer,
+		ContentPane, EditGrid,
 		baseinfoSingleton, idmgrSingleton,
 		put) {
 		var constant = {
@@ -79,7 +81,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						baseinfoSingleton.set_watch_obj('divstr_list', [],
 							this.op_type, this.idproperty)
 						if (this.idproperty == 'field_id' ||
-							this.idproperty == 'pref_id') {
+							this.idproperty == 'pref_id' ||
+							this.idproperty == 'exclusion_id') {
 							// field_id-specific UI above grid
 							this.initabovegrid_UI();
 						} else if (this.idproperty == 'div_id') {
@@ -440,6 +443,57 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						this.gridtooltip_list.push(new Tooltip(tooltipconfig));
 					}, this)
 				}
+			},
+			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
+				// create cpane control for any info wizard pane under menubar -
+				// define as baseinfo method as many info wizardcontrol has an
+				// identical structure
+				this.pstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%",
+					id:this.idmgr_obj.pcontainer_id
+				}, pcontainerdiv_node);
+				// reset pane for initialization and after delete
+				var reset_cpane = new ContentPane({
+					id:this.idmgr_obj.resetcpane_id
+				})
+				this.pstackcontainer.addChild(reset_cpane)
+				// add info config (number) cpane
+				var info_cpane = new ContentPane({
+					id:this.idmgr_obj.numcpane_id
+				})
+				var info_form = new Form({
+					id:this.idmgr_obj.form_id
+				})
+				info_cpane.addChild(info_form);
+				this.pstackcontainer.addChild(info_cpane);
+				// add txt + button cpane
+				var txtbtn_cpane = new ContentPane({
+					id:this.idmgr_obj.textbtncpane_id,
+				})
+				put(txtbtn_cpane.containerNode, "span[id=$]",
+					this.idmgr_obj.text_id);
+				put(txtbtn_cpane.containerNode, "button[id=$]",
+					this.idmgr_obj.btn_id);
+				this.pstackcontainer.addChild(txtbtn_cpane)
+				// create grid stack container and grid
+				this.gstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"clear:left",
+					id:this.idmgr_obj.gcontainer_id
+				}, gcontainerdiv_node);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:this.idmgr_obj.blankcpane_id
+				})
+				this.gstackcontainer.addChild(blank_cpane);
+				// add info cpane and grid div
+				var infogrid_cpane = new ContentPane({
+					id:this.idmgr_obj.gridcpane_id,
+				})
+				put(infogrid_cpane.containerNode, "div[id=$]",
+					this.idmgr_obj.grid_id);
+				this.gstackcontainer.addChild(infogrid_cpane);
 			},
 			cleanup:function() {
 				arrayUtil.forEach(this.tooltip_list, function(item) {

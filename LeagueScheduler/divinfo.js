@@ -255,55 +255,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
-			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
-				// create cpane control for divinfo wizard pane under menubar
-				this.pstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"float:left; width:80%",
-					id:this.idmgr_obj.pcontainer_id
-				}, pcontainerdiv_node);
-				// reset pane for initialization and after delete
-				var reset_cpane = new ContentPane({
-					id:this.idmgr_obj.resetcpane_id
-				})
-				this.pstackcontainer.addChild(reset_cpane)
-				// add div config (number) cpane
-				var div_cpane = new ContentPane({
-					id:this.idmgr_obj.numcpane_id
-				})
-				var div_form = new Form({
-					id:this.idmgr_obj.form_id
-				})
-				div_cpane.addChild(div_form);
-				this.pstackcontainer.addChild(div_cpane);
-				// add txt + button cpane
-				var txtbtn_cpane = new ContentPane({
-					id:this.idmgr_obj.textbtncpane_id,
-				})
-				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.idmgr_obj.text_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.idmgr_obj.btn_id);
-				this.pstackcontainer.addChild(txtbtn_cpane)
-				// create grid stack container and grid
-				this.gstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"clear:left",
-					id:this.idmgr_obj.gcontainer_id
-				}, gcontainerdiv_node);
-				// add blank pane (for resetting)
-				var blank_cpane = new ContentPane({
-					id:this.idmgr_obj.blankcpane_id
-				})
-				this.gstackcontainer.addChild(blank_cpane);
-				// add divinfo cpane and grid div
-				var divgrid_cpane = new ContentPane({
-					id:this.idmgr_obj.gridcpane_id,
-				})
-				put(divgrid_cpane.containerNode, "div[id=$]",
-					this.idmgr_obj.grid_id);
-				this.gstackcontainer.addChild(divgrid_cpane);
-			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than

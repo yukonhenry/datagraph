@@ -18,7 +18,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			inputnum_str:'Number of Preferences',
 			text_node_str:'Preference List Name',
 			updatebtn_str:'Update Preference Info',
-			text_node_str: 'Preference List Name',
 		};
 		return declare(baseinfo, {
 			idproperty:constant.idproperty_str,
@@ -87,7 +86,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}, TimeTextBox),
 				};
 				return columnsdef_obj;
-				//return {};
 			},
 			getfixedcolumnsdef_obj: function() {
 				// column definition for constraint satisfaction cpane display
@@ -435,55 +433,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 				team_select_widget.startup();
 				//node.appendChild(div_id_select.domNode);
-			},
-			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
-				// create cpane control for divinfo wizard pane under menubar
-				this.pstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"float:left; width:80%",
-					id:this.idmgr_obj.pcontainer_id
-				}, pcontainerdiv_node);
-				// reset pane for initialization and after delete
-				var reset_cpane = new ContentPane({
-					id:this.idmgr_obj.resetcpane_id
-				})
-				this.pstackcontainer.addChild(reset_cpane)
-				// add pref config (number) cpane
-				var pref_cpane = new ContentPane({
-					id:this.idmgr_obj.numcpane_id,
-				})
-				var pref_form = new Form({
-					id:this.idmgr_obj.form_id
-				})
-				pref_cpane.addChild(pref_form);
-				this.pstackcontainer.addChild(pref_cpane);
-				// add txt + button cpane
-				var txtbtn_cpane = new ContentPane({
-					id:this.idmgr_obj.textbtncpane_id,
-				})
-				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.idmgr_obj.text_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.idmgr_obj.btn_id);
-				this.pstackcontainer.addChild(txtbtn_cpane)
-				// create grid stack container and grid
-				this.gstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"clear:left",
-					id:this.idmgr_obj.gcontainer_id
-				}, gcontainerdiv_node);
-				// add blank pane (for resetting)
-				var blank_cpane = new ContentPane({
-					id:this.idmgr_obj.blankcpane_id
-				})
-				this.gstackcontainer.addChild(blank_cpane);
-				// add divinfo cpane and grid div
-				var prefgrid_cpane = new ContentPane({
-					id:this.idmgr_obj.gridcpane_id,
-				})
-				put(prefgrid_cpane.containerNode, "div[id=$]",
-					this.idmgr_obj.grid_id);
-				this.gstackcontainer.addChild(prefgrid_cpane);
 			},
 		});
 });

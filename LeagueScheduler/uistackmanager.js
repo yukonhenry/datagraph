@@ -25,7 +25,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// get advanceid_list before any call to get_idstr_obj
 				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
 					'advance');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'exclusion_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				this.pstackmap_list = new Array();
@@ -52,11 +52,15 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
 				// for teaminfo there is no numcpane - go straight to grid with
-				// tcpane_id
+				// tcpane_id - recheck logic below
 				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('team_id').numcpane_id});
 				this.pstackmap_list.push({id:'team_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
+				this.pstackmap_list.push({id:'exclusion_id', p_stage:'preconfig',
+					pane_id:this.get_idstr_obj('exclusion_id').numcpane_id});
+				this.pstackmap_list.push({id:'exclusion_id', p_stage:'config',
+					pane_id:this.get_idstr_obj('exclusion_id').textbtncpane_id});
 				// define mapping object for the grid content pane
 				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
@@ -74,7 +78,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						pane_id:this.get_idstr_obj('tourndiv_id').gridcpane_id},
 					{id:'field_id', pane_id:this.get_idstr_obj('field_id').bcontainer_id},
 					{id:'pref_id', pane_id:this.get_idstr_obj('pref_id').gridcpane_id},
-					{id:'team_id', pane_id:this.get_idstr_obj('team_id').gridcpane_id}];
+					{id:'team_id', pane_id:this.get_idstr_obj('team_id').gridcpane_id},
+					{id:'exclusion_id', pane_id:this.get_idstr_obj('exclusion_id').gridcpane_id},];
 				this.cpanestate_list = new Array();
 				this.null_cpanestate = {
 						p_pane:null, p_stage:null, entry_pt:null,
@@ -467,7 +472,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.get_idstr_obj("div_id").btn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// ad config (number) cpanes for field, div, tourndiv, pref,
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id', 'exclusion_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					var idstr_obj = this.get_idstr_obj(idproperty);
 					var id_cpane = new ContentPane({
@@ -547,6 +552,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				put(tmdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(tmdiv_cpane);
+				// add exclusion info cpane and grid div
+				idstr_obj = this.get_idstr_obj(
+					'exclusion_id');
+				var ediv_cpane = new ContentPane({
+					id:idstr_obj.gridcpane_id
+				})
+				put(ediv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
+				this.gstackcontainer_reg.addChild(ediv_cpane);
 			}
 		});
 	}
