@@ -13,7 +13,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				this.obj_list = new Array();
 				this.watch_list = new Array();
 				arrayUtil.forEach(['advance', 'wizard'], function(item) {
-					arrayUtil.forEach(['field_id', 'pref_id', 'div_id', 'team_id'], function(id) {
+					arrayUtil.forEach(['field_id', 'pref_id', 'div_id', 'team_id',
+						'exclusion_id'], function(id) {
 						// create separate watch object for each op_type and id
 						var watch_obj = new Watch_class();
 						this.watch_list.push({watch_obj:watch_obj, op_type:item,
@@ -43,7 +44,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 									value.length > 0) {
 									if (item.idproperty == 'field_id') {
 										info_obj.set_primaryuse_dialog_dropdown(value);
-									} else if (item.idproperty == 'pref_id') {
+									} else if (item.idproperty == 'pref_id' ||
+										item.idproperty == 'exclusion_id') {
 										info_obj.set_griddiv_select(value);
 									}
 								}

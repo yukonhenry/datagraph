@@ -1,11 +1,11 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
     "dijit/registry", "dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
-    "dgrid/editor",
+    "dijit/form/Select", "dgrid/editor",
     "LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
     "LeagueScheduler/idmgrSingleton",
     "put-selector/put", "dojo/domReady!"],
     function(declare, dom, lang, arrayUtil, registry, NumberTextBox,
-        ValidationTextBox, editor,
+        ValidationTextBox, Select, editor,
         baseinfo, baseinfoSingleton, idmgrSingleton, put) {
         var constant = {
             idproperty_str:'exclusion_id', db_type:'exclusiondb',
@@ -15,6 +15,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             inputnum_str:'Number of Team Conflicts',
             text_node_str:'Exclusion List Name',
             updatebtn_str:'Update Exclusion Info',
+            div_select_base:"exdiv_select"
         };
         return declare(baseinfo, {
             idproperty:constant.idproperty_str,
@@ -53,6 +54,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         renderCell: lang.hitch(this, this.team_select_render)
                     },
                 }
+                return columnsdef_obj;
             },
             initialize: function(newgrid_flag, op_type) {
                 var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
@@ -120,5 +122,121 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 }
                 return info_list;
             },
+            get_gridhelp_list: function() {
+                var gridhelp_list = [
+                    {id:'exclusion_id', help_str:"Identifier, Non-Editable"},
+                    {id:'priority',
+                        help_str:"Priority of the conflict - assign positive integer, lower value is higher priority"},
+                    {id:'div_1_id',
+                        help_str:"Select Division for the first conflict team"},
+                    {id:'team_1_id',
+                        help_str:"Select Team ID for the first conflict team"},
+                    {id:'div_2_id',
+                        help_str:"Select Division for the second conflict team"},
+                    {id:'team_2_id',
+                        help_str:"Select Team ID for the second conflict team"}]
+                return gridhelp_list;
+            },
+            div_select_render: function(object, data, node) {
+                var exclusion_id = object.exclusion_id;
+                // .columnId gives the column name
+                var div_select_prefix = this.op_prefix+constant.div_select_base+
+                    node.columnId+"_";
+                // get unique widget id
+                var div_select_id = div_select_prefix+exclusion_id+"_id";
+                var div_select_widget = registry.byId(div_select_id);
+                var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
+                    this.op_type, 'exclusion_id');
+                var option_list = new Array();
+                var eventoptions_obj = null;
+                if (divstr_list && divstr_list.length > 0) {
+                    option_list.push({label:"Select Division", value:"",
+                        selected:false, totalteams:0});
+                    arrayUtil.forEach(divstr_list, function(item) {
+                        var option_obj = {label:item.divstr, value:item.div_id,
+                            selected:false, totalteams:item.totalteams}
+                        // data value is read from the store and corresponds to
+                        // stored div_id value for that row
+                        if (item.div_id == data) {
+                            option_obj.selected = true;
+                        }
+                        option_list.push(option_obj);
+                    })
+                    // create options list to pass to the team select event handler
+                    eventoptions_obj = {exclusion_id:exclusion_id,
+                        // slice leaves out the 0-th element
+                        option_list:option_list.slice(1)}
+                } else {
+                    // default if no divstr_list is read in
+                    option_list.push({label:"Select League first", selected:true, value:""});
+                }
+                // create select node to place widget - use passed in node as reference
+                if (!div_select_widget) {
+                    var select_node = put(node, "select");
+                    div_select_widget = new Select({
+                        options:option_list, style:"width:auto",
+                        id:div_select_id,
+                    }, select_node)
+                } else {
+                    div_select_widget.set("options", option_list)
+                    // NOTE - if widget exists, it should already be attached to
+                    // node - confirm why we did the appendChild here again
+                    node.appendChild(div_select_widget.domNode)
+                }
+                if (eventoptions_obj) {
+                    div_select_widget.set("onChange",
+                        lang.hitch(this, this.set_gridteam_select, eventoptions_obj))
+                }
+                div_select_widget.startup();
+            },
+            team_select_render: function(object, data, node) {
+
+            },
+            set_griddiv_select: function(divstr_list) {
+                // called from baseinfoSingleton watch obj callback for division
+                // string list
+                // baseinfoSingleton has already done a check for existence of
+                // editgrid obj and grid itself
+                // Config status check is completed before calling this method, i.e.
+                // the divstr_list should make up all rows of the db collection
+                // Reference newschedulerbase/createdivselect_dropdown
+                var exclusion_grid = this.editgrid.schedInfoGrid;
+                // First create the option_list that will feed the select
+                // dropdown for each cell in the 'division' column of the pref
+                // grid.
+                // initialize option_list
+                var option_list = [{label:"Select Division", value:"",
+                    selected:true, totalteams:0}];
+                arrayUtil.forEach(divstr_list, function(item, index) {
+                    option_list.push({label:item.divstr, value:item.div_id,
+                        selected:false, totalteams:item.totalteams})
+                })
+                /*
+                var div_select_prefix = this.op_prefix+"prefdiv_select";
+                for (var row_id = 1; row_id < this.totalrows_num+1; row_id++) {
+                    var div_select_id = div_select_prefix+row_id+"_id";
+                    var div_select_widget = registry.byId(div_select_id);
+                    if (div_select_widget) {
+                        // the select widget should be there, but check for existence anyway
+                        var copy_list = lang.clone(option_list);
+                        //var select_widget = cell.element.widget;
+                        div_select_widget.set("options", copy_list);
+                        // We need to pass the id of the originating select widget
+                        // and also an option_list definition (can be the original
+                        // or copy - just needed to find the totalteams value for
+                        // the selected div_id)
+                        // don't need entire option_list, especially the first header row
+                        var options_obj = {
+                            pref_id:row_id, option_list:option_list.slice(1)
+                        }
+                        div_select_widget.set("onChange", lang.hitch(this,
+                            this.set_gridteam_select, options_obj));
+                        div_select_widget.startup();
+                    }
+                } */
+            },
+            set_gridteam_select: function() {
+
+            }
         })
 })
