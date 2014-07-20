@@ -16,20 +16,14 @@ game_date_CONST = 'GAME_DATE'
 gameday_data_CONST = 'GAMEDAY_DATA'
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
-venue_count_CONST = 'VCNT'
-game_team_CONST = 'GAME_TEAM'
 venue_CONST = 'VENUE'
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
 homeratio_CONST = 'HOMERATIO'
 team_id_CONST = 'TEAM_ID'
 totalgames_CONST = 'TOTALGAMES'
-venue_count_CONST = 'VENUE_COUNT'
-venue_count_list_CONST = 'VENUE_COUNT_LIST'
 sched_status_CONST = 'SCHED_STATUS'
 div_id_CONST = 'DIV_ID'
-totalteams_CONST = 'TOTALTEAMS'
-elimination_num_CONST = 'ELIMINATION_NUM'
 field_id_list_CONST = 'FIELD_ID_LIST'
 sched_type_CONST = 'SCHED_TYPE'
 match_id_CONST = 'MATCH_ID'
@@ -499,34 +493,6 @@ class MongoDBInterface:
                       latest_teams, latest_counter_dict)
         EL_counter = namedtuple('EL_counter','earliest latest')
         return EL_counter(earliest_counter_dict, latest_counter_dict)
-
-    def getMetrics(self, age, gender, divisionData):
-        numTeams = divisionData['totalteams']
-        fields = divisionData['divfield_list']
-        totalgamedays = divisionData['totalgamedays']
-        ELcounter_tuple = self.getTimeSlotMetrics(age, gender, fields, totalgamedays)
-        earliest_counter_dict = ELcounter_tuple.earliest
-        latest_counter_dict = ELcounter_tuple.latest
-        metrics_list = []
-        for team_id in range(1, numTeams+1):
-            numGames = self.collection.find({age_CONST:age,gen_CONST:gender,
-                                            "$or":[{home_CONST:team_id},{away_CONST:team_id}]
-                                            }).count()
-            numHomeGames = self.collection.find({age_CONST:age,gen_CONST:gender,home_CONST:team_id}).count()
-            homeratio = float(numHomeGames)/float(numGames)
-            field_count_list = []
-            for venue in fields:
-                venue_count = self.collection.find({age_CONST:age,gen_CONST:gender,venue_CONST:venue,
-                                                   "$or":[{home_CONST:team_id},{away_CONST:team_id}]
-                                                   }).count()
-                field_count_list.append({venue_CONST:venue, venue_count_CONST:venue_count})
-
-            metrics_list.append({team_id_CONST:team_id, totalgames_CONST:numGames,
-                                 homeratio_CONST:homeratio,
-                                 venue_count_list_CONST:field_count_list,
-                                 'EARLIEST_COUNT':earliest_counter_dict[team_id],
-                                 'LATEST_COUNT':latest_counter_dict[team_id]})
-        return metrics_list
 
     def getfairness_metrics(self, div_age, div_gen, divinfo, fieldinfo_tuple):
         '''Updated information of computing metrics for generated schedule'''
