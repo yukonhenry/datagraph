@@ -21,7 +21,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			server_interface:null,
 			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
 			nsdbmenureg_list:null, prefdbmenureg_list:null, teamdbmenureg_list:null,
-			exclusiondbmenureg_list:null,
+			conflictdbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
@@ -39,8 +39,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				this.prefdbmenureg_list = new Array();
 				// team menu list
 				this.teamdbmenureg_list = new Array();
-				// exclusionmenu list
-				this.exclusiondbmenureg_list = new Array();
+				// conflict nmenu list
+				this.conflictdbmenureg_list = new Array();
 			},
 			getTournCalendarMap: function(gameday_id) {
 				return tournCalendarMapObj[gameday_id];
@@ -188,8 +188,8 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					dbmenureg_list = this.prefdbmenureg_list;
 				else if (db_type == 'teamdb')
 					dbmenureg_list = this.teamdbmenureg_list;
-				else if (db_type == 'exclusiondb')
-					dbmenureg_list = this.exclusiondbmenureg_list;
+				else if (db_type == 'conflictdb')
+					dbmenureg_list = this.conflictdbmenureg_list;
 				else {
 					dbmenureg_list = [];
 					console.log("Error get_dbmenureg_list: Invalid db_type");

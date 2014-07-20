@@ -56,7 +56,7 @@ class DB_Col_Type(Enum):
     GeneratedSchedule = 4
     PreferenceInfo = 5
     TeamInfo = 6
-    ExclusionInfo = 7
+    ConflictInfo = 7
 
 class MongoDBInterface:
     def __init__(self, mongoClient, collection_name=None, db_col_type=DB_Col_Type.RoundRobin):

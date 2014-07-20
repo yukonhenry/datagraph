@@ -16,12 +16,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
 		"LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil",
 		"LeagueScheduler/tourndivinfo", "LeagueScheduler/wizardlogic",
-		"LeagueScheduler/teaminfo", "LeagueScheduler/exclusioninfo",
+		"LeagueScheduler/teaminfo", "LeagueScheduler/conflictinfo",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic,
-		TeamInfo, ExclusionInfo) {
+		TeamInfo, ConflictInfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var ldata_array = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
@@ -53,7 +53,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
 				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
-		var exclusioninfo_obj = new ExclusionInfo(
+		var conflictinfo_obj = new ConflictInfo(
 			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
 				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
@@ -70,7 +70,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var newscheddb_list = ldata.newscheddb_list;
 			var prefdb_list = ldata.prefdb_list;
 			var teamdb_list = ldata.teamdb_list;
-			var exclusiondb_list = ldata.exclusiondb_list;
+			var conflictdb_list = ldata.conflictdb_list;
 			var data_list = [
 				{db_type:'rrdb', db_list:rrdbcollection_list},
 				{db_type:'tourndb', db_list:tourndbcollection_list},
@@ -78,7 +78,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				{db_type:'newscheddb', db_list:newscheddb_list},
 				{db_type:'prefdb', db_list:prefdb_list},
 				{db_type:'teamdb', db_list:teamdb_list},
-				{db_type:'exclusiondb', db_list:exclusiondb_list}];
+				{db_type:'conflictdb', db_list:conflictdb_list}];
 			// store initial data returned from server
 			storeutil_obj.store_init_data(data_list)
 			// create initial wizard UI
@@ -91,7 +91,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				{id:'field_id', info_obj:fieldinfo_obj},
 				{id:'team_id', info_obj:teaminfo_obj},
 				{id:'pref_id', info_obj:preferenceinfo_obj},
-				{id:'exclusion_id', info_obj:exclusioninfo_obj},
+				{id:'conflict_id', info_obj:conflictinfo_obj},
 				{id:'newsched_id', info_obj:newschedbase_obj},
 			]
 			storeutil_obj.init_advanced_UI(info_obj_list);

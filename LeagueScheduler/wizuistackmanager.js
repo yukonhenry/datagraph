@@ -30,7 +30,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.gstackmap_list = new Array();
 				this.cpanestate_list = new Array();
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'exclusion_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id'];
 				arrayUtil.forEach(id_list, function(item) {
 					// strip off the 'id' suffix portion
 					var idmgr_obj = idmgrSingleton.get_idmgr_obj({id:item,
@@ -79,7 +79,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// panes
 				// rest of id's have a common structure
 				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
-					'team_id', 'exclusion_id'];
+					'team_id', 'conflict_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					this.pstackmap_list.push({id:idproperty, p_stage:'preconfig',
 						pane_id:this.get_idstr_obj(idproperty).numcpane_id});
@@ -104,8 +104,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						pane_id:this.get_idstr_obj('pref_id').gridcpane_id},
 					{id:'team_id',
 						pane_id:this.get_idstr_obj('team_id').gridcpane_id},
-					{id:'exclusion_id',
-						pane_id:this.get_idstr_obj('exclusion_id').gridcpane_id}];
+					{id:'conflict_id',
+						pane_id:this.get_idstr_obj('conflict_id').gridcpane_id}];
 			},
 			get_idstr_obj: function(id) {
 				var idmgr_obj = this.getuniquematch_obj(this.wizardid_list,

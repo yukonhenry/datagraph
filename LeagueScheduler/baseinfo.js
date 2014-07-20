@@ -82,7 +82,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.op_type, this.idproperty)
 						if (this.idproperty == 'field_id' ||
 							this.idproperty == 'pref_id' ||
-							this.idproperty == 'exclusion_id') {
+							this.idproperty == 'conflict_id') {
 							// field_id-specific UI above grid
 							this.initabovegrid_UI();
 						} else if (this.idproperty == 'div_id') {

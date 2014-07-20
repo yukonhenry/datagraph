@@ -1,13 +1,12 @@
 #!/usr/bin/python
 ''' Copyright YukonTR 2014 '''
-from dbinterface import MongoDBInterface, DB_Col_Type
-import simplejson as json
-
+from dbinterface import DB_Col_Type
+from basedbinterface import BaseDBInterface
 
 class PrefDBInterface(BaseDBInterface):
     def __init__(self, mongoClient, newcol_name):
         BaseDBInterface.__init__(self, mongClient, newcol_name,
-            DB_Col_Type.ExclusionInfo. 'PREF_ID')
+            DB_Col_Type.PreferenceInfo, 'PREF_ID')
 
     def write_constraint_status(self, cstatus_list):
         operator = "$set"

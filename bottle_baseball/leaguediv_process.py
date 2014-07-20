@@ -24,6 +24,7 @@ from schedmaster import SchedMaster
 from scheddbinterface import SchedDBInterface
 from prefdbinterface import PrefDBInterface
 from teamdbinterface import TeamDBInterface
+from conflictdbinterface import ConflictDBInterface
 from sched_exceptions import CodeLogicError
 
 _dbInterface = MongoDBInterface(mongoClient)
@@ -65,7 +66,7 @@ def leaguedivinfo_all():
     newscheddb_list = _dbInterface.getScheduleCollection(DB_Col_Type.GeneratedSchedule)
     prefdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.PreferenceInfo)
     teamdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.TeamInfo)
-    exclusiondb_list = _dbInterface.getScheduleCollection(DB_Col_Type.ExclusionInfo)
+    conflictdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.ConflictInfo)
     a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
                     "creation_time":time.asctime(),
                     "rrdbcollection_list":rrdbcol_list,
@@ -74,7 +75,7 @@ def leaguedivinfo_all():
                     "newscheddb_list":newscheddb_list,
                     "prefdb_list":prefdb_list,
                     "teamdb_list":teamdb_list,
-                    "exclusiondb_list":exclusiondb_list})
+                    "conflictdb_list":conflictdb_list})
     return callback_name+'('+a+')'
 
 @route('/getalldivschedule')
@@ -348,8 +349,8 @@ def select_db_interface(db_type, colname):
         dbInterface = PrefDBInterface(mongoClient, colname)
     elif db_type == 'teamdb':
         dbInterface = TeamDBInterface(mongoClient, colname)
-    elif db_type == 'exclusiondb':
-        dbInterface = ExclusionDBInterface(mongoClient, colname)
+    elif db_type == 'conflictdb':
+        dbInterface = ConflictDBInterface(mongoClient, colname)
     else:
         raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
         dbInterface = None

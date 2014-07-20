@@ -7,13 +7,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"LeagueScheduler/wizuistackmanager", "LeagueScheduler/divinfo",
 	"LeagueScheduler/tourndivinfo", "LeagueScheduler/fieldinfo",
 	"LeagueScheduler/preferenceinfo", "LeagueScheduler/newschedulerbase",
-	"LeagueScheduler/teaminfo", "LeagueScheduler/exclusioninfo",
+	"LeagueScheduler/teaminfo", "LeagueScheduler/conflictinfo",
 	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
 		DropDownMenu, DropDownButton, Button, DropDownButton, ContentPane,
 		baseinfoSingleton, WidgetGen, WizUIStackManager, divinfo, tourndivinfo,
-		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, exclusioninfo,
+		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, conflictinfo,
 		idmgrSingleton,
 		put) {
 		var constant = {
@@ -201,30 +201,30 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				wizard_reg.addChild(prefinfo_wpane);
 				//----------------------------------------------//
-				// Exclusions Config Pane
+				// Conflicts Config Pane
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Specify any requests for avoiding time conflicts between teams.  Example use cases may include coaches coaching multiple teams, a coach that coaches one team and plays on another, or trying to ease the burden for certain parents that have many children playing the league.  The league administrator can try to accomodate these requests by specifying these conflicts.  However, priorities must be assigned to each of the specified conflicts.  As with the Preference feature in the previous pane, avoiding the time conflicts is a best-effort feature and results are not guaranteed.  Raising the priority level increases probability that the time conflict will be avoid, but the administrator also needs to be cognizant that fairness for other teams could be compromised depending on the prioritiy level assigned.</i><br><br>";
-				var exclusioninfo_obj = new exclusioninfo({
+				var conflictinfo_obj = new conflictinfo({
 					server_interface:this.server_interface,
 					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('exclusion_id', exclusioninfo_obj, true, menubar_node);
+				this.storeutil_obj.create_menubar('conflict_id', conflictinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
 				gcontainerdiv_node = put(topdiv_node, "div")
-				exclusioninfo_obj.create_wizardcontrol(pcontainerdiv_node,
+				conflictinfo_obj.create_wizardcontrol(pcontainerdiv_node,
 					gcontainerdiv_node);
-				var exclusioninfo_wpane = new WizardPane({
+				var conflictinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
 					onShow: function() {
-						if (exclusioninfo_obj.editgrid) {
-							exclusioninfo_obj.editgrid.schedInfoGrid.resize();
+						if (conflictinfo_obj.editgrid) {
+							conflictinfo_obj.editgrid.schedInfoGrid.resize();
 						}
 					}
 				})
-				wizard_reg.addChild(exclusioninfo_wpane);
+				wizard_reg.addChild(conflictinfo_wpane);
 				//----------------------------------------------//
 				// Schedule Generation
 				topdiv_node = put("div");
