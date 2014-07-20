@@ -147,13 +147,6 @@ def elimination2013(tourn_divinfo_col):
     a = json.dumps({"dbstatus":elimsched.tdbInterface.dbInterface.getSchedStatus()})
     return callback_name+'('+a+')'
 
-@route('/divisiondata/<did:int>', method='GET')
-def divisiondata(did):
-    callback_name = request.query.callback
-    division = getDivisionData(did)
-    numTeams = division['totalteams']
-    a = json.dumps({'totalteams':numTeams})
-    return callback_name+'('+a+')'
 
 @route('/teamdata/<tid:int>', method='GET')
 def teamdata(tid):
@@ -180,13 +173,6 @@ def teamdata(tid):
     a = json.dumps({'teamdata_list':teamdata_list})
     return callback_name+'('+a+')'
 
-@route('/fieldschedule/<fid:int>', method='GET')
-def fieldschedule(fid):
-    callback_name = request.query.callback
-    fieldschedule_list = _dbInterface.findFieldSchedule(fid)
-    a = json.dumps({'fieldschedule_list':fieldschedule_list})
-    return callback_name+'('+a+')'
-
     '''
     # mongo shell aggregate command
     # col.aggregate({$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"}, {$match:{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':8}})
@@ -196,16 +182,6 @@ def fieldschedule(fid):
                                               {"$match":{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':fid}},
                                               {"$sort":{'game_list.GAMEDAY_ID':1,'game_list.GAMEDAY_DATA.START_TIME':1}}])
 '''
-
-@route('/schedulemetrics/<div_id:int>', method='GET')
-def schedulemetrics(div_id):
-    callback_name = request.query.callback
-    divisionData = getDivisionData(div_id)
-    div_tuple = getAgeGenderDivision(div_id)
-    metrics_list = _dbInterface.getMetrics(div_tuple.age, div_tuple.gender,
-                                          divisionData)
-    a = json.dumps({'divfield_list':divisionData['divfield_list'], 'metrics':metrics_list})
-    return callback_name+'('+a+')'
 
 # create new db collection based on new schedule parameters (currently for tournament format)
 @route('/create_newdbcol/<db_type>/<newcol_name>')
@@ -372,6 +348,8 @@ def select_db_interface(db_type, colname):
         dbInterface = PrefDBInterface(mongoClient, colname)
     elif db_type == 'teamdb':
         dbInterface = TeamDBInterface(mongoClient, colname)
+    elif db_type == 'exclusiondb':
+        dbInterface = ExclusionDBInterface(mongoClient, colname)
     else:
         raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
         dbInterface = None
