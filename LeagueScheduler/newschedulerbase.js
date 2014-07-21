@@ -57,7 +57,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			game_id:'game_id',
 			team_id:'team_id',
 			fair_id:'fair_id',
-			pref_id:'pref_id'
+			pref_id:'pref_id',
+			conflict_id:'conflict_id'
 		};
 		var wizconstant = {
 			nscpane_id:"wiznewschedcpane_id",
@@ -401,6 +402,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.pref_select = this.widgetgen.create_select(prefargs_obj);
 				put(scinput_dom, "br, br");
+				// create conflict list dropdown
+				var conflictargs_obj = {
+					topdiv_node:scinput_dom,
+					select_id:conflict_select_id,
+					init_db_type:'conflictdb',
+					init_colname:conflictcol_name,
+					onchange_callback:lang.hitch(this, function(evt) {
+						this.conflict_select_value = evt;
+					}),
+					name_str:"conflict_select",
+					label_str:"Select Conflict List",
+					put_trail_spacing:"span.empty_gap"
+				}
+				this.conflict_select = this.widgetgen.create_select(conflictargs_obj);
 				var btn_node = dom.byId(schedparambtn_id);
 				if (!btn_node) {
 					btn_node = put(scinput_dom,
@@ -453,8 +468,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (prefcol_name) {
 					prefargs_obj.onchange_callback(prefcol_name);
 				}
+				if (conflictcol_name) {
+					conflictargs_obj.onchange_callback(conflictcol_name);
+				}
 			},
-			reload_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name) {
+			reload_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name, conflictcol_name) {
 				// reuse widgets that have already been created and reload new values
 				var radio1_id = this.opconstant_obj.radio1_id;
 				var radio2_id = this.opconstant_obj.radio2_id;
@@ -463,6 +481,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
 				var prefcol_name = (typeof prefcol_name === "undefined" || prefcol_name === null) ? "" : prefcol_name;
+				var conflictcol_name = (typeof conflictcol_name === "undefined" ||
+					conflictcol_name === null) ? "" : conflictcol_name;
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen.reload_dbytpe_radiobtn(radio1_id, radio2_id, divdb_type);
 				// div league select
@@ -489,6 +509,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					label_str:"Select Preference List",
 				}
 				this.widgetgen.reload_select(prefargs_obj);
+				// conflict list select
+				var conflictargs_obj = {
+					select_reg:this.conflict_select,
+					init_db_type:'conflictdb',
+					init_colname:conflictcol_name,
+					label_str:"Select Conflict List",
+				}
 				var schedule_btn = registry.byId(schedparambtn_id);
 				schedule_btn.set("disabled", true);
 				var onchange_callback = null;
@@ -504,6 +531,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					onchange_callback = this.pref_select.get("onChange");
 					onchange_callback(prefcol_name);
 				}
+				if (conflictcol_name) {
+					onchange_callback = this.conflict_select.get("onChange");
+					onchange_callback(conflictcol_name);
+				}
 			},
 			send_generate: function() {
 				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
@@ -515,6 +546,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
 					prefcol_name:this.pref_select_value,
+					conflictcol_name:this.conflict_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
 				this.server_interface.getServerData("send_generate",
