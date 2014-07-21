@@ -191,7 +191,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = constant.text_node_str;
 				// key for response object from server
-				options_obj.serverdata_key = 'info_list';
 				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
 				options_obj.db_type = constant.db_type;

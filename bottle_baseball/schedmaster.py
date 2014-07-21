@@ -5,6 +5,7 @@ from rrdbinterface import RRDBInterface
 from scheddbinterface import SchedDBInterface
 from prefdbinterface import PrefDBInterface
 from teamdbinterface import TeamDBInterface
+from conflictdbinterface import ConflictDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from collections import namedtuple

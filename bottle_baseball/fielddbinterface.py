@@ -1,6 +1,7 @@
 #!/usr/bin/python
 ''' Copyright YukonTR 2013 '''
-from dbinterface import MongoDBInterface, DB_Col_Type
+from dbinterface import DB_Col_Type
+from basedbinterface import BaseDBInterface
 from schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist, \
     getcalendarmap_list
 import simplejson as json
@@ -23,10 +24,10 @@ start_time_CONST = 'START_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
 totalfielddays_CONST = 'TOTALFIELDDAYS'
 date_format_CONST = "%m/%d/%Y"
-class FieldDBInterface:
+class FieldDBInterface(BaseDBInterface):
     def __init__(self, mongoClient, newcol_name):
-        self.dbinterface = MongoDBInterface(mongoClient,
-            newcol_name, db_col_type=DB_Col_Type.FieldInfo)
+        BaseDBInterface.__init__(self, mongoClient, newcol_name,
+            DB_Col_Type.FieldInfo, 'FIELD_ID')
 
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
@@ -77,18 +78,6 @@ class FieldDBInterface:
                 field['closed_list'] = [x.strftime(date_format_CONST) for x in field['CLOSED_LIST']]
                 del field['CLOSED_LIST']
             # http://stackoverflow.com/questions/15411107/delete-a-dictionary-item-if-the-key-exists (None is the return value if closed_list doesnt exist
-        fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
-        return _PlusList_Status(fieldinfo_list, config_status, divstr_colname,
-                                 divstr_db_type)
-
-    # read from DB, but don't covert lists back into string representation
-    # also don't covert the dayweek_list elements back to JS format
-    def readDBraw(self):
-        liststatus_qtuple = self.dbinterface.getInfoPlusDocument('FIELD_ID')
-        field_list = liststatus_qtuple.list
-        config_status = liststatus_qtuple.config_status
-        divstr_colname = liststatus_qtuple.divstr_colname
-        divstr_db_type = liststatus_qtuple.divstr_db_type
         fieldinfo_list = [{k.lower():v for k,v in x.items()} for x in field_list]
         return _PlusList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
@@ -183,6 +172,3 @@ class FieldDBInterface:
                 operator_obj = {"CALENDARMAP_LIST.$.start_time":start_time,
                     "CALENDARMAP_LIST.$.end_time":end_time}
                 self.dbinterface.updatedoc(query_obj, operator, operator_obj)
-
-    def drop_collection(self):
-        self.dbinterface.drop_collection()

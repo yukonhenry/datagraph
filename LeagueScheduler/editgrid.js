@@ -159,15 +159,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var storedata_json = null;
 				var server_key_obj = {};
 				if (this.idproperty == "field_id" || this.idproperty == "pref_id" ||
-					this.idproperty == "team_id") {
-					if (this.idproperty == "team_id") {
+					this.idproperty == "team_id" ||
+					this.idproperty == "conflict_id") {
+					if (this.idproperty == "team_id" ||
+						this.idproperty == "conflict_id") {
 						// no need to modify result for team_id
 						storedata_json = JSON.stringify(raw_result);
 					} else {
-						var newlist = null;
 						// for field or pref id's modify grid data before sending to
 						// server - also attach divstr information also
-						newlist = this.info_obj.modify_toserver_data(raw_result);
+						var newlist = this.info_obj.modify_toserver_data(raw_result);
 						storedata_json = JSON.stringify(newlist);
 					}
 					divstr_obj = this.info_obj.getdivstr_obj();

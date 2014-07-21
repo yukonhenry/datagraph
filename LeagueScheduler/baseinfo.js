@@ -14,7 +14,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		var constant = {
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
-			serverstatus_key:"config_status"
+			serverstatus_key:"config_status",
+			serverdata_key:"info_list"
 		};
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr_type:null,
@@ -212,7 +213,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// some data conversion (convert to date obj) before passing onto grid
 				// Note server_key is key for outgoing request
 				// serverdata_key is for incoming data
-				var data_list = server_data[options_obj.serverdata_key];
+				var data_list = server_data[constant.serverdata_key];
 				// extract configuration status from server. integer value 0/1
 				var config_status = server_data[constant.serverstatus_key];
 				this.totalrows_num = data_list.length;
@@ -221,14 +222,21 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						data_list = this.modifyserver_data(data_list,
 							server_data.divstr_obj, columnsdef_obj);
 					} else {
-						alert('check db_type and idproperty consistency');
+						alert('check field db_type/idproperty consistency');
 					}
 				} else if (options_obj.db_type == 'prefdb') {
 					if (idproperty == 'pref_id') {
 						data_list = this.modifyserver_data(data_list,
 							server_data.divstr_obj);
 					} else {
-						alert('check db_type and idproperty consistency');
+						alert('check pref db_type/idproperty consistency');
+					}
+				} else if (options_obj.db_type == 'conflictdb') {
+					if (idproperty == 'conflict_id') {
+						data_list = this.modifyserver_data(data_list,
+							server_data.divstr_obj);
+					} else {
+						alert('check conflict db_type/idproperty consistency');
 					}
 				}
 				if (!this.server_interface) {

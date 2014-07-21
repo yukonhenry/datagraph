@@ -11,6 +11,7 @@ _List_Status = namedtuple('_List_Status', 'list config_status')
 _PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_colname divstr_db_type')
 
 class BaseDBInterface:
+    ''' Base info-level dbinterface class '''
     def __init__(self, mongoClient, newcol_name, db_col_type, capid_str):
         self.dbinterface = MongoDBInterface(mongoClient, newcol_name,
             db_col_type)
@@ -23,13 +24,6 @@ class BaseDBInterface:
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
             id_str=self.capid_str)
-
-    def write_constraint_status(self, cstatus_list):
-        operator = "$set"
-        for cstatus in cstatus_list:
-            query_obj = {'PREF_ID':cstatus['pref_id']}
-            operator_obj = {'SATISFY':cstatus['status']}
-            self.dbinterface.updatedoc(query_obj, operator, operator_obj)
 
     def readDB(self):
         # readDB is for returning to client UI

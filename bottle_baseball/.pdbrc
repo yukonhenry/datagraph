@@ -25,10 +25,10 @@
 #b fieldtimescheduler.py:67
 #b fieldtimescheduler.py:430
 #b fieldbalancer.py:1346
-b fieldbalancer.py:991
+#b fieldbalancer.py:991
 #b fieldbalancer.py:989
 #b dbinterface.py:101
-#b leaguediv_process.py:240
+b leaguediv_process.py:239
 #b schedule_util.py:265
 #b prefdbinterface.py:14
 #b teamdbinterface.py:21

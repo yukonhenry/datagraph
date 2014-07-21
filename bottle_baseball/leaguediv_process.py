@@ -195,7 +195,7 @@ def create_newdbcol(db_type, newcol_name):
     dbInterface = select_db_interface(db_type, newcol_name)
     if db_type in ['rrdb', 'tourndb']:
         dbInterface.writeDB(info_data, config_status)
-    elif db_type in ['fielddb', 'prefdb', 'teamdb']:
+    elif db_type in ['fielddb', 'prefdb', 'teamdb', 'conflictdb']:
         # get divinfo parameters associated with fieldinfo obj
         divstr_colname = request.query.divstr_colname
         divstr_db_type = request.query.divstr_db_type
@@ -243,7 +243,7 @@ def get_dbcol(db_type, getcol_name):
         info_list = dbtuple.list
         config_status = dbtuple.config_status
         return_obj = {'info_list':info_list, 'config_status':config_status}
-        if db_type in ['fielddb', 'prefdb', 'teamdb']:
+        if db_type in ['fielddb', 'prefdb', 'teamdb', 'conflictdb']:
             # if db is fielddb, then append divinfo information also-
             # used as part of fieldinfo config on UI grid
             divstr_colname = dbtuple.divstr_colname
@@ -352,6 +352,6 @@ def select_db_interface(db_type, colname):
     elif db_type == 'conflictdb':
         dbInterface = ConflictDBInterface(mongoClient, colname)
     else:
-        raise CodeLogicError("leaguedivprocess:get_dbcol: db_type not recognized db_type=%s" % (db_type,))
+        raise CodeLogicError("leaguedivprocess:select_db_interface: db_type not recognized db_type=%s" % (db_type,))
         dbInterface = None
     return dbInterface

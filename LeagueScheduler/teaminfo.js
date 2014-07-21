@@ -97,7 +97,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.checkdelete_txtbtn();
 				if (!('op_type' in options_obj))
 					options_obj.op_type = this.op_type;
-				options_obj.serverdata_key = 'info_list';
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = constant.text_node_str;
 				options_obj.grid_id = this.idmgr_obj.grid_id;
@@ -222,7 +221,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						if (!arrayUtil.some(info_list, function(item) {
 							return item.div_id == div_id_event;
 						})) {
-							info_list.concat(this.getInitialList(
+							info_list = info_list.concat(this.getInitialList(
 								this.totalrows_num, div_id_event));
 						}
 					} else {
@@ -256,8 +255,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								if (!arrayUtil.some(info_list, function(item) {
 									return item.div_id == div_id_event;
 								})) {
-									info_list.concat(this.getInitialList(
-										this.totalrows_num, div_id_event));
+									info_list = info_list.concat(
+										this.getInitialList(this.totalrows_num,
+											div_id_event));
 								}
 							} else {
 								// if div_id data does not exist, add initilization data

@@ -6,5 +6,5 @@ from basedbinterface import BaseDBInterface
 
 class ConflictDBInterface(BaseDBInterface):
     def __init__(self, mongoClient, newcol_name):
-        BaseDBInterface.__init__(self, mongClient, newcol_name,
+        BaseDBInterface.__init__(self, mongoClient, newcol_name,
             DB_Col_Type.ConflictInfo, 'CONFLICT_ID')

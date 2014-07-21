@@ -8,13 +8,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
         ValidationTextBox, Select, editor,
         baseinfo, baseinfoSingleton, idmgrSingleton, put) {
         var constant = {
-            idproperty_str:'exclusion_id', db_type:'exclusiondb',
-            dbname_str:"New Exclusion List Name",
-            vtextbox_str:'Enter Exclusion List Name',
-            ntextbox_str:'Enter Number of Team Exclusions',
+            idproperty_str:'conflict_id', db_type:'conflictdb',
+            dbname_str:"New Conflict List Name",
+            vtextbox_str:'Enter Conflict List Name',
+            ntextbox_str:'Enter Number of Team Conflicts',
             inputnum_str:'Number of Team Conflicts',
-            text_node_str:'Exclusion List Name',
-            updatebtn_str:'Update Exclusion Info',
+            text_node_str:'Conflict List Name',
+            updatebtn_str:'Update Conflict Info',
             div_select_base:"exdiv_select",
             team_select_base:"exteam_select"
         };
@@ -31,7 +31,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             },
             getcolumnsdef_obj: function() {
                 var columnsdef_obj = {
-                    exclusion_id:"ID",
+                    conflict_id:"ID",
                     priority: editor({label:"Priority", autoSave:true,
                         editorArgs:{
                             constraints:{min:1, max:500},
@@ -98,7 +98,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     label:"Specify Initial Number of Conflicts and press ENTER",
                     position:['below','after']},
                     {connectId:[this.idmgr_obj.dbname_id],
-                    label:"Specify Exclusion List Name",
+                    label:"Specify Conflict List Name",
                     position:['below','after']}];
                 var args_obj = {
                     dbname_reg:dbname_reg,
@@ -117,15 +117,31 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             getInitialList: function(num) {
                 var info_list = new Array();
                 for (var i = 1; i < num+1; i++) {
-                    info_list.push({exclusion_id:i, priority:2,
+                    info_list.push({conflict_id:i, priority:2,
                         div_1_id:"", team_1_id:"",
                         div_2_id:"", team_2_id:""});
                 }
                 return info_list;
             },
+            getServerDBInfo: function(options_obj) {
+                // note third parameter maps to query object, which in this case
+                // there is none.  But we need to provide some argument as js does
+                // not support named function arguments.  Also specifying "" as the
+                // parameter instead of null might be a better choice as the query
+                // object will be emitted in the jsonp request (though not consumed
+                // at the server)
+                if (!('op_type' in options_obj))
+                    options_obj.op_type = this.op_type;
+                options_obj.cellselect_flag = false;
+                options_obj.text_node_str = "Conflict List Name";
+                options_obj.grid_id = this.idmgr_obj.grid_id;
+                options_obj.updatebtn_str = constant.updatebtn_str;
+                options_obj.db_type = constant.db_type;
+                this.inherited(arguments);
+            },
             get_gridhelp_list: function() {
                 var gridhelp_list = [
-                    {id:'exclusion_id', help_str:"Identifier, Non-Editable"},
+                    {id:'conflict_id', help_str:"Identifier, Non-Editable"},
                     {id:'priority',
                         help_str:"Priority of the conflict - assign positive integer, lower value is higher priority"},
                     {id:'div_1_id',
@@ -138,16 +154,46 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         help_str:"Select Team ID for the second conflict team"}]
                 return gridhelp_list;
             },
+            modifyserver_data: function(data_list, divstr_obj) {
+                // see comments for fieldinfo modifyserver_data - process divstr
+                // data; separately process data_list (especially dates)
+                this.divstr_colname = divstr_obj.colname;
+                this.divstr_db_type = divstr_obj.db_type;
+                var config_status = divstr_obj.config_status;
+                var info_list = divstr_obj.info_list;
+                // create radio button pair to select
+                // schedule type - rr or tourn
+                var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
+                var topdiv_node = put(infogrid_node, "-div");
+                if (this.divstr_colname && this.divstr_db_type) {
+                    this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
+                        this.idmgr_obj.radiobtn2_id,
+                        this.idmgr_obj.league_select_id,
+                        this.divstr_db_type, this.divstr_colname, topdiv_node);
+                } else {
+                    this.initabovegrid_UI(topdiv_node);
+                }
+                if (config_status) {
+                    var divstr_list = arrayUtil.map(info_list,
+                    function(item) {
+                        return {'divstr':item.div_age + item.div_gen,
+                            'div_id':item.div_id, 'totalteams':item.totalteams};
+                    })
+                    baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
+                        this.op_type, 'conflict_id');
+                }
+                return data_list;
+            },
             div_select_render: function(object, data, node) {
-                var exclusion_id = object.exclusion_id;
+                var conflict_id = object.conflict_id;
                 // .columnId gives the column name
                 var div_select_prefix = this.op_prefix+constant.div_select_base+
                     node.columnId;
                 // get unique widget id
-                var div_select_id = div_select_prefix+exclusion_id+"_id";
+                var div_select_id = div_select_prefix+conflict_id+"_id";
                 var div_select_widget = registry.byId(div_select_id);
                 var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
-                    this.op_type, 'exclusion_id');
+                    this.op_type, 'conflict_id');
                 var option_list = new Array();
                 var eventoptions_obj = null;
                 if (divstr_list && divstr_list.length > 0) {
@@ -164,7 +210,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         option_list.push(option_obj);
                     })
                     // create options list to pass to the team select event handler
-                    eventoptions_obj = {exclusion_id:exclusion_id,
+                    eventoptions_obj = {conflict_id:conflict_id,
                         // slice leaves out the 0-th element
                         option_list:option_list.slice(1)}
                 } else {
@@ -191,7 +237,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 div_select_widget.startup();
             },
             team_select_render: function(object, data, node) {
-                var exclusion_id = object.exclusion_id;
+                var conflict_id = object.conflict_id;
                 // node.columnId gives the column id where the rendering
                 // is occuring
                 var columnId = node.columnId;
@@ -203,11 +249,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 var team_select_prefix = this.op_prefix+
                     constant.team_select_base+columnId;
                 // get unique widget id
-                var team_select_id = team_select_prefix+exclusion_id+"_id";
+                var team_select_id = team_select_prefix+conflict_id+"_id";
                 var team_select_widget = registry.byId(team_select_id);
                 var option_list = new Array();
                 var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
-                    this.op_type, 'exclusion_id');
+                    this.op_type, 'conflict_id');
                 if (divstr_list && divstr_list.length > 0) {
                     var match_obj = arrayUtil.filter(divstr_list,
                         function(item) {
@@ -232,10 +278,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         options:option_list, style:"width:auto",
                         id:team_select_id,
                         onChange: lang.hitch(this, function(event) {
-                            var exclusion_obj = this.editgrid.schedInfoStore.get(
-                                exclusion_id);
-                            exclusion_obj['team_'+column_num_str+'_id'] = event;
-                            this.editgrid.schedInfoStore.put(exclusion_obj);
+                            var conflict_obj = this.editgrid.schedInfoStore.get(
+                                conflict_id);
+                            conflict_obj['team_'+column_num_str+'_id'] = event;
+                            this.editgrid.schedInfoStore.put(conflict_obj);
                         })
                     }, select_node)
                 } else {
@@ -251,7 +297,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 // editgrid obj and grid itself
                 // Reference newschedulerbase/createdivselect_dropdown and
                 // also same method in prefinfo
-                var exclusion_grid = this.editgrid.schedInfoGrid;
+                var conflict_grid = this.editgrid.schedInfoGrid;
                 // initialize option_list for the select dropdown in the
                 // select div dropdowns (ome for each conflict config)
                 var option_list = [{label:"Select Division", value:"",
@@ -275,7 +321,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                             div_select_widget.set("options", copy_list);
                             var options_obj = {
                                 divcol_id:col_id,
-                                exclusion_id:row_id,
+                                conflict_id:row_id,
                                 option_list:option_list.slice(1)
                             }
                             div_select_widget.set("onChange", lang.hitch(this,
@@ -286,13 +332,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 }, this);
             },
             set_gridteam_select: function(options_obj, divevent) {
-                // set select dropdown for team id column in the exclusion grid
+                // set select dropdown for team id column in the conflict grid
                 var divoption_list = options_obj.option_list;
-                var exclusion_id = options_obj.exclusion_id;
+                var conflict_id = options_obj.conflict_id;
                 var divcol_id = options_obj.divcol_id;
-                var exclusion_obj = this.editgrid.schedInfoStore.get(exclusion_id);
-                exclusion_obj[divcol_id] = divevent;
-                this.editgrid.schedInfoStore.put(exclusion_obj);
+                var conflict_obj = this.editgrid.schedInfoStore.get(conflict_id);
+                conflict_obj[divcol_id] = divevent;
+                this.editgrid.schedInfoStore.put(conflict_obj);
                 // find the totalteams match corresponding to the div_id event
                 var match_option = arrayUtil.filter(divoption_list,
                     function(item) {
@@ -309,7 +355,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 var teamcol_id = 'team_'+column_num_str+'_id';
                 var team_select_prefix = this.op_prefix+
                     constant.team_select_base+teamcol_id;
-                var team_select_id = team_select_prefix+exclusion_id+"_id";
+                var team_select_id = team_select_prefix+conflict_id+"_id";
                 var team_select_widget = registry.byId(team_select_id);
                 if (team_select_widget) {
                     team_select_widget.set("options", option_list);
@@ -321,6 +367,39 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     })) */
                     team_select_widget.startup()
                 }
+            },
+            checkconfig_status: function(raw_result) {
+                // check if config is complete.  For conflict_info, also check to
+                // make sure div_id's are different within the same conflict id.
+                // Conflicts involving two more teams in the same division are not
+                // supported as teams will need to play each other at the same
+                // time slot.
+                var config_status = 0;
+                var alert_msg = "";
+                if (arrayUtil.some(raw_result, function(item) {
+                    // if .some returns true, then there was at least one
+                    // condition detected that indicates config is Not complete.
+                    var break_flag = false;
+                    for (var prop in item) {
+                        if (item[prop] === "") {
+                            alert_msg = "Empty Field column "+prop;
+                            break_flag = true;
+                            break;
+                        }
+                    }
+                    if (item.div_1_id == item.div_2_id) {
+                        alert_msg = "Conflict must be from different divs";
+                        break_flag = true;
+                    }
+                    return break_flag;
+                })) {
+                    console.log("Not all fields complete or legal for "+
+                        this.idproperty+" but saving");
+                    alert(alert_msg);
+                } else {
+                    config_status = 1;
+                }
+                return config_status;
             }
-        })
+         })
 })
