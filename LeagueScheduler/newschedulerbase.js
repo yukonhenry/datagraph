@@ -20,6 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			radio2_id:'scradio2_id',
 			fg_select_id:'fg_select_id',
 			pref_select_id:'pref_select_id',
+			conflict_select_id:'conflict_select_id',
 			schedparambtn_id:'schedparambtn_id',
 			schedstatustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
@@ -88,7 +89,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", op_prefix:"", opconstant_obj:null,
-			pref_select_value:null,
+			pref_select_value:null, conflict_select_value:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -267,6 +268,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.fg_select.removeOption(index)
 				} else if (db_type == 'prefdb') {
 					this.pref_select.removeOption(index)
+				} else if (db_type == 'conflictdb') {
+					this.conflict_select.removeOption(index);
 				}
 			},
 			addto_select: function(db_type, label, insertIndex) {
@@ -282,6 +285,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.fg_select.addOption(soption_obj);
 				} else if (db_type == 'prefdb') {
 					this.pref_select.addOption(index)
+				} else if (db_type == 'conflictdb') {
+					this.conflict_select.addOption(index);
 				}
 			},
 			is_serverdata_required: function(options_obj) {
@@ -303,22 +308,23 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var divdb_type = param_obj.divdb_type;
 				var fieldcol_name = param_obj.fieldcol_name;
 				var prefcol_name = param_obj.prefcol_name;
+				var conflictcol_name = param_obj.conflictcol_name;
 				if (!this.widgetgen) {
 					this.create_widgets(divdb_type, divcol_name,
-						fieldcol_name, prefcol_name);
+						fieldcol_name, prefcol_name, conflictcol_name);
 				} else {
 					// reset watch object fields
 					this.reset_newschedwatch_obj();
 					// reload widgets
 					this.reload_widgets(divdb_type, divcol_name, fieldcol_name,
-						prefcol_name);
+						prefcol_name, conflictcol_name);
 				}
 				this.uistackmgr_type.switch_pstackcpane({
 					idproperty:this.idproperty, p_stage:"config",
 					entry_pt:"fromdb"});
 				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 			},
-			create_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name) {
+			create_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name, conflictcol_name) {
 				var radio1_id = this.opconstant_obj.radio1_id;
 				var radio2_id = this.opconstant_obj.radio2_id;
 				var fg_select_id = this.opconstant_obj.fg_select_id;
@@ -326,10 +332,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var schedparambtn_id = this.opconstant_obj.schedparambtn_id;
 				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
 				var pref_select_id = this.opconstant_obj.pref_select_id;
+				var conflict_select_id = this.opconstant_obj.conflict_select_id;
 
-				var divcol_name = (typeof divcol_name === "undefined" || divcol_name === null) ? "" : divcol_name;
-				var fieldcol_name = (typeof fieldcol_name === "undefined" || fieldcol_name === null) ? "" : fieldcol_name;
-				var prefcol_name = (typeof prefcol_name === "undefined" || prefcol_name === null) ? "" : prefcol_name;
+				var divcol_name = (typeof divcol_name === "undefined" ||
+					divcol_name === null) ? "" : divcol_name;
+				var fieldcol_name = (typeof fieldcol_name === "undefined" ||
+					fieldcol_name === null) ? "" : fieldcol_name;
+				var prefcol_name = (typeof prefcol_name === "undefined" ||
+					prefcol_name === null) ? "" : prefcol_name;
+				var conflictcol_name = (typeof conflictcol_name === "undefined" ||
+					conflictcol_name === null) ? "" : conflictcol_name;
 				this.newsched_dom = dom.byId(this.idmgr_obj.text_id);
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen = new WidgetGen({
@@ -388,6 +400,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					put_trail_spacing:"span.empty_gap"
 				}
 				this.pref_select = this.widgetgen.create_select(prefargs_obj);
+				put(scinput_dom, "br, br");
 				var btn_node = dom.byId(schedparambtn_id);
 				if (!btn_node) {
 					btn_node = put(scinput_dom,
