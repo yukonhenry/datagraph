@@ -33,7 +33,9 @@ _absolute_earliest_date = parser.parse('01/01/2010').date()
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
 class FieldTimeScheduleGenerator:
-    def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple, prefinfo_triple=None, pdbinterface=None, tminfo_tuple=None):
+    def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
+        prefinfo_triple=None,  pdbinterface=None, tminfo_tuple=None,
+        conflictinfo_tuple=None,):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple

@@ -89,29 +89,34 @@ class SchedMaster:
                     enumerate(prefinfo_list) if p['div_id'] == x]
                 prefinfo_triple = _List_IndexerGM(prefinfo_list,
                     prefinfo_indexerGet, prefinfo_indexerMatch)
-                self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name, prefcol_name)
-                self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-                    dbinterface=self.sdbInterface,
-                    divinfo_tuple=divinfo_tuple,
-                    fieldinfo_tuple=self.fieldinfo_tuple,
-                    prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
-                    tminfo_tupe=tminfo_tuple)
             else:
-                prefinfo_tuple = _List_IndexerGM(None, None, None)
+                prefinfo_triple = None
+                # raise error as client should only be displaying in select widget
+                # conflict lists that have config status complete
                 raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))
-                self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
-                self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-                    dbinterface=self.sdbInterface,
-                    divinfo_tuple=divinfo_tuple,
-                    fieldinfo_tuple=self.fieldinfo_tuple,
-                    tminfo_tuple=tminfo_tuple)
         else:
-            # save schedule generation parameters in db
-            self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
-            self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-                dbinterface=self.sdbInterface,
-                divinfo_tuple=divinfo_tuple, fieldinfo_tuple=self.fieldinfo_tuple,
-                tminfo_tuple=tminfo_tuple)
+            prefinfo_triple = None
+
+        if conflictcol_name:
+            cdbInterface = ConflictDBInterface(mongoClient, conflictcol_name)
+            cdbtuple = cdbInterface.readDBraw()
+            if cdbtuple.config_status == 1:
+                conflictinfo_list = cdbtuple.list
+                cindexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflictinfo_list)).get(x)
+                conflictinfo_tuple = _List_Indexer(conflictinfo_list, cindexerGet)
+            else:
+                conflictinfo_tuple = None
+                # raise error as client should only be displaying in select widget
+                # conflict lists that have config status complete
+                raise CodeLogicError("schedmaster:init: conflict config not complete=%s" % (conflictcol_name,))
+        else:
+            conflictinfo_tuple = None
+        self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name, prefcol_name)
+        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
+            dbinterface=self.sdbInterface, divinfo_tuple=divinfo_tuple,
+            fieldinfo_tuple=self.fieldinfo_tuple,
+            prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
+            tminfo_tupe=tminfo_tuple, conflictinfo_tuple=conflictinfo_tuple)
         self.schedcol_name = schedcol_name
 
     def generate(self):
