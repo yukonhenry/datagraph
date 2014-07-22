@@ -20,7 +20,7 @@ _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
 class SchedMaster:
-    def __init__(self, mongoClient, db_type, divcol_name, fieldcol_name, prefcol_name, schedcol_name):
+    def __init__(self, mongoClient, db_type, divcol_name, fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
         self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
         # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':

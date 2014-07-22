@@ -16,41 +16,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		baseinfoSingleton, WidgetGen, idmgrSingleton, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
-			radio1_id:'scradio1_id',
-			radio2_id:'scradio2_id',
-			fg_select_id:'fg_select_id',
-			pref_select_id:'pref_select_id',
-			conflict_select_id:'conflict_select_id',
-			schedparambtn_id:'schedparambtn_id',
-			schedstatustxt_id:'schedstatustxt_id',
 			tabcontainer_id:'tabcontainer_id',
-			newdivcpane_id:'newdivcpane_id',
-			newdivcpane_txt_id:'newdivcpane_txt_id',
-			newdivcpane_grid_id:'newdivcpane_grid_id',
-			newdivcpane_schedheader_id:'newdivcpane_schedheader_id',
-			newdivcpane_schedgrid_id:'newdivcpane_schedgrid_id',
-			newfieldcpane_id:'newfieldcpane_id',
-			newfieldcpane_txt_id:'newfieldcpane_txt_id',
-			newfieldcpane_grid_id:'newfieldcpane_grid_id',
-			newfieldcpane_schedheader_id:'newfieldcpane_schedheader_id',
-			newfieldcpane_schedgrid_id:'newfieldcpane_schedgrid_id',
-			newteamcpane_id:'newteamcpane_id',
-			newteamcpane_txt_id:'newteamcpane_txt_id',
-			newteamcpane_grid_id:'newteamcpane_grid_id',
-			newteamcpane_schedheader_id:'newteamcpane_schedheader_id',
-			newteamcpane_schedgrid_id:'newteamcpane_schedgrid_id',
-			newteamcpane_select_id:'newteamcpane_select_id',
-			newfaircpane_id:'newfaircpane_id',
-			newfaircpane_txt_id:'newfaircpane_txt_id',
-			newfaircpane_grid_id:'newfaircpane_grid_id',
-			newfaircpane_schedheader_id:'newfaircpane_schedheader_id',
-			newfaircpane_schedgrid_id:'newfaircpane_schedgrid_id',
-			newfaircpane_select_id:'newfaircpane_select_id',
-			// constraint satisfaction id's
-			newprefcpane_id:'newprefcpane_id',
-			newprefcpane_txt_id:'newprefcpane_txt_id',
-			newprefcpane_grid_id:'newprefcpane_grid_id',
-			newprefcpane_schedheader_id:'newprefcpane_schedheader_id',
 			defaultselect_db_type:'rrdb',
 			db_type:'newscheddb',
 			slot_id:'slot_id',
@@ -60,6 +26,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			pref_id:'pref_id',
 			conflict_id:'conflict_id'
 		};
+		var idconstant = {
+			radio1_id:'scradio1_id',
+			radio2_id:'scradio2_id',
+			fg_select_id:'fg_select_id',
+			pref_select_id:'pref_select_id',
+			conflict_select_id:'conflict_select_id',
+			schedparambtn_id:'schedparambtn_id',
+			schedstatustxt_id:'schedstatustxt_id',
+			teamcpane_select_id:'teamcpane_select_id',
+			faircpane_select_id:'faircpane_select_id',
+		}
 		var wizconstant = {
 			nscpane_id:"wiznewschedcpane_id",
 		};
@@ -84,12 +61,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			league_select_value:"", fg_select_value:"", widgetgen:null,
 			current_db_type:constant.defaultselect_db_type,
 			tabcontainer_reg:null,
-			cpane_grid_id_mapobj:null, cpane_schedgrid_id:null,
+			cpane_id_mapobj:null, cpane_txt_id_mapobj:null,
+			cpane_grid_id_mapobj:null, cpane_schedgrid_id_mapobj:null,
+			cpane_schedheader_id_mapobj:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
 			sched_store_mapobj:null, sched_grid_mapobj:null,
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
-			idmgr_obj:null, op_type:"", op_prefix:"", opconstant_obj:null,
+			idmgr_obj:null, op_type:"", opconstant_obj:null,
 			pref_select_value:null, conflict_select_value:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -110,35 +89,38 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.newschedwatch_obj.set('league_fg_flag',
 							this.newschedwatch_obj.get('leagueselect_flag') && value);
 					}));
+				var resultpane_id_list = ['div_id', 'field_id', 'team_id', 'fair_id', 'pref_id', 'conflict_id'];
 				// reassign values for all the constant dom id's by adding an
 				// op_type (first three chars) prefix
-				this.op_prefix = this.op_type.substring(0,3);
-				this.opconstant_obj = new Object();
-				for (var key in constant) {
-					this.opconstant_obj[key] = this.op_prefix+constant[key]
-				}
+				op_prefix = this.op_type.substring(0,3);
 				// create dictionaries/objects that map idproperty to idproperty-specific
 				// id's or objects
 				// w each dict mapping idproperty to either a schedule grid or the
 				// corresponding .on handler
-				this.cpane_grid_id_mapobj = {div_id:this.opconstant_obj.newdivcpane_grid_id,
-					field_id:this.opconstant_obj.newfieldcpane_grid_id,
-					team_id:this.opconstant_obj.newteamcpane_grid_id,
-					fair_id:this.opconstant_obj.newfaircpane_grid_id,
-					pref_id:this.opconstant_obj.newprefcpane_grid_id}
-				this.cpane_schedgrid_id_mapobj = {
-					div_id:this.opconstant_obj.newdivcpane_schedgrid_id,
-					field_id:this.opconstant_obj.newfieldcpane_schedgrid_id,
-					team_id:this.opconstant_obj.newteamcpane_schedgrid_id,
-					fair_id:this.opconstant_obj.newfaircpane_schedgrid_id}
-				this.cpane_schedheader_id_mapobj = {
-					div_id:this.opconstant_obj.newdivcpane_schedheader_id,
-					field_id:this.opconstant_obj.newfieldcpane_schedheader_id,
-					team_id:this.opconstant_obj.newteamcpane_schedheader_id,
-					fair_id:this.opconstant_obj.newfaircpane_schedheader_id,
-					pref_id:this.opconstant_obj.newprefcpane_schedheader_id}
+				this.cpane_id_mapobj = new Object();
+				this.cpane_txt_id_mapobj = new Object();
+				this.cpane_grid_id_mapobj = new Object();
+				this.cpane_schedgrid_id_mapobj = new Object();
+				this.cpane_schedheader_id_mapobj = new Object();
+				arrayUtil.forEach(resultpane_id_list, function(resultpane_id) {
+					// first get the idstem which is the id minus the '_id'
+					idstem = resultpane_id.substring(0, resultpane_id.length-3);
+					var prefix = op_prefix+"new"+idstem+"cpane_";
+					this.cpane_id_mapobj[resultpane_id] = prefix + "id";
+					this.cpane_txt_id_mapobj[resultpane_id] = prefix + "txt_id";
+					this.cpane_grid_id_mapobj[resultpane_id] = prefix + "grid_id";
+					this.cpane_schedgrid_id_mapobj[resultpane_id] = prefix +
+						"schedgrid_id";
+					this.cpane_schedheader_id_mapobj[resultpane_id] = prefix +
+						"schedheader_id";
+				}, this);
+
+				this.opconstant_obj = new Object();
+				for (var key in idconstant) {
+					this.opconstant_obj[key] = op_prefix+idconstant[key]
+				}
 				this.info_grid_mapobj = {div_id:null, field_id:null, team_id:null,
-					fair_id:null, pref_id:null};
+					fair_id:null, pref_id:null, conflict_id:null};
 				this.info_handle_mapobj = {div_id:null, field_id:null,
 					team_id:null, fair_id:null};
 				this.gridmethod_mapobj = {
@@ -516,6 +498,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					init_colname:conflictcol_name,
 					label_str:"Select Conflict List",
 				}
+				this.widgetgen.reload_select(conflictargs_obj);
 				var schedule_btn = registry.byId(schedparambtn_id);
 				schedule_btn.set("disabled", true);
 				var onchange_callback = null;
@@ -560,55 +543,96 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.idproperty, 1);
 			},
 			update_schedstatustxt: function(adata, options_obj) {
-				var tabcontainer_id = constant.tabcontainer_id;
 				var dbstatus = adata.dbstatus;
 				var schedstatustxt_node = options_obj.node;
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
-				this.tabcontainer_reg = registry.byId(tabcontainer_id);
+				this.tabcontainer_reg = registry.byId(constant.tabcontainer_id);
+				var cpane_id = this.cpane_id_mapobj.div_id;
+				var cpane_txt_id = this.cpane_txt_id_mapobj.div_id;
+				var cpane_grid_id = this.cpane_grid_id_mapobj.div_id;
+				var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.div_id;
+				var cpane_schedheader_id = this.cpane_schedheader_id_mapobj.div_id;
 				var args_obj = {
-					suffix_id:this.opconstant_obj.newdivcpane_id,
+					suffix_id:cpane_id,
 					// define contents of div pane
-					content_str:"<div id='"+this.opconstant_obj.newdivcpane_txt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+this.opconstant_obj.newdivcpane_grid_id+"'></div><div id='"+this.opconstant_obj.newdivcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newdivcpane_schedgrid_id+"'></div>",
+					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Click on Division row</b> to see division-specific schedule - scroll down. <div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
 					title_suffix:' by Div',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data('div_id', dbstatus);
+				//--- results field pane
+				cpane_id = this.cpane_id_mapobj.field_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.field_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.field_id;
+				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.field_id;
+				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.field_id;
 				args_obj = {
-					suffix_id:this.opconstant_obj.newfieldcpane_id,
+					suffix_id:cpane_id,
 					// define contents of select-by-field pane
-					content_str:"<div id='"+this.opconstant_obj.newfieldcpane_txt_id+"'></div> <b>Click on Field row</b> to see field-specific schedule - scroll down. <div id='"+this.opconstant_obj.newfieldcpane_grid_id+"'></div><div id='"+this.opconstant_obj.newfieldcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newfieldcpane_schedgrid_id+"'></div>",
+					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Click on Field row</b> to see field-specific schedule - scroll down. <div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
 					title_suffix:' by Field',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data('field_id', dbstatus);
 				// add by-team sched grid
+				cpane_id = this.cpane_id_mapobj.team_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.team_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.team_id;
+				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.team_id;
+				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.team_id;
+				cpane_select_id = this.opconstant_obj.teamcpane_select_id;
 				args_obj = {
-					suffix_id:this.opconstant_obj.newteamcpane_id,
-					content_str:"<div id='"+this.opconstant_obj.newteamcpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+this.opconstant_obj.newteamcpane_select_id+"'>Select Division</label><select id='"+this.opconstant_obj.newteamcpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+this.opconstant_obj.newteamcpane_select_id+"'></select><div id='"+this.opconstant_obj.newteamcpane_grid_id+"'></div><div id='"+this.opconstant_obj.newteamcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newteamcpane_schedgrid_id+"'></div>",
+					suffix_id:cpane_id,
+					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
 					title_suffix:' by Team',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data(constant.team_id, dbstatus)
 				// add fairness metrics cpane
+				cpane_id = this.cpane_id_mapobj.fair_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.fair_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.fair_id;
+				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.fair_id;
+				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.fair_id;
+				cpane_select_id = this.opconstant_obj.faircpane_select_id;
 				args_obj = {
-					suffix_id:this.opconstant_obj.newfaircpane_id,
-					content_str:"<div id='"+this.opconstant_obj.newfaircpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+this.opconstant_obj.newfaircpane_select_id+"'>Select Division</label><select id='"+this.opconstant_obj.newfaircpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+this.opconstant_obj.newfaircpane_select_id+"'></select><div id='"+this.opconstant_obj.newfaircpane_grid_id+"'></div><div id='"+this.opconstant_obj.newfaircpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newfaircpane_schedgrid_id+"'></div>",
+					suffix_id:cpane_id,
+					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
 					title_suffix:' by Fairness Metrics',
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data(constant.fair_id, dbstatus)
 				// add cpane to display constraint satisfaction only if preferences
 				// were specified
+				cpane_id = this.cpane_id_mapobj.pref_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.pref_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.pref_id;
+				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.pref_id;
 				if (this.pref_select_value) {
 					args_obj = {
-						suffix_id:this.opconstant_obj.newprefcpane_id,
-						content_str:"<div id='"+this.opconstant_obj.newprefcpane_txt_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_schedheader_id+"'></div><div id='"+this.opconstant_obj.newprefcpane_grid_id+"'></div><br>",
+						suffix_id:cpane_id,
+						content_str:"<div id='"+cpane_txt_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_grid_id+"'></div><br>",
 						title_suffix:' by Preference',
 					}
 					this.createnewsched_pane(args_obj);
 					this.prepgrid_data(constant.pref_id, dbstatus);
+				}
+				// add cpane to display conflict avoidance only if team conflicts
+				// were specified
+				cpane_id = this.cpane_id_mapobj.conflict_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.conflict_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.conflict_id;
+				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.conflict_id;
+				if (this.conflict_select_value) {
+					args_obj = {
+						suffix_id:cpane_id,
+						content_str:"<div id='"+cpane_txt_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_grid_id+"'></div><br>",
+						title_suffix:' by Conflict',
+					}
+					this.createnewsched_pane(args_obj);
+					this.prepgrid_data(constant.conflict_id, dbstatus);
 				}
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
@@ -616,25 +640,32 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var select_value = null;
 				var db_type = null;
 				if (idproperty == 'div_id') {
-					statusnode_id = this.opconstant_obj.newdivcpane_txt_id;
+					statusnode_id = this.cpane_txt_id_mapobj.div_id;
 					select_value = this.server_key_obj.divcol_name;
 					db_type = this.server_key_obj.db_type;
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == 'field_id') {
-					statusnode_id = this.opconstant_obj.newfieldcpane_txt_id;
+					statusnode_id = this.cpane_txt_id_mapobj.field_id;
 					select_value = this.server_key_obj.fieldcol_name;
 					db_type = 'fielddb';
 					this.getgrid_data(idproperty, select_value, db_type);
 				} else if (idproperty == constant.team_id) {
-					statusnode_id = this.opconstant_obj.newteamcpane_txt_id;
-					this.getdivselect_dropdown(idproperty, this.opconstant_obj.newteamcpane_select_id);
+					statusnode_id = this.cpane_txt_id_mapobj.team_id;
+					this.getdivselect_dropdown(idproperty,
+						this.opconstant_obj.teamcpane_select_id);
 				} else if (idproperty == constant.fair_id) {
-					statusnode_id = this.opconstant_obj.newfaircpane_txt_id;
-					this.getdivselect_dropdown(idproperty, this.opconstant_obj.newfaircpane_select_id);
+					statusnode_id = this.cpane_txt_id_mapobj.fair_id;
+					this.getdivselect_dropdown(idproperty,
+						this.opconstant_obj.faircpane_select_id);
 				} else if (idproperty == constant.pref_id) {
-					statusnode_id = this.opconstant_obj.newprefcpane_txt_id;
+					statusnode_id = this.cpane_txt_id_mapobj.pref_id;
 					select_value = this.server_key_obj.prefcol_name;
 					db_type = 'prefdb';
+					this.getgrid_data(idproperty, select_value, db_type);
+				} else if (idproperty == constant.conflict_id) {
+					statusnode_id = this.cpane_txt_id_mapobj.conflict_id;
+					select_value = this.server_key_obj.conflictcol_name;
+					db_type = 'conflictdb';
 					this.getgrid_data(idproperty, select_value, db_type);
 				}
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
@@ -646,9 +677,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// corresponding to current collection
 				var info_obj = baseinfoSingleton.get_obj(idproperty, this.op_type);
 				if (info_obj) {
-					// for pref_id always get from server as we want to get the
-					// constraint satisfaction status from the generated schedule
+					// for pref_id or conflict_id always get from server as we want
+					// to get the constraint/conflict satisfaction status from
+					// the generated schedule
 					if (idproperty != constant.pref_id &&
+						idproperty != constant.conflict_id &&
 						info_obj.infogrid_store &&
 						info_obj.activegrid_colname == select_value) {
 						var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
@@ -816,7 +849,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// call refresh() to clear array
 					info_grid.refresh();
 				}
-				if (idproperty != 'pref_id') {
+				if (idproperty != 'pref_id' && idproperty != 'conflict_id') {
 					// set up infogrid selection handles and setup callbacks that
 					// will create secondary grids
 					var info_handle = this.info_handle_mapobj[idproperty];
@@ -838,7 +871,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// preference id grid is a standalong-grid and it's rows
 					// are not selectable
 					// set secondary text for pref_id
-					this.setselect_text({prefcol_name:this.server_key_obj.prefcol_name}, 'pref_id');
+					if (idproperty == 'pref_id') {
+						this.setselect_text({prefcol_name:this.server_key_obj.prefcol_name}, 'pref_id');
+					} else if (idperoperty == 'conflict_id') {
+						this.setselect_text({conflictcol_name:this.server_key_obj.conflictcol_name}, 'conflict_id');
+					}
 					// change convert satisfy status to text
 					arrayUtil.forEach(griddata_list, function(item) {
 						if (item.satisfy) {
@@ -993,6 +1030,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					text_str = "Team ID#"+event_data.team_id + " selected";
 				} else if (idproperty == 'pref_id') {
 					text_str = "Preference List ID: "+event_data.prefcol_name;
+				} else if (idproperty == 'conflict_id') {
+					text_str = "Conflict List ID: "+event_data.conflictcol_name;
 				}
 				dom.byId(schedheader_id).innerHTML = text_str;
 			},
