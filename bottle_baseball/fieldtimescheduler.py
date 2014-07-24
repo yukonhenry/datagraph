@@ -16,6 +16,7 @@ from collections import namedtuple, deque, Counter
 import networkx as nx
 from timebalancer import TimeBalancer
 from fieldbalancer import FieldBalancer
+from conflictprocess import ConflictProcess
 
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
@@ -35,7 +36,7 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 class FieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         prefinfo_triple=None,  pdbinterface=None, tminfo_tuple=None,
-        conflictinfo_tuple=None,):
+        conflictinfo_list=None,):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple
@@ -65,6 +66,10 @@ class FieldTimeScheduleGenerator:
             self.tminfo_list = None
             self.tminfo_indexerGet = None
             self.tminfo_indexerMatch = None
+        self.conflictinfo_list = conflictinfo_list
+        if conflictinfo_list:
+            self.conflictprocess_obj = ConflictProcess(conflictinfo_list,
+                self.prefinfo_list)
         # get connected divisions through shared fields
         self.connected_div_components = getConnectedDivisionGroup(
             self.fieldinfo_list, key='primaryuse_list')
@@ -431,6 +436,7 @@ class FieldTimeScheduleGenerator:
             # and then work on time rebalanceing
             self.timebalancer.ReTimeBalance(fset, connected_div_list)
             self.ManualSwapTeams(fset, connected_div_list)
+            self.conflictprocess_obj.process(connected_div_list)
             if self.prefinfo_list:
                 constraint_status_list = self.ProcessConstraints(fset, connected_div_list)
                 self.pdbinterface.write_constraint_status(constraint_status_list)

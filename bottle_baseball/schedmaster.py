@@ -95,6 +95,7 @@ class SchedMaster:
                 # conflict lists that have config status complete
                 raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))
         else:
+            pdbInterface = None
             prefinfo_triple = None
 
         if conflictcol_name:
@@ -102,21 +103,24 @@ class SchedMaster:
             cdbtuple = cdbInterface.readDBraw()
             if cdbtuple.config_status == 1:
                 conflictinfo_list = cdbtuple.list
-                cindexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflictinfo_list)).get(x)
-                conflictinfo_tuple = _List_Indexer(conflictinfo_list, cindexerGet)
+                #self.normalize_conflict_list(conflictinfo_list)
+                #cindexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflictinfo_list)).get(x)
+                #conflictinfo_tuple = _List_Indexer(conflictinfo_list, cindexerGet)
             else:
-                conflictinfo_tuple = None
+                conflictinfo_list = None
+                #conflictinfo_tuple = None
                 # raise error as client should only be displaying in select widget
                 # conflict lists that have config status complete
                 raise CodeLogicError("schedmaster:init: conflict config not complete=%s" % (conflictcol_name,))
         else:
-            conflictinfo_tuple = None
+            conflictinfo_list = None
+            #conflictinfo_tuple = None
         self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name, prefcol_name)
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
             dbinterface=self.sdbInterface, divinfo_tuple=divinfo_tuple,
             fieldinfo_tuple=self.fieldinfo_tuple,
             prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
-            tminfo_tupe=tminfo_tuple, conflictinfo_tuple=conflictinfo_tuple)
+            tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list)
         self.schedcol_name = schedcol_name
 
     def generate(self):
@@ -197,7 +201,21 @@ class SchedMaster:
                 'field_name':self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name']}
                 for x in divinfo['divfield_list']]
             return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
-'''
-    def getsched_status(self):
-        return self.sdbInterface.getsched_status()
-'''
+
+    def normalize_conflict_list(self, cinfo_list):
+        # flatten conflict_list - create two entries for each conflict pair
+        # eacy keyed off of div_id, team_id pair
+        # Map (div_1_id, team_1_id, div_2_id, team_2_id) to 2 entries of
+        # (div_id, team_id, conflict_div_id, conflict_team_id)
+        # number of conflict entries will double
+        normalized_cinfo_list = [{'nconflict_id':i, 'priority':x['priority'],
+            'div_id':x['div_1_id'], 'team_id':x['team_1_id'],
+            'condiv_id':x['div_2_id'], 'conteam_id':x['team_2_id']}
+            for i,x in enumerate(cinfo_list, start=1)]
+        list_len = len(cinfo_list)
+        normalized_cinfo_list.extend([{'nconflict_id':i, 'priority':x['priority'],
+            'div_id':x['div_2_id'], 'team_id':x['team_2_id'],
+            'condiv_id':x['div_1_id'], 'conteam_id':x['team_1_id']}
+            for i,x in enumerate(cinfo_list, start=list_len+1)])
+        pass
+
