@@ -36,7 +36,7 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 class FieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         prefinfo_triple=None,  pdbinterface=None, tminfo_tuple=None,
-        conflictinfo_list=None,):
+        conflictinfo_list=None):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple
@@ -436,7 +436,8 @@ class FieldTimeScheduleGenerator:
             # and then work on time rebalanceing
             self.timebalancer.ReTimeBalance(fset, connected_div_list)
             self.ManualSwapTeams(fset, connected_div_list)
-            self.conflictprocess_obj.process(connected_div_list)
+            if self.conflictprocess_obj:
+                self.conflictprocess_obj.process(connected_div_list)
             if self.prefinfo_list:
                 constraint_status_list = self.ProcessConstraints(fset, connected_div_list)
                 self.pdbinterface.write_constraint_status(constraint_status_list)
