@@ -340,7 +340,7 @@ class EliminationScheduler:
 
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
-                                         divinfotuple=self.divinfo_tuple,
+                                         divinfo_tuple=self.divinfo_tuple,
                                          fieldtuple=self.tfield_tuple)
         tschedExporter.exportDivSchedules(startgameday_CONST, prefix='PHMSACup2013ElimU12')
         tschedExporter.exportDivSchedulesRefFormat(startgameday_CONST, prefix='PHMSACupElimU12')

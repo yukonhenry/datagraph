@@ -69,7 +69,9 @@ class FieldTimeScheduleGenerator:
         self.conflictinfo_list = conflictinfo_list
         if conflictinfo_list:
             self.conflictprocess_obj = ConflictProcess(conflictinfo_list,
-                self.prefinfo_list)
+                divinfo_tuple)
+        else:
+            self.conflictprocess_obj = None
         # get connected divisions through shared fields
         self.connected_div_components = getConnectedDivisionGroup(
             self.fieldinfo_list, key='primaryuse_list')
@@ -115,6 +117,10 @@ class FieldTimeScheduleGenerator:
             # take one of those connected divisions and iterate through each division
             numgames_perteam_list = list()
             reqslots_perrnd_num = 0
+            # in addition to fieldstatus_list, which tracks scheduled games
+            # by field and time slot, track schedule by div_id and team_id
+            connected_sched_list = list()
+            conindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(connected_sched_list)).get(x)
             for div_id in connected_div_list:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 divfield_list = divinfo['divfield_list']
@@ -173,6 +179,8 @@ class FieldTimeScheduleGenerator:
                     'last_date':_absolute_earliest_date,
                     'last_endtime':-1, 'team_id':x}
                     for x in range(1, totalteams+1)])
+                connected_sched_list.append({'div_id':div_id,
+                    'sched_list':list()})
             logging.debug('ftscheduler: target early late games=%s divtotal target=%s',
                 self.timebalancer.target_earlylate_list, divtotal_el_list)
             # we are assuming still below that all fields in fset are shared by the field-sharing
@@ -420,6 +428,14 @@ class FieldTimeScheduleGenerator:
                     self.updatetimegap_list(div_id, home_id, away_id, game_date,
                         gametime+gameinterval)
                     div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+                    sched_list = connected_sched_list[conindexerGet(div_id)]['sched_list']
+                    # populate sched_list, which is an in-memory store of sched
+                    # for the current connected_div_list
+                    # start_time is a dt object
+                    sched_list.append({'game_date':game_date,
+                        'start_time':gametime, 'home_id':home_id,
+                        'away_id':away_id, 'field_id':field_id,
+                        'fieldday_id':fieldday_id})
                     logging.info("div=%s%s home=%d away=%d round_id=%d, date=%s fieldday_id=%d field=%d gametime=%s slotindex=%d",
                         div['div_age'], div['div_gen'], home_id, away_id, round_id,
                         game_date, fieldday_id, field_id, gametime.time(),
@@ -437,8 +453,16 @@ class FieldTimeScheduleGenerator:
             self.timebalancer.ReTimeBalance(fset, connected_div_list)
             self.ManualSwapTeams(fset, connected_div_list)
             if self.conflictprocess_obj:
-                self.conflictprocess_obj.process(connected_div_list)
+                if self.prefinfo_list:
+                    pref_len = len(self.prefinfo_list)
+                else:
+                    pref_len = 0
+                conflictpref_list = self.conflictprocess_obj.process(connected_div_list,
+                    connected_sched_list, conindexerGet, pref_len)
+            else:
+                conflictpref_list = []
             if self.prefinfo_list:
+                self.prefinfo_list.extend(conflictpref_list)
                 constraint_status_list = self.ProcessConstraints(fset, connected_div_list)
                 self.pdbinterface.write_constraint_status(constraint_status_list)
             # read from memory and store in db

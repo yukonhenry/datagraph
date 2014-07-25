@@ -122,7 +122,7 @@ class TournamentScheduler:
 
     def exportSchedule(self):
         tschedExporter = ScheduleExporter(self.tdbInterface.dbInterface,
-                                         divinfotuple=self.divinfo_tuple,
+                                         divinfo_tuple=self.divinfo_tuple,
                                          fieldtuple=self.tfield_tuple)
         '''
         for division in self.tourn_divinfo:

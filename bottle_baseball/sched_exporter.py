@@ -19,12 +19,12 @@ _rindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_reftrust_lev
 _offset = 32000
 
 class ScheduleExporter:
-    def __init__(self, dbinterface, divinfotuple=None,fieldtuple=None):
+    def __init__(self, dbinterface, divinfo_tuple=None,fieldtuple=None):
         self.dbinterface = dbinterface
-        if divinfotuple is None:
-            divinfotuple = getLeagueDivInfo()
-        self.leaguedivinfo = divinfotuple.dict_list
-        self.lindexerGet = divinfotuple.indexerGet
+        if divinfo_tuple is None:
+            divinfo_tuple = getLeagueDivInfo()
+        self.leaguedivinfo = divinfo_tuple.dict_list
+        self.lindexerGet = divinfo_tuple.indexerGet
         if fieldtuple is None:
             fieldtuple = getFieldInfo()
         self.fieldinfo = fieldtuple.dict_list
