@@ -743,18 +743,25 @@ class FieldTimeScheduleGenerator:
                     cpriority = constraint['priority']
                     cdiv_id = constraint['div_id']
                     cteam_id = constraint['team_id']
-                    startafter_str = constraint.get('start_after')
-                    startafter_time = parser.parse(startafter_str)
-                    endbefore_str = constraint.get('end_before')
-                    endbefore_time = parser.parse(endbefore_str)
-                    cgame_date = parser.parse(constraint['game_date']).date()
+                    if 'start_after' in constraint:
+                        start_after_str = constraint.get('start_after')
+                        start_after_dt = parser.parse(start_after_str)
+                        end_before_str = constraint.get('end_before')
+                        end_before_dt = parser.parse(end_before_str)
+                        cgame_date = parser.parse(constraint['game_date']).date()
+                    else:
+                        # preference is created from conflict list in
+                        # conflictprocess_obj.process()
+                        start_after_dt = constraint['start_after_dt']
+                        end_before_dt = constraint['end_before_dt']
+                        cgame_date = constraint['game_date']
                     break_flag = False
                     swapmatch_list = []
                     for f in fset:
-                        # reassign cstartafter_time, cendbefore_time in case  it
+                        # reassign cstartafter_dt, cendbefore_time in case  it
                         # was nulled out in previous loop
-                        cstartafter_time = startafter_time
-                        cendbefore_time = endbefore_time
+                        cstartafter_time = start_after_dt
+                        cendbefore_time = end_before_dt
                         # first get calendarmap_list for the field, and see if there
                         # is an entry for the priority list game_date
                         finfo = self.fieldinfo_list[self.fieldinfo_indexerGet(f)]
