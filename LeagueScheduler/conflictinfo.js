@@ -65,8 +65,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     priority:"Priority",
                     div_1_id:"Division", team_1_id:"Team",
                     div_2_id:"Conflict Division", team_2_id:"Conflict Team",
-                    conflict_num:"Game Conflicts Created",
-                    conflict_avoid:"Game Conflicts Avoided"
+                    conflict_num:"Game Conflicts",
+                    conflict_avoid:"Avoided"
                 }
                 return columnsdef_obj;
             },

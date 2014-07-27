@@ -21,14 +21,14 @@ class SchedDBInterface:
         self.dbinterface = MongoDBInterface(mongoClient, collection_name=schedcol_name, db_col_type=DB_Col_Type.GeneratedSchedule)
         self.schedcol_name = schedcol_name
 
-    def setschedule_param(self,db_type, divcol_name, fieldcol_name, prefcol_name=None):
+    def setschedule_param(self,db_type, divcol_name, fieldcol_name, prefcol_name=None, conflictcol_name=None):
         # note config status is always 1 (complete) for newsched because of how
         # UI frontend works
         # config_status is included as dbinterface.getScheduleCollection
         # requires it
         doc = {divdb_type_CONST:db_type, divcol_name_CONST:divcol_name,
             fieldcol_name_CONST:fieldcol_name, 'PREFCOL_NAME':prefcol_name,
-            config_status_CONST:1}
+            'CONFLICTCOL_NAME':conflictcol_name, config_status_CONST:1}
         docID = self.dbinterface.updateSchedType_doc(doc)
 
     def getschedule_param(self):

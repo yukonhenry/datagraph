@@ -36,6 +36,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			schedstatustxt_id:'schedstatustxt_id',
 			teamcpane_select_id:'teamcpane_select_id',
 			faircpane_select_id:'faircpane_select_id',
+			excelcpane_select_id:'excelcpane_select_id'
 		}
 		var wizconstant = {
 			nscpane_id:"wiznewschedcpane_id",
@@ -89,7 +90,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.newschedwatch_obj.set('league_fg_flag',
 							this.newschedwatch_obj.get('leagueselect_flag') && value);
 					}));
-				var resultpane_id_list = ['div_id', 'field_id', 'team_id', 'fair_id', 'pref_id', 'conflict_id'];
+				var resultpane_id_list = ['div_id', 'field_id', 'team_id',
+					'fair_id', 'pref_id', 'conflict_id', 'excel_id'];
 				// reassign values for all the constant dom id's by adding an
 				// op_type (first three chars) prefix
 				op_prefix = this.op_type.substring(0,3);
@@ -606,11 +608,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.prepgrid_data(constant.fair_id, dbstatus)
 				// add cpane to display constraint satisfaction only if preferences
 				// were specified
-				cpane_id = this.cpane_id_mapobj.pref_id;
-				cpane_txt_id = this.cpane_txt_id_mapobj.pref_id;
-				cpane_grid_id = this.cpane_grid_id_mapobj.pref_id;
-				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.pref_id;
 				if (this.pref_select_value) {
+					cpane_id = this.cpane_id_mapobj.pref_id;
+					cpane_txt_id = this.cpane_txt_id_mapobj.pref_id;
+					cpane_grid_id = this.cpane_grid_id_mapobj.pref_id;
+					cpane_schedheader_id = this.cpane_schedheader_id_mapobj.pref_id;
 					args_obj = {
 						suffix_id:cpane_id,
 						content_str:"<div id='"+cpane_txt_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_grid_id+"'></div><br>",
@@ -621,11 +623,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				// add cpane to display conflict avoidance only if team conflicts
 				// were specified
-				cpane_id = this.cpane_id_mapobj.conflict_id;
-				cpane_txt_id = this.cpane_txt_id_mapobj.conflict_id;
-				cpane_grid_id = this.cpane_grid_id_mapobj.conflict_id;
-				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.conflict_id;
 				if (this.conflict_select_value) {
+					cpane_id = this.cpane_id_mapobj.conflict_id;
+					cpane_txt_id = this.cpane_txt_id_mapobj.conflict_id;
+					cpane_grid_id = this.cpane_grid_id_mapobj.conflict_id;
+					cpane_schedheader_id = this.cpane_schedheader_id_mapobj.conflict_id;
 					args_obj = {
 						suffix_id:cpane_id,
 						content_str:"<div id='"+cpane_txt_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_grid_id+"'></div><br>",
@@ -634,6 +636,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.createnewsched_pane(args_obj);
 					this.prepgrid_data(constant.conflict_id, dbstatus);
 				}
+				// add cpane for excel hardcopy links
+				cpane_id = this.cpane_id_mapobj.excel_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.excel_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.excel_id;
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;

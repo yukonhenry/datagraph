@@ -908,7 +908,7 @@ class FieldTimeScheduleGenerator:
                             # if calendarmap does not produce a gamedate match
                             continue
                     if break_flag:
-                        if conflict_id in locals():
+                        if 'conflict_id' in locals():
                             logging.debug("ftscheduler:processprefs: conflict id %d pref_id %d already satisfied" %
                                 (conflict_id, cpref_id))
                             cindex = confl_indexerGet(conflict_id)
@@ -928,7 +928,7 @@ class FieldTimeScheduleGenerator:
                             cpref_id, swapmatch_list)
                         print '####preference', cpref_id
                         status_int = self.findMatchSwapForConstraint(fset, cdiv_id, cteam_id, cgame_date, cpriority, swapmatch_list)
-                        if conflict_id in locals():
+                        if 'conflict_id' in locals():
                             cindex = confl_indexerGet(conflict_id)
                             if cindex is not None:
                                 # conflict_id entry already exists

@@ -114,7 +114,8 @@ class SchedMaster:
         else:
             conflictinfo_list = None
             #conflictinfo_tuple = None
-        self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name, prefcol_name)
+        self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
+            prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
             dbinterface=self.sdbInterface, divinfo_tuple=divinfo_tuple,
             fieldinfo_tuple=self.fieldinfo_tuple,

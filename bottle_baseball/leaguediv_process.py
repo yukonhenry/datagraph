@@ -10,7 +10,7 @@ from networkx import connected_components
 from matchgenerator import MatchGenerator
 from basicfieldtimescheduler import BasicFieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface, DB_Col_Type
-from leaguedivprep import getAgeGenderDivision, getDivisionData, getLeagueDivInfo, \
+from leaguedivprep import getDivisionData, getLeagueDivInfo, \
      getFieldInfo, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
@@ -39,14 +39,6 @@ class RouteLogic:
         pass
 
 _routelogic_obj = RouteLogic()
-
-def get_leaguedata():
-    fname = 'leaguediv_json.txt'
-    json_file = open(fname)
-    ldata = json.load(json_file)
-    #pprint(ldata)
-    json_file.close()
-    return ldata
 
 '''
 references
