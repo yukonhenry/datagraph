@@ -873,17 +873,18 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// set secondary text for pref_id
 					if (idproperty == 'pref_id') {
 						this.setselect_text({prefcol_name:this.server_key_obj.prefcol_name}, 'pref_id');
-					} else if (idperoperty == 'conflict_id') {
+						// change convert satisfy status to text
+						arrayUtil.forEach(griddata_list, function(item) {
+							if (item.satisfy) {
+								item.satisfy = 'Yes';
+							} else {
+								item.satisfy = 'No';
+							}
+						})
+					} else if (idproperty == 'conflict_id') {
 						this.setselect_text({conflictcol_name:this.server_key_obj.conflictcol_name}, 'conflict_id');
 					}
-					// change convert satisfy status to text
-					arrayUtil.forEach(griddata_list, function(item) {
-						if (item.satisfy) {
-							item.satisfy = 'Yes';
-						} else {
-							item.satisfy = 'No';
-						}
-					})
+
 				}
 				info_grid.renderArray(griddata_list);
 				console.log("infogrid complete"+idproperty)

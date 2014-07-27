@@ -57,6 +57,19 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 }
                 return columnsdef_obj;
             },
+            getfixedcolumnsdef_obj: function() {
+                // col definition for displaying conflict satisfaction cpane
+                // after schedule is generated
+                var columnsdef_obj = {
+                    conflict_id:"Conflict ID",
+                    priority:"Priority",
+                    div_1_id:"Division", team_1_id:"Team",
+                    div_2_id:"Conflict Division", team_2_id:"Conflict Team",
+                    conflict_num:"Game Conflicts Created",
+                    conflict_avoid:"Game Conflicts Avoided"
+                }
+                return columnsdef_obj;
+            },
             initialize: function(newgrid_flag, op_type) {
                 var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
                 var form_reg = registry.byId(this.idmgr_obj.form_id);

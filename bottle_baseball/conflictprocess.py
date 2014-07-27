@@ -4,7 +4,9 @@ from operator import itemgetter
 from datetime import timedelta
 
 class ConflictProcess(object):
-    def __init__(self, conflictinfo_list, divinfo_tuple):
+    def __init__(self, conflictinfo_list, divinfo_tuple, cdbinterface):
+        ''' Perform preprocessing for the conflict specification generated
+        from configuration '''
         for x in conflictinfo_list:
             # add key value to dict elements - list comprehension does
             # note work as x.update works in-memory and returns None
@@ -18,9 +20,11 @@ class ConflictProcess(object):
             enumerate(self.normconflict_list) if p['div_id']==x]
         self.divinfo_list = divinfo_tuple.dict_list
         self.dindexerGet = divinfo_tuple.indexerGet
+        self.cdbinterface = cdbinterface
 
     def process(self, cdiv_list, connected_sched_list, conindexerGet, pref_len):
-        ''' process conflict list and create entries into preference list '''
+        ''' process conflict list and for each conflict generate entries into
+        preference list '''
         pref_id = pref_len + 1 # starting pref id
         pref_list = list()
         for div_id in cdiv_list:
@@ -51,7 +55,12 @@ class ConflictProcess(object):
                         enumerate(divsched_list) if p['home_id']==team_id or
                         p['away_id']==team_id]
                     index_list = sindexerMatch(team_id)
-                    teamsched_list = [divsched_list[index] for index in index_list]
+                    teamsched_list = [divsched_list[index]
+                        for index in index_list]
+                    conflict_id = conflict['conflict_id']
+                    # initialize counter to count how many preference list entries
+                    # generated for each conflict
+                    genpref_count = 0
                     for teamsched in teamsched_list:
                         # use fieldday and fieldday_id info to get either standard
                         # or custom start and end times. Custom start/end times
@@ -69,10 +78,14 @@ class ConflictProcess(object):
                             'end_before_dt':start_time_dt,
                             'start_after_dt':start_time_dt+gameinterval_td,
                             'field_id':teamsched['field_id'],
-                            'fieldday_id':teamsched['fieldday_id']}
+                            'fieldday_id':teamsched['fieldday_id'],
+                            'conflict_id':conflict_id}
                         pref_list.append(pref_dict)
+                        genpref_count += 1
                         pref_id += 1
                     conflict['schedflag'] = True
+                    self.cdbinterface.addconflict_prefcount(conflict_id,
+                        genpref_count)
         return pref_list
 
     def normalize(self, cinfo_list):

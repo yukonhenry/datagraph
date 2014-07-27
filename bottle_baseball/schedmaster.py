@@ -119,7 +119,8 @@ class SchedMaster:
             dbinterface=self.sdbInterface, divinfo_tuple=divinfo_tuple,
             fieldinfo_tuple=self.fieldinfo_tuple,
             prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
-            tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list)
+            tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
+            cdbinterface=cdbInterface)
         self.schedcol_name = schedcol_name
 
     def generate(self):
