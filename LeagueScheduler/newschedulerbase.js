@@ -8,12 +8,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dgrid/OnDemandGrid", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "LeagueScheduler/idmgrSingleton",
+	"LeagueScheduler/generatexls",
 	"put-selector/put", "underscore-min", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory, Observable, registry, Tooltip, ValidationTextBox, Select, Button,
 		DateTextBox, Form, StackContainer, ContentPane, Grid, OnDemandGrid,
 		Keyboard, Selection, EditGrid,
-		baseinfoSingleton, WidgetGen, idmgrSingleton, put) {
+		baseinfoSingleton, WidgetGen, idmgrSingleton, GenerateXLS, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
 			tabcontainer_id:'tabcontainer_id',
@@ -36,7 +37,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			schedstatustxt_id:'schedstatustxt_id',
 			teamcpane_select_id:'teamcpane_select_id',
 			faircpane_select_id:'faircpane_select_id',
-			excelcpane_select_id:'excelcpane_select_id'
 		}
 		var wizconstant = {
 			nscpane_id:"wiznewschedcpane_id",
@@ -91,10 +91,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							this.newschedwatch_obj.get('leagueselect_flag') && value);
 					}));
 				var resultpane_id_list = ['div_id', 'field_id', 'team_id',
-					'fair_id', 'pref_id', 'conflict_id', 'excel_id'];
+					'fair_id', 'pref_id', 'conflict_id', 'xls_id'];
 				// reassign values for all the constant dom id's by adding an
 				// op_type (first three chars) prefix
-				op_prefix = this.op_type.substring(0,3);
+				var op_prefix = this.op_type.substring(0,3);
 				// create dictionaries/objects that map idproperty to idproperty-specific
 				// id's or objects
 				// w each dict mapping idproperty to either a schedule grid or the
@@ -636,10 +636,17 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.createnewsched_pane(args_obj);
 					this.prepgrid_data(constant.conflict_id, dbstatus);
 				}
-				// add cpane for excel hardcopy links
-				cpane_id = this.cpane_id_mapobj.excel_id;
-				cpane_txt_id = this.cpane_txt_id_mapobj.excel_id;
-				cpane_grid_id = this.cpane_grid_id_mapobj.excel_id;
+				// add cpane for xls hardcopy links
+				cpane_id = this.cpane_id_mapobj.xls_id;
+				//cpane_txt_id = this.cpane_txt_id_mapobj.xls_id;
+				args_obj = {
+					suffix_id:cpane_id,
+					content_str:"",
+					title_suffix:' by .XLS'
+				}
+				var xls_cpane = this.createnewsched_pane(args_obj);
+				var xls_obj = new GenerateXLS({op_type:this.op_type});
+				xls_obj.generate_xlscpane_widgets(xls_cpane);
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
@@ -1022,6 +1029,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						content:content_str, id:newcpane_id});
 					this.tabcontainer_reg.addChild(newcpane);
 				}
+				return newcpane
 			},
 			setselect_text: function(event_data, idproperty) {
 				/* Utility function to set text between info grid and
