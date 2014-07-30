@@ -268,15 +268,6 @@ def get_scheddbcol(getcol_name):
     a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'
 
-@route('/update_fieldtimes/<col_name>')
-def update_fieldtimes(col_name):
-    callback_name = request.query.callback
-    fieldtime_str = request.query.fieldtime_str
-    fdbInterface = FieldDBInterface(mongoClient, col_name)
-    fdbInterface.updateFieldTimes(fieldtime_str)
-    a = json.dumps({'test':'dfh'})
-    return callback_name+'('+a+')'
-
 @route('/send_generate')
 def send_generate():
     callback_name = request.query.callback
@@ -327,6 +318,13 @@ def get_schedule(schedcol_name, idproperty, propid):
             return_dict = schedMaster.get_schedule(idproperty, propid)
     else:
         return_dict = {}
+    a = json.dumps(return_dict)
+    return callback_name+'('+a+')'
+
+@route('/get_xls/<schedcol_name>/<genxls_id>')
+def get_xls(schedcol_name, genxls_id):
+    callback_name = request.query.callback
+    return_dict = {}
     a = json.dumps(return_dict)
     return callback_name+'('+a+')'
 

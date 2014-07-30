@@ -19,6 +19,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		}
 		return declare(null, {
 			idproperty:constant.idproperty_str, idmgr_obj:null, op_type:"",
+			server_interface:null, schedcol_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -50,9 +51,19 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					arrayUtil.forEach(label_id_list, function(item) {
 						var menuitem_widget = new MenuItem({
 							label:item.label,
+							onClick:lang.hitch(this, this.get_xlsdata,
+								item.genxls_id)
 						})
-					})
+						ddown_menu.addChild(menuitem_widget);
+					}, this)
 				}
+			},
+			get_xlsdata: function(genxls_id, event) {
+				this.server_interface.getServerData(
+					'get_xls/'+this.schedcol_name+'/'+genxls_id,
+					lang.hitch(this, this.create_links));
+			},
+			create_links: function(adata) {
 
 			}
 		})

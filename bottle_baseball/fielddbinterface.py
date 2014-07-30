@@ -82,12 +82,6 @@ class FieldDBInterface(BaseDBInterface):
         return _PlusList_Status(fieldinfo_list, config_status, divstr_colname,
                                  divstr_db_type)
 
-    def updateFieldTimes(self, fieldtime_str):
-        fieldtime_dict = json.loads(fieldtime_str)
-        for fieldtime in fieldtime_dict:
-            print 'fieldtime', fieldtime
-            field_id = fieldtime['field_id']
-
     def calc_totalfielddays(self, start_date_str, end_date_str, dayweek_list):
         start_date = parser.parse(start_date_str)
         # get integer day of week number

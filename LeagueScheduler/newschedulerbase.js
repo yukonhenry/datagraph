@@ -645,7 +645,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by .XLS'
 				}
 				var xls_cpane = this.createnewsched_pane(args_obj);
-				var xls_obj = new GenerateXLS({op_type:this.op_type});
+				var xls_obj = new GenerateXLS({op_type:this.op_type,
+					server_interface:this.server_interface,
+					schedcol_name:this.newsched_name});
 				xls_obj.generate_xlscpane_widgets(xls_cpane);
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
