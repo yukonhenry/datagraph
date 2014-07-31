@@ -9,6 +9,7 @@ from dateutil import parser
 from datetime import timedelta
 from bisect import bisect_right, bisect_left
 import logging
+import os, errno
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
 def roundrobin(iterable_list):
@@ -214,6 +215,16 @@ def find_ge(a,x):
         return_index = i
         return (return_index, a[return_index])
     raise ValueError
+
+def mkdir_p(path):
+    ''' http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+    '''
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
 
 def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
     '''Get list that maps fieldday_id to calendar date;

@@ -7,5 +7,7 @@ from pymongo import MongoClient
 
 if socket.gethostname() == 'web380.webfaction.com':
     mongoClient = MongoClient('localhost', 11466)
+    hostserver = "webfaction"
 else:
     mongoClient = MongoClient()
+    hostserver = "local"
