@@ -23,7 +23,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic,
 		TeamInfo, ConflictInfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
-		var ldata_array = null;
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var schedutil_obj = new schedulerUtil({server_interface:serverInterface});
 		var uistackmgr = new UIStackManager();
@@ -58,12 +57,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
 				op_type:"advance"});
 		var leaguediv_func = function(ldata) {
-			var ldata_array = ldata.leaguedivinfo;
-			//schedUtil.createSchedLinks(ldata_array, "divScheduleLinks");
-			// generate links for individual team schedules
-			//schedUtil.createTeamSchedLinks(ldata_array, "teamScheduleLinks");
-			// generate dropdown menu for edit->existing schedules
-			//var parent_ddown_reg = registry.byId("configmenu_id");
 			var rrdbcollection_list = ldata.rrdbcollection_list;
 			var tourndbcollection_list = ldata.tourndbcollection_list;
 			var fielddb_list = ldata.fielddb_list;

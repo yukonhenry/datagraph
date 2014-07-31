@@ -19,7 +19,7 @@ _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
 # main class for launching schedule generator
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
-class SchedMaster:
+class SchedMaster(object):
     def __init__(self, mongoClient, db_type, divcol_name, fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
         self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
         # db_type is for the divinfo schedule attached to the fielddb spec
@@ -33,10 +33,10 @@ class SchedMaster:
         if dbtuple.config_status == 1:
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
-            divinfo_tuple = _List_Indexer(self.divinfo_list,
+            self.divinfo_tuple = _List_Indexer(self.divinfo_list,
                 self.divinfo_indexerGet)
         else:
-            divinfo_tuple = _List_Indexer(None, None)
+            self.divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, fieldcol_name)
@@ -117,12 +117,21 @@ class SchedMaster:
         self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
             prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)
         self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-            dbinterface=self.sdbInterface, divinfo_tuple=divinfo_tuple,
+            dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
             fieldinfo_tuple=self.fieldinfo_tuple,
             prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
             tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
             cdbinterface=cdbInterface)
         self.schedcol_name = schedcol_name
+        self._xls_exporter = None
+
+    @property
+    def xls_exporter(self):
+        return self._xls_exporter
+
+    @xls_exporter.setter
+    def xls_exporter(self, value):
+        self._xls_exporter = value
 
     def generate(self):
         totalmatch_list = []

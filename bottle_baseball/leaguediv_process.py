@@ -10,7 +10,7 @@ from networkx import connected_components
 from matchgenerator import MatchGenerator
 from basicfieldtimescheduler import BasicFieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface, DB_Col_Type
-from leaguedivprep import getDivisionData, getLeagueDivInfo, \
+from leaguedivprep import getDivisionData, \
      getFieldInfo, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
@@ -26,6 +26,7 @@ from prefdbinterface import PrefDBInterface
 from teamdbinterface import TeamDBInterface
 from conflictdbinterface import ConflictDBInterface
 from sched_exceptions import CodeLogicError
+from xls_exporter import XLS_Exporter
 
 _dbInterface = MongoDBInterface(mongoClient)
 
@@ -50,7 +51,6 @@ http://bottlepy.org/docs/dev/tutorial.html#request-routing
 @route('/leaguedivinfo')
 def leaguedivinfo_all():
     callback_name = request.query.callback
-    ldata_tuple = getLeagueDivInfo()
     rrdbcol_list = _dbInterface.getScheduleCollection(DB_Col_Type.RoundRobin)
     tourndbcol_list = _dbInterface.getScheduleCollection(DB_Col_Type.ElimTourn)
     #cupschedcol_list = _dbInterface.getCupScheduleCollections()
@@ -59,8 +59,7 @@ def leaguedivinfo_all():
     prefdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.PreferenceInfo)
     teamdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.TeamInfo)
     conflictdb_list = _dbInterface.getScheduleCollection(DB_Col_Type.ConflictInfo)
-    a = json.dumps({"leaguedivinfo":ldata_tuple.dict_list,
-                    "creation_time":time.asctime(),
+    a = json.dumps({"creation_time":time.asctime(),
                     "rrdbcollection_list":rrdbcol_list,
                     "fielddb_list": fielddb_list,
                     "tourndbcollection_list":tourndbcol_list,
@@ -324,7 +323,19 @@ def get_schedule(schedcol_name, idproperty, propid):
 @route('/get_xls/<schedcol_name>/<genxls_id>')
 def get_xls(schedcol_name, genxls_id):
     callback_name = request.query.callback
-    return_dict = {}
+    schedMaster = _routelogic_obj.schedmaster_obj
+    if schedMaster.schedcol_name == schedcol_name:
+        xls_exporter = schedMaster.xls_exporter
+        if xls_exporter is None:
+            xls_exporter = XLS_Exporter(schedcol_name,
+                divinfo_tuple=schedMaster.divinfo_tuple,
+                fieldinfo_tuple=schedMaster.fieldinfo_tuple,
+                sdbInterface=schedMaster.sdbInterface)
+            schedMaster.xls_exporter = xls_exporter
+        xls_exporter.export(genxls_id)
+        return_dict = {}
+    else:
+        return_dict = {}
     a = json.dumps(return_dict)
     return callback_name+'('+a+')'
 
