@@ -8,7 +8,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			numweeks:0
 		})
 		var baseinfoSingleton = declare(null, {
-			obj_list:null, watch_obj:null,
+			obj_list:null, watch_obj:null, xlsdownload_path:"",
 			constructor: function() {
 				this.obj_list = new Array();
 				this.watch_list = new Array();
@@ -99,6 +99,16 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					return item.idproperty == idproperty;
 				})
 				return match_list;
+			},
+			set_hostserver: function(hostserver) {
+				if (hostserver == "webfaction") {
+					this.xlsdownload_path = "http://www.yukontr.com/download/xls/";
+				} else {
+					this.xlsdownload_path = "http://localhost/doc/xls/";
+				}
+			},
+			get_xlsdownload_path: function() {
+				return this.xlsdownload_path;
 			}
 		});
 		if (!_instance) {

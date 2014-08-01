@@ -642,7 +642,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				args_obj = {
 					suffix_id:cpane_id,
 					content_str:"",
-					title_suffix:' by .XLS'
+					title_suffix:' hardcopy .xls'
 				}
 				var xls_cpane = this.createnewsched_pane(args_obj);
 				var xls_obj = new GenerateXLS({op_type:this.op_type,
@@ -902,7 +902,6 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 
 				}
 				info_grid.renderArray(griddata_list);
-				console.log("infogrid complete"+idproperty)
 			},
 			createdivsched_grid: function(adata, options_obj) {
 				var idproperty = options_obj.idproperty;

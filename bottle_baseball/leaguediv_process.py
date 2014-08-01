@@ -16,7 +16,7 @@ from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 from eliminationscheduler import EliminationScheduler
 import logging
-from singletonlite import mongoClient
+from singletonlite import mongoClient, hostserver
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
@@ -66,7 +66,8 @@ def leaguedivinfo_all():
                     "newscheddb_list":newscheddb_list,
                     "prefdb_list":prefdb_list,
                     "teamdb_list":teamdb_list,
-                    "conflictdb_list":conflictdb_list})
+                    "conflictdb_list":conflictdb_list,
+                    "hostserver":hostserver})
     return callback_name+'('+a+')'
 
 @route('/getalldivschedule')
@@ -332,8 +333,8 @@ def get_xls(schedcol_name, genxls_id):
                 fieldinfo_tuple=schedMaster.fieldinfo_tuple,
                 sdbInterface=schedMaster.sdbInterface)
             schedMaster.xls_exporter = xls_exporter
-        xls_exporter.export(genxls_id)
-        return_dict = {}
+        file_list = xls_exporter.export(genxls_id)
+        return_dict = {'file_list':file_list}
     else:
         return_dict = {}
     a = json.dumps(return_dict)

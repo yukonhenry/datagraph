@@ -64,6 +64,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			var prefdb_list = ldata.prefdb_list;
 			var teamdb_list = ldata.teamdb_list;
 			var conflictdb_list = ldata.conflictdb_list;
+			// hostserver tells us whether host is local or on webfaction
+			baseinfoSingleton.set_hostserver(ldata.hostserver);
 			var data_list = [
 				{db_type:'rrdb', db_list:rrdbcollection_list},
 				{db_type:'tourndb', db_list:tourndbcollection_list},

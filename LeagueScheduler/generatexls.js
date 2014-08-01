@@ -7,10 +7,11 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dijit/registry", "dijit/DropDownMenu", "dijit/MenuItem",
 	"dijit/form/DropDownButton", "dijit/layout/ContentPane",
-	"LeagueScheduler/idmgrSingleton",
+	"LeagueScheduler/idmgrSingleton", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, registry,
-		DropDownMenu, MenuItem, DropDownButton, ContentPane, idmgrSingleton, put) {
+		DropDownMenu, MenuItem, DropDownButton, ContentPane, idmgrSingleton,
+		baseinfoSingleton, put) {
 		var constant = {
 			idproperty_str:'xls_id',
 		};
@@ -64,7 +65,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					lang.hitch(this, this.create_links));
 			},
 			create_links: function(adata) {
-
+				var file_list = adata.file_list;
+				var file_num = file_list.length;
+				var host_path = baseinfoSingleton.get_xlsdownload_path();
+				arrayUtil.forEach(file_list, function(file) {
+					var file_path = host_path+file;
+				})
 			}
 		})
 	}

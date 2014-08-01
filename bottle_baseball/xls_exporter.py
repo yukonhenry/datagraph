@@ -6,6 +6,7 @@ from singletonlite import hostserver
 import os
 
 LOCALDIR_PATH = '/home/henry/workspace/datagraph/bottle_baseball/download/xls'
+SERVERDIR_PATH = '/home/tominaga/webapps/htdocs/xls'
 class XLS_Exporter:
     def __init__(self, schedcol_name, divinfo_tuple, fieldinfo_tuple, sdbInterface):
         self.schedcol_name = schedcol_name
@@ -14,23 +15,27 @@ class XLS_Exporter:
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.findexerGet = fieldinfo_tuple.indexerGet
         self.sdbinterface = sdbInterface
-        mkdir_p(LOCALDIR_PATH)
+        if hostserver == "local":
+            self.dir_path = LOCALDIR_PATH
+        else:
+            self.dir_path = SERVERDIR_PATH
+        mkdir_p(self.dir_path)
 
     def export(self, genxls_id):
         if genxls_id == 'div_id':
-            self.generate_divxls()
+            file_list = self.generate_divxls()
         elif genxls_id == 'field_id':
-            self.generate_fieldxls()
+            file_list = self.generate_fieldxls()
         elif genxls_id == 'team_id':
-            self.generate_teamxls()
+            file_list = self.generate_divteamxls()
+        return file_list
 
     def generate_divxls(self):
         headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
-            'Away', 'Field']
-        div_id_list = [x['div_id'] for x in self.divinfo_list]
+            'Visitor', 'Venue']
         datasheet_list = list()
-        for div_id in div_id_list:
-            divinfo = self.divinfo_list[self.dindexerGet(div_id)]
+        for divinfo in self.divinfo_list:
+            div_id = divinfo['div_id']
             div_age = divinfo['div_age']
             div_gen = divinfo['div_gen']
             div_str = div_age + div_gen
@@ -38,6 +43,7 @@ class XLS_Exporter:
             datasheet.headers = list(headers)
             match_list = self.sdbinterface.get_schedule('div_id', div_age=div_age,
                 div_gen=div_gen)
+            # note conversions for time from 24-hour to am/pm format
             tabformat_list = [(x['game_date'],
                 parser.parse(x['game_date']).strftime("%a"),
                 datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
@@ -48,14 +54,71 @@ class XLS_Exporter:
             datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
         bookname_xls_relpath = self.schedcol_name + "_byDiv.xls"
-        bookname_xls_fullpath = os.path.join(LOCALDIR_PATH, bookname_xls_relpath)
+        bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)
         f.close()
+        return [bookname_xls_relpath]
 
     def generate_fieldxls(self):
-        pass
+        headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
+        'Visitor', 'Venue']
+        datasheet_list = list()
+        for fieldinfo in self.fieldinfo_list:
+            field_name = fieldinfo['field_name']
+            field_id = fieldinfo['field_id']
+            datasheet = Dataset(title=field_name)
+            datasheet.headers = list(headers)
+            match_list = self.sdbinterface.get_schedule('field_id',
+                field_id=field_id)
+            tabformat_list = [(x['game_date'],
+                parser.parse(x['game_date']).strftime("%a"),
+                datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
+                x['div_age']+x['div_gen'], x['home'], x['away'], field_name)
+                for x in match_list]
+            for tabformat in tabformat_list:
+                datasheet.append(tabformat)
+            datasheet_list.append(datasheet)
+        book = Databook(datasheet_list)
+        bookname_xls_relpath = self.schedcol_name + "_byField.xls"
+        bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
+        with open(bookname_xls_fullpath,'wb') as f:
+            f.write(book.xls)
+        f.close()
+        return [bookname_xls_relpath]
 
-    def generate_teamxls(self):
-        pass
-
+    def generate_divteamxls(self):
+        headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
+        'Visitor', 'Venue']
+        file_list = list()
+        for divinfo in self.divinfo_list:
+            div_id = divinfo['div_id']
+            div_age = divinfo['div_age']
+            div_gen = divinfo['div_gen']
+            div_str = div_age + div_gen
+            totalteams = divinfo['totalteams']
+            datasheet_list = list()
+            for team_id in range(1, totalteams+1):
+                team_str = div_str + str(team_id)
+                datasheet = Dataset(title=team_str)
+                datasheet.headers = list(headers)
+                match_list = self.sdbinterface.get_schedule('team_id',
+                    div_age=div_age, div_gen=div_gen, team_id=team_id)
+                tabformat_list = [(x['game_date'],
+                    parser.parse(x['game_date']).strftime("%a"),
+                    datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
+                    div_str, x['home'], x['away'],
+                    self.fieldinfo_list[self.findexerGet(x['venue'])]['field_name'])
+                    for x in match_list]
+                for tabformat in tabformat_list:
+                    datasheet.append(tabformat)
+                datasheet_list.append(datasheet)
+            book = Databook(datasheet_list)
+            bookname_xls_relpath = self.schedcol_name + div_str+"_byTeam.xls"
+            bookname_xls_fullpath = os.path.join(self.dir_path,
+                bookname_xls_relpath)
+            with open(bookname_xls_fullpath,'wb') as f:
+               f.write(book.xls)
+            f.close()
+            file_list.append(bookname_xls_relpath)
+        return file_list
