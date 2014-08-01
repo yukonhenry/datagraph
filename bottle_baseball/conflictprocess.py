@@ -104,30 +104,3 @@ class ConflictProcess(object):
             'condiv_id':x['div_1_id'], 'conteam_id':x['team_1_id']}
             for i,x in enumerate(cinfo_list, start=list_len+1)])
         return normalized_cinfo_list
-
-    '''
-    @property
-    def tminfo_list(self):
-        return self._tminfo_list
-
-    @tminfo_list.setter
-    def tminfo_list(self, value):
-        self._tminfo_list = value
-
-    @property
-    def tminfo_indexerGet(self):
-        return self._tminfo_indexerGet
-
-    @tminfo_indexerGet.setter
-    def tminfo_indexerGet(self, value):
-        self._tminfo_indexerGet = value
-
-    @property
-    def tminfo_indexerMatch(self):
-        return self._tminfo_indexerMatch
-
-    @tminfo_indexerMatch.setter
-    def tminfo_indexerMatch(self, value):
-        self._tminfo_indexerMatch = value
-    '''
-

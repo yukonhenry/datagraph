@@ -106,7 +106,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.cpane_schedheader_id_mapobj = new Object();
 				arrayUtil.forEach(resultpane_id_list, function(resultpane_id) {
 					// first get the idstem which is the id minus the '_id'
-					idstem = resultpane_id.substring(0, resultpane_id.length-3);
+					var idstem = resultpane_id.substring(0, resultpane_id.length-3);
 					var prefix = op_prefix+"new"+idstem+"cpane_";
 					this.cpane_id_mapobj[resultpane_id] = prefix + "id";
 					this.cpane_txt_id_mapobj[resultpane_id] = prefix + "txt_id";
@@ -584,7 +584,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				cpane_grid_id = this.cpane_grid_id_mapobj.team_id;
 				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.team_id;
 				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.team_id;
-				cpane_select_id = this.opconstant_obj.teamcpane_select_id;
+				var cpane_select_id = this.opconstant_obj.teamcpane_select_id;
 				args_obj = {
 					suffix_id:cpane_id,
 					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",

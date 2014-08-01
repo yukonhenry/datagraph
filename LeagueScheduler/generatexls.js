@@ -7,7 +7,7 @@
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dijit/registry", "dijit/DropDownMenu", "dijit/MenuItem",
 	"dijit/form/DropDownButton", "dijit/layout/ContentPane",
-	"dijit/layout/StackContainer"
+	"dijit/layout/StackContainer",
 	"LeagueScheduler/idmgrSingleton", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, registry,
@@ -21,10 +21,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						{label:"by Team", genxls_id:'team_id'}],
 		};
 		var idconstant = {
-			ddown_btn_id:"xlscpane_ddown_btn_id"
+			// id for the dropdown btn
+			ddown_btn_id:"xlscpane_ddown_btn_id",
+			// id for the various cpane, each (except) blank hosting a xls ouput
+			// type link
 			div_cpane_id:"xlsdiv_cpane_id",
 			field_cpane_id:"xlsfield_cpane_id",
-			team_cpane_id:"xlsteam_cpane_id"
+			team_cpane_id:"xlsteam_cpane_id",
+			blank_cpane_id:"xlsblank_cpane_id"
 		}
 		return declare(null, {
 			idproperty:constant.idproperty_str, idmgr_obj:null, op_type:"",
@@ -40,27 +44,30 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				for (var key in idconstant) {
 					this.opconstant_obj[key] = op_prefix+idconstant[key]
 				}
-				this.stackcontainer_widget = new StackContainer({
-					doLayout:false,
-					style:"float:left; width:80%"
-				})
-				this.stackcpane_list = [{id:'div_id',
-					cpane_id:this.opconstant_obj.div_cpane_id},
-					{id:'field_id', cpane_id:this.opconstant_obj.field_cpane_id},
-					{id.'team_id', cpane_id:this.opconstant_obj.team_cpane_id}
+				this.stackcpane_list = [
+					{genxls_id:'blank_id', cpane_id:this.opconstant_obj.blank_id, descrip_str:"default"},
+					{genxls_id:'div_id', cpane_id:this.opconstant_obj.div_cpane_id,
+						descrip_str:"by Division"},
+					{genxls_id:'field_id',
+						cpane_id:this.opconstant_obj.field_cpane_id,
+						descrip_str:"by Field"},
+					{genxls_id:'team_id',
+						cpane_id:this.opconstant_obj.team_cpane_id,
+						descrip_str:"by Team"}
 				];
 				this.columnsdef_obj_list = [{genxls_id:'div_id',
 					columsndef_obj:{}}
 				]
 			},
-			get_cpane_id: function(id) {
+			get_cpane_id: function(genxls_id) {
 				var idmatch_list = arrayUtil.filter(this.stackcpane_list,
 				function(item) {
-					return item.id == id;
+					return item.genxls_id == genxls_id;
 				})
 				return idmatch_list[0].cpane_id;
 			},
 			generate_xlscpane_widgets: function(xls_cpane) {
+				// called from callback fun after send_generate returns w data
 				var ddown_btn = registry.byId(this.opconstant_obj.ddown_btn_id);
 				if (!ddown_btn) {
 					// create widgets only if they don't already exist
@@ -77,30 +84,54 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						var menuitem_widget = new MenuItem({
 							label:item.label,
 							onClick:lang.hitch(this, this.switch_xlsstack_cpane,
-								item.genxls_id, xls_cpane)
+								item.genxls_id)
 						})
 						ddown_menu.addChild(menuitem_widget);
 					}, this)
+					// create stackcontainer and child content panes, one each
+					// for the different types of xls file links
+					this.stackcontainer_widget = new StackContainer({
+						doLayout:false,
+						style:"float:left; width:80%"
+					})
+					// add statckcontainer to cpane
+					xls_cpane.addChild(this.stackcontainer_widget);
+					arrayUtil.forEach(this.stackcpane_list, function(item) {
+						var cpane_id = item.cpane_id;
+						var stack_cpane = new ContentPane({id:cpane_id});
+						this.stackcontainer_widget.addChild(stack_cpane);
+						if (cpane_id != this.opconstant_obj.blank_id) {
+							// as long as the cpane is not the default blank cpane,
+							// get all links and populate
+							var descrip_str = item.descrip_str;
+							this.server_interface.getServerData(
+								'get_xls/'+this.schedcol_name+'/'+item.genxls_id,
+								lang.hitch(this, this.create_links), null,
+								{cpane:stack_cpane, descrip_str:descrip_str});
+						}
+					}, this)
+					xls_cpane.startup();
+					//this.stackcontainer_widget.selectChild(
+					//	this.opconstant_obj.blank_cpane_id)
 				}
 			},
-			switch_xlsstack_cpane: function(genxls_id, xls_cpane, event) {
-
+			switch_xlsstack_cpane: function(genxls_id, event) {
+				var cpane_id = this.get_cpane_id(genxls_id);
+				this.stackcontainer_widget.selectChild(cpane_id)
 			},
-			get_xlsdata: function(genxls_id, xls_cpane, event) {
-				this.server_interface.getServerData(
-					'get_xls/'+this.schedcol_name+'/'+genxls_id,
-					lang.hitch(this, this.create_links));
-			},
-			create_links: function(adata) {
+			create_links: function(adata, options_obj) {
+				var cpane = options_obj.cpane;
+				var descrip_str = options_obj.descrip_str;
 				var file_list = adata.file_list;
 				var host_path = baseinfoSingleton.get_xlsdownload_path();
-				var file_num = file_list.length;
-				if (file_num == 1) {
-					var file_path = host_path+file;
-				}
+				var content_str = "<p>Click on Links below</p>";
 				arrayUtil.forEach(file_list, function(file) {
-
-				})
+					var file_url = host_path+file;
+					var link_str = "<a href='"+file_url+"'>"+this.schedcol_name+
+						" Schedule,"+descrip_str+"</a><br>";
+					content_str += link_str
+					cpane.set("content", content_str)
+				}, this)
 			}
 		})
 	}
