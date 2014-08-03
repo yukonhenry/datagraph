@@ -79,8 +79,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.keyup_handle.remove();
 						// if idproperty is field, create radio buttons for
 						// db selection (for div select)
-						baseinfoSingleton.set_watch_obj('divstr_list', [],
-							this.op_type, this.idproperty)
+						//baseinfoSingleton.set_watch_obj('divstr_list', [],
+						//	this.op_type, this.idproperty)
 						if (this.idproperty == 'field_id' ||
 							this.idproperty == 'pref_id' ||
 							this.idproperty == 'conflict_id') {
@@ -293,7 +293,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var updatebtn_widget = this.getInfoBtn_widget(updatebtn_str,
 					idproperty, btn_id);
 				// get status line node; also pass it to callback, callback in turn calls update_configdone
-				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget, op_type, idproperty);
+				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget, op_type);
 				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendStoreInfoToServer, gridstatus_node);
 				updatebtn_widget.set("onClick", btn_callback);
 				this.update_configdone(-1, gridstatus_node); // reset
@@ -326,7 +326,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var btn_callback = args_obj.btn_callback;
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget,
-					op_type, idproperty);
+					op_type);
 				this.update_configdone(-1, gridstatus_node); // reset
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
@@ -350,8 +350,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				return infobtn_widget;
 			},
-			get_gridstatus_node: function(updatebtn_widget, op_type, idproperty) {
-				var gridstatus_id = op_type+idproperty+'gridstatus_span';
+			get_gridstatus_node: function(updatebtn_widget, op_type) {
+				var gridstatus_id = op_type+'gridstatus_id';
 				var gridstatus_node = dom.byId(gridstatus_id);
 				if (!gridstatus_node) {
 					gridstatus_node = put(updatebtn_widget.domNode,

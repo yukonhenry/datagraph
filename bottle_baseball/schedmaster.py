@@ -169,14 +169,11 @@ class SchedMaster(object):
                             divinfo['divfield_list'].append(field_id)
                         else:
                             divinfo['divfield_list'] = [field_id]
-        '''
-        # save to db
-        for div_id in divset:
-            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-            dbInterface.updateDBDivFields(divinfo)
-        '''
 
     def simplifydivfield_list(self):
+        ''' create a simplified version of the divfield_list which only
+        includes the field_id's - the only value necessary for schedule
+        creation; ignore other items such as field name '''
         for divinfo in self.divinfo_list:
             if 'divfield_list' in divinfo:
                 new_list = [x['field_id'] for x in divinfo['divfield_list']]

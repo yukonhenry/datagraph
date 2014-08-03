@@ -17,6 +17,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 						'conflict_id'], function(id) {
 						// create separate watch object for each op_type and id
 						var watch_obj = new Watch_class();
+						watch_obj.set('divstr_list', new Array());
 						this.watch_list.push({watch_obj:watch_obj, op_type:item,
 							idproperty:id})
 					}, this)

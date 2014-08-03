@@ -27,7 +27,10 @@ class RRDBInterface(BaseDBInterface):
         update_data_list = json.loads(update_data_str)
         for update_obj in update_data_list:
             query_obj = {'DIV_ID':update_obj['div_id']}
-            operator_obj = {"DIVFIELD_LIST":update_obj['divfield_list']}
+            # field collection name is an item assocated with divfield list -
+            # provides reference col name if dereference field_id is required
+            operator_obj = {"DIVFIELD_LIST":update_obj['divfield_list'],
+                "FIELDCOL_NAME":update_obj['fieldcol_name']}
             self.dbinterface.updatedoc(query_obj, "$set", operator_obj)
 
     def readDB(self):
@@ -58,13 +61,3 @@ class RRDBInterface(BaseDBInterface):
             game_list.append({'gameday_id':dbgame[gameday_id_CONST],
                              'start_time':dbgame[start_time_CONST]})
         return dbgame_list
-
-    def updateDBDivFields(self, divinfo):
-        # ref http://stackoverflow.com/questions/5646798/mongodb-updating-subdocument
-        # for updating subdocument
-        div_id = divinfo['div_id']
-        divfield_list = divinfo['divfield_list']
-        query_obj = {"DIV_ID":div_id}
-        operator_obj = {"DIVFIELD_LIST":divfield_list}
-        self.dbinterface.updatedoc(query_obj, "$set", operator_obj)
-

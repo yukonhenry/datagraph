@@ -43,7 +43,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							invalidMessage:'Must be Non-zero integer',
 							missingMessage:'Enter Priority',
 							value:'1',
-							//style:'width:6em',
 							style:"width:auto",
 						}}, NumberTextBox),
 					// for embedded select objects autoSave is disabled as the saves
@@ -70,7 +69,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						}}, Select), */
 					game_date: editor({label:'Game Date', autoSave:true,
 						editorArgs:{
-							//style:'width:120px'
 							style:"width:auto",
 						}
 					}, DateTextBox),
@@ -141,6 +139,20 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					item.end_before = new Date(game_date_str+' '+end_before_str);
 				});
 				return data_list;
+			},
+			checkconfig_status: function(raw_result) {
+				// check to make sure pref_id date falls on a valid field
+				// availability date
+				var config_status = 0;
+				var alert_msg = "";
+				if (arrayUtil.some(raw_result, function(item) {
+					var game_date = item.game_date;
+				})) {
+					alert(alert_msg);
+				} else {
+					config_status = 1;
+				}
+				return config_status;
 			},
 			modify_toserver_data: function(raw_result) {
 				// modify store data before sending data to server

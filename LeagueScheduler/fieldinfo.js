@@ -1225,13 +1225,19 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							return (item.div_id == div_id)
 						})[0];
 						if (match_obj) {
-							// if div_id matches, append current field_id to the field_id_list
+							// if div_id matches, append current field_id, field
+							// name, and field list name (field collection name)
+							// to the divfield list element
 							match_obj.divfield_list.push({field_id:field_id,
 								field_name:field_name});
 						} else {
 							// if not create a new div_id/field list obj element
+							// also add reference to current field collection name
+							// provide reference col name for field_id value
 							map_divfield_list.push({div_id:div_id,
-								divfield_list:[{field_id:field_id, field_name:field_name}]});
+								fieldcol_name:this.activegrid_colname,
+								divfield_list:[{field_id:field_id,
+									field_name:field_name}]});
 						}
 					})
 				})
@@ -1249,6 +1255,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						arrayUtil.forEach(map_divfield_list, function(map_obj) {
 							var store_obj = infogrid_store.get(map_obj.div_id);
 							if (store_obj) {
+								store_obj.fieldcol_name = map_obj.fieldcol_name;
 								store_obj.divfield_list = map_obj.divfield_list;
 								infogrid_store.put(store_obj);
 							}

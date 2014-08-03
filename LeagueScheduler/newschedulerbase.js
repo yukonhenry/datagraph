@@ -981,6 +981,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					latest_count:"# Latest Games",
 				}
 				// see schedmaster.py get_schedule() for definition of divfield_list
+				// also see fieldinfo.js modify_toserver() where divfield is created
+				// locally
 				// Extract column header field names
 				arrayUtil.forEach(divfield_list, function(item) {
 					columnsdef_obj[item.field_id] = "# Games "+item.field_name;

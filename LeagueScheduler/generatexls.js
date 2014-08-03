@@ -125,10 +125,16 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var file_list = adata.file_list;
 				var host_path = baseinfoSingleton.get_xlsdownload_path();
 				var content_str = "<p>Click on Links below</p>";
-				arrayUtil.forEach(file_list, function(file) {
-					var file_url = host_path+file;
-					var link_str = "<a href='"+file_url+"'>"+this.schedcol_name+
-						" Schedule,"+descrip_str+"</a><br>";
+				arrayUtil.forEach(file_list, function(item) {
+					var file_url = host_path+item.path;
+					var link_str = "";
+					if ('mdata' in item) {
+						link_str = "<a href='"+file_url+"'>"+this.schedcol_name+
+							item.mdata+" Schedule,"+descrip_str+"</a><br>";
+					} else {
+						link_str = "<a href='"+file_url+"'>"+this.schedcol_name+
+							" Schedule,"+descrip_str+"</a><br>";
+					}
 					content_str += link_str
 					cpane.set("content", content_str)
 				}, this)

@@ -113,8 +113,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				return match_list[0];
 			},
 			switch_pstackcpane: function(args_obj) {
-				id = args_obj.idproperty;
-				p_stage = args_obj.p_stage;
+				var id = args_obj.idproperty;
+				var p_stage = args_obj.p_stage;
 				var select_pane = this.getp_pane(id, p_stage);
 				this.pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index

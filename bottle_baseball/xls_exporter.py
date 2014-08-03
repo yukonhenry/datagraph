@@ -8,6 +8,8 @@ import os
 LOCALDIR_PATH = '/home/henry/workspace/datagraph/bottle_baseball/download/xls'
 SERVERDIR_PATH = '/home/tominaga/webapps/htdocs/xls'
 class XLS_Exporter:
+    ''' this class and it's methods will eventually supersede sched_exporter
+    class and methods '''
     def __init__(self, schedcol_name, divinfo_tuple, fieldinfo_tuple, sdbInterface):
         self.schedcol_name = schedcol_name
         self.divinfo_list = divinfo_tuple.dict_list
@@ -58,7 +60,7 @@ class XLS_Exporter:
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)
         f.close()
-        return [bookname_xls_relpath]
+        return [{'path':bookname_xls_relpath}]
 
     def generate_fieldxls(self):
         headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
@@ -85,7 +87,7 @@ class XLS_Exporter:
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)
         f.close()
-        return [bookname_xls_relpath]
+        return [{'path':bookname_xls_relpath}]
 
     def generate_divteamxls(self):
         headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
@@ -120,5 +122,5 @@ class XLS_Exporter:
             with open(bookname_xls_fullpath,'wb') as f:
                f.write(book.xls)
             f.close()
-            file_list.append(bookname_xls_relpath)
+            file_list.append({'path':bookname_xls_relpath, 'mdata':div_str})
         return file_list
