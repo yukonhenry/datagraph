@@ -26,6 +26,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			// that have to do with the db_type radiobutton /
 			// league select drop down
 			divstr_colname:"", divstr_db_type:"rrdb", widgetgen:null,
+			divstr_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -145,13 +146,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// availability date
 				var config_status = 0;
 				var alert_msg = "";
+				if (!this.divstr_list) {
+					this.divstr_list = baseinfoSingleton.get_watch_obj(
+						'divstr_list', this.op_type, 'pref_id');
+				}
+				/*
 				if (arrayUtil.some(raw_result, function(item) {
 					var game_date = item.game_date;
 				})) {
 					alert(alert_msg);
 				} else {
 					config_status = 1;
-				}
+				} */
 				return config_status;
 			},
 			modify_toserver_data: function(raw_result) {
@@ -274,16 +280,24 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// Config status check is completed before calling this method, i.e.
 				// the divstr_list should make up all rows of the cb collection
 				// Reference newschedulerbase/createdivselect_dropdown
+				// set_griddiv_select is asynchronous call, so always overwrite
+				// divstr_list
+				this.divstr_list = divstr_list;
 				var pref_grid = this.editgrid.schedInfoGrid;
 				// First create the option_list that will feed the select
 				// dropdown for each cell in the 'division' column of the pref
 				// grid.
-				// initialize option_list
+				// initialize option_list - option_list object should carry all
+				// metadata required to process division information when a
+				// a particular div is selected
 				var option_list = [{label:"Select Division", value:"",
 					selected:true, totalteams:0}];
 				arrayUtil.forEach(divstr_list, function(item, index) {
 					option_list.push({label:item.divstr, value:item.div_id,
-						selected:false, totalteams:item.totalteams})
+						selected:false, totalteams:item.totalteams,
+						//fieldcol_name:item.fieldcol_name,
+						//divfield_list:item.divfield_list
+					})
 				})
 				var div_select_prefix = this.op_prefix+"prefdiv_select";
 				for (var row_id = 1; row_id < this.totalrows_num+1; row_id++) {
@@ -335,9 +349,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var team_select_prefix = this.op_prefix+"prefteam_select";
 				var team_select_id = team_select_prefix+pref_id+"_id";
 				var team_select_widget = registry.byId(team_select_id);
-				//var cell = pref_grid.cell(pref_id, 'team_id')
-				//var select_widget = cell.element.widget;
 				if (team_select_widget) {
+					// for team select ddown widget create option list; note there
+					// is no callback defined when a particular team is selected;
+					// instead the value is read when the update btn is pressed.
 					team_select_widget.set("options", option_list);
 					/*
 					team_select_widget.set("onChange", lang.hitch(this, function(event) {
@@ -349,15 +364,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				}
 			},
 			div_select_render: function(object, data, node) {
+				/* Called when grid is created */
 				var pref_id = object.pref_id;
 				var div_select_prefix = this.op_prefix+"prefdiv_select";
 				var div_select_id = div_select_prefix+pref_id+"_id";
 				var div_select_widget = registry.byId(div_select_id);
-				var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
-					this.op_type, 'pref_id');
+				if (!this.divstr_list) {
+					this.divstr_list = baseinfoSingleton.get_watch_obj(
+						'divstr_list', this.op_type, 'pref_id');
+				}
 				var option_list = new Array();
 				var eventoptions_obj = null;
-				if (divstr_list && divstr_list.length > 0) {
+				if (this.divstr_list && this.divstr_list.length > 0) {
 					option_list.push({label:"Select Division", value:"",
 						selected:false, totalteams:0});
 					// get reference to team_id cell for this row
@@ -366,7 +384,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					//var team_cell = this.editgrid.schedInfoGrid.cell(
 					//	object.pref_id, 'team_id');
 					//var team_widget = team_cell.element.widget;
-					arrayUtil.forEach(divstr_list, function(item) {
+					arrayUtil.forEach(this.divstr_list, function(item) {
 						var option_obj = {label:item.divstr, value:item.div_id,
 							selected:false, totalteams:item.totalteams}
 						// data value is read from the store and corresponds to
@@ -407,10 +425,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var team_select_id = team_select_prefix+pref_id+"_id";
 				var team_select_widget = registry.byId(team_select_id);
 				var option_list = new Array();
-				var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
-					this.op_type, 'pref_id');
-				if (divstr_list && divstr_list.length > 0) {
-					var match_obj = arrayUtil.filter(divstr_list,
+				if (!this.divstr_list) {
+					this.divstr_list = baseinfoSingleton.get_watch_obj(
+						'divstr_list', this.op_type, 'pref_id');
+				}
+				if (this.divstr_list && this.divstr_list.length > 0) {
+					var match_obj = arrayUtil.filter(this.divstr_list,
 						function(item) {
 						return item.div_id == div_id;
 					})[0];

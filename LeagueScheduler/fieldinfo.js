@@ -1203,6 +1203,9 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				return data_list;
 			},
 			modify_toserver_data: function(raw_result) {
+				/* Called when sending data to server after new data has been
+				entered in a grid - whether for a new grid or modifying a
+				previously created grid */
 				// first create mapping of div_id to field_id_list (as opposed to
 				// field_id to div_id_list which is done in this grid/column)
 				// and save to divinfo db
@@ -1239,8 +1242,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 								divfield_list:[{field_id:field_id,
 									field_name:field_name}]});
 						}
-					})
-				})
+					}, this)
+				}, this)
 				// if we created the div to divfield map, then save it -
 				// first see if there is a local divinfo store that we can write to
 				if (map_divfield_list) {
@@ -1250,7 +1253,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					if (divinfo_obj && divinfo_obj.infogrid_store &&
 						divinfo_obj.activegrid_colname == this.divstr_colname) {
 						// if local store exists, then write divfield information
-						// into the local store
+						// into the local store for the relevant (rrdb or tourndb)
+						// db store - Note we are not writing to the fielddb store
 						var infogrid_store = divinfo_obj.infogrid_store;
 						arrayUtil.forEach(map_divfield_list, function(map_obj) {
 							var store_obj = infogrid_store.get(map_obj.div_id);

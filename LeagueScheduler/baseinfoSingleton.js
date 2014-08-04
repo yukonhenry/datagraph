@@ -16,6 +16,9 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					arrayUtil.forEach(['field_id', 'pref_id', 'div_id', 'team_id',
 						'conflict_id'], function(id) {
 						// create separate watch object for each op_type and id
+						// separate watch obj necessary as different info_obj's
+						// may have different divstr_list's depending on the
+						// current state of configuration
 						var watch_obj = new Watch_class();
 						watch_obj.set('divstr_list', new Array());
 						this.watch_list.push({watch_obj:watch_obj, op_type:item,
@@ -33,8 +36,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 					item.watch_obj.watch('divstr_list',
 						lang.hitch(this,function(name, oldValue, value) {
 							// Execute when watch gets activated for any change to
-							// divstr_list; only idprops field_id and pref_id are
-							// relevant to the watch
+							// divstr_list; team_id, field_id, pref_id, conflict_id
+							// are relevant to the watch
 							var info_obj = this.get_obj(item.idproperty,
 								item.op_type);
 							if (info_obj) {

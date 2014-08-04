@@ -140,13 +140,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         //store:dbselect_store,
                         //labelAttr:"name",
                         onChange:onchange_callback
-                        /*
-                        onChange: lang.hitch(this, function(evt) {
-                            this.get_leagueparam_list(evt, db_type, info_obj);
-                        }) */
                     }, select_node);
                     var args_obj = {db_type:db_type, label_str:label_str,
-                                config_status:true, init_colname:init_colname};
+                        config_status:true, init_colname:init_colname};
+                    // data necessary to create option list is in local store-
+                    // created during initialization with initial query of
+                    // collection list
                     var option_list = this.storeutil_obj.getLabelDropDown_list(args_obj);
                     league_select.addOption(option_list);
                     league_select.startup();
@@ -273,11 +272,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         function(item, index) {
                             // return both the divstr (string) and div_id value
                             // value used as the value for the checkbox in the fieldinfo grid dropdown
-                            // also save totalteams field as it will be useful for
-                            // preference table
+                            // save other fields that will be useful for various
+                            // infoobj grid fields
                             return {'divstr':item.div_age + item.div_gen,
                                 'div_id':item.div_id, 'totalteams':item.totalteams,
-                                'divfield_list':item.divfield_list};
+                                'divfield_list':item.divfield_list,
+                                'fieldcol_name':item.fieldcol_name};
                         })
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj

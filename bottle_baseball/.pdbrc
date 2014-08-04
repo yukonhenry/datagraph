@@ -12,7 +12,6 @@
 #b eliminationscheduler.py:111
 #b eliminationscheduler.py:307
 #b fieldtimescheduler.py:351, home_currentel_dict['early'] > 1 or away_currentel_dict['early'] > 1
-#b leaguedivprep.py:100
 #b fieldtimescheduler.py:245, div_id==1 and round_id==11 and home_id==9 and away_id==13
 #b elimfieldtimescheduler.py:362, div_id==3
 #b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
@@ -23,7 +22,7 @@
 #b fielddbinterface.py:1192
 #b fieldtimescheduler.py:679, div_id==1 and team_id==2
 #b fieldtimescheduler.py:67
-b fieldtimescheduler.py:483
+#b fieldtimescheduler.py:483
 #b fieldbalancer.py:1346
 #b fieldbalancer.py:991
 #b fieldbalancer.py:989
@@ -35,4 +34,4 @@ b fieldtimescheduler.py:483
 #b rrdbinterface.py:26
 #b conflictprocess.py:9
 #b conflictprocess.py:76
-
+b rrdbinterface.py:28
