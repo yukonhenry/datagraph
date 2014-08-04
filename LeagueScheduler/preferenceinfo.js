@@ -123,8 +123,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				if (config_status) {
 					var divstr_list = arrayUtil.map(info_list,
 					function(item) {
+						// note divfield_list and fieldcol_name can be undefined
+						// if field collection has not been specified, and divfield
+						// list created
 						return {'divstr':item.div_age + item.div_gen,
-							'div_id':item.div_id, 'totalteams':item.totalteams};
+							'div_id':item.div_id, 'totalteams':item.totalteams,
+							'divfield_list':item.divfield_list,
+							'fieldcol_name':item.fieldcol_name};
 					})
 					baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
 						this.op_type, 'pref_id');
@@ -150,14 +155,28 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.divstr_list = baseinfoSingleton.get_watch_obj(
 						'divstr_list', this.op_type, 'pref_id');
 				}
-				/*
+				var fieldcol_list = arrayUtil.map(this.divstr_list,
+					function(item) {
+						if (typeof(item.fieldcol_name) !== 'undefined') {
+							return item.fieldcol_name;
+						}
+					})
 				if (arrayUtil.some(raw_result, function(item) {
-					var game_date = item.game_date;
+					var break_flag = false;
+					for (var prop in item) {
+						if (prop == 'game_date') {
+
+						} else if (item[prop] === "") {
+							break_flag = true;
+							break;
+						}
+					}
+					return break_flag;
 				})) {
 					alert(alert_msg);
 				} else {
 					config_status = 1;
-				} */
+				}
 				return config_status;
 			},
 			modify_toserver_data: function(raw_result) {

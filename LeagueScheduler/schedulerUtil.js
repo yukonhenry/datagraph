@@ -221,12 +221,12 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			range: function(start, stop, step){
 				// reference http://stackoverflow.com/questions/8273047/javascript-function-similar-to-python-range
 				// similar to python range function
-			    if (typeof stop=='undefined'){
+			    if (typeof stop==='undefined'){
 			        // one param defined
 			        stop = start;
 			        start = 0;
 			    };
-			    if (typeof step=='undefined'){
+			    if (typeof step==='undefined'){
 			        step = 1;
 			    };
 			    if ((step>0 && start>=stop) || (step<0 && start<=stop)){
