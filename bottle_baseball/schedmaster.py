@@ -113,6 +113,7 @@ class SchedMaster(object):
                 raise CodeLogicError("schedmaster:init: conflict config not complete=%s" % (conflictcol_name,))
         else:
             conflictinfo_list = None
+            cdbInterface = None
             #conflictinfo_tuple = None
         self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
             prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)

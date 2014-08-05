@@ -79,7 +79,9 @@ class MongoDBInterface:
         ''' Update single element of an array subdocument
         ref http://mongoblog.tumblr.com/post/21792332279/updating-one-element-in-an-array
         http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
+        ensure we are only adding to the same exact sched_type
         '''
+        query_obj.update({'SCHED_TYPE':self.sched_type})
         result_obj = self.collection.update(query_obj, {operator:operator_obj},
             upsert=upsert_flag)
         if 'writeConcernError' in result_obj:
