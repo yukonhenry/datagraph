@@ -9,18 +9,22 @@ from conflictdbinterface import ConflictDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from collections import namedtuple
+from dateutil import parser
 import logging
 from sched_exceptions import CodeLogicError
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
 _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
 
-
+DIVCONFIG_INCOMPLETE_MASK = 0x1
+FIELDCONFIG_INCOMPLETE_MASK = 0x2
+PREFINFODATE_ERROR_MASK = 0x4
 # main class for launching schedule generator
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
 class SchedMaster(object):
     def __init__(self, mongoClient, db_type, divcol_name, fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
+        self._error_code = 0x0
         self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
         # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':
@@ -38,6 +42,7 @@ class SchedMaster(object):
         else:
             self.divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
+            self._error_code |= DIVCONFIG_INCOMPLETE_MASK
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
@@ -49,6 +54,8 @@ class SchedMaster(object):
         else:
             self.fieldinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schedmaster:init: field config not complete=%s" % (fieldcol_name,))
+            self._error_code |= FIELDCONFIG_INCOMPLETE_MASK
+
         # create list of div_ids that do not have a 'divfield_list' key
         divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'divfield_list' not in x]
         # if there are div_id's with no 'divfield_list' key, create it
@@ -115,16 +122,20 @@ class SchedMaster(object):
             conflictinfo_list = None
             cdbInterface = None
             #conflictinfo_tuple = None
-        self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
-            prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)
-        self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-            dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
-            fieldinfo_tuple=self.fieldinfo_tuple,
-            prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
-            tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-            cdbinterface=cdbInterface)
-        self.schedcol_name = schedcol_name
-        self._xls_exporter = None
+        if self.divinfo_tuple.dict_list and prefinfo_triple.dict_list:
+            if not self.consistency_check(prefinfo_triple.dict_list):
+                self._error_code |= PREFINFODATE_ERROR_MASK
+        if not self._error_code:
+            self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
+                prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)
+            self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
+                dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
+                fieldinfo_tuple=self.fieldinfo_tuple,
+                prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
+                tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
+                cdbinterface=cdbInterface)
+            self.schedcol_name = schedcol_name
+            self._xls_exporter = None
 
     @property
     def xls_exporter(self):
@@ -133,6 +144,10 @@ class SchedMaster(object):
     @xls_exporter.setter
     def xls_exporter(self, value):
         self._xls_exporter = value
+
+    @property
+    def error_code(self):
+        return self._error_code
 
     def generate(self):
         totalmatch_list = []
@@ -209,3 +224,26 @@ class SchedMaster(object):
                 'field_name':self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name']}
                 for x in divinfo['divfield_list']]
             return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
+
+    def consistency_check(self, prefinfo_list):
+        cmap_list = list()
+        cindexerGet = lambda x: dict((p['date'],i)
+            for i,p in enumerate(cmap_list)).get(x)
+        for prefinfo in prefinfo_list:
+            game_date = parser.parse(prefinfo['game_date'])
+            for fieldinfo in self.fieldinfo_list:
+                cmap_list = fieldinfo['calendarmap_list']
+                index = cindexerGet(game_date)
+                if index:
+                    # match found, break
+                    break
+            else:
+                # no match found, go to next prefinfo
+                continue
+            # match already found, break from prefinfo loop
+            break
+        else:
+            # prefinfo and fieldinfo list calendarmap not consistent
+            return False
+        # consistent, success
+        return True

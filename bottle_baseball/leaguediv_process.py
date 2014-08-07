@@ -280,10 +280,14 @@ def send_generate():
     schedMaster = SchedMaster(mongoClient, db_type, divcol_name, fieldcol_name,
         schedcol_name, prefcol_name=prefcol_name,
         conflictcol_name=conflictcol_name)
-    # save schedMaster to global obj to reuse on get_schedule
-    _routelogic_obj.schedmaster_obj = schedMaster
-    dbstatus = schedMaster.generate()
-    a = json.dumps({"dbstatus":dbstatus})
+    if not schedMaster.error_code:
+        # save schedMaster to global obj to reuse on get_schedule
+        _routelogic_obj.schedmaster_obj = schedMaster
+        dbstatus = schedMaster.generate()
+        a = json.dumps({"dbstatus":dbstatus})
+    else:
+        a = json.dumps({"error_code":schedMaster._error_code})
+        del schedMaster
     return callback_name+'('+a+')'
 
 @route('/send_delta/<action_type>/<field_id:int>')

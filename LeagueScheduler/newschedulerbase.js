@@ -8,13 +8,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dgrid/OnDemandGrid", "dgrid/Keyboard", "dgrid/Selection",
 	"LeagueScheduler/editgrid", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/widgetgen", "LeagueScheduler/idmgrSingleton",
-	"LeagueScheduler/generatexls",
+	"LeagueScheduler/generatexls", "LeagueScheduler/errormanager",
 	"put-selector/put", "underscore-min", "dojo/domReady!"],
 	function(dbootstrap, dom, on, declare, lang, Stateful, arrayUtil, keys,
 		Memory, Observable, registry, Tooltip, ValidationTextBox, Select, Button,
 		DateTextBox, Form, StackContainer, ContentPane, Grid, OnDemandGrid,
-		Keyboard, Selection, EditGrid,
-		baseinfoSingleton, WidgetGen, idmgrSingleton, GenerateXLS, put) {
+		Keyboard, Selection, EditGrid, baseinfoSingleton, WidgetGen,
+		idmgrSingleton, GenerateXLS, ErrorManager, put) {
 		var constant = {
 			idproperty_str:'newsched_id',
 			tabcontainer_id:'tabcontainer_id',
@@ -70,7 +70,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", opconstant_obj:null,
-			pref_select_value:null, conflict_select_value:null,
+			pref_select_value:null, conflict_select_value:null, errormgr_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -135,6 +135,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.sched_grid_mapobj = {div_id:null, field_id:null, team_id:null,
 					fair_id:null};
 				this.calendarmap_obj = new Object();
+				this.errormgr_obj = new ErrorManager();
 			},
 			initialize: function(op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
@@ -545,6 +546,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.idproperty, 1);
 			},
 			update_schedstatustxt: function(adata, options_obj) {
+				if ('error_code' in adata) {
+					this.errormgr_obj.emit_error(adata.error_code);
+					return false;
+				}
 				var dbstatus = adata.dbstatus;
 				var schedstatustxt_node = options_obj.node;
 				this.schedutil_obj.updateDBstatus_node(dbstatus,
