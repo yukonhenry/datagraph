@@ -71,6 +71,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				wizard_reg.addChild(intro_wpane);
 				//---------------------//
+				//-----ID Entry --------//
+				var topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>Please Enter an identifier that will uniquely identify you or your organization.</i><br><br>"
 				// --- DIVISION INFO-----//
 				var topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";

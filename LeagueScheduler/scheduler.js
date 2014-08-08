@@ -17,11 +17,12 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		"LeagueScheduler/uistackmanager", "LeagueScheduler/storeutil",
 		"LeagueScheduler/tourndivinfo", "LeagueScheduler/wizardlogic",
 		"LeagueScheduler/teaminfo", "LeagueScheduler/conflictinfo",
+		"LeagueScheduler/userinfo",
 		"dojo/domReady!"],
 	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
 		serverinterface, divinfo, FieldInfo, baseinfoSingleton, NewSchedulerBase,
 		PreferenceInfo, UIStackManager, storeUtil, tourndivinfo, WizardLogic,
-		TeamInfo, ConflictInfo) {
+		TeamInfo, ConflictInfo, UserInfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};
 		var serverInterface = new serverinterface({hostURL:constant.SERVER_PREFIX});
 		var schedutil_obj = new schedulerUtil({server_interface:serverInterface});
@@ -32,6 +33,8 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			server_interface:serverInterface, uistackmgr:uistackmgr});
 		var wizardlogic_obj = new WizardLogic({server_interface:serverInterface,
 			storeutil_obj:storeutil_obj, schedutil_obj:schedutil_obj});
+		var userinfo_obj = new UserInfo({server_interface:serverInterface,
+			uistackmgr_type:uistackmgr, op_type:"advance"});
 		var newschedbase_obj = new NewSchedulerBase({
 			server_interface:serverInterface, schedutil_obj:schedutil_obj,
 			uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj, op_type:"advance"});
@@ -81,6 +84,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			// create advanced UI
 			// NOTE: order of obj in info_obj_list determines menuitem order
 			var info_obj_list = [
+				{id:'user_id', info_obj:userinfo_obj},
 				{id:'div_id', info_obj:divinfo_obj},
 				{id:'tourndiv_id', info_obj:tourndivinfo_obj},
 				{id:'field_id', info_obj:fieldinfo_obj},

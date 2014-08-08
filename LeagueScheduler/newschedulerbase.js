@@ -137,7 +137,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.calendarmap_obj = new Object();
 				this.errormgr_obj = new ErrorManager();
 			},
-			initialize: function(op_type) {
+			initialize: function(newgrid_flag, op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : "wizard";
 				form_reg = registry.byId(this.idmgr_obj.form_id);
 				var form_node = form_reg.domNode;

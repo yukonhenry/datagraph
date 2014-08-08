@@ -250,7 +250,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				advanced_cpane.addChild(editddown_btn);
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;
-					if (id == 'div_id' || id == 'tourndiv_id') {
+					if (id == 'user_id') {
+						this.create_menuitem(id, item.info_obj, editddown_menu);
+					} else if (id == 'div_id' || id == 'tourndiv_id') {
 						args_list.push({id:id, info_obj:item.info_obj})
 					} else {
 						this.create_menu(id, item.info_obj, true, editddown_menu);
@@ -266,7 +268,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				// created.
 				var args_obj = {parent_ddown_reg:editddown_menu,
 					args_list:args_list, label_str: "Division Info",
-					menu_index:0}
+					menu_index:1}
 				this.create_divmenu(args_obj);
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
@@ -297,6 +299,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					this.create_menu(item.id, item.info_obj, true, div_ddown_reg,
 						index)
 				}, this)
+			},
+			create_menuitem: function(id, info_obj, ddown_widget) {
+				var menuitem_widget = new MenuItem({
+					label:"Enter User/Org ID",
+					onClick:lang.hitch(this.uistackmgr,
+						this.uistackmgr.check_initialize, info_obj)
+				})
+				ddown_widget.addChild(menuitem_widget);
 			},
 			create_menu: function(id, info_obj, delflag, ddown_reg) {
 				// ADVANCE MENU target

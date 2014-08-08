@@ -25,10 +25,24 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// get advanceid_list before any call to get_idstr_obj
 				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
 					'advance');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id', 'user_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
-				this.pstackmap_list = new Array();
+				var preconfig_list = arrayUtil.map(id_list, function(item) {
+					if (item == 'newsched_id') {
+						return {id:item, p_stage:'preconfig',
+							pane_id:constant.nscpane_id}
+					} else {
+						return {id:item, p_stage:'preconfig',
+							pane_id:this.get_idstr_obj(item).numcpane_id};
+					}
+				}, this)
+				var config_list = arrayUtil.map(id_list, function(item) {
+					return {id:item, p_stage:'config',
+						pane_id:this.get_idstr_obj(item).textbtncpane_id};
+				}, this)
+				this.pstackmap_list = preconfig_list.concat(config_list);
+				/*
 				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
 					pane_id:this.get_idstr_obj('field_id').numcpane_id});
 				this.pstackmap_list.push({id:'field_id', p_stage:'config',
@@ -61,8 +75,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					pane_id:this.get_idstr_obj('conflict_id').numcpane_id});
 				this.pstackmap_list.push({id:'conflict_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('conflict_id').textbtncpane_id});
+				*/
 				// define mapping object for the grid content pane
-				//this.gstackcontainer_reg = registry.byId(constant.gstackcontainer_id);
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
 				// for gstackmap_list, it is best to hardcode than do a loop as
@@ -72,6 +86,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// there is an overall border container
 				this.gstackmap_list = [
 					{id:'newsched_id', pane_id:constant.blankcpane_id},
+					{id:'user_id', pane_id:constant.blankcpane_id},
 					{id:'div_id',
 						pane_id:this.get_idstr_obj('div_id').gridcpane_id},
 					{id:'tourndiv_id',
@@ -472,7 +487,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.get_idstr_obj("div_id").btn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// ad config (number) cpanes for field, div, tourndiv, pref,
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id', 'team_id', 'conflict_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
+					'team_id', 'conflict_id', 'user_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					var idstr_obj = this.get_idstr_obj(idproperty);
 					var id_cpane = new ContentPane({
@@ -552,7 +568,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				put(tmdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(tmdiv_cpane);
-				// add exclusion info cpane and grid div
+				// add conflict info cpane and grid div
 				idstr_obj = this.get_idstr_obj(
 					'conflict_id');
 				var cdiv_cpane = new ContentPane({
