@@ -292,7 +292,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var div_ddown_reg = new DropDownMenu();
 				var div_popup_reg = new PopupMenuItem({
 					label:args_obj.label_str,
-					popup:div_ddown_reg
+					popup:div_ddown_reg,
+					disabled:true,
 				})
 				parent_ddown_reg.addChild(div_popup_reg, args_obj.menu_index);
 				arrayUtil.forEach(args_list, function(item, index) {
@@ -315,7 +316,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var idtop_ddown_reg = new DropDownMenu();
 				var idtop_popup_reg = new PopupMenuItem({
 					label:match_obj.label_str,
-					popup:idtop_ddown_reg
+					popup:idtop_ddown_reg,
+					disabled:true,
 				})
 				ddown_reg.addChild(idtop_popup_reg);
 				// get create new info menu items

@@ -70,29 +70,6 @@ def leaguedivinfo_all():
                     "hostserver":hostserver})
     return callback_name+'('+a+')'
 
-@route('/getalldivschedule')
-def get_alldivSchedule():
-    # http://docs.mongodb.org/manual/tutorial/create-a-unique-index/
-    # and pymango doc http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.ensure_index
-    # http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.create_index
-    # apparently the need to create a unique index is not needed if an upsert (see below) call is made.
-    # div_schedule_col.create_index([('age', ASCENDING),('div_gen',ASCENDING)], unique=True, dropDups=True)
-    callback_name = request.query.callback
-    ldata_divinfo = getLeagueDivInfo().dict_list
-    total_match_list = []
-    for division in ldata_divinfo:
-        nt = division['totalteams']
-        ng = division['totalgamedays']
-        match = MatchGenerator(nt, ng)
-        total_match_list.append({'div_id':division['div_id'], 'match_list':match.generateMatchList(), 'numgames_perteam_list':match.numgames_perteam_list, 'gameslotsperday':match.gameslotsperday})
-    # get list of connected divisions through field constraints
-    #connectedG = json_graph.node_link_graph(ldata['connected_graph'])
-    #connected_div_components = connected_components(connectedG)
-    fieldtimeSchedule = BasicFieldTimeScheduleGenerator(_dbInterface)
-    fieldtimeSchedule.generateSchedule(total_match_list)
-    a = json.dumps({"dbstatus":_dbInterface.getSchedStatus()})
-    return callback_name+'('+a+')'
-
 @route('/exportschedule')
 def exportSchedule():
     callback_name = request.query.callback
@@ -212,13 +189,8 @@ def update_dbcol(db_type, col_name):
 @route('/delete_dbcol/<db_type>/<delcol_name>')
 def delete_dbcol(db_type, delcol_name):
     callback_name = request.query.callback
-    #db_type = request.query.db_type
     dbInterface = select_db_interface(db_type, delcol_name)
-    #rdbInterface = RRDBInterface(mongoClient, delcol_name)
-    #rdbInterface.dbInterface.drop_collection()
     dbInterface.drop_collection();
-    #schedcol_list = tdbInterface.dbInterface.getScheduleCollection()
-    #a = json.dumps({"dbcollection_list":schedcol_list})
     a = json.dumps({'test':'sdg'})
     return callback_name+'('+a+')'
 

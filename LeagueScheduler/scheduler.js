@@ -34,31 +34,37 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var wizardlogic_obj = new WizardLogic({server_interface:serverInterface,
 			storeutil_obj:storeutil_obj, schedutil_obj:schedutil_obj});
 		var userinfo_obj = new UserInfo({server_interface:serverInterface,
-			uistackmgr_type:uistackmgr, op_type:"advance"});
+			uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
+			op_type:"advance"});
 		var newschedbase_obj = new NewSchedulerBase({
 			server_interface:serverInterface, schedutil_obj:schedutil_obj,
-			uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj, op_type:"advance"});
+			uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
+			op_type:"advance", userinfo_obj:userinfo_obj});
 		var divinfo_obj = new divinfo({server_interface:serverInterface,
 			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
-			storeutil_obj:storeutil_obj, op_type:"advance"});
+			storeutil_obj:storeutil_obj, op_type:"advance",
+			userinfo_obj:userinfo_obj});
 		var tourndivinfo_obj = new tourndivinfo({server_interface:serverInterface,
 			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
-			storeutil_obj:storeutil_obj, op_type:"advance"});
+			storeutil_obj:storeutil_obj, op_type:"advance",
+			userinfo_obj:userinfo_obj});
 		var fieldinfo_obj = new FieldInfo({server_interface:serverInterface,
 			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
-			storeutil_obj:storeutil_obj, op_type:"advance"});
-		var preferenceinfo_obj = new PreferenceInfo(
-			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
-				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
-				op_type:"advance"});
-		var teaminfo_obj = new TeamInfo(
-			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
-				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
-				op_type:"advance"});
-		var conflictinfo_obj = new ConflictInfo(
-			{server_interface:serverInterface, schedutil_obj:schedutil_obj,
-				uistackmgr_type:uistackmgr, storeutil_obj:storeutil_obj,
-				op_type:"advance"});
+			storeutil_obj:storeutil_obj, op_type:"advance",
+			userinfo_obj:userinfo_obj});
+		var preferenceinfo_obj = new PreferenceInfo({
+			server_interface:serverInterface,
+			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
+			storeutil_obj:storeutil_obj, op_type:"advance",
+			userinfo_obj:userinfo_obj});
+		var teaminfo_obj = new TeamInfo({server_interface:serverInterface,
+			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
+			storeutil_obj:storeutil_obj, op_type:"advance",
+			userinfo_obj:userinfo_obj});
+		var conflictinfo_obj = new ConflictInfo({server_interface:serverInterface,
+			schedutil_obj:schedutil_obj, uistackmgr_type:uistackmgr,
+			storeutil_obj:storeutil_obj, op_type:"advance",
+			userinfo_obj:userinfo_obj});
 		var leaguediv_func = function(ldata) {
 			var rrdbcollection_list = ldata.rrdbcollection_list;
 			var tourndbcollection_list = ldata.tourndbcollection_list;
@@ -97,13 +103,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 			console.log("load basic info complete");
 		}
 /*
-		var exportSchedule = function(evt) {
-			//dom.byId("status").innerHTML = "";
-	        script.get(constant.SERVER_PREFIX+"exportschedule", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {
-			});
-		}
 		var elimination2013 = function(evt) {
 		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
 	        	jsonp:"callback"

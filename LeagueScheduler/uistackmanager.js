@@ -275,8 +275,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 							// if previous match for idprop was also an init
 							// then just swap into that
 							this.swapactive_pgstackcpane(match_obj);
-							if (new_idproperty != 'newsched_id')
-								// newsched_id does not have reconfig... method
+							if (new_idproperty != 'newsched_id' ||
+								new_idproperty != 'user_id')
+								// newsched_id or user_id does not have reconfig... method
 								info_obj.reconfig_infobtn_fromuistack(match_obj);
 						} else {
 							// else if previous match for idprop was from server
