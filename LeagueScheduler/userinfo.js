@@ -30,7 +30,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     title:"User/Organization",
                     id:"user_cpane",
                     class:"allonehundred",
-                    content:"Begin Scheduling Process by first entering identifier for yourself or organization:<br><br>"
+                    content:"<br>Welcome to the YukonTR League Scheduler:  Please begin scheduling process by entering identifier for yourself or organization:<br><br>"
                 })
                 user_cpane.on("show", function(evt) {
                     console.log("user onshow");
@@ -110,10 +110,22 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             process_check: function(adata, options_obj) {
                 var userid_name = options_obj.userid_name;
                 var result = adata.result;
+                var idconfirm_dialog = null;
                 if (result) {
-
+                    idconfirm_dialog = new ConfirmDialog({
+                        title:"UserID Confirm",
+                        content:"User/Org ID "+userid_name+" exists; Press OK to confirm, Cancel to select different ID"
+                    })
+                    idconfirm_dialog.show();
+                    // positive result value indicates userid exists
                     baseinfoSingleton.set_userid_name(userid_name);
                     this.storeutil_obj.enable_menu(userid_name);
+                } else {
+                    idconfirm_dialog = new ConfirmDialog({
+                        title:"UserID Confirm",
+                        content:"New User/Org ID "+userid_name+"; Press OK to create, Cancel to select different ID"
+                    })
+                    idconfirm_dialog.show();
                 }
             }
         })

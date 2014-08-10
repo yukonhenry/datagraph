@@ -25,7 +25,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     error_msg += "Please recheck configuration"
                 }
                 var error_dialog = new ConfirmDialog({
-                    title: "Error Message", content:"error_msg",
+                    title: "Error Message", content:error_msg,
                 })
                 error_dialog.show();
             }
