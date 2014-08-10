@@ -8,7 +8,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			numweeks:0
 		})
 		var baseinfoSingleton = declare(null, {
-			obj_list:null, watch_obj:null, xlsdownload_path:"",
+			obj_list:null, watch_obj:null, xlsdownload_path:"", userid_name:"",
 			constructor: function() {
 				this.obj_list = new Array();
 				this.watch_list = new Array();
@@ -113,6 +113,12 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			},
 			get_xlsdownload_path: function() {
 				return this.xlsdownload_path;
+			},
+			set_userid_name: function(userid_name) {
+				this.userid_name = userid_name;
+			},
+			get_userid_name: function() {
+				return this.userid_name;
 			}
 		});
 		if (!_instance) {

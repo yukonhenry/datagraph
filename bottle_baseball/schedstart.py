@@ -1,8 +1,6 @@
 #!/usr/local/bin/python2.7
 # Copyright YukonTR 2013
 from bottle import route, request, run
-#ref http://simplejson.readthedocs.org/en/latest/
-import simplejson as json
 import sys, socket
 import time
 import logging
@@ -13,7 +11,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     now = time.strftime("%c")
     logging.debug("Current time is %s",now)
-    logging.debug("Version: 0.0.0.7r")
+    logging.debug("Version: 0.0.0.7x")
     if socket.gethostname() == 'web380.webfaction.com':
         run(port = 31032, server = 'cherrypy')
     else:

@@ -29,10 +29,11 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 						for (var key in suffix_obj) {
 							if (op_type == "advance" && (key=="text_id" ||
 								key=="btn_id" || key=="textbtncpane_id") &&
-								id != "newsched_id") {
-								// for advanced UI, and if idprop is not
-								// newsched_id there is only one set of
-								// textbtn nodes across all of the idproperties
+								(id != "newsched_id" && id != "user_id")) {
+								// for advanced UI, and if idprop is neither
+								// newsched_id nor user_id, there is only one
+								// set of textbtncpane, text, and btn nodes across
+								// all of the idproperties
 								idstr_obj[key] = op_prefix+'_'+suffix_obj[key]
 							} else {
 								idstr_obj[key] = op_prefix+id_prefix+'_'+

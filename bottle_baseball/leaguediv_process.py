@@ -10,13 +10,12 @@ from networkx import connected_components
 from matchgenerator import MatchGenerator
 from basicfieldtimescheduler import BasicFieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface, DB_Col_Type
-from leaguedivprep import getDivisionData, \
-     getFieldInfo, getTournAgeGenderDivision
+from leaguedivprep import getDivisionData, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
 from tournamentscheduler import TournamentScheduler
 from eliminationscheduler import EliminationScheduler
 import logging
-from singletonlite import mongoClient, hostserver
+from singletonlite import mongoClient, hostserver, generic_dbInterface, creation_time
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
@@ -314,6 +313,21 @@ def get_xls(schedcol_name, genxls_id):
     else:
         return_dict = {}
     a = json.dumps(return_dict)
+    return callback_name+'('+a+')'
+
+@route('/get_hostserver')
+def get_hostserver():
+    callback_name = request.query.callback
+    a = json.dumps({"hostserver":hostserver, "creation_time":creation_time})
+    return callback_name+'('+a+')'
+
+@route('/check_user/<userid_name>')
+def check_user(userid_name):
+    callback_name = request.query.callback
+    userdb_list = generic_dbInterface.getScheduleCollection(
+        DB_Col_Type.UserInfo)
+    result = 1 if userid_name in userdb_list else 0
+    a = json.dumps({'result':result})
     return callback_name+'('+a+')'
 
 def select_db_interface(db_type, colname):

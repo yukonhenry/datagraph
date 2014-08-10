@@ -8,7 +8,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		var constant = {
 			// param stack id's
 			dummy_id:"dummy_id",
-			nscpane_id:"newschedcpane_id",
+			//nscpane_id:"newschedcpane_id",
 			// grid stack id's
 			blankcpane_id:"blankcpane_id",
 			// entry_pt id's
@@ -29,13 +29,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				var preconfig_list = arrayUtil.map(id_list, function(item) {
-					if (item == 'newsched_id') {
-						return {id:item, p_stage:'preconfig',
-							pane_id:constant.nscpane_id}
-					} else {
-						return {id:item, p_stage:'preconfig',
-							pane_id:this.get_idstr_obj(item).numcpane_id};
-					}
+					return {id:item, p_stage:'preconfig',
+						pane_id:this.get_idstr_obj(item).numcpane_id};
 				}, this)
 				var config_list = arrayUtil.map(id_list, function(item) {
 					return {id:item, p_stage:'config',
@@ -455,6 +450,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				this.pstackcontainer_reg.addChild(dummy_cpane);
 				// add newscheduler config cpane
+				/*
 				var idstr_obj = this.get_idstr_obj(
 					'newsched_id');
 				var newsched_cpane = new ContentPane({
@@ -465,15 +461,31 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				});
 				newsched_cpane.addChild(newsched_form);
 				this.pstackcontainer_reg.addChild(newsched_cpane)
-				// add newsched config input cpane
+				*/
+				// add newsched and user_id config input cpanes
+				// note there is no buttone, just text id in cpane
+				// for newsched and user_id there is no more config after
+				// preconfig stage
+				var id_list = ['newsched_id', 'user_id']
+				arrayUtil.forEach(id_list, function(idproperty) {
+					var idstr_obj = this.get_idstr_obj(idproperty);
+					var txtbtn_cpane = new ContentPane({
+						id:idstr_obj.textbtncpane_id});
+					put(txtbtn_cpane.containerNode, "span[id=$]",
+						idstr_obj.text_id);
+					put(txtbtn_cpane.containerNode, "br");
+					this.pstackcontainer_reg.addChild(txtbtn_cpane)
+				}, this)
+				/*
 				var newschedtxtbtn_cpane = new ContentPane({
 					id:idstr_obj.textbtncpane_id
 				})
 				put(newschedtxtbtn_cpane.containerNode, "span[id=$]",
 					idstr_obj.text_id)
 				put(newschedtxtbtn_cpane.containerNode, "br");
-				this.pstackcontainer_reg.addChild(newschedtxtbtn_cpane)
-				// add txt + button cpane
+				this.pstackcontainer_reg.addChild(newschedtxtbtn_cpane) */
+				// add generic txt + button cpane for all config cpane's outside
+				// of newsched_id and user_id
 				var txtbtn_cpane = new ContentPane({
 					// Note the idproperty can be any of the infoobj idproperties
 					// as the cpane is all shared (getidstrobj also returns the same
@@ -487,9 +499,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(txtbtn_cpane.containerNode, "button[id=$]",
 					this.get_idstr_obj("div_id").btn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
-				// ad config (number) cpanes for field, div, tourndiv, pref,
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
-					'team_id', 'conflict_id', 'user_id'];
+				// add pre-config cpanes for all id's
+				// Note newsched and user_id don't untilize a numbertextbox
+				// but ok to go ahead and use 'numcpane_id's
+				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
+					'team_id', 'conflict_id', 'newsched_id', 'user_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					var idstr_obj = this.get_idstr_obj(idproperty);
 					var id_cpane = new ContentPane({

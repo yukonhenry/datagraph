@@ -1,90 +1,120 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-    "dojo/keys", "dijit/registry", "dijit/Tooltip", "dijit/form/ValidationTextBox",
-    "dijit/form/Button", "put-selector/put", "LeagueScheduler/baseinfo",
-    "dojo/domReady!"],
-    function(declare, dom, lang, arrayUtil, keys, registry, Tooltip,
-        ValidationTextBox, Button, put, baseinfo) {
+    "dojo/keys", "dijit/registry", "dijit/Tooltip", "dijit/ConfirmDialog",
+    "dijit/form/ValidationTextBox",
+    "dijit/form/Button", "dijit/form/Form", "dijit/form/ValidationTextBox",
+    "dijit/layout/ContentPane", "LeagueScheduler/baseinfoSingleton",
+    "put-selector/put", "dojo/domReady!"],
+    function(declare, dom, lang, arrayUtil, keys, registry, Tooltip, ConfirmDialog,
+        ValidationTextBox, Button, Form, ValidationTextBox, ContentPane,
+        baseinfoSingleton, put) {
         var constant = {
             idproperty_str:'user_id',
             init:"init",
             dbtype_str:'userdb',
             idname_str:"Enter User/Organization ID",
+            form_id:"userform_id",
+            name_id:"username_id",
+            btn_id:"userbtn_id"
         };
-        return declare(baseinfo, {
-            idproperty:constant.idproperty_str,
-            userid_name:"",
+        return declare(null, {
+            idproperty:constant.idproperty_str, keyup_handle:null,
+            server_interface:null, tooltip_list:null,
             constructor: function(args) {
                 lang.mixin(this, args);
+                this.tooltip_list = new Array();
             },
-            is_newgrid_required: function() {
-                return false;
-            },
-            initialize: function(ignore_flag, op_type) {
-                var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
-                var form_id = this.idmgr_obj.form_id;
-                // form_widget is already created create paramstack
-                var form_widget = registry.byId(form_id);
-                var form_node = form_widget.domNode;
-                var btn_id = this.idmgr_obj.btn_id;
-                var idname_id = this.idmgr_obj.idname_id;
-                var idname_widget = null;
-                var idname_node = dom.byId(idname_id);
-                if (!idname_node) {
-                    put(form_node, "label.label_box[for=$]",
-                        idname_id, constant.idname_str);
-                    put(form_node, "span.empty_tinygap");
-                    idname_node = put(form_node,
+            create: function() {
+                // tabcontainer_id defined in index.html
+                var tabcontainer = registry.byId("tabcontainer_id")
+                var user_cpane = new ContentPane({
+                    title:"User/Organization",
+                    id:"user_cpane",
+                    class:"allonehundred",
+                    content:"Begin Scheduling Process by first entering identifier for yourself or organization:<br><br>"
+                })
+                user_cpane.on("show", function(evt) {
+                    console.log("user onshow");
+                    user_cpane.domNode.scrollTop = 0;
+                })
+                user_cpane.on("load", function(evt) {
+                    console.log("user onload");
+                    user_cpane.domNode.scrollTop = 0;
+                })
+                tabcontainer.addChild(user_cpane);
+                var userform_id = constant.form_id;
+                var userform_widget = registry.byId(userform_id)
+                if (!userform_widget) {
+                    // create all elements under the form
+                    userform_widget = new Form({
+                        id:constant.form_id
+                    })
+                    user_cpane.addChild(userform_widget);
+                    var userform_node = userform_widget.domNode;
+                    var username_id = constant.name_id;
+                    put(userform_node, "label.label_box[for=$]",
+                        username_id, "Enter User or Organization ID (alphanumeric, no spaces)");
+                    put(userform_node, "span.empty_tinygap");
+                    var username_node = put(userform_node,
                         "input[id=$][type=text][required=true]",
-                        idname_id)
-                    idname_widget = new ValidationTextBox({
-                        value:'',
+                        username_id)
+                    var username_widget = new ValidationTextBox({
+                        value:'test',
                         regExp:'\\D[\\w]+',
                         style:'width:12em',
                         promptMessage:constant.idname_str + '-start with letter or _, followed by alphanumeric or _',
-                        invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
+                        invalidMessage:'start with letter or _, followed by alphanumeric characters and _, no spaces',
                         missingMessage:constant.idname_str
-                    }, idname_node);
-                    // define tooltip help
-                    var tooltipconfig = {connectId:[idname_id],
+                    }, username_node);
+                    var tooltipconfig = {connectId:[username_id],
                         label:"Specify User/Organization ID and press Enter",
                         position:['below','after']};
                     this.tooltip_list.push(new Tooltip(tooltipconfig));
-                    put(form_node, "span.empty_tinygap");
+                    put(userform_node, "span.empty_tinygap");
                     var args_obj = {
-                        idname_widget:idname_widget,
-                        form_widget:form_widget
+                        userform_widget:userform_widget,
+                        username_widget:username_widget
                     }
-                    var btn_node = put(form_node,
-                        "button.dijitButton[id=$][type=submit]", btn_id);
-                    var btn_widget = new Button({
+                    var userbtn_node = put(userform_node,
+                        "button.dijitButton[id=$][type=submit]", constant.btn_id);
+                    var userbtn_widget = new Button({
                         label:"Submit",
                         disabled:false,
                         class:"success",
                         onClick: lang.hitch(this, this.process_input, args_obj)
-                    }, btn_node);
-                    btn_widget.startup();
+                    }, userbtn_node);
+                    userbtn_widget.startup();
+                    if (this.keyup_handle)
+                        this.keyup_handle.remove();
+                    this.keyup_handle = username_widget.on("keyup", lang.hitch(this, this.process_input, args_obj));
                 } else {
-                    idname_widget = registry.byId(idname_id);
+                    username_widget = registry.byId(username_id);
                 }
-                this.uistackmgr_type.switch_pstackcpane({idproperty:this.idproperty,
-                    p_stage: "preconfig", entry_pt:constant.init});
-                if (this.keyup_handle)
-                    this.keyup_handle.remove();
-                this.keyup_handle = idname_widget.on("keyup", lang.hitch(this, this.process_input, args_obj));
             },
             process_input: function(args_obj, event) {
                 if (event.type == "click" ||
                     (event.type == "keyup" && event.keyCode == keys.ENTER)) {
-                    var form_widget = args_obj.form_widget;
-                    var idname_widget = args_obj.idname_widget;
-                    if (form_widget.validate()) {
+                    var userform_widget = args_obj.userform_widget;
+                    var username_widget = args_obj.username_widget;
+                    if (userform_widget.validate()) {
                         confirm("ID Format is Valid, Creating or Retrieving Entry")
-                        this.userid_name = idname_widget.get("value");
+                        var userid_name = username_widget.get("value");
+                        this.server_interface.getServerData(
+                            'check_user/'+userid_name,
+                            lang.hitch(this, this.process_check),
+                            {userid_name:userid_name});
                     }
+                    if (this.keyup_handle)
+                        this.keyup_handle.remove();
                 }
             },
-            enable_menu: function(adata) {
+            process_check: function(adata, options_obj) {
+                var userid_name = options_obj.userid_name;
+                var result = adata.result;
+                if (result) {
 
+                    baseinfoSingleton.set_userid_name(userid_name);
+                    this.storeutil_obj.enable_menu(userid_name);
+                }
             }
         })
 })

@@ -20,7 +20,6 @@ venue_CONST = 'VENUE'
 age_CONST = 'AGE'
 gen_CONST = 'GEN'
 team_id_CONST = 'TEAM_ID'
-totalgames_CONST = 'TOTALGAMES'
 sched_status_CONST = 'SCHED_STATUS'
 div_id_CONST = 'DIV_ID'
 field_id_list_CONST = 'FIELD_ID_LIST'
@@ -29,7 +28,6 @@ match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
 round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
-doc_list_CONST = 'DOC_LIST'
 config_status_CONST = 'CONFIG_STATUS'
 divstr_colname_CONST = 'DIVSTR_COLNAME'
 divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
@@ -56,6 +54,7 @@ class DB_Col_Type(Enum):
     PreferenceInfo = 5
     TeamInfo = 6
     ConflictInfo = 7
+    UserInfo = 8
 
 class MongoDBInterface:
     def __init__(self, mongoClient, collection_name=None, db_col_type=DB_Col_Type.RoundRobin):

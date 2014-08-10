@@ -21,10 +21,10 @@
     	<script src="../dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
         <script>
-			require(["dbootstrap", "dojo/dom", "LeagueScheduler/scheduler",
-                "dijit/layout/TabContainer", "dojo/domReady!"],
+			require(["dbootstrap", "dojo/dom", "dijit/layout/TabContainer",
+                "LeagueScheduler/scheduler", "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.37m";
+                var version_str = "v1.0.0.38b";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date()
                 greeting_node.innerHTML = version_str;

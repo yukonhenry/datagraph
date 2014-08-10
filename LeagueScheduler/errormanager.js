@@ -1,6 +1,6 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-    "dijit/registry", "put-selector/put", "dojo/domReady!"],
-    function(declare, dom, lang, arrayUtil, registry, put) {
+    "dijit/registry", "dijit/ConfirmDialog", "put-selector/put", "dojo/domReady!"],
+    function(declare, dom, lang, arrayUtil, registry, ConfirmDialog, put) {
         var constant = {
             divconfig_incomplete_mask:0x1,
             fieldconfig_incomplete_mask:0x2,
@@ -13,18 +13,21 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             emit_error: function(error_code) {
                 error_msg = "";
                 if (error_code & constant.divconfig_incomplete_mask) {
-                    error_msg += "Div Config Incomplete;";
+                    error_msg += "Division Configuration Incomplete;";
                 }
                 if (error_code & constant.fieldconfig_incomplete_mask) {
-                    error_msg += "Field Config Incomplete;";
+                    error_msg += "Field Configuration Incomplete;";
                 }
                 if (error_code & constant.prefinfodate_error_mask) {
-                    error_msg += "No Field Avail on Pref Date;";
+                    error_msg += "No Field Available on Preference Date;";
                 }
                 if (error_msg) {
-                    error_msg += "Please recheck config"
+                    error_msg += "Please recheck configuration"
                 }
-                alert(error_msg);
+                var error_dialog = new ConfirmDialog({
+                    title: "Error Message", content:"error_msg",
+                })
+                error_dialog.show();
             }
          })
 })
