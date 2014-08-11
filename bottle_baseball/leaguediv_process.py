@@ -181,7 +181,8 @@ def get_dbcol(userid_name, db_type, getcol_name):
     # save as member of global routelogic object to be used in send_delta function
     _routelogic_obj.dbinterface_map[userid_name] = dbInterface
     if db_type == 'newscheddb':
-        return_obj = {'param_obj':dbInterface.getschedule_param()}
+        return_obj = {'param_obj':dbInterface.getschedule_param(),
+        'sched_status':dbInterface.getsched_status()}
     else:
         dbtuple = dbInterface.readDB();
         info_list = dbtuple.list

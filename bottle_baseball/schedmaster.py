@@ -125,7 +125,7 @@ class SchedMaster(object):
             conflictinfo_list = None
             cdbInterface = None
             #conflictinfo_tuple = None
-        if self.divinfo_tuple.dict_list and prefinfo_triple.dict_list:
+        if self.divinfo_tuple.dict_list and prefinfo_triple and prefinfo_triple.dict_list:
             if not self.consistency_check(prefinfo_triple.dict_list):
                 self._error_code |= PREFINFODATE_ERROR_MASK
         if not self._error_code:

@@ -4,7 +4,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
 	"dijit/Tooltip", "dijit/form/DropDownButton", "dijit/layout/ContentPane",
-	"dijit/form/Textarea",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
 	"LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo",
 	"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
@@ -14,7 +13,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, Observable, Memory,
 		registry, DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
-		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane, Textarea,
+		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane,
 		baseinfoSingleton, WidgetGen, DivInfo, FieldInfo, NewSchedulerBase,
 		PreferenceInfo, TournDivInfo, TeamInfo, ConflictInfo, put) {
 		var constant = {
@@ -295,14 +294,24 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					advanced_cpane.domNode.scrollTop = 0;
 				})
 				tabcontainer.addChild(advanced_cpane)
+				var topdiv_node = advanced_cpane.containerNode;
+				// instead of adding the dropdown btn by cpane.addChild, create
+				// btn on top of node created by put. Do this so that we can place
+				// text verbiage above button about user id.  Tried adding text
+				// with cpane.content but placement disrupts the location of widgets
+				// created within cpane
+				var useridtext_node = put(topdiv_node, "div");
+				useridtext_node.innerHTML = "<p style='font-size:larger'>User/Organization ID: <strong>"+
+					userid_name+"</strong></p>"
+				var editddown_btn_node = put(topdiv_node, "button[id=$][type=button]","editddown_btn_id");
 				var editddown_menu = new DropDownMenu({
 				})
 				var editddown_btn = new DropDownButton({
 					class:"primary editsched",
 					label:"Select Configuration",
 					dropDown:editddown_menu
-				})
-				advanced_cpane.addChild(editddown_btn);
+				}, editddown_btn_node)
+				//advanced_cpane.addChild(editddown_btn);
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;
 					if (id == 'div_id' || id == 'tourndiv_id') {

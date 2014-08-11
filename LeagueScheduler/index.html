@@ -12,7 +12,7 @@
         <!-- see https://github.com/thesociable/dbootstrap/issues/75
         for issues with dojox calendar and dbootstrap; do hard replace from claro in .css files as mentioned in link -->
         <link rel="stylesheet" href="../dojox/calendar/themes/dbootstrap/Calendar.css" />
-        <title>Event Scheduler - Optimization with large number of competing constraints</title>
+        <title>YukonTR Scheduler</title>
     </head>
     <body class="dbootstrap">
         <h1><a href="http://www.yukontr.com/">YukonTR</a> Sports League Scheduler <small id="versiongreeting"></small> </h1>
@@ -24,7 +24,7 @@
 			require(["dbootstrap", "dojo/dom", "dijit/layout/TabContainer",
                 "LeagueScheduler/scheduler", "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.39b";
+                var version_str = "v1.0.0.39j";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date()
                 greeting_node.innerHTML = version_str;

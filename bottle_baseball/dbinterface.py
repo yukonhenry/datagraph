@@ -383,8 +383,8 @@ class MongoDBInterface:
         for fieldday_id in range(1, max_totalfielddays+1):
             res_list = self.collection.aggregate([
                 {"$match":{venue_CONST:{"$in":divfield_list},
-                fieldday_id_CONST:fieldday_id},
-                sched_type_CONST:self.sched_type, USER_ID:self.userid_name},
+                fieldday_id_CONST:fieldday_id,
+                sched_type_CONST:self.sched_type, USER_ID:self.userid_name}},
                 {"$group":{'_id':{'start_time':"$START_TIME", 'venue':"$VENUE"},
                 'data':{"$push":{'home':"$HOME", 'away':"$AWAY",
                 'div_age':"$DIV_AGE", 'div_gen':"$DIV_GEN"}}}},

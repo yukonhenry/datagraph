@@ -22,19 +22,19 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
         return declare(null, {
             idproperty:constant.idproperty_str, keyup_handle:null,
             server_interface:null, tooltip_list:null,
-            userid_name:"",
+            userid_name:"", user_cpane:null, tabcontainer:null,
             constructor: function(args) {
                 lang.mixin(this, args);
                 this.tooltip_list = new Array();
             },
             create: function() {
                 // tabcontainer_id defined in index.html
-                var tabcontainer = registry.byId("tabcontainer_id")
+                this.tabcontainer = registry.byId("tabcontainer_id")
                 var user_cpane = new ContentPane({
                     title:"User/Organization",
-                    id:"user_cpane",
+                    id:"user_cpane_id",
                     class:"allonehundred",
-                    content:"<br>Welcome to the YukonTR League Scheduler:  Please begin scheduling process by entering an identifier for yourself or organization:<br><br>"
+                    content:"<br>Welcome to the YukonTR League Scheduler:  Please begin scheduling process by entering an identifier for yourself or organization.  The identifier will be used to save and later retrieve configurations that you have made.<br><br>"
                 })
                 user_cpane.on("show", function(evt) {
                     console.log("user onshow");
@@ -44,7 +44,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
                     console.log("user onload");
                     user_cpane.domNode.scrollTop = 0;
                 })
-                tabcontainer.addChild(user_cpane);
+                this.tabcontainer.addChild(user_cpane);
+                this.user_cpane = user_cpane;
                 var userform_id = constant.form_id;
                 var userform_widget = registry.byId(userform_id)
                 if (!userform_widget) {
@@ -179,8 +180,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
                 var wizcontainer_cpane = wizardlogic_obj.create();
                 // create advanced pane
                 this.storeutil_obj.init_advanced_UI(this.userid_name);
-                var tabcontainer = registry.byId("tabcontainer_id")
-                tabcontainer.selectChild(wizcontainer_cpane);
+                this.tabcontainer.selectChild(wizcontainer_cpane);
+                this.tabcontainer.removeChild(this.user_cpane);
             }
         })
 })

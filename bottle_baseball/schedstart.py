@@ -11,7 +11,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     now = time.strftime("%c")
     logging.debug("Current time is %s",now)
-    logging.debug("Version: 0.0.0.8u")
+    logging.debug("Version: 0.0.0.8z")
     if socket.gethostname() == 'web380.webfaction.com':
         run(port = 31032, server = 'cherrypy')
     else:

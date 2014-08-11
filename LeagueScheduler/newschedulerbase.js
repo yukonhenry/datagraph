@@ -290,6 +290,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			create_schedconfig: function(adata) {
 				// callback function when newsched config is retrieved from server
+				var sched_status = adata.sched_status;
 				var param_obj = adata.param_obj;
 				var divcol_name = param_obj.divcol_name;
 				var divdb_type = param_obj.divdb_type;
@@ -310,6 +311,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					idproperty:this.idproperty, p_stage:"config",
 					entry_pt:"fromdb"});
 				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
+				// if generated schedule already exists, then retrieve it
+				if (sched_status) {
+					var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
+					var schedstatustxt_node = dom.byId(schedstatustxt_id);
+					this.update_schedstatustxt({dbstatus:1},
+						{node:schedstatustxt_node});
+				}
 			},
 			create_widgets: function(divdb_type, divcol_name, fieldcol_name, prefcol_name, conflictcol_name) {
 				var radio1_id = this.opconstant_obj.radio1_id;
