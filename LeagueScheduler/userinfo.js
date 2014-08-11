@@ -1,12 +1,15 @@
-define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
+define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
     "dojo/keys", "dijit/registry", "dijit/Tooltip", "dijit/ConfirmDialog",
     "dijit/form/ValidationTextBox",
     "dijit/form/Button", "dijit/form/Form", "dijit/form/ValidationTextBox",
     "dijit/layout/ContentPane", "LeagueScheduler/baseinfoSingleton",
+    "LeagueScheduler/uistackmanager", "LeagueScheduler/wizuistackmanager",
+    "LeagueScheduler/wizardlogic",
     "put-selector/put", "dojo/domReady!"],
-    function(declare, dom, lang, arrayUtil, keys, registry, Tooltip, ConfirmDialog,
-        ValidationTextBox, Button, Form, ValidationTextBox, ContentPane,
-        baseinfoSingleton, put) {
+    function(dbootstrap, declare, dom, lang, arrayUtil, keys, registry, Tooltip,
+        ConfirmDialog, ValidationTextBox, Button, Form, ValidationTextBox,
+        ContentPane, baseinfoSingleton, UIStackManager, WizUIStackManager,
+        WizardLogic, put) {
         var constant = {
             idproperty_str:'user_id',
             init:"init",
@@ -19,6 +22,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
         return declare(null, {
             idproperty:constant.idproperty_str, keyup_handle:null,
             server_interface:null, tooltip_list:null,
+            userid_name:"",
             constructor: function(args) {
                 lang.mixin(this, args);
                 this.tooltip_list = new Array();
@@ -30,7 +34,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     title:"User/Organization",
                     id:"user_cpane",
                     class:"allonehundred",
-                    content:"<br>Welcome to the YukonTR League Scheduler:  Please begin scheduling process by entering identifier for yourself or organization:<br><br>"
+                    content:"<br>Welcome to the YukonTR League Scheduler:  Please begin scheduling process by entering an identifier for yourself or organization:<br><br>"
                 })
                 user_cpane.on("show", function(evt) {
                     console.log("user onshow");
@@ -58,7 +62,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         "input[id=$][type=text][required=true]",
                         username_id)
                     var username_widget = new ValidationTextBox({
-                        value:'test',
+                        value:'demo',
                         regExp:'\\D[\\w]+',
                         style:'width:12em',
                         promptMessage:constant.idname_str + '-start with letter or _, followed by alphanumeric or _',
@@ -96,12 +100,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     var userform_widget = args_obj.userform_widget;
                     var username_widget = args_obj.username_widget;
                     if (userform_widget.validate()) {
-                        confirm("ID Format is Valid, Creating or Retrieving Entry")
+                        //confirm("ID Format is Valid, Creating or Retrieving Entry")
                         var userid_name = username_widget.get("value");
                         this.server_interface.getServerData(
                             'check_user/'+userid_name,
                             lang.hitch(this, this.process_check),
-                            {userid_name:userid_name});
+                            null, {userid_name:userid_name});
                     }
                     if (this.keyup_handle)
                         this.keyup_handle.remove();
@@ -114,19 +118,69 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 if (result) {
                     idconfirm_dialog = new ConfirmDialog({
                         title:"UserID Confirm",
-                        content:"User/Org ID "+userid_name+" exists; Press OK to confirm, Cancel to select different ID"
+                        content:"User/Org ID: <strong>"+userid_name+"</strong> exists<br> Press OK to confirm, Cancel to select different ID",
+                        onExecute: lang.hitch(this, this.user_confirm, userid_name)
                     })
                     idconfirm_dialog.show();
                     // positive result value indicates userid exists
-                    baseinfoSingleton.set_userid_name(userid_name);
-                    this.storeutil_obj.enable_menu(userid_name);
                 } else {
                     idconfirm_dialog = new ConfirmDialog({
                         title:"UserID Confirm",
-                        content:"New User/Org ID "+userid_name+"; Press OK to create, Cancel to select different ID"
+                        content:"New User/Org ID: <strong>"+userid_name+"</strong><br>Press OK to create, Cancel to select different ID",
+                        //onExecute: lang.hitch(this, this.create_userid, userid_name)
+                        onExecute: lang.hitch(this, function(event) {
+                            this.server_interface.getServerData(
+                                'create_user/'+userid_name,
+                                lang.hitch(this, this.create_user_callback), null,
+                                {userid_name:userid_name});
+                        })
                     })
                     idconfirm_dialog.show();
                 }
+            },
+            create_user_callback: function(adata, options_obj) {
+                // callback func for create_user to server
+                this.user_confirm(options_obj.userid_name);
+            },
+            user_confirm: function(userid_name) {
+                // assign to member var userid_name, only after confirmed by user
+                // and created in server
+                // since userid is used by many other objects, store in
+                // baseinfoSingleton, though it will be passed to all of the info
+                // objects
+                baseinfoSingleton.set_userid_name(userid_name);
+                this.userid_name = userid_name;
+                //
+                this.server_interface.getServerData('get_dbcollection/'+userid_name,
+                    lang.hitch(this, this.dbcollection_callback));
+            },
+            dbcollection_callback: function(adata) {
+                var dbcollection_list = [
+                    {db_type:'rrdb', db_list:adata.rrdbcollection_list},
+                    {db_type:'tourndb', db_list:adata.tourndbcollection_list},
+                    {db_type:'fielddb', db_list:adata.fielddb_list},
+                    {db_type:'newscheddb', db_list:adata.newscheddb_list},
+                    {db_type:'prefdb', db_list:adata.prefdb_list},
+                    {db_type:'teamdb', db_list:adata.teamdb_list},
+                    {db_type:'conflictdb', db_list:adata.conflictdb_list}];
+                // store initial data returned from server
+                this.storeutil_obj.store_init_dbcollection(dbcollection_list)
+                // create advanced and wiz ui stackmanagers
+                var uistackmgr = new UIStackManager();
+                this.storeutil_obj.uistackmgr = uistackmgr;
+                var wizuistackmgr = new WizUIStackManager();
+                this.storeutil_obj.wizuistackmgr = wizuistackmgr;
+                var wizardlogic_obj = new WizardLogic({
+                    server_interface:this.server_interface,
+                    storeutil_obj:this.storeutil_obj,
+                    schedutil_obj:this.schedutil_obj,
+                    wizuistackmgr:wizuistackmgr,
+                    userid_name:this.userid_name});
+                var wizcontainer_cpane = wizardlogic_obj.create();
+                // create advanced pane
+                this.storeutil_obj.init_advanced_UI(this.userid_name);
+                var tabcontainer = registry.byId("tabcontainer_id")
+                tabcontainer.selectChild(wizcontainer_cpane);
             }
         })
 })

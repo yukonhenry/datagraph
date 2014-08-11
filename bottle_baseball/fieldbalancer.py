@@ -1043,41 +1043,6 @@ class FieldBalancer(object):
         return True
         '''
 
-    def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len):
-        ''' shift gameday timeslots '''
-        logging.debug("fbalancer:compaction:shiftGameDayslots isgamelist=%s, field=%d gameday=%d src_begin=%d dst_begin=%d len=%d",
-                      isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len)
-        src_end = src_begin + shift_len
-        dst_end = dst_begin + shift_len
-        for i,j in zip(range(src_begin, src_end), range(dst_begin, dst_end)):
-            srcslot = fieldstatus_round[i]
-            dstslot = fieldstatus_round[j]
-            if srcslot['isgame']:
-                # if a game exists, shift to new time slot, and update db doc entry
-                dstslot['isgame'] = srcslot['isgame']
-                # if dstslot has a game (True field), then write to db
-                self.dbinterface.updateGameTime(field_id, fieldday_id,
-                    srcslot['start_time'].strftime(time_format_CONST),
-                    dstslot['start_time'].strftime(time_format_CONST))
-            else:
-                try:
-                    nextTrue_ind = isgame_list[i:].index(True)
-                except ValueError:
-                    logging.error("fbalancer:compact:shiftGameDayslots last game ends at %d", i-1)
-                    for k in range(j, dst_end):
-                        fieldstatus_round[k]['isgame'] = False
-                else:
-                    newsrc_begin = i + nextTrue_ind
-                    # note +1 increment is important below when computing length from difference of indices
-                    newshift_length = dst_end + 1 - newsrc_begin
-                    newdst_begin = j
-                    self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
-                                           src_begin=newsrc_begin, dst_begin=newdst_begin, shift_len=newshift_length)
-                    for k in range(newdst_begin+newshift_length, dst_end):
-                        fieldstatus_round[k]['isgame'] = False
-                finally:
-                    break
-
     def validate_divteam_refcount(self, divref_list, teamref_tuple):
         ''' Validate division reference field distribution list calculation
         against team reference field distribution calculation.  Aggregate of

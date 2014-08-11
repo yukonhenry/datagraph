@@ -52,7 +52,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			schedutil_obj:null, storeutil_obj:null, op_type:"",
 			info_obj:null, idproperty:constant.idproperty_str,
 			seasondates_btn_reg:null, server_key_obj:null,
-			callback:null, text_node_str:"", tooltip:null,
+			text_node_str:"", tooltip:null,
 			start_dtbox:null, end_dtbox:null, sl_spinner:null,
 			seasonstart_handle:null, seasonend_handle:null,
 			seasonlength_handle:null, league_select:null, fg_select:null,
@@ -71,6 +71,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", opconstant_obj:null,
 			pref_select_value:null, conflict_select_value:null, errormgr_obj:null,
+			userid_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -284,7 +285,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getServerDBInfo: function(options_obj) {
 				this.newsched_name = options_obj.item;
 				this.server_interface.getServerData(
-					'get_dbcol/'+constant.db_type+'/'+this.newsched_name,
+					'get_dbcol/'+this.userid_name+'/'+constant.db_type+'/'+this.newsched_name,
 					lang.hitch(this, this.create_schedconfig));
 			},
 			create_schedconfig: function(adata) {
@@ -535,7 +536,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					conflictcol_name:this.conflict_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name};
-				this.server_interface.getServerData("send_generate",
+				this.server_interface.getServerData(
+					"send_generate/"+this.userid_name,
 					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,
 					{node:schedstatustxt_node});
 				// add metadata to local store
@@ -652,7 +654,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var xls_cpane = this.createnewsched_pane(args_obj);
 				var xls_obj = new GenerateXLS({op_type:this.op_type,
 					server_interface:this.server_interface,
-					schedcol_name:this.newsched_name});
+					schedcol_name:this.newsched_name,
+					userid_name:this.userid_name});
 				xls_obj.generate_xlscpane_widgets(xls_cpane);
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
@@ -711,7 +714,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if info is not available in the store, get it from
 						// the server.
 						this.server_interface.getServerData(
-							'get_dbcol/'+db_type+'/'+select_value,
+							'get_dbcol/'+this.userid_name+'/'+db_type+'/'+select_value,
 							lang.hitch(this, this.pipegrid_data), null,
 							{info_obj:info_obj, idproperty:idproperty});
 					}
@@ -750,7 +753,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				} else {
 					// if not in store get from server
 					this.server_interface.getServerData(
-						'get_dbcol/'+db_type+'/'+select_value,
+						'get_dbcol/'+this.userid_name+'/'+db_type+'/'+select_value,
 						lang.hitch(this, this.createdivselect_dropdown), null,
 						{idproperty:idproperty, select_id:select_id});
 				}
@@ -827,6 +830,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var callback_method = this.gridmethod_mapobj[idproperty]
 				// send request to server = note event is the div_id here
 				this.server_interface.getServerData('get_schedule/'+
+					this.userid_name+'/'+
 					this.newsched_name+'/'+idproperty+'/'+event,
 					callback_method,
 					query_obj, {idproperty:idproperty}
@@ -882,6 +886,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						var id = event_data[idproperty];
 						this.setselect_text(event_data, idproperty);
 						this.server_interface.getServerData('get_schedule/'+
+							this.userid_name+'/'+
 							this.newsched_name+'/'+idproperty+'/'+id,
 							callback_method,
 							query_obj, {idproperty:idproperty, event_data:event_data})

@@ -28,12 +28,13 @@ match_id_CONST = 'MATCH_ID'
 comment_CONST = 'COMMENT'
 round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
-config_status_CONST = 'CONFIG_STATUS'
+CONFIG_STATUS = 'CONFIG_STATUS'
 divstr_colname_CONST = 'DIVSTR_COLNAME'
 divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
 fieldday_id_CONST = 'FIELDDAY_ID'
 div_age_CONST = 'DIV_AGE'
 div_gen_CONST = 'DIV_GEN'
+USER_ID = 'USER_ID'
 
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
@@ -57,19 +58,22 @@ class DB_Col_Type(Enum):
     UserInfo = 8
 
 class MongoDBInterface:
-    def __init__(self, mongoClient, collection_name=None, db_col_type=DB_Col_Type.RoundRobin):
+    def __init__(self, mongoClient, userid_name=None, collection_name=None,
+        db_col_type=DB_Col_Type.RoundRobin):
         # default db name is schedule_db
         self.schedule_db = mongoClient.schedule_db
-        if collection_name:
+        if collection_name and userid_name:
             self.collection = self.schedule_db[collection_name]
+            self.userid_name = userid_name
             # fyi sched_type with str(db_col_type) is important as without str
             # encapsulation there is a runtime encode error
             self.sched_type = str(db_col_type)
             if not self.collection.find_one({sched_status_CONST:{"$exists":True},
-                sched_type_CONST:self.sched_type}):
-                self.collection.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type})
+                sched_type_CONST:self.sched_type, USER_ID:userid_name}):
+                self.collection.insert({sched_status_CONST:0, sched_type_CONST:self.sched_type, USER_ID:userid_name})
 
     def insertdoc(self, document):
+        document.update({'SCHED_TYPE':self.sched_type, USER_ID:self.userid_name})
         docID = self.collection.insert(document)
         return docID
 
@@ -79,7 +83,7 @@ class MongoDBInterface:
         http://www.developingandstuff.com/2013/12/modify-element-of-array-in-mongodb.html
         ensure we are only adding to the same exact sched_type
         '''
-        query_obj.update({'SCHED_TYPE':self.sched_type})
+        query_obj.update({'SCHED_TYPE':self.sched_type, USER_ID:self.userid_name})
         result_obj = self.collection.update(query_obj, {operator:operator_obj},
             upsert=upsert_flag)
         if 'writeConcernError' in result_obj:
@@ -96,6 +100,7 @@ class MongoDBInterface:
         # To make the test a correct one, append with .count() statement to make
         # sure the cursor result contains an element
         if self.collection.find({"SCHED_TYPE":self.sched_type,
+            USER_ID:self.userid_name,
             key:{"$exists":True}}, {key:1}).limit(1).count() > 0:
             return True
         else:
@@ -128,35 +133,36 @@ class MongoDBInterface:
         # doc for each div_id, instead of putting it all as subdocuments under
         # DOC_LIST
         self.collection.update({sched_type_CONST:self.sched_type,
-            sched_status_CONST:{"$exists":True}},
-            {"$set": {config_status_CONST:config_status}}, upsert=True)
+            sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
+            {"$set": {CONFIG_STATUS:config_status}}, upsert=True)
         for doc in doc_list:
             # put fieldinfo in separate mongo documents
             # each doc should have a sched_type field
             doc[sched_type_CONST] = self.sched_type
+            doc[USER_ID] = self.userid_name
             self.collection.update({sched_type_CONST:self.sched_type,
-                id_str:doc[id_str]}, doc, upsert=True)
+                id_str:doc[id_str], USER_ID:self.userid_name}, doc, upsert=True)
 
 
     def updateSchedType_doc(self, updatedoc):
-        result_obj = self.collection.update({sched_type_CONST:self.sched_type},
-                                      {"$set": updatedoc},
-                                      upsert=True)
+        result_obj = self.collection.update({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name}, {"$set": updatedoc}, upsert=True)
 
     def updateInfoPlusDocument(self, doc_list, config_status, divstr_colname, divstr_db_type, id_str):
         # going to flatten doc structure for fields - do away with doc_list top
         # level structure; put divstr information into main status doc
         self.collection.update({sched_type_CONST:self.sched_type,
-            sched_status_CONST:{"$exists":True}},
-            {"$set": {config_status_CONST:config_status,
+            sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
+            {"$set": {CONFIG_STATUS:config_status,
             divstr_colname_CONST:divstr_colname,
             divstr_db_type_CONST:divstr_db_type}}, upsert=True)
         for doc in doc_list:
             # put fieldinfo in separate mongo documents
             # each doc should have a sched_type field
             doc[sched_type_CONST] = self.sched_type
+            doc[USER_ID] = self.userid_name
             self.collection.update({sched_type_CONST:self.sched_type,
-                id_str:doc[id_str]}, doc, upsert=True)
+                id_str:doc[id_str], USER_ID:self.userid_name}, doc, upsert=True)
 
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,
@@ -212,7 +218,8 @@ class MongoDBInterface:
             {"$sort":{'_id.GAME_DATE':1, '_id.START_TIME':1}}])
         '''
         result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
-            div_gen_CONST:gender}},
+            div_gen_CONST:gender, sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name}},
             {"$group":{'_id':{'GAME_DATE_ORD':"$GAME_DATE_ORD",
             'START_TIME':"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE"}}}},
             {"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
@@ -298,6 +305,7 @@ class MongoDBInterface:
     def getteam_schedule(self, team_id, div_age, div_gen):
         team_game_curs = self.collection.find(
             {div_age_CONST:div_age, div_gen_CONST:div_gen,
+            sched_type_CONST:self.sched_type, USER_ID:self.userid_name,
             "$or":[{home_CONST:team_id},{away_CONST:team_id}]},
             {'_id':0, div_age_CONST:0, div_gen_CONST:0})
         team_game_curs.sort([('GAME_DATE_ORD',1),(start_time_CONST,1)])
@@ -330,7 +338,8 @@ class MongoDBInterface:
         # (ordinal of game date) instead of the datetime representation
         # game_date itself.  Sort order does not work when two datetime
         # variables are used for the sort
-        field_game_curs = self.collection.find({venue_CONST:venue_id},
+        field_game_curs = self.collection.find({venue_CONST:venue_id,
+            sched_type_CONST:self.sched_type, USER_ID:self.userid_name},
             {'_id':0, venue_CONST:0})
         field_game_curs.sort([('GAME_DATE_ORD',1),(start_time_CONST,1)])
         field_game_list = []
@@ -359,7 +368,7 @@ class MongoDBInterface:
                 field_game_list.append({gameday_id_CONST:field_game[gameday_id_CONST], start_time_CONST:field_game[start_time_CONST], age_CONST:field_game[age_CONST], gen_CONST:field_game[gen_CONST], home_CONST:field_game[home_CONST], away_CONST:field_game[away_CONST], match_id_CONST:field_game[match_id_CONST], round_CONST:field_game[round_CONST]})
         return field_game_list
 
-    def getimeslot_metrics(self, div_age, div_gen, divfield_list, fieldinfo_tuple):
+    def gettimeslot_metrics(self, div_age, div_gen, divfield_list, fieldinfo_tuple):
         ''' find number of earlies/latest slots for each team
         '''
         fieldinfo_list = fieldinfo_tuple.dict_list
@@ -374,7 +383,8 @@ class MongoDBInterface:
         for fieldday_id in range(1, max_totalfielddays+1):
             res_list = self.collection.aggregate([
                 {"$match":{venue_CONST:{"$in":divfield_list},
-                fieldday_id_CONST:fieldday_id}},
+                fieldday_id_CONST:fieldday_id},
+                sched_type_CONST:self.sched_type, USER_ID:self.userid_name},
                 {"$group":{'_id':{'start_time':"$START_TIME", 'venue':"$VENUE"},
                 'data':{"$push":{'home':"$HOME", 'away':"$AWAY",
                 'div_age':"$DIV_AGE", 'div_gen':"$DIV_GEN"}}}},
@@ -499,7 +509,7 @@ class MongoDBInterface:
         logging.debug("dbinterface:getfairness_metrics: age %s gen %s",div_age, div_gen)
         totalteams = divinfo['totalteams']
         divfield_list = divinfo['divfield_list']
-        ELcounter_tuple = self.getimeslot_metrics(div_age, div_gen, divfield_list,
+        ELcounter_tuple = self.gettimeslot_metrics(div_age, div_gen, divfield_list,
             fieldinfo_tuple)
         earliest_counter_dict = ELcounter_tuple.earliest
         latest_counter_dict = ELcounter_tuple.latest
@@ -509,10 +519,12 @@ class MongoDBInterface:
         for team_id in range(1, totalteams+1):
             games_total = self.collection.find(
                 {div_age_CONST:div_age, div_gen_CONST:div_gen,
+                sched_type_CONST:self.sched_type, USER_ID:self.userid_name,
                 "$or":[{home_CONST:team_id},{away_CONST:team_id}]
                 }).count()
             homegames_total = self.collection.find(
                 {div_age_CONST:div_age, div_gen_CONST:div_gen,
+                sched_type_CONST:self.sched_type, USER_ID:self.userid_name,
                 home_CONST:team_id}).count()
             homegames_ratio = float(homegames_total)/float(games_total)
             field_count_list = []
@@ -520,7 +532,8 @@ class MongoDBInterface:
                 #field_name = fieldinfo_list[fieldinfo_indexerGet(field_id)]
                 field_count = self.collection.find(
                     {div_age_CONST:div_age, div_gen_CONST:div_gen,
-                    venue_CONST:field_id,
+                    venue_CONST:field_id, sched_type_CONST:self.sched_type,
+                    USER_ID:self.userid_name,
                     "$or":[{home_CONST:team_id},{away_CONST:team_id}]
                     }).count()
                 field_count_list.append({'field_id':field_id,
@@ -539,27 +552,45 @@ class MongoDBInterface:
             self.collection.remove({gameday_id_CONST:gameday_id})
         else:
           self.collection.remove({gameday_id_CONST:{"$exists":True}})
-        self.resetSchedStatus_col()
+        # reset status
+        self.setSchedStatus_col(0)
 
     def dropgame_docs(self):
-        # new version - remove documents only have to do with game data
-        self.collection.remove({game_date_CONST:{"$exists":True}})
-        self.resetSchedStatus_col()
+        '''new version - remove documents only have to do with game schedule
+        data '''
+        self.collection.remove({game_date_CONST:{"$exists":True},
+            sched_type_CONST:self.sched_type, USER_ID:self.userid_name})
+        # reset status
+        self.setSchedStatus_col(0)
 
-    def resetSchedStatus_col(self):
-        # add upsert as when resetSchedStatus is called by dropGameCollection, games collection was just wiped out.
-        self.collection.update({sched_status_CONST:{"$exists":True}},
-            {"$set":{sched_status_CONST:0, sched_type_CONST:self.sched_type}},
-            upsert=True)
-
-    def setSchedStatus_col(self):
-        self.collection.update({sched_status_CONST:{"$exists":True}},
-                              {"$set":{sched_status_CONST:1, sched_type_CONST:self.sched_type}})
+    def setSchedStatus_col(self, value):
+        self.collection.update({sched_status_CONST:{"$exists":True},
+            sched_type_CONST:self.sched_type, USER_ID:self.userid_name},
+            {"$set":{sched_status_CONST:value}})
 
     def getSchedStatus(self):
-        return self.collection.find_one({sched_status_CONST:{"$exists":True}})[sched_status_CONST]
+        return self.collection.find_one({sched_status_CONST:{"$exists":True},
+            sched_type_CONST:self.sched_type, USER_ID:self.userid_name})[sched_status_CONST]
 
-    def getScheduleCollection(self, db_col_type):
+    def getScheduleCollection(self, db_col_type, userid_name):
+        # ref http://api.mongodb.org/python/current/api/pymongo/database.html
+        # make sure python version >= 2.7 for include_system_collections
+        # note that only instance of the dbname is present in the returned list if
+        # db_col_type_list includes multiple entries and the same db name exists
+        # corresponding to the multiple db_col_types (see use of 'any' below)
+        rawsc_list = self.schedule_db.collection_names(include_system_collections=False)
+        # first find list of collections that satisfy the existence of config_status,
+        # and matches user_id and sched_type
+        sc_list = [x for x in rawsc_list if self.schedule_db[x].find_one({
+            sched_type_CONST:str(db_col_type), CONFIG_STATUS:{"$exists":True},
+            'USER_ID':userid_name})]
+        # technically possible to do in one messy list comprehension, but break out
+        # extracting config_status into the below list comprehension.
+        sc_config_list = [{'name':x, 'config_status':self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), CONFIG_STATUS:{"$exists":True},
+            'USER_ID':userid_name})[CONFIG_STATUS]} for x in sc_list]
+        return sc_config_list
+
+    def getUserCollection(self):
         # ref http://api.mongodb.org/python/current/api/pymongo/database.html
         # make sure python version >= 2.7 for include_system_collections
         # note that only instance of the dbname is present in the returned list if
@@ -567,9 +598,9 @@ class MongoDBInterface:
         # corresponding to the multiple db_col_types (see use of 'any' below)
         rawsc_list = self.schedule_db.collection_names(include_system_collections=False)
         # check for size of collection because if size is one, it only includes the SCHED_STATUS doc
-        sc_list = [x for x in rawsc_list if self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), config_status_CONST:{"$exists":True}})]
-        sc_config_list = [{'name':x, 'config_status':self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), config_status_CONST:{"$exists":True}})[config_status_CONST]} for x in sc_list]
-        return sc_config_list
+        sc_list = [x for x in rawsc_list if self.schedule_db[x].find_one({
+            sched_type_CONST:str(DB_Col_Type.UserInfo)})]
+        return sc_list
 
     def getCupScheduleCollections(self):
         sc_list = self.schedule_db.collection_names(include_system_collections=False)
@@ -580,10 +611,11 @@ class MongoDBInterface:
 
     def getInfoDocument(self, id_str):
         result = self.collection.find_one({sched_type_CONST:self.sched_type,
-            sched_status_CONST:{"$exists":True}}, {'_id':0})
-        config_status = result[config_status_CONST]
+            sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
+            {'_id':0})
+        config_status = result[CONFIG_STATUS]
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
-            id_str:{"$exists":True}}, {'_id':0})
+            id_str:{"$exists":True}, USER_ID:self.userid_name}, {'_id':0})
         # convert cursor to list
         info_list = list(info_curs)
         return _List_Status(info_list, config_status)
@@ -592,20 +624,30 @@ class MongoDBInterface:
         # similar to getInfoDocument, but also get divstr info in db and return
         # as separate parameters
         result = self.collection.find_one({sched_type_CONST:self.sched_type,
-            sched_status_CONST:{"$exists":True}}, {'_id':0})
-        config_status = result[config_status_CONST]
+            sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
+            {'_id':0})
+        config_status = result[CONFIG_STATUS]
         divstr_colname = result[divstr_colname_CONST]
         divstr_db_type = result[divstr_db_type_CONST]
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
-            id_str:{"$exists":True}}, {'_id':0})
+            id_str:{"$exists":True}, USER_ID:self.userid_name}, {'_id':0})
         # convert cursor to list
         info_list = list(info_curs)
         return _PlusList_Status(info_list, config_status, divstr_colname,
                             divstr_db_type)
 
+    def getDocuments(self, query_obj):
+        query_obj.update({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name})
+        doc_curs = self.collection.find(query_obj, {'_id':0})
+        doc_list = list(doc_curs)
+        return doc_list
+
     def getSchedType_doc(self):
-        result = self.collection.find_one({sched_type_CONST:self.sched_type},
-            {'_id':0, sched_type_CONST:0})
+        # get schedule type - don't have to return sched_type, user, or config_status
+        result = self.collection.find_one({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name},
+            {'_id':0, sched_type_CONST:0, USER_ID:0, CONFIG_STATUS:0})
         return result
 
     def getFieldInfo(self):
@@ -617,6 +659,8 @@ class MongoDBInterface:
         return _List_Indexer(fieldinfo_list, f_indexerGet)
 
     def drop_collection(self):
-        query_obj = {"SCHED_TYPE":self.sched_type}
+        query_obj = {"SCHED_TYPE":self.sched_type, USER_ID:self.userid_name}
         self.collection.remove(query_obj)
-        #self.collection.drop()
+        # if no documents are left, then actually drop collection
+        if not self.collection.find().limit(1).count():
+            self.collection.drop()

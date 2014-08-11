@@ -18,10 +18,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
 			divselect_id:'wizdivselect_id', init_db_type:"rrdb",
+			top_cpane_id:'wiztop_cpane_id'
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
 			schedutil_obj:null, wizardid_list:null, wizuistackmgr:null,
+			userid_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
@@ -32,17 +34,17 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//wizard documentation:
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
-				var wizuistackmgr = new WizUIStackManager();
-				this.wizuistackmgr = wizuistackmgr;
-				this.storeutil_obj.wizuistackmgr = wizuistackmgr;
+				//var wizuistackmgr = new WizUIStackManager();
+				//this.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
-				var container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:"wiztop_cpane_id"});
+				var container_cpane = registry.byId(constant.top_cpane_id);
+				if (container_cpane) {
+					container_cpane.resize();
+					return
+				}
+				container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:constant.top_cpane_id});
 				container_cpane.on("show", lang.hitch(this, function(evt) {
 					console.log("Wizard onshow");
-					/*
-					if (this.uistackmgr && this.uistackmgr.current_grid) {
-						this.uistackmgr.current_grid.resize();
-					} */
 					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
 						this.wizuistackmgr.current_grid.resize();
 					}
@@ -63,7 +65,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 
 				//--------------------//
 				// Create informational starting pane
-				var content_str = "Welcome to the YukonTR League Scheduler.  The main purpose of this scheduler is to not only generate schedules for large leagues, but to also accomodate constraints and/or preferences with scheduling.<br><br>To take maximum advantage use of the tool, make sure you understand what you are trying to accomplish through your scheduling efforts.  In addition, division and field data about your League will need to be entered:<br><br>This wizard will take you through six steps of configuration before you generate your schedule:<ul><li><strong>Division Information</strong> - Number of Teams, how many games they play in a season, length of season, length of games, and how often they play</li><br><li><strong>Field Information</strong> - Field labels, which divisions play on the field, availability of fields (date and times).  There is an optional separate calendar UI to enter exceptions and special restrictions on availability - for example temporary field closures or one-time availability of fields</li><br><li><strong>Team Information</strong> - (Optional) For each team, assign team name and also any fields that are designated as home field(s) for that team (both assignments are optional)</li><br><li><strong>Preference Information</strong> - (Optional) If any team has time preferences on when games should be scheduled, the scheduler will attempt to meet those requests.  Configured priorities will guide the scheduler in how aggressively it will disrupt the fairness of the schedule to meet the preference.</li><br><li><strong>Team Conflict Information</strong> - (Optional) If any two teams are recognized to have time conflicts throughout the season (for example coaches coaching multiple teams), the conflicting teams can be specified so that the scheduler attempts to avoid scheduling matches at the same time.  As an administrator, you will need to assign priorities to each confict specification.</li><br><li><strong>Schedule Generation</strong> - In the final step, choose the configured division/field/preference lists that are needed to generate the Schedule.  Generation is done with a single button press; Results are generated under additional tabs that are created.  Both web-based and hardcopy (.xls) output of the schedules are supported.</li></ul><br><b>Begin</b> by pressing 'Next Configuration' button in the bottom-right of the Pane"
+				var content_str = "User/Organization ID: <strong>"+this.userid_name+"</strong><br>";
+				content_str += "Welcome to the YukonTR League Scheduler.  The main purpose of this scheduler is to not only generate schedules for large leagues, but to also accomodate constraints and/or preferences with scheduling.<br><br>To take maximum advantage use of the tool, make sure you understand what you are trying to accomplish through your scheduling efforts.  In addition, division and field data about your League will need to be entered:<br><br>This wizard will take you through six steps of configuration before you generate your schedule:<ul><li><strong>Division Information</strong> - Number of Teams, how many games they play in a season, length of season, length of games, and how often they play</li><br><li><strong>Field Information</strong> - Field labels, which divisions play on the field, availability of fields (date and times).  There is an optional separate calendar UI to enter exceptions and special restrictions on availability - for example temporary field closures or one-time availability of fields</li><br><li><strong>Team Information</strong> - (Optional) For each team, assign team name and also any fields that are designated as home field(s) for that team (both assignments are optional)</li><br><li><strong>Preference Information</strong> - (Optional) If any team has time preferences on when games should be scheduled, the scheduler will attempt to meet those requests.  Configured priorities will guide the scheduler in how aggressively it will disrupt the fairness of the schedule to meet the preference.</li><br><li><strong>Team Conflict Information</strong> - (Optional) If any two teams are recognized to have time conflicts throughout the season (for example coaches coaching multiple teams), the conflicting teams can be specified so that the scheduler attempts to avoid scheduling matches at the same time.  As an administrator, you will need to assign priorities to each confict specification.</li><br><li><strong>Schedule Generation</strong> - In the final step, choose the configured division/field/preference lists that are needed to generate the Schedule.  Generation is done with a single button press; Results are generated under additional tabs that are created.  Both web-based and hardcopy (.xls) output of the schedules are supported.</li></ul><br><b>Begin</b> by pressing 'Next Configuration' button in the bottom-right of the Pane"
 				var intro_wpane = new WizardPane({
 					content:content_str,
 					//class:'allonehundred'
@@ -71,9 +74,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				wizard_reg.addChild(intro_wpane);
 				//---------------------//
-				//-----ID Entry --------//
-				var topdiv_node = put("div");
-				topdiv_node.innerHTML = "<i>Please Enter an identifier that will uniquely identify you or your organization.</i><br><br>"
 				// --- DIVISION INFO-----//
 				var topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
@@ -92,7 +92,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					'div_id_type_select');
 				var divinfo_obj = new divinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				var menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
@@ -100,7 +100,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var gcontainerdiv_node = put(topdiv_node, "div")
 				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
 					gcontainerdiv_node);
-				//this.wizuistackmgr.initstacks('div_id');
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
 					//class:'allauto'
@@ -118,7 +117,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
@@ -153,7 +152,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//var ddbtn_node = put(topdiv_node, "button[type=button]");
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				/*
 				this.storeutil_obj.create_dropdown_menu(ddmenu_widget,
@@ -183,7 +182,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
 				var prefinfo_obj = new preferenceinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
@@ -208,7 +207,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Specify any requests for avoiding time conflicts between teams.  Example use cases may include coaches coaching multiple teams, a coach that coaches one team and plays on another, or trying to ease the burden for certain parents that have many children playing the league.  The league administrator can try to accomodate these requests by specifying these conflicts.  However, priorities must be assigned to each of the specified conflicts.  As with the Preference feature in the previous pane, avoiding the time conflicts is a best-effort feature and results are not guaranteed.  Raising the priority level increases probability that the time conflict will be avoid, but the administrator also needs to be cognizant that fairness for other teams could be compromised depending on the prioritiy level assigned.</i><br><br>";
 				var conflictinfo_obj = new conflictinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('conflict_id', conflictinfo_obj, true, menubar_node);
@@ -233,7 +232,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Select Parameters - Divsion List (required), Field List (required), and Preference List (optional) and name the Schedule.  After the parameters are selected using the dropdown element, press the 'Generate' button.  Additional tabs will be created after the schedule is generated, each with a different view into the schedule - by division, by team, by field.  Fairness metrics are also displayed in a separate tab.</i><br><br>";
 				var newschedinfo_obj = new newschedulerbase({
 					server_interface:this.server_interface,
-					uistackmgr_type:wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('newsched_id', newschedinfo_obj, true, menubar_node);
@@ -262,6 +261,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				put(container_cpane.domNode, "div.style_none#divisionInfoInputGridErrorNode")
 				this.uistackmgr.create_grid_stack(container_cpane);
 				*/
+				return container_cpane;
 			},
 			radio1_callback: function(select_id, event) {
 

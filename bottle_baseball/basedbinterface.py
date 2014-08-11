@@ -12,8 +12,9 @@ _PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_col
 
 class BaseDBInterface:
     ''' Base info-level dbinterface class '''
-    def __init__(self, mongoClient, newcol_name, db_col_type, capid_str):
-        self.dbinterface = MongoDBInterface(mongoClient, newcol_name,
+    def __init__(self, mongoClient, userid_name, newcol_name, db_col_type,
+        capid_str):
+        self.dbinterface = MongoDBInterface(mongoClient, userid_name, newcol_name,
             db_col_type)
         # capid_str is the idprop, but named to remember that it is upper case
         self.capid_str = capid_str
@@ -34,6 +35,7 @@ class BaseDBInterface:
         divstr_db_type = liststatus_qtuple.divstr_db_type
         for raw in rawlist:
             del raw['SCHED_TYPE']
+            del raw['USER_ID']
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
         # switch key to lower case for transfer to client
         info_list = [{k.lower():v for k,v in x.items()} for x in rawlist]

@@ -4,8 +4,8 @@ from dbinterface import DB_Col_Type
 from basedbinterface import BaseDBInterface
 
 class ConflictDBInterface(BaseDBInterface):
-    def __init__(self, mongoClient, newcol_name):
-        BaseDBInterface.__init__(self, mongoClient, newcol_name,
+    def __init__(self, mongoClient, userid_name, newcol_name):
+        BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
             DB_Col_Type.ConflictInfo, 'CONFLICT_ID')
 
     def addconflict_prefcount(self, conflict_id, count):

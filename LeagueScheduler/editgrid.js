@@ -22,6 +22,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			idproperty:null,
 			cellselect_flag:false, cellselect_handle:null, refresh_handle:null,
 			info_obj:null, uistackmgr_type:null, storeutil_obj:null, db_type:null,
+			userid_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 			},
@@ -122,8 +123,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			},
 			editschedInfoGrid: function(event) {
 				var val = event.value;
-        		console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
-        			'col='+event.cell.column.field);
+        		//console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
+        		//	'col='+event.cell.column.field);
         		if (this.idproperty == 'div_id') {
         			if (event.cell.column.id == 'numgdaysperweek') {
         				// enable single shot writes to mingap and maxgap columns
@@ -184,7 +185,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				//server_key_obj.db_type = this.db_type;
 				//var options_obj = {item:this.colname};  // is this needed?
 				this.server_interface.getServerData(
-					constant.createserver_path+this.db_type+'/'+this.colname,
+					constant.createserver_path+this.userid_name+'/'+this.db_type+'/'+this.colname,
 					this.server_interface.server_ack, server_key_obj);
 				// add to select db store (for dropdowns)
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);

@@ -240,8 +240,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         // not in local divinfo store, so get from server
                         // db_type is a divstr_db_type - which means it should always
                         // be rrdb or tourndb
+                        var userid_name = baseinfoSingleton.get_userid_name();
                         this.server_interface.getServerData(
-                            'get_dbcol/'+db_type+'/'+colname,
+                            'get_dbcol/'+userid_name+'/'+db_type+'/'+colname,
                             lang.hitch(this, this.create_divstr_list), null,
                             options_obj);
                     }

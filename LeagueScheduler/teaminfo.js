@@ -105,7 +105,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// define key for object returned from server to get
 				// status of configuration - config_status
 				this.server_interface.getServerData("get_dbcol/"+
-					constant.db_type+'/'+options_obj.item,
+					this.userid_name+'/'+constant.db_type+'/'+options_obj.item,
 					lang.hitch(this, this.prepgrid_data));
 			},
 			getInitialList: function(num, div_id) {
@@ -235,7 +235,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						grid_id:this.idmgr_obj.grid_id,
 						idproperty:this.idproperty,
 						cellselect_flag:false,
-						info_obj:this,
+						info_obj:this, userid_name:this.userid_name,
 						uistackmgr_type:this.uistackmgr_type,
 						storeutil_obj:this.storeutil_obj,
 						db_type:this.db_type

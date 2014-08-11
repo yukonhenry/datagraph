@@ -4,14 +4,19 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
 	"dijit/Tooltip", "dijit/form/DropDownButton", "dijit/layout/ContentPane",
+	"dijit/form/Textarea",
 	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
+	"LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo",
+	"LeagueScheduler/newschedulerbase", "LeagueScheduler/preferenceinfo",
+	"LeagueScheduler/tourndivinfo", "LeagueScheduler/teaminfo",
+	"LeagueScheduler/conflictinfo",
 	"put-selector/put",
 	"dojo/domReady!"],
 	function(dbootstrap, dom, declare, lang, arrayUtil, Observable, Memory,
-		registry,
-		DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
-		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane,
-		baseinfoSingleton, WidgetGen, put) {
+		registry, DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
+		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane, Textarea,
+		baseinfoSingleton, WidgetGen, DivInfo, FieldInfo, NewSchedulerBase,
+		PreferenceInfo, TournDivInfo, TeamInfo, ConflictInfo, put) {
 		var constant = {
 			idtopmenu_list:[
 				{id:'div_id', label_str:"League/Round Robin Format",
@@ -91,7 +96,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 		return declare(null, {
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
 			server_interface:null, dbstore_list:null, wizuistackmgr:null,
-			widgetgen_obj:null,
+			widgetgen_obj:null, userid_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.dbstore_list = new Array();
@@ -203,24 +208,74 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var dbselect_store = this.getselect_store(db_type);
 				dbselect_store.remove(item);
 			},
-			store_init_data: function(data_list) {
+			store_init_dbcollection: function(data_list) {
 				arrayUtil.forEach(data_list, function(item) {
 					this.createdb_store(item.db_list, item.db_type)
 				}, this)
 			},
-			init_advanced_UI: function(info_obj_list) {
+			init_advanced_UI: function(userid_name) {
 				// ADVANCE MENU target
 				// save data to local db and create menu structure for advanced
 				// pane
 				// Note: Order in of single-level items in Menu structure is
 				// determined by order of objects in info_obj_list
+				this.userid_name = userid_name;
+				var newschedbase_obj = new NewSchedulerBase({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var divinfo_obj = new DivInfo({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var tourndivinfo_obj = new TournDivInfo({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var fieldinfo_obj = new FieldInfo({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var preferenceinfo_obj = new PreferenceInfo({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var teaminfo_obj = new TeamInfo({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var conflictinfo_obj = new ConflictInfo({
+					server_interface:this.server_interface,
+					schedutil_obj:this.schedutil_obj,
+					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
+					storeutil_obj:this, op_type:"advance"});
+				var info_obj_list = [
+					{id:'div_id', info_obj:divinfo_obj},
+					{id:'tourndiv_id', info_obj:tourndivinfo_obj},
+					{id:'field_id', info_obj:fieldinfo_obj},
+					{id:'team_id', info_obj:teaminfo_obj},
+					{id:'pref_id', info_obj:preferenceinfo_obj},
+					{id:'conflict_id', info_obj:conflictinfo_obj},
+					{id:'newsched_id', info_obj:newschedbase_obj},
+				]
 				var args_list = new Array();
 				//var editpane = registry.byId("editPane");
 				var tabcontainer = registry.byId("tabcontainer_id")
-				var advanced_cpane = new ContentPane({
+				var advanced_cpane = registry.byId("editPane");
+				if (advanced_cpane) {
+					return;
+				}
+				advanced_cpane = new ContentPane({
 					title:"Advanced UI",
 					id:"editPane",
 					class:"allonehundred",
+					//content:"<span style='margin-left:2em'>User/Organization ID: <strong>"+this.userid_name+"</strong></span>"
 					//doLayout:false,
 				})
 				advanced_cpane.on("show", lang.hitch(this, function(evt) {
@@ -250,9 +305,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				advanced_cpane.addChild(editddown_btn);
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;
-					if (id == 'user_id') {
-						this.create_menuitem(id, item.info_obj, editddown_menu);
-					} else if (id == 'div_id' || id == 'tourndiv_id') {
+					if (id == 'div_id' || id == 'tourndiv_id') {
 						args_list.push({id:id, info_obj:item.info_obj})
 					} else {
 						this.create_menu(id, item.info_obj, true, editddown_menu);
@@ -268,7 +321,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				// created.
 				var args_obj = {parent_ddown_reg:editddown_menu,
 					args_list:args_list, label_str: "Division Info",
-					menu_index:1}
+					menu_index:0}
 				this.create_divmenu(args_obj);
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
@@ -293,21 +346,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var div_popup_reg = new PopupMenuItem({
 					label:args_obj.label_str,
 					popup:div_ddown_reg,
-					disabled:true,
 				})
 				parent_ddown_reg.addChild(div_popup_reg, args_obj.menu_index);
 				arrayUtil.forEach(args_list, function(item, index) {
 					this.create_menu(item.id, item.info_obj, true, div_ddown_reg,
 						index)
 				}, this)
-			},
-			create_menuitem: function(id, info_obj, ddown_widget) {
-				var menuitem_widget = new MenuItem({
-					label:"Enter User/Org ID",
-					onClick:lang.hitch(this.uistackmgr,
-						this.uistackmgr.check_initialize, info_obj)
-				})
-				ddown_widget.addChild(menuitem_widget);
 			},
 			create_menu: function(id, info_obj, delflag, ddown_reg) {
 				// ADVANCE MENU target
@@ -317,7 +361,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var idtop_popup_reg = new PopupMenuItem({
 					label:match_obj.label_str,
 					popup:idtop_ddown_reg,
-					disabled:true,
 				})
 				ddown_reg.addChild(idtop_popup_reg);
 				// get create new info menu items
@@ -493,7 +536,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					{idproperty:idproperty, p_stage:"preconfig",
 					entry_pt:"fromddel"});
 				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
-				this.server_interface.getServerData(server_path+db_type+'/'+item,
+				this.server_interface.getServerData(server_path+this.userid_name+'/'+db_type+'/'+item,
 					this.server_interface.server_ack);
 			}
 		})

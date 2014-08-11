@@ -25,7 +25,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// get advanceid_list before any call to get_idstr_obj
 				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
 					'advance');
-				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id', 'user_id'];
+				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				var preconfig_list = arrayUtil.map(id_list, function(item) {
@@ -81,7 +81,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// there is an overall border container
 				this.gstackmap_list = [
 					{id:'newsched_id', pane_id:constant.blankcpane_id},
-					{id:'user_id', pane_id:constant.blankcpane_id},
 					{id:'div_id',
 						pane_id:this.get_idstr_obj('div_id').gridcpane_id},
 					{id:'tourndiv_id',
@@ -270,10 +269,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 							// if previous match for idprop was also an init
 							// then just swap into that
 							this.swapactive_pgstackcpane(match_obj);
-							if (new_idproperty != 'newsched_id' ||
-								new_idproperty != 'user_id')
-								// newsched_id or user_id does not have reconfig... method
+							if (new_idproperty != 'newsched_id') {
+								// newsched_id does not have reconfig... method
 								info_obj.reconfig_infobtn_fromuistack(match_obj);
+							}
 						} else {
 							// else if previous match for idprop was from server
 							// then call init
@@ -462,18 +461,23 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				newsched_cpane.addChild(newsched_form);
 				this.pstackcontainer_reg.addChild(newsched_cpane)
 				*/
-				// add newsched and user_id config input cpanes
+				// add newsched config input cpanes
 				// note there is no buttone, just text id in cpane
-				// for newsched and user_id there is no more config after
+				// for newsched there is no more config after
 				// preconfig stage
-				var id_list = ['newsched_id', 'user_id']
+				var id_list = ['newsched_id', 'team_id']
 				arrayUtil.forEach(id_list, function(idproperty) {
 					var idstr_obj = this.get_idstr_obj(idproperty);
 					var txtbtn_cpane = new ContentPane({
 						id:idstr_obj.textbtncpane_id});
 					put(txtbtn_cpane.containerNode, "span[id=$]",
 						idstr_obj.text_id);
-					put(txtbtn_cpane.containerNode, "br");
+					if (idproperty == 'team_id') {
+						put(txtbtn_cpane.containerNode, "button[id=$]",
+							idstr_obj.btn_id);
+					} else {
+						put(txtbtn_cpane.containerNode, "br");
+					}
 					this.pstackcontainer_reg.addChild(txtbtn_cpane)
 				}, this)
 				/*
@@ -485,7 +489,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				put(newschedtxtbtn_cpane.containerNode, "br");
 				this.pstackcontainer_reg.addChild(newschedtxtbtn_cpane) */
 				// add generic txt + button cpane for all config cpane's outside
-				// of newsched_id and user_id
+				// of newsched_id
 				var txtbtn_cpane = new ContentPane({
 					// Note the idproperty can be any of the infoobj idproperties
 					// as the cpane is all shared (getidstrobj also returns the same
@@ -500,10 +504,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.get_idstr_obj("div_id").btn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// add pre-config cpanes for all id's
-				// Note newsched and user_id don't untilize a numbertextbox
+				// Note newsched doesn't untilize a numbertextbox
 				// but ok to go ahead and use 'numcpane_id's
 				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
-					'team_id', 'conflict_id', 'newsched_id', 'user_id'];
+					'team_id', 'conflict_id', 'newsched_id'];
 				arrayUtil.forEach(id_list, function(idproperty) {
 					var idstr_obj = this.get_idstr_obj(idproperty);
 					var id_cpane = new ContentPane({

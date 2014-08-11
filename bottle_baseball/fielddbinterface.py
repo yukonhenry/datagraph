@@ -25,8 +25,8 @@ dayweek_list_CONST = 'DAYWEEK_LIST'
 totalfielddays_CONST = 'TOTALFIELDDAYS'
 date_format_CONST = "%m/%d/%Y"
 class FieldDBInterface(BaseDBInterface):
-    def __init__(self, mongoClient, newcol_name):
-        BaseDBInterface.__init__(self, mongoClient, newcol_name,
+    def __init__(self, mongoClient, userid_name, newcol_name):
+        BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
             DB_Col_Type.FieldInfo, 'FIELD_ID')
 
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
@@ -60,6 +60,7 @@ class FieldDBInterface(BaseDBInterface):
         divstr_db_type = liststatus_qtuple.divstr_db_type
         for field in field_list:
             del field['SCHED_TYPE']
+            del field['USER_ID']
             field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])

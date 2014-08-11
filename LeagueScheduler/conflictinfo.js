@@ -372,12 +372,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 var team_select_widget = registry.byId(team_select_id);
                 if (team_select_widget) {
                     team_select_widget.set("options", option_list);
-                    /*
-                    team_select_widget.set("onChange", lang.hitch(this, function(event) {
-                        var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
-                        pref_obj.team_id = event;
-                        this.editgrid.schedInfoStore.put(pref_obj);
-                    })) */
                     team_select_widget.startup()
                 }
             },

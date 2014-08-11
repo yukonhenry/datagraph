@@ -23,14 +23,16 @@ PREFINFODATE_ERROR_MASK = 0x4
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
 class SchedMaster(object):
-    def __init__(self, mongoClient, db_type, divcol_name, fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
+    def __init__(self, mongoClient, userid_name, db_type, divcol_name,
+        fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
         self._error_code = 0x0
-        self.sdbInterface = SchedDBInterface(mongoClient, schedcol_name)
+        self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
+            schedcol_name)
         # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':
-            dbInterface = RRDBInterface(mongoClient, divcol_name)
+            dbInterface = RRDBInterface(mongoClient, userid_name, divcol_name)
         elif db_type == 'tourndb':
-            dbInterface = TournDBInterface(mongoClient, divcol_name)
+            dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name)
         else:
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
         dbtuple = dbInterface.readDBraw()
@@ -44,7 +46,7 @@ class SchedMaster(object):
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
         # get field information
-        fdbInterface = FieldDBInterface(mongoClient, fieldcol_name)
+        fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
             self.fieldinfo_list = fdbtuple.list
@@ -65,7 +67,7 @@ class SchedMaster(object):
             self.simplifydivfield_list()
         # get team-related field affinity information, if any
         # use divcol_name as it shares collection name w divinfo
-        tmdbInterface = TeamDBInterface(mongoClient, divcol_name)
+        tmdbInterface = TeamDBInterface(mongoClient, userid_name, divcol_name)
         if tmdbInterface.check_docexists():
             tmdbtuple = tmdbInterface.readDBraw()
             # recreate tminfo_list from db read, but leave out fields such as
@@ -87,7 +89,7 @@ class SchedMaster(object):
         if prefcol_name:
             # preference list use is optional - only process if preference list
             # exists
-            pdbInterface = PrefDBInterface(mongoClient, prefcol_name)
+            pdbInterface = PrefDBInterface(mongoClient, userid_name, prefcol_name)
             pdbtuple = pdbInterface.readDBraw();
             if pdbtuple.config_status == 1:
                 prefinfo_list = pdbtuple.list
@@ -106,7 +108,8 @@ class SchedMaster(object):
             prefinfo_triple = None
 
         if conflictcol_name:
-            cdbInterface = ConflictDBInterface(mongoClient, conflictcol_name)
+            cdbInterface = ConflictDBInterface(mongoClient, userid_name,
+                conflictcol_name)
             cdbtuple = cdbInterface.readDBraw()
             if cdbtuple.config_status == 1:
                 conflictinfo_list = cdbtuple.list
@@ -234,7 +237,7 @@ class SchedMaster(object):
             for fieldinfo in self.fieldinfo_list:
                 cmap_list = fieldinfo['calendarmap_list']
                 index = cindexerGet(game_date)
-                if index:
+                if index is not None:
                     # match found, break
                     break
             else:

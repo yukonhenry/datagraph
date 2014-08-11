@@ -17,11 +17,12 @@ _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
 
 class SchedDBInterface:
-    def __init__(self, mongoClient, schedcol_name):
-        self.dbinterface = MongoDBInterface(mongoClient, collection_name=schedcol_name, db_col_type=DB_Col_Type.GeneratedSchedule)
+    def __init__(self, mongoClient, userid_name, schedcol_name):
+        self.dbinterface = MongoDBInterface(mongoClient, userid_name, collection_name=schedcol_name, db_col_type=DB_Col_Type.GeneratedSchedule)
         self.schedcol_name = schedcol_name
 
-    def setschedule_param(self,db_type, divcol_name, fieldcol_name, prefcol_name=None, conflictcol_name=None):
+    def setschedule_param(self, db_type, divcol_name, fieldcol_name,
+        prefcol_name=None, conflictcol_name=None):
         # note config status is always 1 (complete) for newsched because of how
         # UI frontend works
         # config_status is included as dbinterface.getScheduleCollection
@@ -34,7 +35,6 @@ class SchedDBInterface:
     def getschedule_param(self):
         doc = self.dbinterface.getSchedType_doc()
         # delete config status field as not needed by UI for newsched_id
-        del doc[config_status_CONST]
         lc_doc = {k.lower():v for k,v in doc.items()}
         return lc_doc
 
@@ -47,7 +47,7 @@ class SchedDBInterface:
         docID = self.dbinterface.insertdoc(document)
 
     def setsched_status(self):
-        self.dbinterface.setSchedStatus_col()
+        self.dbinterface.setSchedStatus_col(1)
 
     def getsched_status(self):
         return self.dbinterface.getSchedStatus()

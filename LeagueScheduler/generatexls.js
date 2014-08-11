@@ -33,7 +33,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		return declare(null, {
 			idproperty:constant.idproperty_str, idmgr_obj:null, op_type:"",
 			server_interface:null, schedcol_name:"",
-			stackcpane_list:null, stackcontainer_widget:null,
+			stackcpane_list:null, stackcontainer_widget:null, userid_name:"",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -105,7 +105,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// get all links and populate
 							var descrip_str = item.descrip_str;
 							this.server_interface.getServerData(
-								'get_xls/'+this.schedcol_name+'/'+item.genxls_id,
+								'get_xls/'+this.userid_name+'/'+
+								this.schedcol_name+'/'+item.genxls_id,
 								lang.hitch(this, this.create_links), null,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}

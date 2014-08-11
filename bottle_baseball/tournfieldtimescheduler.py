@@ -139,7 +139,7 @@ class TournamentFieldTimeScheduler:
                                 print div.age, div.gender, gameday_id, field_id, home_id, away_id, teams, gametime
                                 self.tdbInterface.dbInterface.insertGameData(div.age, div.gender, gameday_id, gametime.strftime(time_format_CONST), field_id, home_id, away_id)
                     gameday_id += 1
-        self.tdbInterface.dbInterface.setSchedStatus_col()
+        self.tdbInterface.dbInterface.setSchedStatus_col(1)
 
     def getTournFieldSeasonStatus_list(self):
         # routine to return initialized list of field status slots -
