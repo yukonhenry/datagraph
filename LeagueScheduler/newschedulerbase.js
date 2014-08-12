@@ -313,6 +313,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.uistackmgr_type.switch_gstackcpane(this.idproperty, true);
 				// if generated schedule already exists, then retrieve it
 				if (sched_status) {
+					this.server_key_obj = {divcol_name:divcol_name,
+						fieldcol_name:fieldcol_name,
+						prefcol_name:prefcol_name,
+						conflictcol_name:conflictcol_name,
+						db_type:divdb_type,
+						schedcol_name:this.newsched_name};
 					var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
 					var schedstatustxt_node = dom.byId(schedstatustxt_id);
 					this.update_schedstatustxt({dbstatus:1},

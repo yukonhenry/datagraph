@@ -4,12 +4,12 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
     "dijit/form/Button", "dijit/form/Form", "dijit/form/ValidationTextBox",
     "dijit/layout/ContentPane", "LeagueScheduler/baseinfoSingleton",
     "LeagueScheduler/uistackmanager", "LeagueScheduler/wizuistackmanager",
-    "LeagueScheduler/wizardlogic",
+    "LeagueScheduler/wizardlogic", "LeagueScheduler/tutoriallogic",
     "put-selector/put", "dojo/domReady!"],
     function(dbootstrap, declare, dom, lang, arrayUtil, keys, registry, Tooltip,
         ConfirmDialog, ValidationTextBox, Button, Form, ValidationTextBox,
         ContentPane, baseinfoSingleton, UIStackManager, WizUIStackManager,
-        WizardLogic, put) {
+        WizardLogic, TutorialLogic, put) {
         var constant = {
             idproperty_str:'user_id',
             init:"init",
@@ -166,11 +166,19 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
                     {db_type:'conflictdb', db_list:adata.conflictdb_list}];
                 // store initial data returned from server
                 this.storeutil_obj.store_init_dbcollection(dbcollection_list)
+                var tutoriallogic_obj = new TutorialLogic({
+                    server_interface:this.server_interface,
+                    storeutil_obj:this.storeutil_obj,
+                    schedutil_obj:this.schedutil_obj,
+                    userid_name:this.userid_name
+                })
+                tutoriallogic_obj.create();
                 // create advanced and wiz ui stackmanagers
                 var uistackmgr = new UIStackManager();
                 this.storeutil_obj.uistackmgr = uistackmgr;
                 var wizuistackmgr = new WizUIStackManager();
                 this.storeutil_obj.wizuistackmgr = wizuistackmgr;
+                // create basic wizard
                 var wizardlogic_obj = new WizardLogic({
                     server_interface:this.server_interface,
                     storeutil_obj:this.storeutil_obj,
@@ -180,7 +188,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
                 var wizcontainer_cpane = wizardlogic_obj.create();
                 // create advanced pane
                 this.storeutil_obj.init_advanced_UI(this.userid_name);
+                // select toplevel cpane after name has been selected
                 this.tabcontainer.selectChild(wizcontainer_cpane);
+                // don't need name selection anymore
                 this.tabcontainer.removeChild(this.user_cpane);
             }
         })

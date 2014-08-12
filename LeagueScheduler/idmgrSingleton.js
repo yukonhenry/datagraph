@@ -12,7 +12,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			gridcpane_id:"gridcpane_id", textbtncpane_id:"textbtncpane_id",
 			bcontainer_id:"bcontainer_id", text_id:"text_id",
 			numcpane_id:"numcpane_id", btn_id:"btn_id"}
-		var op_type_list = ['advance', 'wizard'];
+		var op_type_list = ['advance', 'wizard', 'tutorial'];
 		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
 			'pref_id', 'team_id', 'conflict_id', 'xls_id']
 		var idmgrSingleton = declare(null, {

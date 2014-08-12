@@ -74,7 +74,6 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
  			parser.parse();
  			// UI Stack Manager obj can only be created after html has been parsed
 			// as UIStackManager constructor needs to identify widgets
-			//serverInterface.getServerData("leaguedivinfo", leaguediv_func);
 			serverInterface.getServerData("get_hostserver", server_process);
  		});
 	}

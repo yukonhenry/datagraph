@@ -263,7 +263,17 @@ def send_delta(userid_name, action_type, field_id):
 @route('/get_schedule/<userid_name>/<schedcol_name>/<idproperty>/<propid:int>')
 def get_schedule(userid_name, schedcol_name, idproperty, propid):
     callback_name = request.query.callback
-    schedMaster = _routelogic_obj.schedmaster_map[userid_name]
+    schedMaster = _routelogic_obj.schedmaster_map.get(userid_name)
+    if schedMaster is None:
+        dbInterface = SchedDBInterface(mongoClient, userid_name, schedcol_name)
+        param = dbInterface.getschedule_param()
+        schedMaster = SchedMaster(mongoClient, userid_name, param['divdb_type'],
+            param['divcol_name'], param['fieldcol_name'], schedcol_name,
+            prefcol_name=param['prefcol_name'],
+            conflictcol_name=param['conflictcol_name'])
+        if not schedMaster.error_code:
+            # save schedMaster to global obj to reuse on get_schedule
+            _routelogic_obj.schedmaster_map[userid_name] = schedMaster
     if schedMaster.schedcol_name == schedcol_name:
         if idproperty == 'team_id' or idproperty == 'fair_id':
             # read query parameters if idprop is team_id - div_age and div_gen
@@ -281,7 +291,17 @@ def get_schedule(userid_name, schedcol_name, idproperty, propid):
 @route('/get_xls/<userid_name>/<schedcol_name>/<genxls_id>')
 def get_xls(userid_name, schedcol_name, genxls_id):
     callback_name = request.query.callback
-    schedMaster = _routelogic_obj.schedmaster_map[userid_name]
+    schedMaster = _routelogic_obj.schedmaster_map.get(userid_name)
+    if schedMaster is None:
+        dbInterface = SchedDBInterface(mongoClient, userid_name, schedcol_name)
+        param = dbInterface.getschedule_param()
+        schedMaster = SchedMaster(mongoClient, userid_name, param['divdb_type'],
+            param['divcol_name'], param['fieldcol_name'], schedcol_name,
+            prefcol_name=param['prefcol_name'],
+            conflictcol_name=param['conflictcol_name'])
+        if not schedMaster.error_code:
+            # save schedMaster to global obj to reuse on get_schedule
+            _routelogic_obj.schedmaster_map[userid_name] = schedMaster
     if schedMaster.schedcol_name == schedcol_name:
         xls_exporter = schedMaster.xls_exporter
         if xls_exporter is None:
