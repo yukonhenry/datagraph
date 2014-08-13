@@ -2,7 +2,7 @@
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dojox/widget/Wizard", "dojox/widget/WizardPane",
 	"dijit/DropDownMenu", "dijit/form/Button", "dijit/layout/ContentPane",
-	"LeagueScheduler/baseinfoSingleton", "LeagueScheduler/widgetgen",
+	"LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/wizuistackmanager", "LeagueScheduler/divinfo",
 	"LeagueScheduler/tourndivinfo", "LeagueScheduler/fieldinfo",
 	"LeagueScheduler/preferenceinfo", "LeagueScheduler/newschedulerbase",
@@ -11,7 +11,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
 		DropDownMenu, Button, ContentPane,
-		baseinfoSingleton, WidgetGen, WizUIStackManager, divinfo, tourndivinfo,
+		baseinfoSingleton, WizUIStackManager, divinfo, tourndivinfo,
 		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, conflictinfo,
 		idmgrSingleton,
 		put) {
@@ -77,13 +77,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// --- DIVISION INFO-----//
 				var topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
-				// get/create widgetgen obj
-				if (!this.widgetgen_obj) {
-					this.widgetgen_obj = new WidgetGen({
-						storeutil_obj:this.storeutil_obj,
-						server_interface:this.server_interface
-					});
-				}
 				// radio button to choose between rrd and tourndb
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
 					constant.divradio1_id, constant.divradio2_id,

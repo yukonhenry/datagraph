@@ -4,10 +4,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "dojo/_base/array", "dojo/Stateful", "dojo/store/Memory", "dojo/date",
     "dijit/registry", "dijit/form/Button", "dijit/form/RadioButton",
     "dijit/form/Select", "dijit/form/NumberSpinner", "dijit/form/DateTextBox",
+    "dijit/form/Form", "dijit/form/ValidationTextBox",
     "dijit/Tooltip",
     "put-selector/put", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
     function(dbootstrap, dom, declare, lang, arrayUtil, Stateful, Memory, date,
         registry, Button, RadioButton, Select, NumberSpinner, DateTextBox,
+        Form, ValidationTextBox,
         Tooltip, put, baseinfoSingleton) {
         var Watch_class = declare([Stateful], {
             db_type:null
@@ -18,7 +20,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
         return declare(null, {
             storeutil_obj:null, radio_db_type:null, watch_obj:null,
             start_dtbox:null, end_dtbox:null, sl_spinner:null,
-            server_interface:null, event_flag:false,
+            server_interface:null, event_flag:false, tooltip_list:null,
             constructor: function(args) {
                 lang.mixin(this, args);
                 this.watch_obj = new Watch_class();
@@ -27,6 +29,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         this.swap_league_select_db('league_select_id', value);
                     })
                 );
+                this.tooltip_list = new Array();
             },
             // function to create radio button selects for  db_type
             // ref https://github.com/kriszyp/put-selector for put selector
@@ -433,5 +436,66 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // season dates spinners are only for div_id panel at the moment
                 baseinfoSingleton.set_watch_obj('numweeks', season_len, op_type, 'div_id');
             },
+            create_forminput: function(args_obj) {
+                var form_id = args_obj.form_id;
+                var name_id = args_obj.name_id;
+                var btn_id = args_obj.btn_id;
+                var cpane = args_obj.cpane;
+                var form_str = args_obj.form_str;
+                var tooltip_str = args_obj.tooltip_str;
+                var callback_func = args_obj.callback_func;
+                var callback_context = args_obj.callback_context;
+                var keyup_handle = args_obj.keyup_handle;
+                var form_widget = registry.byId(form_id)
+                if (!form_widget) {
+                    // create all elements under the form
+                    form_widget = new Form({
+                        id:form_id
+                    })
+                    cpane.addChild(form_widget);
+                    var form_node = form_widget.domNode;
+                    put(form_node, "label.label_box[for=$]",
+                        name_id, form_str);
+                    put(form_node, "span.empty_tinygap");
+                    var name_node = put(form_node,
+                        "input[id=$][type=text][required=true]",
+                        name_id)
+                    var name_widget = new ValidationTextBox({
+                        value:'demo',
+                        regExp:'\\D[\\w]+',
+                        style:'width:12em',
+                        promptMessage:form_str + '-start with letter or _, followed by alphanumeric or _',
+                        invalidMessage:'start with letter or _, followed by alphanumeric characters and _, no spaces',
+                        missingMessage:form_str,
+                    }, name_node);
+                    var tooltipconfig = {connectId:[name_id],
+                        label:tooltip_str,
+                        position:['below','after']};
+                    this.tooltip_list.push(new Tooltip(tooltipconfig));
+                    put(form_node, "span.empty_tinygap");
+                    var callback_args_obj = {
+                        form_widget:form_widget,
+                        name_widget:name_widget
+                    }
+                    var btn_node = put(form_node,
+                        "button.dijitButton[id=$][type=submit]", btn_id);
+                    var btn_widget = new Button({
+                        label:"Submit",
+                        disabled:false,
+                        class:"success",
+                        onClick: lang.hitch(callback_context, callback_func,
+                            callback_args_obj)
+                    }, btn_node);
+                    btn_widget.startup();
+                    if (keyup_handle)
+                        keyup_handle.remove();
+                    keyup_handle = name_widget.on("keyup",
+                        lang.hitch(callback_context, callback_func,
+                            callback_args_obj));
+                } else {
+                    name_widget = registry.byId(name_id);
+                }
+                return keyup_handle;
+            }
         })
     })
