@@ -1,12 +1,10 @@
 Sports League Scheduling Software:
 -------------------------
-This production level software implements round-robin league scheduler software for amateur sports leagues.  There are unique characterizations with amateur sports leagues compared to pro or upper-tier semi-pro leagues, which is driven by scarcity of resources and an abundance of constraints and preferences.  Further adding to the complexity is that the target consumer of a generated schedule is much more varied - i.e. administrators, coaches, players, and families has large influence into providing competing feedback on the quality of a schedule.  For example, field spaces may be limited and hours restricted, but at the same time must be fairly shared.  Participants in the leagues will also have many time and distance constraints.
+This production level software implements round-robin league scheduler software for amateur sports leagues.  There are unique characterizations with amateur sports leagues compared to pro or upper-tier semi-pro leagues, which is driven by scarcity of resources and an abundance of constraints, preferences, and conflicts.  Further adding to the complexity is that the target consumer of a generated schedule is much more varied - i.e. administrators, coaches, players, and families has large influence into providing competing feedback on the quality of a schedule.  For example, field spaces may be limited and hours restricted, but at the same time must be fairly shared.  Participants in the leagues will also have many time constraints and conflicts due to overlapping responsibilities that may occur within the league, but also with their daily family and work lives.  Whereas for professional leagues, scheduling needs to be optimal to maximize business goals, for amateur leagues, scheduling needs to be optimal and high quality as it will directly impact the lives of many participants.
+
+### Algorithm
 
 This software creates the schedule by formulating scheduling problem as a discrete nonlinear programming optimization problem with defined cost functions and constraints.
-
-- Cost function:  Separate cost functions are Defined to maximize fairness for time scheduling, minimize deviation from target field allocation (when home fields are specified), or to maximize field use fairness, when no home field preferences are configured.  Home/away designation balancing is also achieved through expressing the deviation from the balance as a cost function.
-- Constraints: Limits or irregularity with field/time availability
-- Preferences: Best effort attempt to meet prioritized time preferences.
 
 ####  Running code always available, with UI at http://www.yukontr.com/apps/LeagueScheduler/
 
