@@ -1,7 +1,8 @@
 // define observable store-related utility functions
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+    "dojo/keys",
     "dijit/registry", "dojox/widget/Wizard", "dojox/widget/WizardPane",
-    "dijit/DropDownMenu", "dijit/layout/ContentPane",
+    "dijit/DropDownMenu", "dijit/layout/ContentPane", "dijit/Tooltip",
     "LeagueScheduler/baseinfoSingleton",
     "LeagueScheduler/divinfo",
     "LeagueScheduler/tourndivinfo", "LeagueScheduler/fieldinfo",
@@ -9,8 +10,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
     "LeagueScheduler/teaminfo", "LeagueScheduler/conflictinfo",
     "LeagueScheduler/idmgrSingleton",
     "put-selector/put", "dojo/domReady!"],
-    function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
-        DropDownMenu, ContentPane,
+    function(dom, declare, lang, arrayUtil, keys, registry, Wizard, WizardPane,
+        DropDownMenu, ContentPane, Tooltip,
         baseinfoSingleton, divinfo, tourndivinfo,
         fieldinfo, preferenceinfo, newschedulerbase, teaminfo, conflictinfo,
         idmgrSingleton,
@@ -37,7 +38,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
                     container_cpane.resize();
                     return
                 }
-                container_cpane = new ContentPane({title:"Scheduling Tutorial", class:'allauto', id:constant.top_cpane_id});
+                container_cpane = new ContentPane({title:"Tutorial", class:'allauto', id:constant.top_cpane_id,
+                    tooltip:"If using the Scheduler for the first time, start here"
+                });
                 container_cpane.on("show", lang.hitch(this, function(evt) {
                     console.log("tutorial onshow");
                     container_cpane.domNode.scrollTop = 0;
@@ -50,42 +53,43 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
                     // style below should have size that will be greater or equal
                     // than child WizardPanes
                     class:'allauto',
-                    nextButtonLabel:"Next Step"
+                    nextButtonLabel:"Next Step",
                 });
                 container_cpane.addChild(wizard_reg);
 
                 //--------------------//
                 // Create informational starting pane
                 var content_str = "<p style='font-size:larger'>User/Organization ID: <strong>"+this.userid_name+"</strong></p>";
-                content_str += "Welcome to the YukonTR League Scheduler.  The main purpose of this scheduler is to not only generate schedules for large leagues, but to also accomodate complex constraints/conflicts/preferences that you would like reflected in the schedule.<br><br><b>Begin</b> the step-by-step tutorial by pressing the 'Next Step' button in the bottom-right of the Pane"
+                content_str += "Welcome to the YukonTR League Scheduler.  The main purpose of this scheduler is to not only generate schedules for large leagues, but to also accomodate complex constraints/conflicts/preferences that you would like reflected in the schedule.<br><br><b>Begin</b> the tutorial configuration guide by pressing the 'Next Step' button in the bottom-right of the Pane"
                 var intro_wpane = new WizardPane({
                     content:content_str,
-                    //class:'allonehundred'
-                    //style:"width:100px; height:100px"
                 })
                 wizard_reg.addChild(intro_wpane);
                 //---------------------//
-                // --- DIVISION INFO-----//
-                var topdiv_node = put("div");
-                topdiv_node.innerHTML = "<i>Please specify an identifier for the schedule:</i><br><br>";
+                // ---Schedule Name Input -----//
                 var schedname_wpane = new WizardPane({
-                    content:topdiv_node,
+                    content:"<i>Please specify a name for this schedule:</i><br><br>",
                     //class:'allauto'
                     //style:"width:500px; height:400px; border:1px solid red"
                 })
                 args_obj = {
                     form_id:constant.schedform_id,
                     name_id:constant.schedname_id,
+                    initialname_value:this.userid_name,
                     btn_id:constant.schedbtn_id,
                     form_str:"Enter Schedule Name:",
                     tooltip_str:"Specify Schedule Name and press Enter key",
                     cpane:schedname_wpane,
                     callback_func: this.process_input,
                     callback_context: this,
-                    keyup_handle: this.keyup_handle
                 }
                 this.widgetgen_obj.create_forminput(args_obj);
                 wizard_reg.addChild(schedname_wpane);
+                //---------------------//
+                // ---Schedule Name Input -----//
+                var divnumber_wpane = new WizardPane({
+                    content:"<i>How many divisions are there in your league? (A division is defined as a set of teams that will play against each other):</i><br><br>",
+                })
                 wizard_reg.startup();
                 wizard_reg.resize();
                 container_cpane.resize();
@@ -111,6 +115,21 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
                     });
                 return match_list[0];
             },
+            process_input: function(args_obj, event) {
+                if (event.type == "click" ||
+                    (event.type == "keyup" && event.keyCode == keys.ENTER)) {
+                    var schedform_widget = args_obj.form_widget;
+                    var schedname_widget = args_obj.name_widget;
+                    if (schedform_widget.validate()) {
+                        //confirm("ID Format is Valid, Creating or Retrieving Entry")
+                        var schedname_id = schedname_widget.get("value");
+                        console.log("schedname="+schedname_id);
+                    }
+                    /*
+                    if (this.keyup_handle)
+                        this.keyup_handle.remove(); */
+                }
+            }
         })
     }
 );

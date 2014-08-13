@@ -42,7 +42,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					container_cpane.resize();
 					return
 				}
-				container_cpane = new ContentPane({title:"Scheduling Wizard", class:'allauto', id:constant.top_cpane_id});
+				container_cpane = new ContentPane({title:"Step-by-Step UI", class:'allauto', id:constant.top_cpane_id, tooltip:"Start here to cover all of the Configuration steps"});
 				container_cpane.on("show", lang.hitch(this, function(evt) {
 					console.log("Wizard onshow");
 					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {

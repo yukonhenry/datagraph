@@ -1,4 +1,5 @@
-define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
+define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
+    "dojo/_base/array",
     "dojo/keys", "dijit/registry", "dijit/Tooltip", "dijit/ConfirmDialog",
     "dijit/form/ValidationTextBox",
     "dijit/form/Button", "dijit/form/Form", "dijit/form/ValidationTextBox",

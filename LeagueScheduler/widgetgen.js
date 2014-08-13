@@ -439,13 +439,14 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             create_forminput: function(args_obj) {
                 var form_id = args_obj.form_id;
                 var name_id = args_obj.name_id;
+                var input_type = args_obj.input_type;
                 var btn_id = args_obj.btn_id;
                 var cpane = args_obj.cpane;
                 var form_str = args_obj.form_str;
                 var tooltip_str = args_obj.tooltip_str;
                 var callback_func = args_obj.callback_func;
                 var callback_context = args_obj.callback_context;
-                var keyup_handle = args_obj.keyup_handle;
+                var initialname_value = args_obj.initialname_value;
                 var form_widget = registry.byId(form_id)
                 if (!form_widget) {
                     // create all elements under the form
@@ -461,7 +462,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         "input[id=$][type=text][required=true]",
                         name_id)
                     var name_widget = new ValidationTextBox({
-                        value:'demo',
+                        value:initialname_value,
                         regExp:'\\D[\\w]+',
                         style:'width:12em',
                         promptMessage:form_str + '-start with letter or _, followed by alphanumeric or _',
@@ -470,7 +471,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     }, name_node);
                     var tooltipconfig = {connectId:[name_id],
                         label:tooltip_str,
-                        position:['below','after']};
+                        position:['below','above']};
                     this.tooltip_list.push(new Tooltip(tooltipconfig));
                     put(form_node, "span.empty_tinygap");
                     var callback_args_obj = {
@@ -487,15 +488,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                             callback_args_obj)
                     }, btn_node);
                     btn_widget.startup();
-                    if (keyup_handle)
-                        keyup_handle.remove();
-                    keyup_handle = name_widget.on("keyup",
+                    name_widget.on("keyup",
                         lang.hitch(callback_context, callback_func,
                             callback_args_obj));
-                } else {
-                    name_widget = registry.byId(name_id);
                 }
-                return keyup_handle;
             }
         })
     })
