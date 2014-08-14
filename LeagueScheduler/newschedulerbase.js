@@ -25,7 +25,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			team_id:'team_id',
 			fair_id:'fair_id',
 			pref_id:'pref_id',
-			conflict_id:'conflict_id'
+			conflict_id:'conflict_id',
+			results_cpane_id_prefix:"results_cpane"
 		};
 		var idconstant = {
 			radio1_id:'scradio1_id',
@@ -1048,13 +1049,16 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var suffix_id = args_obj.suffix_id;
 				var content_str = args_obj.content_str;
 				var title_suffix = args_obj.title_suffix;
-				var newcpane_id = this.newsched_name+suffix_id;
+				var title_str = this.newsched_name + title_suffix;
+				var newcpane_id = constant.results_cpane_id_prefix+suffix_id;
 				var newcpane = registry.byId(newcpane_id);
 				if (!newcpane) {
-					var title_str = this.newsched_name + title_suffix;
 					newcpane = new ContentPane({title:title_str,
 						content:content_str, id:newcpane_id});
 					this.tabcontainer_reg.addChild(newcpane);
+				} else {
+					newcpane.set("title", title_str);
+					newcpane.set("content", content_str);
 				}
 				return newcpane
 			},
