@@ -56,7 +56,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			getcolumnsdef_obj: function() {
 				var columnsdef_obj = {
 					field_id: "Field ID",
-					field_name: editor({label:"Name", autoSave:true},"text","click"),
+					field_name: editor({label:"Name", autoSave:true},"text"),
 					primaryuse_str: {label:"Primary Use",
 						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
@@ -1387,7 +1387,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var fieldgrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
 					region:'top',
-					style:"height:300px; width:100%"
+					style:"height:500px; width:100%"
 				})
 				put(fieldgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);

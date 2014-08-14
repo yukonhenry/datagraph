@@ -296,6 +296,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget, op_type);
 				var btn_callback = lang.hitch(this.editgrid, this.editgrid.sendStoreInfoToServer, gridstatus_node);
 				updatebtn_widget.set("onClick", btn_callback);
+				// create add row button
+				var addrowbtn_id = this.idmgr_obj.addrowbtn_id;
+				this.get_adddel_btn_widget('add', addrowbtn_id);
 				this.update_configdone(-1, gridstatus_node); // reset
 				if (swapcpane_flag) {
 					this.uistackmgr_type.switch_pstackcpane({idproperty:idproperty,
@@ -327,6 +330,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				updatebtn_widget.set("onClick", btn_callback);
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget,
 					op_type);
+				var addrowbtn_id = this.idmgr_obj.addrowbtn_id;
+				this.get_adddel_btn_widget('add', addrowbtn_id);
 				this.update_configdone(-1, gridstatus_node); // reset
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
@@ -349,6 +354,17 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					infobtn_widget.startup();
 				}
 				return infobtn_widget;
+			},
+			get_adddel_btn_widget: function(btn_type, btn_id) {
+				var label_str = (btn_type == 'add')?"Add Row":"Delete Row";
+				var adddel_btn_widget = registry.byId(btn_id);
+				if (!adddel_btn_widget) {
+					adddel_btn_widget = new Button({
+						label:label_str,
+						class:"info", type:"button", title:"Click to "+label_str,
+					}, btn_id);
+					adddel_btn_widget.startup();
+				}
 			},
 			get_gridstatus_node: function(updatebtn_widget, op_type) {
 				var gridstatus_id = op_type+'gridstatus_id';
@@ -479,10 +495,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var txtbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id,
 				})
-				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.idmgr_obj.text_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.idmgr_obj.btn_id);
+				var container_node = textbtn_cpane.containerNode;
+				put(container_node, "span[id=$]", this.idmgr_obj.text_id);
+				put(container_node, "button[id=$]", this.idmgr_obj.btn_id);
+				put(container_node, "button.empty_smallgap[id=$]",
+					this.idmgr_obj.addrowbtn_id);
 				this.pstackcontainer.addChild(txtbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({

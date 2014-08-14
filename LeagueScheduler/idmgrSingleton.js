@@ -11,7 +11,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 			blankcpane_id:"blankcpane_id", resetcpane_id:"resetcpane_id",
 			gridcpane_id:"gridcpane_id", textbtncpane_id:"textbtncpane_id",
 			bcontainer_id:"bcontainer_id", text_id:"text_id",
-			numcpane_id:"numcpane_id", btn_id:"btn_id"}
+			numcpane_id:"numcpane_id", btn_id:"btn_id",
+			addrowbtn_id:'addrowbtn_id', delrowbtn_id:'delrowbtn_id'}
 		var op_type_list = ['advance', 'wizard', 'tutorial'];
 		var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id',
 			'pref_id', 'team_id', 'conflict_id', 'xls_id']
@@ -28,7 +29,8 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 						var idstr_obj = new Object();
 						for (var key in suffix_obj) {
 							if (op_type == "advance" && (key=="text_id" ||
-								key=="btn_id" || key=="textbtncpane_id") &&
+								key=="btn_id" || key=="addrowbtn_id" ||
+								key=="delrowbtn_id" || key=="textbtncpane_id") &&
 								(id != "newsched_id" && id != "team_id")) {
 								// for advanced UI, and if idprop is not
 								// newsched_id, there is only one

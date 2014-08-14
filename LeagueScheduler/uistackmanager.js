@@ -448,21 +448,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.dummy_id
 				})
 				this.pstackcontainer_reg.addChild(dummy_cpane);
-				// add newscheduler config cpane
-				/*
-				var idstr_obj = this.get_idstr_obj(
-					'newsched_id');
-				var newsched_cpane = new ContentPane({
-					id:constant.nscpane_id
-				})
-				var newsched_form = new Form({
-					id:idstr_obj.form_id
-				});
-				newsched_cpane.addChild(newsched_form);
-				this.pstackcontainer_reg.addChild(newsched_cpane)
-				*/
 				// add newsched config input cpanes
-				// note there is no buttone, just text id in cpane
+				// note there is no button, just text id in cpane
 				// for newsched there is no more config after
 				// preconfig stage
 				var id_list = ['newsched_id', 'team_id']
@@ -498,10 +485,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				// for team_id the txt and btn nodes will be added in teaminfo
 				// code after the div select is added in the same pane
-				put(txtbtn_cpane.containerNode, "span[id=$]",
+				var container_node = txtbtn_cpane.containerNode;
+				put(container_node, "span[id=$]",
 					this.get_idstr_obj("div_id").text_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]",
+				put(container_node, "button[id=$]",
 					this.get_idstr_obj("div_id").btn_id);
+				put(container_node, "button.empty_smallgap[id=$]",
+					this.get_idstr_obj("div_id").addrowbtn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// add pre-config cpanes for all id's
 				// Note newsched doesn't untilize a numbertextbox
@@ -573,7 +563,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var field_cpane = new ContentPane({
 					id:idstr_obj.gridcpane_id,
 					region:'top',
-					style:"height:300px; width:100%"
+					style:"height:500px; width:100%"
 				})
 				put(field_cpane.containerNode, "div[id=$]",
 					idstr_obj.grid_id);
