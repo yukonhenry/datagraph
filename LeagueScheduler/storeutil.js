@@ -448,7 +448,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				var ddownmenu_widget = new DropDownMenu();
 				var popmbaritem_widget = new PopupMenuBarItem({
 					label:match_obj.label_str,
-					style:"color:blue; font:bond",
+					style:"color:blue; font:bold",
 					popup:ddownmenu_widget
 				})
 				tooltipconfig_list.push({
@@ -465,31 +465,31 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 						op_type:"wizard"})
 				//----------------------------------------//
 				// add delete menu items
-				if (delflag) {
-					match_obj = this.getuniquematch_obj(constant.delmenu_list,
-						'id', id);
-					// set up menus for delete if required
-					// ref http://dojotoolkit.org/reference-guide/1.9/dijit/form/DropDownButton.html#dijit-form-dropdownbutton
-					// http://dojotoolkit.org/reference-guide/1.9/dijit/Menu.html
-					// NOTE: example in ref above shows a 'popup' property, but the
-					// API spec for dijit/popupmenuitem does NOT have that property
-					//idtop_ddown_reg = registry.byId(match_obj.parent_id)
-					ddownmenu_widget = new DropDownMenu();
-					popmbaritem_widget = new PopupMenuBarItem({
-						label:match_obj.label_str,
-						popup:ddownmenu_widget,
-						style:"color:orange; font:bond",
-					})
-					tooltipconfig_list.push({
-						connect_node:popmbaritem_widget.domNode,
-						label_str:match_obj.help_str});
-					mbar_widget.addChild(popmbaritem_widget);
-					db_type = match_obj.db_type;
-					// create respective del db menu
-					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
-						db_list, this, this.delete_dbcollection,
-						{db_type:db_type, storeutil_obj:this, op_type:"wizard"});
-				}
+				//if (delflag) {
+				match_obj = this.getuniquematch_obj(constant.delmenu_list,
+					'id', id);
+				// set up menus for delete if required
+				// ref http://dojotoolkit.org/reference-guide/1.9/dijit/form/DropDownButton.html#dijit-form-dropdownbutton
+				// http://dojotoolkit.org/reference-guide/1.9/dijit/Menu.html
+				// NOTE: example in ref above shows a 'popup' property, but the
+				// API spec for dijit/popupmenuitem does NOT have that property
+				//idtop_ddown_reg = registry.byId(match_obj.parent_id)
+				ddownmenu_widget = new DropDownMenu();
+				popmbaritem_widget = new PopupMenuBarItem({
+					label:match_obj.label_str,
+					popup:ddownmenu_widget,
+					style:"color:orange; font:bold",
+				})
+				tooltipconfig_list.push({
+					connect_node:popmbaritem_widget.domNode,
+					label_str:match_obj.help_str});
+				mbar_widget.addChild(popmbaritem_widget);
+				db_type = match_obj.db_type;
+				// create respective del db menu
+				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
+					db_list, this, this.delete_dbcollection,
+					{db_type:db_type, storeutil_obj:this, op_type:"wizard"});
+				//}
 				var tooltip = null;
 				var tooltipconfig = null;
 				arrayUtil.forEach(tooltipconfig_list, function(item) {
@@ -499,6 +499,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 						position:['above','after']};
 					tooltip = new Tooltip(tooltipconfig);
 				})
+				mbar_widget.startup();
 			},
 			getuniquematch_obj: function(list, key, value) {
 				var match_list = arrayUtil.filter(list,

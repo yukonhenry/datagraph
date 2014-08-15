@@ -85,7 +85,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					'div_id_type_select');
 				var divinfo_obj = new divinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr,
+					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				var menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
@@ -110,7 +111,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr,
+					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
@@ -145,7 +147,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//var ddbtn_node = put(topdiv_node, "button[type=button]");
 				var teaminfo_obj = new teaminfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr,
+					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				/*
 				this.storeutil_obj.create_dropdown_menu(ddmenu_widget,
@@ -175,7 +178,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Scheduling Preferences that concern teams.  The league administrator has the disgression to grant prioritized scheduling to teams. Use the table to grant time scheduling priorities.  Note that satisfying scheduling preferences is a best-effort feature and is not guaranteed.  Raising the priority level increases probability that preference will be satisfied.</i><br><br>";
 				var prefinfo_obj = new preferenceinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr,
+					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
@@ -200,7 +204,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Specify any requests for avoiding time conflicts between teams.  Example use cases may include coaches coaching multiple teams, a coach that coaches one team and plays on another, or trying to ease the burden for certain parents that have many children playing the league.  The league administrator can try to accomodate these requests by specifying these conflicts.  However, priorities must be assigned to each of the specified conflicts.  As with the Preference feature in the previous pane, avoiding the time conflicts is a best-effort feature and results are not guaranteed.  Raising the priority level increases probability that the time conflict will be avoid, but the administrator also needs to be cognizant that fairness for other teams could be compromised depending on the prioritiy level assigned.</i><br><br>";
 				var conflictinfo_obj = new conflictinfo({
 					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr,
+					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('conflict_id', conflictinfo_obj, true, menubar_node);
@@ -225,7 +230,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Select Parameters - Divsion List (required), Field List (required), and Preference List (optional) and name the Schedule.  After the parameters are selected using the dropdown element, press the 'Generate' button.  Additional tabs will be created after the schedule is generated, each with a different view into the schedule - by division, by team, by field.  Fairness metrics are also displayed in a separate tab.</i><br><br>";
 				var newschedinfo_obj = new newschedulerbase({
 					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr, storeutil_obj:this.storeutil_obj,
+					uistackmgr_type:this.wizuistackmgr,
+					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('newsched_id', newschedinfo_obj, true, menubar_node);

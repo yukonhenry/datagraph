@@ -479,6 +479,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// add divinfo cpane and grid div
 				var teamgrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(teamgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);

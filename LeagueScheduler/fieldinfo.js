@@ -1359,14 +1359,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				field_cpane.addChild(field_form);
 				this.pstackcontainer.addChild(field_cpane);
 				// add txt + button cpane
-				var txtbtn_cpane = new ContentPane({
+				var textbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id
 				})
-				put(txtbtn_cpane.containerNode, "span[id=$]",
-					this.idmgr_obj.text_id);
-				put(txtbtn_cpane.containerNode, "button[id=$]",
-					this.idmgr_obj.btn_id);
-				this.pstackcontainer.addChild(txtbtn_cpane)
+				var container_node = textbtn_cpane.containerNode;
+				put(container_node, "span[id=$]", this.idmgr_obj.text_id);
+				put(container_node, "button[id=$]", this.idmgr_obj.btn_id);
+				this.pstackcontainer.addChild(textbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({
 					doLayout:false,
@@ -1387,10 +1386,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var fieldgrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
 					region:'top',
-					style:"height:500px; width:100%"
+					class:'grid_cpane'
+					//style:"height:500px; width:100%"
 				})
 				put(fieldgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);
+				put(fieldgrid_cpane.containerNode, "button.empty_smallgap[id=$]",
+					this.idmgr_obj.addrowbtn_id);
 				field_bcontainer.addChild(fieldgrid_cpane);
 				this.gstackcontainer.addChild(field_bcontainer);
 			},

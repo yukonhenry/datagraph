@@ -492,15 +492,13 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				info_cpane.addChild(info_form);
 				this.pstackcontainer.addChild(info_cpane);
 				// add txt + button cpane
-				var txtbtn_cpane = new ContentPane({
+				var textbtn_cpane = new ContentPane({
 					id:this.idmgr_obj.textbtncpane_id,
 				})
 				var container_node = textbtn_cpane.containerNode;
 				put(container_node, "span[id=$]", this.idmgr_obj.text_id);
 				put(container_node, "button[id=$]", this.idmgr_obj.btn_id);
-				put(container_node, "button.empty_smallgap[id=$]",
-					this.idmgr_obj.addrowbtn_id);
-				this.pstackcontainer.addChild(txtbtn_cpane)
+				this.pstackcontainer.addChild(textbtn_cpane)
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({
 					doLayout:false,
@@ -515,9 +513,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// add info cpane and grid div
 				var infogrid_cpane = new ContentPane({
 					id:this.idmgr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(infogrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);
+				put(infogrid_cpane.containerNode, "button.empty_smallgap[id=$]",
+					this.idmgr_obj.addrowbtn_id);
 				this.gstackcontainer.addChild(infogrid_cpane);
 			},
 			cleanup:function() {

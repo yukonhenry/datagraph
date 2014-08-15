@@ -467,14 +467,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					}
 					this.pstackcontainer_reg.addChild(txtbtn_cpane)
 				}, this)
-				/*
-				var newschedtxtbtn_cpane = new ContentPane({
-					id:idstr_obj.textbtncpane_id
-				})
-				put(newschedtxtbtn_cpane.containerNode, "span[id=$]",
-					idstr_obj.text_id)
-				put(newschedtxtbtn_cpane.containerNode, "br");
-				this.pstackcontainer_reg.addChild(newschedtxtbtn_cpane) */
 				// add generic txt + button cpane for all config cpane's outside
 				// of newsched_id
 				var txtbtn_cpane = new ContentPane({
@@ -490,8 +482,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.get_idstr_obj("div_id").text_id);
 				put(container_node, "button[id=$]",
 					this.get_idstr_obj("div_id").btn_id);
-				put(container_node, "button.empty_smallgap[id=$]",
-					this.get_idstr_obj("div_id").addrowbtn_id);
 				this.pstackcontainer_reg.addChild(txtbtn_cpane);
 				// add pre-config cpanes for all id's
 				// Note newsched doesn't untilize a numbertextbox
@@ -528,11 +518,28 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					id:constant.blankcpane_id
 				})
 				this.gstackcontainer_reg.addChild(blank_cpane);
+				// use arrayutil loop for id's that have common grid structure
+				var idproperty_list = ['div_id', 'tourndiv_id', 'pref_id',
+					'team_id', 'conflict_id'];
+				arrayUtil.forEach(idproperty_list, function(idproperty) {
+					var idstr_obj = this.get_idstr_obj(idproperty);
+					var info_cpane = new ContentPane({
+						id:idstr_obj.gridcpane_id,
+						class:'grid_cpane'
+					})
+					var container_node = info_cpane.containerNode;
+					put(container_node, "div[id=$]", idstr_obj.grid_id);
+					put(container_node, "button.empty_smallgap[id=$]",
+						idstr_obj.addrowbtn_id);
+					this.gstackcontainer_reg.addChild(info_cpane);
+				}, this);
+				/*
 				// add divinfo cpane and grid div
 				var idstr_obj = this.get_idstr_obj(
 					'div_id');
 				var div_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(div_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(div_cpane);
@@ -540,7 +547,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				idstr_obj = this.get_idstr_obj(
 					'tourndiv_id');
 				var tdiv_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(tdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(tdiv_cpane);
@@ -548,11 +556,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				idstr_obj = this.get_idstr_obj(
 					'pref_id');
 				var pdiv_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(pdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(pdiv_cpane);
-				// add field info border container, inside cpane and grid div
+				*/
+				// Field info has a different structure - add field info border
+				// container, inside cpane and grid div
 				idstr_obj = this.get_idstr_obj(
 					'field_id');
 				var field_bcontainer = new BorderContainer({
@@ -563,17 +574,20 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var field_cpane = new ContentPane({
 					id:idstr_obj.gridcpane_id,
 					region:'top',
-					style:"height:500px; width:100%"
+					class:'grid_cpane'
+					//style:"height:500px; width:100%"
 				})
 				put(field_cpane.containerNode, "div[id=$]",
 					idstr_obj.grid_id);
 				field_bcontainer.addChild(field_cpane);
 				this.gstackcontainer_reg.addChild(field_bcontainer);
+				/*
 				// add team info cpane
 				idstr_obj = this.get_idstr_obj(
 					'team_id');
 				var tmdiv_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(tmdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(tmdiv_cpane);
@@ -581,10 +595,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				idstr_obj = this.get_idstr_obj(
 					'conflict_id');
 				var cdiv_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
 				})
 				put(cdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
 				this.gstackcontainer_reg.addChild(cdiv_cpane);
+				*/
 			}
 		});
 	}

@@ -154,3 +154,6 @@ div.bar {
   width:120px;
   margin-right:40px;
 }
+.grid_cpane {
+  height:500px; width:100%;
+}
