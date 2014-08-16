@@ -531,6 +531,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					put(container_node, "div[id=$]", idstr_obj.grid_id);
 					put(container_node, "button.empty_smallgap[id=$]",
 						idstr_obj.addrowbtn_id);
+					put(container_node, "button.empty_smallgap[id=$]",
+						idstr_obj.delrowbtn_id);
 					this.gstackcontainer_reg.addChild(info_cpane);
 				}, this);
 				/*
@@ -579,6 +581,10 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				})
 				put(field_cpane.containerNode, "div[id=$]",
 					idstr_obj.grid_id);
+				put(field_cpane.containerNode, "button.empty_smallgap[id=$]",
+					idstr_obj.addrowbtn_id);
+				put(field_cpane.containerNode, "button.empty_smallgap[id=$]",
+					idstr_obj.delrowbtn_id);
 				field_bcontainer.addChild(field_cpane);
 				this.gstackcontainer_reg.addChild(field_bcontainer);
 				/*

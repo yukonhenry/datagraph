@@ -1393,6 +1393,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.idmgr_obj.grid_id);
 				put(fieldgrid_cpane.containerNode, "button.empty_smallgap[id=$]",
 					this.idmgr_obj.addrowbtn_id);
+				put(fieldgrid_cpane.containerNode, "button.empty_smallgap[id=$]",
+					this.idmgr_obj.delrowbtn_id);
 				field_bcontainer.addChild(fieldgrid_cpane);
 				this.gstackcontainer.addChild(field_bcontainer);
 			},

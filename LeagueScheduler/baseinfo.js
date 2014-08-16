@@ -298,7 +298,12 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				updatebtn_widget.set("onClick", btn_callback);
 				// create add row button
 				var addrowbtn_id = this.idmgr_obj.addrowbtn_id;
-				this.get_adddel_btn_widget('add', addrowbtn_id);
+				var addrowbtn_callback = lang.hitch(this, this.add_gridrow);
+				this.get_adddel_btn_widget('add', addrowbtn_id, addrowbtn_callback);
+				// create del row button
+				var delrowbtn_id = this.idmgr_obj.delrowbtn_id;
+				var delrowbtn_callback = lang.hitch(this, this.del_gridrow);
+				this.get_adddel_btn_widget('del', delrowbtn_id, delrowbtn_callback);
 				this.update_configdone(-1, gridstatus_node); // reset
 				if (swapcpane_flag) {
 					this.uistackmgr_type.switch_pstackcpane({idproperty:idproperty,
@@ -331,7 +336,11 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var gridstatus_node = this.get_gridstatus_node(updatebtn_widget,
 					op_type);
 				var addrowbtn_id = this.idmgr_obj.addrowbtn_id;
-				this.get_adddel_btn_widget('add', addrowbtn_id);
+				var addrowbtn_callback = lang.hitch(this, this.add_gridrow);
+				this.get_adddel_btn_widget('add', addrowbtn_id, addrowbtn_callback);
+				var delrowbtn_id = this.idmgr_obj.delrowbtn_id;
+				var delrowbtn_callback = lang.hitch(this, this.del_gridrow);
+				this.get_adddel_btn_widget('del', delrowbtn_id, delrowbtn_callback);
 				this.update_configdone(-1, gridstatus_node); // reset
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
@@ -355,16 +364,33 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 				return infobtn_widget;
 			},
-			get_adddel_btn_widget: function(btn_type, btn_id) {
+			get_adddel_btn_widget: function(btn_type, btn_id, btn_callback) {
 				var label_str = (btn_type == 'add')?"Add Row":"Delete Row";
+				var class_str = (btn_type == 'add')?"primary":"info"
 				var adddel_btn_widget = registry.byId(btn_id);
 				if (!adddel_btn_widget) {
 					adddel_btn_widget = new Button({
 						label:label_str,
-						class:"info", type:"button", title:"Click to "+label_str,
+						class:class_str, type:"button",
+						title:"Click to "+label_str+" from buttom",
+						onClick:btn_callback
 					}, btn_id);
 					adddel_btn_widget.startup();
 				}
+			},
+			add_gridrow: function(event) {
+				var init_obj = this.getInitialList(1)[0];
+				this.totalrows_num++;
+				init_obj[this.idproperty] = this.totalrows_num;
+				this.infogrid_store.add(init_obj)
+				this.editgrid.schedInfoGrid.refresh();
+				this.editgrid.schedInfoGrid.resize();
+			},
+			del_gridrow: function(event) {
+				this.infogrid_store.remove(this.totalrows_num)
+				this.totalrows_num--;
+				this.editgrid.schedInfoGrid.refresh();
+				this.editgrid.schedInfoGrid.resize();
 			},
 			get_gridstatus_node: function(updatebtn_widget, op_type) {
 				var gridstatus_id = op_type+'gridstatus_id';
@@ -519,6 +545,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					this.idmgr_obj.grid_id);
 				put(infogrid_cpane.containerNode, "button.empty_smallgap[id=$]",
 					this.idmgr_obj.addrowbtn_id);
+				put(infogrid_cpane.containerNode, "button.empty_smallgap[id=$]",
+					this.idmgr_obj.delrowbtn_id);
 				this.gstackcontainer.addChild(infogrid_cpane);
 			},
 			cleanup:function() {

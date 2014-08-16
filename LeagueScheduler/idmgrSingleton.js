@@ -29,8 +29,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 						var idstr_obj = new Object();
 						for (var key in suffix_obj) {
 							if (op_type == "advance" && (key=="text_id" ||
-								key=="btn_id" || key=="addrowbtn_id" ||
-								key=="delrowbtn_id" || key=="textbtncpane_id") &&
+								key=="btn_id" || key=="textbtncpane_id") &&
 								(id != "newsched_id" && id != "team_id")) {
 								// for advanced UI, and if idprop is not
 								// newsched_id, there is only one
