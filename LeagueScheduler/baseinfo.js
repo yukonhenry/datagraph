@@ -138,8 +138,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				this.divstr_colname = colname;
 				this.divstr_db_type = db_type;
 			},
-			getdivstr_obj: function() {
-				return {colname:this.divstr_colname, db_type:this.divstr_db_type};
+			get_server_key_obj: function() {
+				return {divstr_colname:this.divstr_colname,
+					divstr_db_type:this.divstr_db_type};
 			},
 			initabovegrid_UI: function(topdiv_node) {
 				if (typeof topdiv_node === "undefined" ||

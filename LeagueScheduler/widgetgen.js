@@ -19,7 +19,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             oddnum_dialog_id:"oddnum_dialog_id",
             oddnum_radio1_id:"oddnum_radio1_id",
             oddnum_radio2_id:"oddnum_radio2_id",
-            oddnum_radio_name:"oddnum_radio_name"
+            oddnum_radio_name:"oddnum_radio_name", oddnum_btn_id:"oddnum_btn_id"
         }
         return declare(null, {
             storeutil_obj:null, radio_db_type:null, watch_obj:null,
@@ -497,40 +497,64 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                             callback_args_obj));
                 }
             },
-            get_radiobtn_dialog: function() {
+            get_radiobtn_dialog: function(args_obj) {
+                var init_radio_value = args_obj.init_radio_value;
+                var context = args_obj.context;
+                var radio1_callback = args_obj.radio1_callback;
+                var radio2_callback = args_obj.radio2_callback;
+                var submit_callback = args_obj.submit_callback;
                 var radio1_id = constant.oddnum_radio1_id;
                 var radio2_id = constant.oddnum_radio2_id;
+                var btn_id = constant.oddnum_btn_id;
+                var radio1_flag = (init_radio_value == 'BYE')?true:false;
                 var oddnum_dialog = registry.byId(constant.oddnum_dialog_id);
                 if (!oddnum_dialog) {
                    oddnum_dialog = new Dialog({
                         id:constant.oddnum_dialog_id,
-                        class:"dijitDialog", title:"Bye or Play",
-                        content:"Odd number of teams - Have bye or have a team play twice on a game date?"
+                        class:"dijitDialog", title:"<p style='color:blue'>BYE or PLAY</p>",
+                        style:"width:300px",
+                        content:"Div has odd # of teams; Select Model"
                     })
                     var oddnum_form = new Form();
                     var form_node = oddnum_form.domNode;
-                    put(form_node, "span", "Select Bye/Play");
+                    put(form_node, "span", "Select one:");
                     var radio1_node = put(form_node, "div[id=$]", radio1_id);
                     put(form_node, "label.label_box[for=$]", radio1_id, "Bye");
                     var radio2_node = put(form_node, "div[id=$]", radio2_id);
                     put(form_node, "label.label_box[for=$]", radio2_id, "Play");
                     new RadioButton({
                         name:constant.oddnum_radio_name,
-                        value:"bye", checked:false,
+                        value:"bye", checked:radio1_flag,
                         style:"margin-left:5px",
-                        onChange: lang.hitch(this, this.radiobtn_select)
+                        onChange: lang.hitch(context, radio1_callback)
                     }, radio1_node)
                     new RadioButton({
                         name:constant.oddnum_radio_name,
-                        value:"play", checked:true,
+                        value:"play", checked:!radio1_flag,
                         style:"margin-left:10px",
-                        onChange: lang.hitch(this, this.radiobtn_select)
+                        onChange: lang.hitch(context, radio2_callback)
                     }, radio2_node);
+                    var btn_node = put(form_node,
+                        "button.dijitButton[id=$][type=submit]", btn_id);
+                    var btn_widget = new Button({
+                        label:"Submit",
+                        class:"success",
+                        onClick: lang.hitch(context, submit_callback)
+                    }, btn_node);
+                    var tooltipconfig = {
+                        connectId:[constant.oddnum_dialog_id],
+                        label:"BYE Model: One Team has Bye; PLAY Model: One team plays twice on a game date so that no team has a BYE",
+                        position:['before','after']};
+                    new Tooltip(tooltipconfig);
                     oddnum_dialog.addChild(oddnum_form);
+                } else {
+                    var radio1_widget = registry.byId(radio1_id);
+                    radio1_widget.set("checked", radio1_flag);
+                    var radio2_widget = registry.byId(radio2_id);
+                    radio2_widget.set("checked", radio2_flag);
                 }
+                oddnum_dialog.startup();
                 return oddnum_dialog
             },
-            radiobtn_select: function(event) {
-            }
         })
     })

@@ -24,7 +24,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 			end_datebox_id:'end_dtbox_id',
 			weeksspinner_id:'sl_spinner_id',
 			seasondates_btn_id:'sdbtn_id',
-			numweeks:12
+			numweeks:12,
+			bye_value: 0,
+			play_value: 1
 		};
 		var wizconstant = {
 			//ndcpane_id:"wiznumdivcpane_id",
@@ -38,7 +40,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 		return declare(baseinfo, {
 			idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
-			base_numweeks:0,
+			base_numweeks:0, oddnumradio_value:-1, oddnum_dialog:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -285,8 +287,14 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 								break;
 							} else if (item[prop]%2 == 1) {
 								// have user select odd team number disposition
-								var oddnum_dialog = this.widgetgen.get_radiobtn_dialog();
-								oddnum_dialog.show();
+								this.oddnumradio_value = constant.bye_value;
+								var args_obj = {init_radio_value: "BYE",
+									context:this,
+									radio1_callback:this.oddnumradio1_callback,
+									radio2_callback:this.oddnumradio2_callback,
+									submit_callback:this.oddnumsubmit_callback};
+								this.oddnum_dialog = this.widgetgen.get_radiobtn_dialog(args_obj);
+								this.oddnum_dialog.show();
 								break;
 							}
 						} else if (prop == 'mingap_days') {
@@ -317,5 +325,21 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 				}
 				return config_status;
 			},
+			oddnumradio1_callback: function(event) {
+				if (event) {
+					this.oddnumradio_value = constant.bye_value;
+				}
+			},
+			oddnumradio2_callback: function(event) {
+				if (event) {
+					this.oddnumradio_value = constant.play_value;
+				}
+			},
+			oddnumsubmit_callback: function(event) {
+				this.oddnum_dialog.hide();
+			},
+			get_server_key_obj: function() {
+				return {oddnum_mode:this.oddnumradio_value};
+			}
 		});
 });

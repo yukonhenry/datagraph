@@ -157,28 +157,27 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 				var config_status = this.info_obj.checkconfig_status(raw_result);
 				this.info_obj.update_configdone(config_status, gridstatus_node);
 				var storedata_json = null;
-				var storedata_json = null;
-				var server_key_obj = {};
-				if (this.idproperty == "field_id" || this.idproperty == "pref_id" ||
-					this.idproperty == "team_id" ||
-					this.idproperty == "conflict_id") {
-					if (this.idproperty == "team_id" ||
-						this.idproperty == "conflict_id") {
-						// no need to modify result for team_id
-						storedata_json = JSON.stringify(raw_result);
-					} else {
-						// for field or pref id's modify grid data before sending to
+				var server_key_obj = null;
+				if (this.idproperty == "field_id" ||
+					this.idproperty == "pref_id") {
+					// for field or pref id's modify grid data before sending to
 						// server - also attach divstr information also
-						var newlist = this.info_obj.modify_toserver_data(raw_result);
-						storedata_json = JSON.stringify(newlist);
-					}
-					divstr_obj = this.info_obj.getdivstr_obj();
+					var newlist = this.info_obj.modify_toserver_data(raw_result);
+					storedata_json = JSON.stringify(newlist);
 					// get colname and db_type for the divinfo obj attached to the
 					// current fieldinfo obj.
-					server_key_obj.divstr_colname = divstr_obj.colname;
-					server_key_obj.divstr_db_type = divstr_obj.db_type;
+					server_key_obj = this.info_obj.get_server_key_obj();
+				} else  if (this.idproperty == "team_id" ||
+					this.idproperty == "conflict_id" ||
+					this.idproperty == "div_id") {
+					// no ned to modify results for this id
+					storedata_json = JSON.stringify(raw_result);
+					// get server key
+					server_key_obj = this.info_obj.get_server_key_obj();
 				} else {
 					storedata_json = JSON.stringify(raw_result);
+					// no server key
+					server_key_obj = dict()
 				}
 				server_key_obj[constant.toserver_key] = storedata_json;
 				server_key_obj.config_status = config_status;

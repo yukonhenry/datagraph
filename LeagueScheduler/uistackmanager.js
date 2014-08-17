@@ -37,40 +37,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						pane_id:this.get_idstr_obj(item).textbtncpane_id};
 				}, this)
 				this.pstackmap_list = preconfig_list.concat(config_list);
-				/*
-				this.pstackmap_list.push({id:'field_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('field_id').numcpane_id});
-				this.pstackmap_list.push({id:'field_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('field_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'div_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('div_id').numcpane_id});
-				this.pstackmap_list.push({id:'div_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('div_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('tourndiv_id').numcpane_id});
-				this.pstackmap_list.push({id:'tourndiv_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('tourndiv_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
-					pane_id:constant.nscpane_id});
-				// note newsched has it's own txtbtn cpane as it does not share
-				// a common inheritance/influence from baseinfo class
-				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'pref_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('pref_id').numcpane_id});
-				this.pstackmap_list.push({id:'pref_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('pref_id').textbtncpane_id});
-				// for teaminfo there is no numcpane - go straight to grid with
-				// tcpane_id - recheck logic below
-				this.pstackmap_list.push({id:'team_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('team_id').numcpane_id});
-				this.pstackmap_list.push({id:'team_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('team_id').textbtncpane_id});
-				this.pstackmap_list.push({id:'conflict_id', p_stage:'preconfig',
-					pane_id:this.get_idstr_obj('conflict_id').numcpane_id});
-				this.pstackmap_list.push({id:'conflict_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('conflict_id').textbtncpane_id});
-				*/
 				// define mapping object for the grid content pane
 				// gstackmap_list maps from id to corresponding grid name
 				// note idprop newsched_id has no grid the cpane is blank.
