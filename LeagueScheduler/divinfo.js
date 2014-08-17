@@ -1,14 +1,16 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
+define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
+	"dojo/_base/lang", "dojo/_base/array", "dijit/Dialog",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
-	"LeagueScheduler/widgetgen", "LeagueScheduler/idmgrSingleton",
+	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
-	function(dbootstrap, declare, dom, lang, arrayUtil, registry, editor, NumberSpinner,
+	function(dbootstrap, declare, dom, lang, arrayUtil, Dialog, registry, editor,
+		NumberSpinner,
 		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
-		baseinfo, baseinfoSingleton, WidgetGen, idmgrSingleton, put){
+		baseinfo, baseinfoSingleton, idmgrSingleton, put){
 		var constant = {
 			idproperty_str:'div_id',
 			inputnum_str:'Number of Divisions',
@@ -36,7 +38,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 		return declare(baseinfo, {
 			idproperty:constant.idproperty_str,
 			db_type:constant.db_type,
-			base_numweeks:0, widgetgen:null,
+			base_numweeks:0,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -236,12 +238,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 			create_calendar_input: function(op_type) {
 				var divinfogrid_node = dom.byId(this.idmgr_obj.grid_id);
 				var topdiv_node = put(divinfogrid_node, "-div");
-				if (!this.widgetgen) {
-					this.widgetgen = new WidgetGen({
-						storeutil_obj:this.storeutil_obj,
-						server_interface:this.server_interface
-					});
-				}
 				var constant_obj = (op_type == 'wizard')?wizconstant:constant;
 				var args_obj = {
 					topdiv_node:topdiv_node,
@@ -287,6 +283,11 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 								alert_msg = "Need >=2 teams"
 								break_flag = true;
 								break;
+							} else if (item[prop]%2 == 1) {
+								// have user select odd team number disposition
+								var oddnum_dialog = this.widgetgen.get_radiobtn_dialog();
+								oddnum_dialog.show();
+								break;
 							}
 						} else if (prop == 'mingap_days') {
 							mingap_days = item[prop]
@@ -306,7 +307,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo
 						}
 					}
 					return break_flag;
-				})) {
+				}, this)) {
 					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete for "+this.idproperty+
 						" but saving");

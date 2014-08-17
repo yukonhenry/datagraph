@@ -24,7 +24,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			schedutil_obj:null, activegrid_colname:"",
 			config_status:0, gridtooltip_list:null,
 			btntxtid_list:null, op_type:"", op_prefix:"", idmgr_obj:null,
-			infogrid_store:null, userid_name:"",
+			infogrid_store:null, userid_name:"", widgetgen:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -32,6 +32,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				this.tooltip_list = new Array();
 				// use to create op-type unique id strings local to this file
 				this.op_prefix = this.op_type.substring(0,3);
+				this.widgetgen = new WidgetGen({
+					storeutil_obj:this.storeutil_obj,
+					server_interface:this.server_interface
+				});
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -154,12 +158,6 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// is used for fieldinfo grid
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
-				if (!this.widgetgen) {
-					this.widgetgen = new WidgetGen({
-						storeutil_obj:this.storeutil_obj,
-						server_interface:this.server_interface
-					});
-				}
 				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
 					radio1_id, radio2_id, init_db_type,
 					this, this.radio1_callback, this.radio2_callback, select_id);

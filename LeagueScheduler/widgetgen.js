@@ -2,13 +2,13 @@
 */
 define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "dojo/_base/array", "dojo/Stateful", "dojo/store/Memory", "dojo/date",
-    "dijit/registry", "dijit/form/Button", "dijit/form/RadioButton",
+    "dijit/registry", "dijit/Dialog", "dijit/form/Button", "dijit/form/RadioButton",
     "dijit/form/Select", "dijit/form/NumberSpinner", "dijit/form/DateTextBox",
     "dijit/form/Form", "dijit/form/ValidationTextBox",
     "dijit/Tooltip",
     "put-selector/put", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
     function(dbootstrap, dom, declare, lang, arrayUtil, Stateful, Memory, date,
-        registry, Button, RadioButton, Select, NumberSpinner, DateTextBox,
+        registry, Dialog, Button, RadioButton, Select, NumberSpinner, DateTextBox,
         Form, ValidationTextBox,
         Tooltip, put, baseinfoSingleton) {
         var Watch_class = declare([Stateful], {
@@ -16,6 +16,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
         });
         var constant = {
             default_db_type:'rrdb',
+            oddnum_dialog_id:"oddnum_dialog_id",
+            oddnum_radio1_id:"oddnum_radio1_id",
+            oddnum_radio2_id:"oddnum_radio2_id",
+            oddnum_radio_name:"oddnum_radio_name"
         }
         return declare(null, {
             storeutil_obj:null, radio_db_type:null, watch_obj:null,
@@ -492,6 +496,41 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         lang.hitch(callback_context, callback_func,
                             callback_args_obj));
                 }
+            },
+            get_radiobtn_dialog: function() {
+                var radio1_id = constant.oddnum_radio1_id;
+                var radio2_id = constant.oddnum_radio2_id;
+                var oddnum_dialog = registry.byId(constant.oddnum_dialog_id);
+                if (!oddnum_dialog) {
+                   oddnum_dialog = new Dialog({
+                        id:constant.oddnum_dialog_id,
+                        class:"dijitDialog", title:"Bye or Play",
+                        content:"Odd number of teams - Have bye or have a team play twice on a game date?"
+                    })
+                    var oddnum_form = new Form();
+                    var form_node = oddnum_form.domNode;
+                    put(form_node, "span", "Select Bye/Play");
+                    var radio1_node = put(form_node, "div[id=$]", radio1_id);
+                    put(form_node, "label.label_box[for=$]", radio1_id, "Bye");
+                    var radio2_node = put(form_node, "div[id=$]", radio2_id);
+                    put(form_node, "label.label_box[for=$]", radio2_id, "Play");
+                    new RadioButton({
+                        name:constant.oddnum_radio_name,
+                        value:"bye", checked:false,
+                        style:"margin-left:5px",
+                        onChange: lang.hitch(this, this.radiobtn_select)
+                    }, radio1_node)
+                    new RadioButton({
+                        name:constant.oddnum_radio_name,
+                        value:"play", checked:true,
+                        style:"margin-left:10px",
+                        onChange: lang.hitch(this, this.radiobtn_select)
+                    }, radio2_node);
+                    oddnum_dialog.addChild(oddnum_form);
+                }
+                return oddnum_dialog
+            },
+            radiobtn_select: function(event) {
             }
         })
     })

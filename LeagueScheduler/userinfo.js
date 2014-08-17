@@ -128,6 +128,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
                     // positive result value indicates userid exists
                 } else {
                     idconfirm_dialog = new ConfirmDialog({
+                        class:"dijitConfirmDialog",
                         title:"UserID Confirm",
                         content:"New User/Org ID: <strong>"+userid_name+"</strong><br>Press OK to create, Cancel to select different ID",
                         //onExecute: lang.hitch(this, this.create_userid, userid_name)
