@@ -143,7 +143,8 @@ def create_newdbcol(userid_name, db_type, newcol_name):
     config_status = int(request.query.config_status)
     dbInterface = select_db_interface(userid_name, db_type, newcol_name)
     if db_type in ['rrdb', 'tourndb']:
-        dbInterface.writeDB(info_data, config_status)
+        oddnum_mode = int(request.query.oddnum_mode)
+        dbInterface.writeDB(info_data, config_status, oddnum_mode)
     elif db_type in ['fielddb', 'prefdb', 'teamdb', 'conflictdb']:
         # get divinfo parameters associated with fieldinfo obj
         divstr_colname = request.query.divstr_colname

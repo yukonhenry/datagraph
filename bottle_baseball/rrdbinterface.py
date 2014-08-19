@@ -17,7 +17,7 @@ class RRDBInterface(BaseDBInterface):
         BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
             DB_Col_Type.RoundRobin, 'DIV_ID')
 
-    def writeDB(self, divinfo_str, config_status):
+    def writeDB(self, divinfo_str, config_status, oddnum_mode):
         divinfo_list = json.loads(divinfo_str)
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
         self.dbinterface.updateInfoDocument(document_list, config_status, 'DIV_ID')

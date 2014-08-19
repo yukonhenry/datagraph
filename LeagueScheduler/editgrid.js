@@ -155,7 +155,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendStoreInfoToServer: function(gridstatus_node, event) {
 				var raw_result = this.schedInfoStore.query();
 				var config_status = this.info_obj.checkconfig_status(raw_result);
-				this.info_obj.update_configdone(config_status, gridstatus_node);
+				this.info_obj.update_configdone(config_status, gridstatus_node)
 				var storedata_json = null;
 				var server_key_obj = null;
 				if (this.idproperty == "field_id" ||
@@ -167,18 +167,33 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					// get colname and db_type for the divinfo obj attached to the
 					// current fieldinfo obj.
 					server_key_obj = this.info_obj.get_server_key_obj();
+					this.sendData_Server_DB(storedata_json, config_status,
+						server_key_obj);
 				} else  if (this.idproperty == "team_id" ||
-					this.idproperty == "conflict_id" ||
-					this.idproperty == "div_id") {
-					// no ned to modify results for this id
+					this.idproperty == "conflict_id") {
+					// no need to modify results for this id
 					storedata_json = JSON.stringify(raw_result);
 					// get server key
 					server_key_obj = this.info_obj.get_server_key_obj();
+					this.sendData_Server_DB(storedata_json, config_status,
+						server_key_obj);
+				} else if (this.idproperty == "div_id") {
+					storedata_json = JSON.stringify(raw_result);
+					this.info_obj.get_server_key_obj(raw_result).then(
+						lang.hitch(this,function(server_key_obj) {
+							this.sendData_Server_DB(storedata_json, config_status,
+								server_key_obj);
+						})
+					)
 				} else {
 					storedata_json = JSON.stringify(raw_result);
 					// no server key
 					server_key_obj = dict()
+					this.sendData_Server_DB(storedata_json, config_status,
+						server_key_obj);
 				}
+			},
+			sendData_Server_DB: function(storedata_json, config_status, server_key_obj) {
 				server_key_obj[constant.toserver_key] = storedata_json;
 				server_key_obj.config_status = config_status;
 				//server_key_obj.db_type = this.db_type;

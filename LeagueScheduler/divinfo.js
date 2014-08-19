@@ -1,5 +1,5 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
+define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 	"dojo/_base/lang", "dojo/_base/array", "dijit/Dialog",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
@@ -7,8 +7,8 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
-	function(dbootstrap, declare, dom, lang, arrayUtil, Dialog, registry, editor,
-		NumberSpinner,
+	function(dbootstrap, declare, dom, Deferred, lang, arrayUtil, Dialog,
+		registry, editor, NumberSpinner,
 		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
 		baseinfo, baseinfoSingleton, idmgrSingleton, put){
 		var constant = {
@@ -252,7 +252,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
-			checkconfig_status: function(raw_result){
+			checkconfig_status: function(raw_result) {
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than
 				// query.filter() as loop will exit immediately if .some() returns
@@ -285,17 +285,6 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 								alert_msg = "Need >=2 teams"
 								break_flag = true;
 								break;
-							} else if (item[prop]%2 == 1) {
-								// have user select odd team number disposition
-								this.oddnumradio_value = constant.bye_value;
-								var args_obj = {init_radio_value: "BYE",
-									context:this,
-									radio1_callback:this.oddnumradio1_callback,
-									radio2_callback:this.oddnumradio2_callback,
-									submit_callback:this.oddnumsubmit_callback};
-								this.oddnum_dialog = this.widgetgen.get_radiobtn_dialog(args_obj);
-								this.oddnum_dialog.show();
-								break;
 							}
 						} else if (prop == 'mingap_days') {
 							mingap_days = item[prop]
@@ -315,7 +304,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 						}
 					}
 					return break_flag;
-				}, this)) {
+				})) {
 					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete for "+this.idproperty+
 						" but saving");
@@ -335,11 +324,35 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom",
 					this.oddnumradio_value = constant.play_value;
 				}
 			},
-			oddnumsubmit_callback: function(event) {
+			oddnumsubmit_callback: function(deferred_obj, event) {
 				this.oddnum_dialog.hide();
+				deferred_obj.resolve({oddnum_mode:this.oddnumradio_value});
 			},
-			get_server_key_obj: function() {
-				return {oddnum_mode:this.oddnumradio_value};
-			}
+			get_server_key_obj: function(raw_result) {
+				var deferred_obj = new Deferred();
+				var break_flag = false;
+				if (arrayUtil.some(raw_result, function(item) {
+					var totalteams = item['totalteams'];
+					if (totalteams%2 == 1) {
+						return true;
+					} else {
+						return false;
+					}
+				})) {
+					this.oddnumradio_value = constant.bye_value;
+					var args_obj = {init_radio_value: "BYE",
+						context:this,
+						radio1_callback:this.oddnumradio1_callback,
+						radio2_callback:this.oddnumradio2_callback,
+						submit_callback:this.oddnumsubmit_callback,
+						deferred_obj:deferred_obj};
+					this.oddnum_dialog = this.widgetgen.get_radiobtn_dialog(args_obj);
+					this.oddnum_dialog.show();
+				} else {
+					// no odd numbered teams
+					deferred_obj.resolve({oddnum_mode:-1});
+				}
+				return deferred_obj.promise;
+			},
 		});
 });

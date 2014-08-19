@@ -503,6 +503,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var radio1_callback = args_obj.radio1_callback;
                 var radio2_callback = args_obj.radio2_callback;
                 var submit_callback = args_obj.submit_callback;
+                var deferred_obj = args_obj.deferred_obj;
                 var radio1_id = constant.oddnum_radio1_id;
                 var radio2_id = constant.oddnum_radio2_id;
                 var btn_id = constant.oddnum_btn_id;
@@ -539,7 +540,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     var btn_widget = new Button({
                         label:"Submit",
                         class:"success",
-                        onClick: lang.hitch(context, submit_callback)
+                        onClick: lang.hitch(context, submit_callback,
+                            deferred_obj)
                     }, btn_node);
                     var tooltipconfig = {
                         connectId:[constant.oddnum_dialog_id],
@@ -551,7 +553,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     var radio1_widget = registry.byId(radio1_id);
                     radio1_widget.set("checked", radio1_flag);
                     var radio2_widget = registry.byId(radio2_id);
-                    radio2_widget.set("checked", radio2_flag);
+                    radio2_widget.set("checked", !radio1_flag);
+                    var btn_widget = registry.byId(btn_id);
+                    btn_widget.set("onClick", lang.hitch(context, submit_callback,
+                        deferred_obj))
                 }
                 oddnum_dialog.startup();
                 return oddnum_dialog
