@@ -252,12 +252,20 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// remove entries from the div or field group dropdown
 				if (db_type == 'rrdb' || db_type == 'tourndb') {
 					this.league_select.removeOption(index);
+					this.league_select.reset();
+					this.league_select_value = null;
 				} else if (db_type == 'fielddb') {
-					this.fg_select.removeOption(index)
+					this.fg_select.removeOption(index);
+					this.fg_select.reset();
+					this.fg_select_value = null;
 				} else if (db_type == 'prefdb') {
-					this.pref_select.removeOption(index)
+					this.pref_select.removeOption(index);
+					this.pref_select.reset();
+					this.pref_select_value = null;
 				} else if (db_type == 'conflictdb') {
 					this.conflict_select.removeOption(index);
+					this.conflict_select.reset();
+					this.conflict_select_value = null;
 				}
 			},
 			addto_select: function(db_type, label, insertIndex) {

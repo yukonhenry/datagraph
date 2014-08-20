@@ -42,9 +42,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// conflict nmenu list
 				this.conflictdbmenureg_list = new Array();
 			},
-			getTournCalendarMap: function(gameday_id) {
-				return tournCalendarMapObj[gameday_id];
-			},
 			tConvert: function(time) {
 				// courtesy http://stackoverflow.com/questions/13898423/javascript-convert-24-hour-time-of-day-string-to-12-hour-time-with-am-pm-and-no
   				// Check correct time format and split into components
@@ -145,10 +142,6 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 						context:onclick_context, func:onclick_func,
 						options_obj:options_obj});
 				}
-			},
-			default_alert: function(options_obj) {
-				var item = options_obj.item;
-				alert(item);
 			},
 			regenDelDBCollection_smenu: function(delindex, db_type) {
 				var dbmenureg_list = this.get_dbmenureg_list(db_type);

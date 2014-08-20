@@ -127,6 +127,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 				// http://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
 				var dbtype_result = dbselect_store.query();
 				dbtype_result.observe(lang.hitch(this, function(object, removeIndex, insertIndex) {
+					// get all newsched obj's - typically there can be one each for
+					// advanced and wizard modes
 					var newsched_obj_list = baseinfoSingleton.get_obj_list('newsched_id');
 					if (removeIndex > -1) {
 						// note removing by index only may not be reliable
@@ -134,10 +136,15 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 						// the reg children to find a math on the label
 						this.schedutil_obj.regenDelDBCollection_smenu(removeIndex, db_type);
 						arrayUtil.forEach(newsched_obj_list,
-						function(newsched_obj) {
-							if (newsched_obj && newsched_obj.selectexists_flag) {
+						function(register_obj) {
+							// look at baseinfosingleton register_obj function for
+							// correct register obj definition
+							var newsched_obj = register_obj.obj;
+							if (newsched_obj.selectexists_flag) {
+								// increment index by one as select includes
+								// generic 0-th entry
 								newsched_obj.removefrom_select(db_type,
-									removeIndex);
+									removeIndex+1);
 							}
 						})
 					}
@@ -145,8 +152,9 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 						this.schedutil_obj.regenAddDBCollection_smenu(insertIndex,
 							object, db_type);
 						arrayUtil.forEach(newsched_obj_list,
-						function(newsched_obj) {
-							if (newsched_obj && newsched_obj.selectexists_flag) {
+						function(register_obj) {
+							var newsched_obj = register_obj.obj;
+							if (newsched_obj.selectexists_flag) {
 								newsched_obj.addto_select(db_type, object.name,
 									insertIndex);
 							}
