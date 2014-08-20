@@ -34,6 +34,7 @@ fieldday_id_CONST = 'FIELDDAY_ID'
 div_age_CONST = 'DIV_AGE'
 div_gen_CONST = 'DIV_GEN'
 USER_ID = 'USER_ID'
+ODDNUM_MODE = 'ODDNUM_MODE'
 
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
@@ -42,7 +43,7 @@ date_format_CONST = '%m/%d/%Y'
 
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
-_List_Status = namedtuple('_List_Status', 'list config_status')
+_List_Result = namedtuple('_List_Result', 'list result')
 _PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_colname divstr_db_type')
 
 # http://pythonhosted.org/flufl.enum/docs/using.html
@@ -126,14 +127,14 @@ class MongoDBInterface:
                     match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
         docID = self.collection.insert(document)
 
-    def updateInfoDocument(self, doc_list, config_status, id_str):
+    def updateInfoDocument(self, doc_list, set_obj, id_str):
         # note $set operator only updates specified fields, not the entire document
         # change doc structure to be similar to the fielddb structure - separate
         # doc for each div_id, instead of putting it all as subdocuments under
         # DOC_LIST
         self.collection.update({sched_type_CONST:self.sched_type,
             sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
-            {"$set": {CONFIG_STATUS:config_status}}, upsert=True)
+            {"$set": set_obj}, upsert=True)
         for doc in doc_list:
             # put fieldinfo in separate mongo documents
             # each doc should have a sched_type field
@@ -617,7 +618,7 @@ class MongoDBInterface:
             id_str:{"$exists":True}, USER_ID:self.userid_name}, {'_id':0})
         # convert cursor to list
         info_list = list(info_curs)
-        return _List_Status(info_list, config_status)
+        return _List_Result(info_list, result)
 
     def getInfoPlusDocument(self, id_str):
         # similar to getInfoDocument, but also get divstr info in db and return

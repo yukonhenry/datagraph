@@ -35,7 +35,8 @@ class TournDBInterface:
             del divinfo['field_id_str']  # remove old element
         # convert keys to uppercase
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
-        self.dbinterface.updateInfoDocument(document_list, config_status, 'DIV_ID')
+        set_obj = {'CONFIG_STATUS':config_status, 'ODDNUM_MODE':oddnum_mode}
+        self.dbinterface.updateInfoDocument(document_list, set_obj, 'DIV_ID')
 
     def readDB(self):
         liststatus_tuple = self.dbinterface.getInfoDocument('DIV_ID')
