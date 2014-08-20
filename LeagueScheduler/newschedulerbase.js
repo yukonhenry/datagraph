@@ -1065,8 +1065,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						content:content_str, id:newcpane_id});
 					this.tabcontainer_reg.addChild(newcpane);
 				} else {
-					newcpane.set("title", title_str);
-					newcpane.set("content", content_str);
+					//newcpane.set("title", title_str);
+					//newcpane.set("content", content_str);
 				}
 				return newcpane
 			},
