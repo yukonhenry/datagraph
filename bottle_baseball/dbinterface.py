@@ -135,6 +135,9 @@ class MongoDBInterface:
         self.collection.update({sched_type_CONST:self.sched_type,
             sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
             {"$set": set_obj}, upsert=True)
+        # remove existing config documents for the same doc type and id
+        self.collection.remove({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name, id_str:{"$exists":True}})
         for doc in doc_list:
             # put fieldinfo in separate mongo documents
             # each doc should have a sched_type field
@@ -156,6 +159,8 @@ class MongoDBInterface:
             {"$set": {CONFIG_STATUS:config_status,
             divstr_colname_CONST:divstr_colname,
             divstr_db_type_CONST:divstr_db_type}}, upsert=True)
+        self.collection.remove({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name, id_str:{"$exists":True}})
         for doc in doc_list:
             # put fieldinfo in separate mongo documents
             # each doc should have a sched_type field

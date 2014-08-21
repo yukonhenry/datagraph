@@ -37,6 +37,7 @@ class SchedMaster(object):
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
         dbtuple = dbInterface.readDBraw()
         if dbtuple.config_status == 1:
+            self.oddnum_mode = dbtuple.oddnum_mode
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
             self.divinfo_tuple = _List_Indexer(self.divinfo_list,
@@ -159,7 +160,8 @@ class SchedMaster(object):
             # possibly rename below to 'totalrounddays' as totalgamedays may not
             # match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
-            match = MatchGenerator(totalteams, totalgamedays)
+            match = MatchGenerator(totalteams, totalgamedays,
+                oddnum_mode=self.oddnum_mode)
             match_list = match.generateMatchList()
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
                 'numgames_perteam_list':match.numgames_perteam_list,
@@ -229,6 +231,7 @@ class SchedMaster(object):
             return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
 
     def consistency_check(self, prefinfo_list):
+        '''preference info date consistency check against calendar map'''
         cmap_list = list()
         cindexerGet = lambda x: dict((p['date'],i)
             for i,p in enumerate(cmap_list)).get(x)

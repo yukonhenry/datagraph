@@ -3,6 +3,7 @@ from itertools import product
 import networkx as nx
 from math import sqrt
 import logging
+from sched_exceptions import CodeLogicError
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
@@ -13,7 +14,7 @@ large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
 class MatchGenerator:
-    def __init__(self, nt, ng, maxGamesPerTeam=10000):
+    def __init__(self, nt, ng, oddnum_mode=0, maxGamesPerTeam=10000):
         self.numTeams = nt
         self.numGameSlots = ng  # num gameslots per team per season
         self.maxGamesPerTeam = maxGamesPerTeam
@@ -23,11 +24,19 @@ class MatchGenerator:
         # position in list is team_id-1
         self.numgames_perteam_list = nt*[0]
         self.bye_flag = False
+        self.oddnum_mode = oddnum_mode
         if (self.numTeams % 2):
             self.eff_numTeams = self.numTeams+1
             self.bye_flag = True
-            # used by fieldtime scheduler to ensure there are enough fields/timeslots per game
             self.gameslotsperday = (self.numTeams-1)/2
+            if oddnum_mode == 1:
+                # oddnum_mode 1 value indicates, no bye for odd number of teams
+                # instead, one team will play twice so that every team has at
+                # at least one game in the round
+                # gameslotsperday used by fieldtime scheduler to ensure there are enough fields/timeslots per game
+                self.gameslotsperday += 1
+                # keep track of how many times a team plays twice a day
+                self.doublegames_list = nt*[0]
         else:
             self.eff_numTeams = self.numTeams
             self.bye_flag = False
@@ -318,7 +327,9 @@ class MatchGenerator:
             print '----------------------------------------'
 
 
-    def generateCirclePairing(self, circle_total_pos, circlecenter_team, game_count):
+    def generateCirclePairing(self, circle_total_pos, circlecenter_team,
+        game_count):
+        ''' round robin match generation '''
         for rotation_ind in range(circle_total_pos):
             if game_count >= self.numGameSlots:
                 break
@@ -326,15 +337,46 @@ class MatchGenerator:
                 game_count += 1
                 # each rotation_ind corresponds to a single game cycle (a week if there is one game per week)
             circletop_team = rotation_ind + 1   # top of circle
-            # first game pairing
+            round_list = list()
             if (not self.bye_flag):
+                # first game pairing
                 gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team, circlecenter_team, game_count)
                 if gamematch_dict:
                     round_list = [gamematch_dict]
                 else:
-                    round_list = []
-            else:
-                round_list = []
+                    raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" %
+                        (circletop_team, circlecenter_team))
+            elif self.oddnum_mode == 1:
+                extrateam_list = [i for i,j in
+                    enumerate(self.doublegames_list,start=1)
+                    if j==min(self.doublegames_list) and i!=circletop_team]
+                if not extrateam_list:
+                    step = 1
+                    while step < 100:
+                        extrateam_list = [i for i,j in
+                            enumerate(self.doublegames_list,start=1)
+                            if j==min(self.doublegames_list)+step and i!=circletop_team]
+                        if extrateam_list:
+                            break
+                        else:
+                            step += 1
+                    else:
+                        raise CodeLogicError("matchgen:gencirclepairing: oddnum mode enabled - extra game team not found")
+                if circlecenter_team in extrateam_list:
+                    # the extra match team can be any team in the min double game
+                    # list, but why not use the designated circe center team
+                    # (which is normally not used for odd number divs with a bye)
+                    extrateam_id = circlecenter_team
+                else:
+                    # just get first team in list
+                    extrateam_id = extrateam_list[0]
+                self.doublegames_list[extrateam_id-1] += 1
+                gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team,
+                    extrateam_id, game_count)
+                if gamematch_dict:
+                    round_list = [gamematch_dict]
+                else:
+                    raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" % (circletop_team, extrateam))
             for j in range(1, self.half_n):
                 # we need to loop for the n value (called half_n)
                 # which is half of effective number of teams (which includes bye team if
@@ -354,6 +396,8 @@ class MatchGenerator:
                 gamematch_dict = self.getBalancedHomeAwayTeams(CCW_team, CW_team, game_count)
                 if gamematch_dict:
                     round_list.append(gamematch_dict)
+                else:
+                    CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" % (CCW_team, CW_team))
             # round id is 1-index based, equivalent to team# at top of circle
             self.match_by_round_list.append({'round_id':game_count, game_team_CONST:round_list})
         return game_count
@@ -367,10 +411,8 @@ class MatchGenerator:
         http://mat.tepper.cmu.edu/trick/banff.ppt
         '''
         # define center (of circle) team - this will be fixed
-        if (not self.bye_flag):
-            circlecenter_team = self.eff_numTeams
-        else:
-            circlecenter_team = 0
+        # only relevant for non-bye and oddnum_mode ==1 (double game)
+        circlecenter_team = self.eff_numTeams
 
         # outer loop emulates circle rotation there will be eff_numTeams-1 iterations
         # corresponds to number of game rotations, i.e. weeks (assuming there is one week per game)
