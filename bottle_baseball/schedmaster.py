@@ -46,6 +46,7 @@ class SchedMaster(object):
             self.divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
+            self.oddnum_mode = None
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
@@ -137,7 +138,7 @@ class SchedMaster(object):
                 fieldinfo_tuple=self.fieldinfo_tuple,
                 prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
                 tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-                cdbinterface=cdbInterface)
+                cdbinterface=cdbInterface, oddnum_mode=self.oddnum_mode)
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 

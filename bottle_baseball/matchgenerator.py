@@ -347,6 +347,8 @@ class MatchGenerator:
                     raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" %
                         (circletop_team, circlecenter_team))
             elif self.oddnum_mode == 1:
+                # find candidate teams by getting list of teams that have the least
+                # double games
                 extrateam_list = [i for i,j in
                     enumerate(self.doublegames_list,start=1)
                     if j==min(self.doublegames_list) and i!=circletop_team]
@@ -374,6 +376,8 @@ class MatchGenerator:
                 gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team,
                     extrateam_id, game_count)
                 if gamematch_dict:
+                    # add identifiers that this is the 'extra' game
+                    gamematch_dict.update({'gtype':'extra'})
                     round_list = [gamematch_dict]
                 else:
                     raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" % (circletop_team, extrateam))

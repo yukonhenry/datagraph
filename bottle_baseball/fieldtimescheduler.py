@@ -36,12 +36,13 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 class FieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         prefinfo_triple=None, pdbinterface=None, tminfo_tuple=None,
-        conflictinfo_list=None, cdbinterface=None):
+        conflictinfo_list=None, cdbinterface=None, oddnum_mode=None):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
+        self.oddnum_mode = oddnum_mode
         # pref list use is optional
         if prefinfo_triple:
             self.prefinfo_list = prefinfo_triple.dict_list
@@ -93,7 +94,7 @@ class FieldTimeScheduleGenerator:
         self.timegap_indexerMatch = None
         self.timebalancer = TimeBalancer(fstatus_tuple)
         self.fieldbalancer = FieldBalancer(divinfo_tuple, fstatus_tuple,
-            tminfo_tuple, self.timebalancer)
+            tminfo_tuple, self.timebalancer, oddnum_mode=self.oddnum_mode)
         wtuple = self.init_homefieldweight_list()
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
