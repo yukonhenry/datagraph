@@ -36,13 +36,13 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 class FieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         prefinfo_triple=None, pdbinterface=None, tminfo_tuple=None,
-        conflictinfo_list=None, cdbinterface=None, oddnum_mode=None):
+        conflictinfo_list=None, cdbinterface=None, oddnumplay_mode=None):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
-        self.oddnum_mode = oddnum_mode
+        self.oddnumplay_mode = oddnumplay_mode
         # pref list use is optional
         if prefinfo_triple:
             self.prefinfo_list = prefinfo_triple.dict_list
@@ -94,14 +94,17 @@ class FieldTimeScheduleGenerator:
         self.timegap_indexerMatch = None
         self.timebalancer = TimeBalancer(fstatus_tuple)
         self.fieldbalancer = FieldBalancer(divinfo_tuple, fstatus_tuple,
-            tminfo_tuple, self.timebalancer, oddnum_mode=self.oddnum_mode)
+            tminfo_tuple, self.timebalancer)
         wtuple = self.init_homefieldweight_list()
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
 
-    def generateSchedule(self, totalmatch_tuple):
+    def generateSchedule(self, totalmatch_tuple, extramatch_tuple=None):
         totalmatch_list = totalmatch_tuple.dict_list
         totalmatch_indexerGet = totalmatch_tuple.indexerGet
+        if extramatch_tuple:
+            extramatch_list = extramatch_tuple.dict_list
+            extraindexerGet = extramatch_tuple.indexerGet
         self.checkFieldAvailability(totalmatch_tuple)
         self.dbinterface.dropgame_docs()  # drop current schedule collection
         EL_enum = self.timebalancer.EL_enum

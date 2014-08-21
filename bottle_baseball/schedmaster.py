@@ -37,7 +37,10 @@ class SchedMaster(object):
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
         dbtuple = dbInterface.readDBraw()
         if dbtuple.config_status == 1:
-            self.oddnum_mode = dbtuple.oddnum_mode
+            if dbtuple.oddnum_mode == 1:
+                self.oddnumplay_mode = True
+            else:
+                self.oddnumplay_mode = False
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
             self.divinfo_tuple = _List_Indexer(self.divinfo_list,
@@ -46,7 +49,7 @@ class SchedMaster(object):
             self.divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
-            self.oddnum_mode = None
+            self.oddnumplay_mode = False
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
@@ -138,7 +141,7 @@ class SchedMaster(object):
                 fieldinfo_tuple=self.fieldinfo_tuple,
                 prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
                 tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-                cdbinterface=cdbInterface, oddnum_mode=self.oddnum_mode)
+                cdbinterface=cdbInterface, oddnumplay_mode=self.oddnumplay_mode)
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 
@@ -156,23 +159,34 @@ class SchedMaster(object):
 
     def generate(self):
         totalmatch_list = []
+        if self.oddnumplay_mode:
+            extramatch_list = list()
         for divinfo in self.divinfo_list:
             totalteams = divinfo['totalteams']
             # possibly rename below to 'totalrounddays' as totalgamedays may not
             # match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
             match = MatchGenerator(totalteams, totalgamedays,
-                oddnum_mode=self.oddnum_mode)
+                oddnumplay_mode=self.oddnumplay_mode)
             match_list = match.generateMatchList()
             args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
                 'numgames_perteam_list':match.numgames_perteam_list,
                 'gameslots_perrnd_perdiv':match.gameslotsperday}
             totalmatch_list.append(args_obj)
+            if self.oddnumplay_mode:
+                extramatch_list.append({'div_id':div_id,
+                    'match_list':match.doublegame_list})
+                eindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(extramatch_list)).get(x)
+                extramatch_tuple = _List_Indexer(extramatch_list, eindexerGet)
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
-        status = self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_tuple)
+        if self.oddnumplay_mode:
+            status = self.fieldtimeScheduleGenerator.generateSchedule(
+                totalmatch_tuple, extramatch_tuple)
+        else:
+            status = self.fieldtimeScheduleGenerator.generateSchedule(
+                totalmatch_tuple)
         return 1 if status else 0
-
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
     def divfield_correlate(self, fieldinfo_list, dbInterface, div_list):

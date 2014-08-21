@@ -13,8 +13,8 @@ game_team_CONST = 'GAME_TEAM'
 large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
-class MatchGenerator:
-    def __init__(self, nt, ng, oddnum_mode=0, maxGamesPerTeam=10000):
+class MatchGenerator(object):
+    def __init__(self, nt, ng, oddnumplay_mode=0, maxGamesPerTeam=10000):
         self.numTeams = nt
         self.numGameSlots = ng  # num gameslots per team per season
         self.maxGamesPerTeam = maxGamesPerTeam
@@ -24,19 +24,23 @@ class MatchGenerator:
         # position in list is team_id-1
         self.numgames_perteam_list = nt*[0]
         self.bye_flag = False
-        self.oddnum_mode = oddnum_mode
+        self.oddnumplay_mode = oddnumplay_mode
         if (self.numTeams % 2):
+            # if odd number of teams
             self.eff_numTeams = self.numTeams+1
             self.bye_flag = True
             self.gameslotsperday = (self.numTeams-1)/2
-            if oddnum_mode == 1:
+            if oddnumplay_mode:
                 # oddnum_mode 1 value indicates, no bye for odd number of teams
                 # instead, one team will play twice so that every team has at
                 # at least one game in the round
                 # gameslotsperday used by fieldtime scheduler to ensure there are enough fields/timeslots per game
-                self.gameslotsperday += 1
+                # TODO: determine whether incrementing the gameslotsperday requirement here
+                #self.gameslotsperday += 1
                 # keep track of how many times a team plays twice a day
-                self.doublegames_list = nt*[0]
+                self.doublecount_list = nt*[0]
+                # put all the extra games in separate list
+                self._doublegame_list = list()
         else:
             self.eff_numTeams = self.numTeams
             self.bye_flag = False
@@ -53,6 +57,10 @@ class MatchGenerator:
         self.match_by_round_list = []
         self.targethome_count_list = []
         self.matchG = nx.DiGraph()
+
+    @property
+    def doublegame_list(self):
+        return self._doublegame_list
 
     def removeGraphEdgeAttribute(self, source_id, sink_id, gamecount_id):
         # delete edge from matchG graph
@@ -346,18 +354,18 @@ class MatchGenerator:
                 else:
                     raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" %
                         (circletop_team, circlecenter_team))
-            elif self.oddnum_mode == 1:
+            elif self.oddnumplay_mode:
                 # find candidate teams by getting list of teams that have the least
                 # double games
                 extrateam_list = [i for i,j in
-                    enumerate(self.doublegames_list,start=1)
-                    if j==min(self.doublegames_list) and i!=circletop_team]
+                    enumerate(self.doublecount_list,start=1)
+                    if j==min(self.doublecount_list) and i!=circletop_team]
                 if not extrateam_list:
                     step = 1
                     while step < 100:
                         extrateam_list = [i for i,j in
-                            enumerate(self.doublegames_list,start=1)
-                            if j==min(self.doublegames_list)+step and i!=circletop_team]
+                            enumerate(self.doublecount_list,start=1)
+                            if j==min(self.doublecount_list)+step and i!=circletop_team]
                         if extrateam_list:
                             break
                         else:
@@ -372,13 +380,15 @@ class MatchGenerator:
                 else:
                     # just get first team in list
                     extrateam_id = extrateam_list[0]
-                self.doublegames_list[extrateam_id-1] += 1
+                self.doublecount_list[extrateam_id-1] += 1
                 gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team,
                     extrateam_id, game_count)
                 if gamematch_dict:
                     # add identifiers that this is the 'extra' game
-                    gamematch_dict.update({'gtype':'extra'})
-                    round_list = [gamematch_dict]
+                    #gamematch_dict.update({'gtype':'extra'})
+                    #round_list = [gamematch_dict]
+                    self._doublegame_list.append({'round_id':game_count,
+                        'extramatch':gamematch_dict})
                 else:
                     raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" % (circletop_team, extrateam))
             for j in range(1, self.half_n):

@@ -27,13 +27,11 @@ time_format_CONST = '%H:%M'
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 
 class FieldBalancer(object):
-    def __init__(self, divinfo_tuple, fstatus_tuple, tminfo_tuple, timebalancer,
-        oddnum_mode=None):
+    def __init__(self, divinfo_tuple, fstatus_tuple, tminfo_tuple, timebalancer):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
-        self.oddnum_mode = oddnum_mode
         if tminfo_tuple:
             self._tminfo_list = tminfo_tuple.dict_list
             # for indexerGet, parameter is two-tuple (div_id, tm_id)
@@ -1218,10 +1216,8 @@ class FieldBalancer(object):
             for game in perround_game_list:
                 if game['HOME'] == team_id:
                     opponent_list.append(game['AWAY'])
-                    if self.oddnum_mode != 1:
-                        break
+                    break
                 if game['AWAY'] == team_id:
                     opponent_list.append(game['HOME'])
-                    if self.oddnum_mode != 1:
-                        break
+                    break
         return opponent_list
