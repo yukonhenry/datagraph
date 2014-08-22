@@ -135,6 +135,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// get data that will be sent to store to create grid
 				this.serverinfo_list = server_data.info_list;
 				var divstr_list = divstr_obj.info_list;
+				divstr_list.sort(function(a,b) {
+					return a.div_id-b.div_id
+				});
 				arrayUtil.forEach(divstr_list, function(item) {
 					item.divstr = item.div_age+item.div_gen;
 				})

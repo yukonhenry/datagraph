@@ -457,7 +457,7 @@ class FieldTimeScheduleGenerator:
                 totalmatch_tuple, divrefdistrib_tuple, teamrefdistrib_tuple)
             # and then work on time rebalanceing
             self.timebalancer.ReTimeBalance(fset, connected_div_list)
-            self.ManualSwapTeams(fset, connected_div_list)
+            #self.ManualSwapTeams(fset, connected_div_list)
             if self.conflictprocess_obj:
                 if self.prefinfo_list:
                     pref_len = len(self.prefinfo_list)

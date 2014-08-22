@@ -102,7 +102,17 @@ class FieldBalancer(object):
         aggregnorm_list = aggregnorm_tuple.dict_list
         agindexerGet = aggregnorm_tuple.indexerGet
         targetfieldcount_list = [{'field_id':x,
-            'count':aggregnorm_list[agindexerGet(x)]['normweight']*reqslots_perrnd_num} for x in field_list]
+            'count':int(round(aggregnorm_list[agindexerGet(x)]['normweight']*reqslots_perrnd_num))} for x in field_list]
+        # verify individual count elements sum up to total number of slots required per round
+        sumcount = sum(x['count'] for x in targetfieldcount_list)
+        if sumcount != reqslots_perrnd_num:
+            # if test fails, reassign last entry so that sum is consistent w
+            # expected value
+            partial_sum = sum(x['count'] for x in targetfieldcount_list[:-1])
+            # overwrite last element
+            targetfieldcount_list[-1]['count'] = reqslots_perrnd_num - partial_sum
+        tindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(
+            targetfieldcount_list)).get(x)
         if hf_list:
             home_af_list = hf_list[0]['af_list']
             away_af_list = hf_list[1]['af_list']
@@ -122,6 +132,25 @@ class FieldBalancer(object):
         eff_rd_fcount_list = [x for x in rd_fieldcount_list
             if x['field_id'] in hfunion_set]
         erd_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(eff_rd_fcount_list)).get(x)
+
+        fielddiffcount_list = [{'field_id':x,
+            'diffcount':targetfieldcount_list[tindexerGet(x)]['count']-eff_rd_fcount_list[erd_indexerGet(x)]['count']}
+                for x in hfunion_set]
+        ##**********************
+        # convergence parameter calculation for per-field targets
+        for fielddiffcount in fielddiffcount_list:
+            diffcount = fielddiffcount['diffcount']
+            if diffcount <= 0:
+                penalty = abs(diffcount-1)*2
+                # penalty makes the diffcount even more negative
+                fielddiffcount['diffcount'] = (diffcount-1)*penalty
+            elif diffcount == 1:
+                # count is approaching reference, define penalty
+                # additive penalty towards reaching/exceeding reference
+                penalty = 2
+                fielddiffcount['diffcount'] -= penalty
+        findexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(
+            fielddiffcount_list)).get(x)
         # field counter for home team
         eff_homemetrics_list = [x for x in homemetrics_list
             if x['field_id'] in hfunion_set]
@@ -169,8 +198,11 @@ class FieldBalancer(object):
             # cost function is determined by summing home and away team field
             # distribution counts (counts taken into account penalty as calculated)
             # above
+            # also take into account how fields in division are being filled -
+            # sum field target differences to team target difference
             sumdiffcount_list = [{'field_id':x,
-                'sumdiffcount':home_diffcount_list[hdindexerGet(x)]['diffcount'] + away_diffcount_list[adindexerGet(x)]['diffcount']} for x in hfunion_set]
+                'sumdiffcount':home_diffcount_list[hdindexerGet(x)]['diffcount'] + away_diffcount_list[adindexerGet(x)]['diffcount'] +
+                    fielddiffcount_list[findexerGet(x)]['diffcount']} for x in hfunion_set]
             # get unique set of sumdiffcount values
             uniquecount_list = list(
                 set([x['sumdiffcount'] for x in sumdiffcount_list]))

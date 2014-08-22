@@ -287,6 +287,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                             // calculated.
                             return {'divstr':item.div_age + item.div_gen,
                                 'div_id':item.div_id, 'totalteams':item.totalteams,
+                                'divfield_list':item.divfield_list
                                 //'divfield_list':item.divfield_list,
                                 //'fieldcol_name':item.fieldcol_name
                             };

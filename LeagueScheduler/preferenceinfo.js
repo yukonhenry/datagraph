@@ -108,6 +108,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				this.divstr_db_type = divstr_obj.db_type;
 				var config_status = divstr_obj.config_status;
 				var info_list = divstr_obj.info_list;
+				info_list.sort(function(a,b) {
+					return a.div_id-b.div_id
+				})
 				// create radio button pair to select
 				// schedule type - rr or tourn
 				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);

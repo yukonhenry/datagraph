@@ -114,6 +114,22 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					xls_cpane.startup();
 					//this.stackcontainer_widget.selectChild(
 					//	this.opconstant_obj.blank_cpane_id)
+				} else {
+					// widget environment already exists, but regenerate links
+					arrayUtil.forEach(this.stackcpane_list, function(item) {
+						var cpane_id = item.cpane_id;
+						var stack_cpane = registry.byId(cpane_id);
+						if (cpane_id != this.opconstant_obj.blank_id) {
+							// as long as the cpane is not the default blank cpane,
+							// get all links and populate
+							var descrip_str = item.descrip_str;
+							this.server_interface.getServerData(
+								'get_xls/'+this.userid_name+'/'+
+								this.schedcol_name+'/'+item.genxls_id,
+								lang.hitch(this, this.create_links), null,
+								{cpane:stack_cpane, descrip_str:descrip_str});
+						}
+					}, this)
 				}
 			},
 			switch_xlsstack_cpane: function(genxls_id, event) {

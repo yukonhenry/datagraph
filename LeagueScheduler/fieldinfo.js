@@ -1170,6 +1170,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.divstr_db_type = divstr_obj.db_type;
 				var config_status = divstr_obj.config_status;
 				var info_list = divstr_obj.info_list;
+				// hack for now; for correct implementation look at init_checkbox function and modify checkboxid_list to include div_id key
+				// make sure divstr_list is sorted according to div_id
+				info_list.sort(function(a,b) {
+					return a.div_id-b.div_id;
+				})
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
 				// if divstr parameters were saved with fieldgrid info and returned

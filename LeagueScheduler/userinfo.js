@@ -180,7 +180,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
                     userid_name:this.userid_name,
                     widgetgen_obj:widgetgen_obj
                 })
-                tutoriallogic_obj.create();
+                //tutoriallogic_obj.create();
                 // create advanced and wiz ui stackmanagers
                 var uistackmgr = new UIStackManager();
                 this.storeutil_obj.uistackmgr = uistackmgr;

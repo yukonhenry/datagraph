@@ -72,7 +72,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", opconstant_obj:null,
 			pref_select_value:null, conflict_select_value:null, errormgr_obj:null,
-			userid_name:"",
+			userid_name:"", xls_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -675,11 +675,13 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' hardcopy .xls'
 				}
 				var xls_cpane = this.createnewsched_pane(args_obj);
-				var xls_obj = new GenerateXLS({op_type:this.op_type,
-					server_interface:this.server_interface,
-					schedcol_name:this.newsched_name,
-					userid_name:this.userid_name});
-				xls_obj.generate_xlscpane_widgets(xls_cpane);
+				if (!this.xls_obj) {
+					this.xls_obj = new GenerateXLS({op_type:this.op_type,
+						server_interface:this.server_interface,
+						schedcol_name:this.newsched_name,
+						userid_name:this.userid_name});
+				}
+				this.xls_obj.generate_xlscpane_widgets(xls_cpane);
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;
@@ -992,7 +994,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var columnsdef_obj = {
    					game_date:'Game Date',
     				start_time:'Start Time',
-    				venue:'Venue',
+    				venue:'Venue ID',
     				home:'Home Team#',
     				away:'Away Team#'
 				}
@@ -1061,6 +1063,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var title_str = this.newsched_name + title_suffix;
 				var newcpane_id = constant.results_cpane_id_prefix+suffix_id;
 				var newcpane = registry.byId(newcpane_id);
+				// if cpane already exists, do not regenerate it as saved
+				// grid objects will no longer be valid
 				if (!newcpane) {
 					newcpane = new ContentPane({title:title_str,
 						content:content_str, id:newcpane_id});
