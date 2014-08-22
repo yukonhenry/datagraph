@@ -378,7 +378,17 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 			},
 			add_gridrow: function(event) {
+				var last_entry = this.infogrid_store.get(this.totalrows_num);
 				var init_obj = this.getInitialList(1)[0];
+				for (var key in init_obj) {
+					// copy key:value paris from the last row entry as a helper
+					// to prefill elements for the newly added row.
+					// lang.mixin is not used as we only want to copy keys that
+					// exist in the target
+					if (key != this.idproperty) {
+						init_obj[key] = last_entry[key]
+					}
+				}
 				this.totalrows_num++;
 				init_obj[this.idproperty] = this.totalrows_num;
 				this.infogrid_store.add(init_obj)

@@ -24,7 +24,7 @@ require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","d
 		var storeutil_obj = new storeUtil({schedutil_obj:schedutil_obj,
 			server_interface:serverInterface});
 		var userinfo_obj = new UserInfo({server_interface:serverInterface,
-			storeutil_obj:storeutil_obj});
+			storeutil_obj:storeutil_obj, schedutil_obj:schedutil_obj});
 		var server_process = function(adata) {
 			var greeting_node = dom.byId("versiongreeting");
 			greeting_node.innerHTML += " running since "+adata.creation_time;

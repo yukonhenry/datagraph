@@ -1037,6 +1037,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (sched_store) {
 					// if store already exists, repopulate store with new data
 					// and refresh grid
+					sched_grid.set("columns", columnsdef_obj);
 					sched_store.setData(game_list);
 					sched_grid.refresh();
 				} else {

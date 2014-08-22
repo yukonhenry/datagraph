@@ -99,6 +99,10 @@ class FieldBalancer(object):
         # get full home field lists(e.g. home field for 'away'-designated teams)
         # if there are no fields specified, then default to full list for that
         # team
+        aggregnorm_list = aggregnorm_tuple.dict_list
+        agindexerGet = aggregnorm_tuple.indexerGet
+        targetfieldcount_list = [{'field_id':x,
+            'count':aggregnorm_list[agindexerGet(x)]['normweight']*reqslots_perrnd_num} for x in field_list]
         if hf_list:
             home_af_list = hf_list[0]['af_list']
             away_af_list = hf_list[1]['af_list']
@@ -137,6 +141,8 @@ class FieldBalancer(object):
             hsindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(home_sumweight_list)).get(x)
             asindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(away_sumweight_list)).get(x)
             # diff is reference - current running count (think control)
+            # large positive value indicates more control (game needs to be added)
+            # required for that field
             home_diffcount_list = [{'field_id':x,
                 'diffcount':home_sumweight_list[hsindexerGet(x)]['sumweight'] -eff_homemetrics_list[ehindexerGet(x)]['count']}
                 for x in hfunion_set]
@@ -153,11 +159,13 @@ class FieldBalancer(object):
                     if diffcount <= 0:
                         # count has exceeded reference, define penalty
                         penalty = abs(diffcount-1)*2
+                        # penalty makes the diffcount even more negative
                         diffcount_dict['diffcount'] = (diffcount-1)*penalty
                     elif diffcount == 1:
                         # count is approaching reference, define penalty
-                        penalty = 3
-                        diffcount_dict['diffcount'] += 3
+                        # additive penalty towards reaching/exceeding reference
+                        penalty = 1
+                        diffcount_dict['diffcount'] -= penalty
             # cost function is determined by summing home and away team field
             # distribution counts (counts taken into account penalty as calculated)
             # above
