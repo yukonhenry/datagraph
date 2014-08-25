@@ -528,8 +528,8 @@ class TimeBalancer(object):
             return None
 
     def getSingleTeamELstats(self, div_id, team_id, el_str):
-        ''' utility method to extract home,away teams, and their respective current and
-        target counters'''
+        ''' utility method to find difference between current and target early
+        or late counters'''
         # find early late counters for home/away teams
         cel_index = self._cel_indexerGet(div_id)
         cel_list = self._current_earlylate_list[cel_index]['counter_list']

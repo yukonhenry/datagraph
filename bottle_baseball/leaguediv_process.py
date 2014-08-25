@@ -8,7 +8,6 @@ import networkx as nx
 from networkx.readwrite import json_graph
 from networkx import connected_components
 from matchgenerator import MatchGenerator
-from basicfieldtimescheduler import BasicFieldTimeScheduleGenerator
 from dbinterface import MongoDBInterface, DB_Col_Type
 from leaguedivprep import getDivisionData, getTournAgeGenderDivision
 from sched_exporter import ScheduleExporter
@@ -27,6 +26,7 @@ from conflictdbinterface import ConflictDBInterface
 from userdbinterface import UserDBInterface
 from sched_exceptions import CodeLogicError
 from xls_exporter import XLS_Exporter
+from operator import itemgetter
 
 #_dbInterface = MongoDBInterface(mongoClient)
 
@@ -187,6 +187,8 @@ def get_dbcol(userid_name, db_type, getcol_name):
     else:
         dbtuple = dbInterface.readDB();
         info_list = dbtuple.list
+        idproperty = dbInterface.idproperty
+        info_list.sort(key=itemgetter(idproperty))
         config_status = dbtuple.config_status
         return_obj = {'info_list':info_list, 'config_status':config_status}
         if db_type in ['fielddb', 'prefdb', 'teamdb', 'conflictdb']:
@@ -198,6 +200,8 @@ def get_dbcol(userid_name, db_type, getcol_name):
                 dbInterface = select_db_interface(userid_name, divstr_db_type, divstr_colname)
                 dbtuple = dbInterface.readDB();
                 info_list = dbtuple.list
+                idproperty = dbInterface.idproperty
+                info_list.sort(key=itemgetter(idproperty))
                 config_status = dbtuple.config_status
             else:
                 info_list = []

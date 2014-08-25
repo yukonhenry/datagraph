@@ -57,7 +57,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var columnsdef_obj = {
 					field_id: "Field ID",
 					field_name: editor({label:"Name", autoSave:true},"text"),
-					primaryuse_str: {label:"Primary Use",
+					pr: {label:"Primary Use",
 						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
 					},
 					start_date: editor({label:"Start Date", autoSave:true,
@@ -100,11 +100,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							style:"width:100px"
 						},
 					}, TimeTextBox),
-					dayweek_str:{label:"Days of Week",
+					dr:{label:"Days of Week",
 						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
 					detaileddates: {label:"Detailed Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
-					totalfielddays: {label:"# Open Field Days",
+					tfd: {label:"# Open Field Days",
 						set:lang.hitch(this, this.calc_totalfielddays)
 					}
 				};
@@ -204,11 +204,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// assign default values for grid
 				for (var i = 1; i < fieldnum+1; i++) {
 					info_list.push({field_id:i, field_name:"",
-						primaryuse_str:"",
+						pr:"",
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
-						dayweek_str:"", detaileddates:"", totalfielddays:0});
+						dr:"", detaileddates:"", tfd:0});
 				}
 				return info_list;
 			},
@@ -216,14 +216,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var gridhelp_list = [
 					{id:'field_id', help_str:"Identifier, Non-Editable"},
 					{id:'field_name', help_str:"Enter Field Name, click cell to edit"},
-					{id:'primaryuse_str', help_str:"Select Division(s) that are using the field, click to bring up checkbox list"},
+					{id:'pr', help_str:"Select Division(s) that are using the field, click to bring up checkbox list"},
 					{id:'start_date', help_str:"Specify Date when field availability begins"},
 					{id:'end_date', help_str:"Specify Date when field availability ends"},
-					{id:'dayweek_str', help_str:"Specify days of week when field is available; click to bring up check list"},
+					{id:'dr', help_str:"Specify days of week when field is available; click to bring up check list"},
 					{id:'start_time', help_str:"Specify typical start time when first game can be played"},
 					{id:'end_time', help_str:"Specify typical end time when last needs to finish by"},
 					{id:'detaileddates', help_str:"(Optional)If there are exception dates/times for availability, click bring up calendar-like UI for detailed date configuration"},
-					{id:'totalfielddays', help_str:"total number of days that field is available"}]
+					{id:'tfd', help_str:"total number of days that field is available"}]
 				return gridhelp_list;
 			},
 			// main entry point for creating dojox calendar inst
@@ -418,14 +418,14 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 							var item = this.editgrid.schedInfoStore.get(f_id);
 							// convert string elements to int; also sort ascending
 	        				var dayweekint_list = arrayUtil.map(
-	        					item.dayweek_str.split(','), function(item2) {
+	        					item.dr.split(','), function(item2) {
 	        					return parseInt(item2);
 	        					});
 	        				// http://www.w3schools.com/jsref/jsref_sort.asp
 	        				dayweekint_list.sort(function(a, b){return a-b});
 							var args_obj = {dayweek_list:dayweekint_list,
 								start_date:item.start_date,
-								totalfielddays:item.totalfielddays,
+								tfd:item.tfd,
 								start_time_str:item.start_time.toLocaleTimeString(),
 								end_time_str:item.end_time.toLocaleTimeString()};
 							// get calendarmap list that maps fieldday_id to calendar
@@ -822,12 +822,12 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					}
 					// fill in checkboxes if store already has checkbox info
 					// this has to be called after dropdown_btn is created
-		    		if (divstr_list && divstr_list.length > 0 && object.primaryuse_str) {
+		    		if (divstr_list && divstr_list.length > 0 && object.pr) {
 		    			// index_offset is 1 (-1) as check_str is a list of
 		    			// div_id's, which need to be decremented to be an index
 		    			// into the display_list
 		    			var args_obj = {dialogprop_obj:tdialogprop_obj,
-		    				check_str:object.primaryuse_str,
+		    				check_str:object.pr,
 		    				display_list:tdialogprop_obj.div_list,
 		    				dropdownbtn_prefix:ddown_btn_prefix,
 		    				index_offset:1}
@@ -915,7 +915,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					display_str = display_str.substring(0, display_str.length-1);
 					value_str = value_str.substring(0, value_str.length-1);
 					var store_elem = this.editgrid.schedInfoStore.get(field_id);
-					store_elem.primaryuse_str = value_str;
+					store_elem.pr = value_str;
 					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dropdownbtn_reg = registry.byId(this.op_prefix+"fielddropdownbtn"+field_id+"_id");
@@ -989,11 +989,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 		    		} else {
 		    			dropdown_btn.set('dropDown', dwdialog);
 		    		}
-		    		if (object.dayweek_str) {
+		    		if (object.dr) {
 		    			// note index_offset is 0 as dayweek_str is already
 		    			// a list of indices into the day_list string list
 		    			var args_obj = {dialogprop_obj:dwdialogprop_obj,
-		    				check_str:object.dayweek_str,
+		    				check_str:object.dr,
 		    				display_list:dwdialogprop_obj.day_list,
 		    				dropdownbtn_prefix:dwfielddownbtn_prefix,
 		    				index_offset:0}
@@ -1032,8 +1032,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				value_str = value_str.substring(0, value_str.length-1);
 				if (this.editgrid) {
 					var store_elem = this.editgrid.schedInfoStore.get(field_id);
-					store_elem.dayweek_str = value_str;
-					store_elem.totalfielddays = this.calc_totalfielddays(store_elem);
+					store_elem.dr = value_str;
+					store_elem.tfd = this.calc_totalfielddays(store_elem);
 					//store_elem.dayweek_num = numdays;
 					this.editgrid.schedInfoStore.put(store_elem);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
@@ -1172,9 +1172,10 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				var info_list = divstr_obj.info_list;
 				// hack for now; for correct implementation look at init_checkbox function and modify checkboxid_list to include div_id key
 				// make sure divstr_list is sorted according to div_id
+				/*
 				info_list.sort(function(a,b) {
 					return a.div_id-b.div_id;
-				})
+				}) */
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
 				// if divstr parameters were saved with fieldgrid info and returned
@@ -1221,7 +1222,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var field_id = item.field_id;
 					var field_name = item.field_name;
 					// convert primaryuse string into div_id integer array
-					var div_id_list = arrayUtil.map(item.primaryuse_str.split(','),
+					var div_id_list = arrayUtil.map(item.pr.split(','),
 					function(item2) {
 						return parseInt(item2);
 					})
@@ -1287,6 +1288,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 				// maintain direct compatibility with Date and TimeTextBox's
 				// and associated picker widgets.
 				raw_result.map(function(item) {
+					if ('calendarmap_list' in item) {
+						// don't need to send to server as it is generated there
+						// anyway
+						delete item.calendarmap_list;
+					}
 					var newobj = lang.clone(item);
 					newobj.start_date = newobj.start_date.toLocaleDateString();
 					newobj.end_date = newobj.end_date.toLocaleDateString();
@@ -1316,7 +1322,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
         		// get current configuration for days-of-week and it's length
         		// i.e. number of days in week
         		// Note dayweek_list might not be sorted correctly
-        		var dayweek_list = item.dayweek_str.split(',')
+        		var dayweek_list = item.dr.split(',')
         		var dayweekint_list = arrayUtil.map(dayweek_list, function(item2){
         			return parseInt(item2);
         		})

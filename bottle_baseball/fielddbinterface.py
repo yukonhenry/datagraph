@@ -22,8 +22,13 @@ start_date_CONST = 'START_DATE'
 end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
-totalfielddays_CONST = 'TOTALFIELDDAYS'
+TFD = 'TFD'
 date_format_CONST = "%m/%d/%Y"
+''' some acronyms used:
+pr - primaryuse_str
+dr - dayweek_str
+tfd - tofalfielddays
+'''
 class FieldDBInterface(BaseDBInterface):
     def __init__(self, mongoClient, userid_name, newcol_name):
         BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
@@ -32,21 +37,21 @@ class FieldDBInterface(BaseDBInterface):
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
         for fieldinfo in fieldinfo_list:
-            if fieldinfo['dayweek_str']:
-                temp_list = [int(x) for x in fieldinfo['dayweek_str'].split(',')]
+            if fieldinfo['dr']:
+                temp_list = [int(x) for x in fieldinfo['dr'].split(',')]
                 fieldinfo['dayweek_list'] = convertJStoPY_daylist(temp_list)
             else:
                 fieldinfo['dayweek_list'] = []
             # check if primary use is not empty
-            if fieldinfo['primaryuse_str']:
+            if fieldinfo['pr']:
                 fieldinfo['primaryuse_list'] = [int(x)
-                    for x in fieldinfo['primaryuse_str'].split(',')]
+                    for x in fieldinfo['pr'].split(',')]
             else:
                 fieldinfo['primaryuse_list'] = []
             fieldinfo['calendarmap_list'] = getcalendarmap_list(fieldinfo['dayweek_list'],
-                fieldinfo['start_date'], fieldinfo['totalfielddays'])
-            del fieldinfo['dayweek_str']
-            del fieldinfo['primaryuse_str']
+                fieldinfo['start_date'], fieldinfo['tfd'])
+            del fieldinfo['dr']
+            del fieldinfo['pr']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
@@ -61,10 +66,10 @@ class FieldDBInterface(BaseDBInterface):
         for field in field_list:
             del field['SCHED_TYPE']
             del field['USER_ID']
-            field['primaryuse_str'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
+            field['pr'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
-            field['dayweek_str'] = ','.join(str(f) for f in temp_list)
+            field['dr'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
             # convert date into string format
             for cmap in field['CALENDARMAP_LIST']:
@@ -118,7 +123,7 @@ class FieldDBInterface(BaseDBInterface):
             # db.<collection>.update({FIELD_ID:field_id},
             #   {$inc:{TOTALFIELDDAYS:-length(delta_list)}})
             operator = "$inc"
-            operator_obj = {"TOTALFIELDDAYS":-len(delta_list)}
+            operator_obj = {'TFD':-len(delta_list)}
             status = self.dbinterface.updatedoc(query_obj, operator,
                 operator_obj)
             # get dates before pulling the entries corresponding to the removed fields:
@@ -143,7 +148,7 @@ class FieldDBInterface(BaseDBInterface):
                 # http://api.mongodb.org/python/current/api/pymongo/cursor.html
                 raise SchedulerConfigurationError("fielddbinterface:adjust_config: Query returns more than one document for field_id %d" % (field_id,))
             else:
-                totalfielddays = field_curs[0]['TOTALFIELDDAYS']
+                totalfielddays = field_curs[0]['TFD']
                 # reassign fieldday_id values in calendarmap_list
                 operator = "$set"
                 for fieldday_id in range(1, totalfielddays+1):

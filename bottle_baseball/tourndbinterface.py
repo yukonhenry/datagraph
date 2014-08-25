@@ -26,7 +26,7 @@ _List_Status_Mode = namedtuple('_List_Status_Mode',
 
 ''' class to convert process new tournament schedule.  All namespace conversion between
 js object keys and db document keys happen here '''
-class TournDBInterface:
+class TournDBInterface(object):
     def __init__(self, mongoClient, userid_name, newcol_name):
         self.dbinterface = MongoDBInterface(mongoClient, userid_name, newcol_name, db_col_type=DB_Col_Type.ElimTourn)
 

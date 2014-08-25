@@ -10,7 +10,7 @@ _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
 _PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_colname divstr_db_type')
 
-class BaseDBInterface:
+class BaseDBInterface(object):
     ''' Base info-level dbinterface class '''
     def __init__(self, mongoClient, userid_name, newcol_name, db_col_type,
         capid_str):
@@ -18,6 +18,11 @@ class BaseDBInterface:
             db_col_type)
         # capid_str is the idprop, but named to remember that it is upper case
         self.capid_str = capid_str
+        self._idproperty = capid_str.lower()
+
+    @property
+    def idproperty(self):
+        return self._idproperty
 
     def writeDB(self, info_str, config_status, divstr_colname, divstr_db_type):
         info_list = json.loads(info_str)

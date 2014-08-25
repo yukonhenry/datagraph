@@ -266,7 +266,7 @@ define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// created and not when data is retrieved from server
 				var dayweek_list = args_obj.dayweek_list;
 				var start_date = args_obj.start_date;
-				var totalfielddays = args_obj.totalfielddays;
+				var totalfielddays = args_obj.tfd;
 				var start_time_str = args_obj.start_time_str;
 				var end_time_str = args_obj.end_time_str;
 				var start_day = start_date.getDay();

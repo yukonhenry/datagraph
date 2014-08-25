@@ -868,7 +868,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					var simple_calendarmap_list = new Array();
 					arrayUtil.forEach(griddata_list, function(item, index) {
 						var start_date = new Date(item.start_date);
-						var args_obj = {dayweek_list:item.dayweek_str.split(','),
+						var args_obj = {dayweek_list:item.dr.split(','),
 							start_date:start_date,
 							totalfielddays:item.totalfielddays};
 						// get calendarmap list that maps fieldday_id to calendar

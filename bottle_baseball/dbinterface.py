@@ -384,7 +384,7 @@ class MongoDBInterface:
         # calendar dates, it is ok to combine the search for early latest game counters
         # into one aggreation command per 'fieldday' as the counters are still
         # 'linearly independent'
-        max_totalfielddays = max(fieldinfo_list[fieldinfo_indexerGet(x)]['totalfielddays'] for x in divfield_list)
+        max_totalfielddays = max(fieldinfo_list[fieldinfo_indexerGet(x)]['tfd'] for x in divfield_list)
         for fieldday_id in range(1, max_totalfielddays+1):
             res_list = self.collection.aggregate([
                 {"$match":{venue_CONST:{"$in":divfield_list},

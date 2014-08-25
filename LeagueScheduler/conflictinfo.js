@@ -174,9 +174,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 this.divstr_db_type = divstr_obj.db_type;
                 var config_status = divstr_obj.config_status;
                 var info_list = divstr_obj.info_list;
+                /*
                 info_list.sort(function(a,b) {
                     return a.div_id-b.div_id
-                })
+                }) */
                 // create radio button pair to select
                 // schedule type - rr or tourn
                 var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
@@ -226,9 +227,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         option_list.push(option_obj);
                     })
                     // create options list to pass to the team select event handler
+                    // structure should be identical to the options_obj created
+                    // in
                     eventoptions_obj = {conflict_id:conflict_id,
                         // slice leaves out the 0-th element
-                        option_list:option_list.slice(1)}
+                        option_list:option_list.slice(1),
+                        divcol_id:node.columnId}
                 } else {
                     // default if no divstr_list is read in
                     option_list.push({label:"Select League first", selected:true, value:""});

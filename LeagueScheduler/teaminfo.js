@@ -135,9 +135,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// get data that will be sent to store to create grid
 				this.serverinfo_list = server_data.info_list;
 				var divstr_list = divstr_obj.info_list;
+				/*
 				divstr_list.sort(function(a,b) {
 					return a.div_id-b.div_id
-				});
+				}); */
 				arrayUtil.forEach(divstr_list, function(item) {
 					item.divstr = item.div_age+item.div_gen;
 				})
@@ -231,6 +232,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						info_list = this.getInitialList(this.totalrows_num,
 						div_id_event);
 					}
+					info_list.sort(function(a,b) {
+						return a.tm_id-b.tm_id
+					});
 					this.editgrid = new EditGrid({
 						griddata_list:info_list,
 						colname:this.activegrid_colname,
@@ -267,6 +271,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								info_list = this.getInitialList(
 									this.totalrows_num, div_id_event);
 							}
+							info_list.sort(function(a,b) {
+								return a.tm_id-b.tm_id
+							});
 							args_obj = {
 								colname:this.activegrid_colname,
 								griddata_list:info_list, queryonly_flag:false,
