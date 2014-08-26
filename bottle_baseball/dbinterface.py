@@ -648,12 +648,13 @@ class MongoDBInterface:
         doc_list = list(doc_curs)
         return doc_list
 
-    def getSchedType_doc(self):
+    def getSchedType_doc(self, query_obj):
         # get schedule type - don't have to return sched_type, user, or config_status
-        result = self.collection.find_one({sched_type_CONST:self.sched_type,
-            USER_ID:self.userid_name},
-            {'_id':0, sched_type_CONST:0, USER_ID:0, CONFIG_STATUS:0})
-        return result
+        query_obj.update({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name})
+        result = self.collection.find(query_obj,
+            {'_id':0, sched_type_CONST:0, USER_ID:0, CONFIG_STATUS:0}).limit(1)
+        return list(result)[0]
 
     def getFieldInfo(self):
         result_list = self.collection.find({field_id_CONST:{"$exists":True}},{'_id':0}).sort(field_id_CONST, 1)

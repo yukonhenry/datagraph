@@ -53,9 +53,21 @@ class ConflictProcess(object):
                         conflictdiv_id = conflict['div_2_id']
                         conflictteam_id = conflict['team_2_id']
                     else:
-                        team_id = confict['team_2_id']
+                        team_id = conflict['team_2_id']
                         conflictdiv_id = conflict['div_1_id']
                         conflictteam_id = conflict['team_1_id']
+                    # check if the conflict div_id has been scheduled
+                    cindex = conindexerGet(conflictdiv_id)
+                    if cindex:
+                        # conflict division has been scheduled
+                        conflictdivsched_list = connected_sched_list[cindex]['sched_list']
+                        conflictindexerMatch = lambda x, y: [i for i,p in
+                        enumerate(conflictdivsched_list) if (p['home_id']==x or
+                        p['away_id']==x) and p['game_date'].date()==y]
+                    else:
+                        # conflict division is not scheduled yet, catch it on the flip side
+                        continue
+
                     fixteam_list.append({'div_id':div_id, 'team_id':team_id})
                     divinfo = self.divinfo_list[self.dindexerGet(div_id)]
                     gameinterval = divinfo['gameinterval']
@@ -74,11 +86,16 @@ class ConflictProcess(object):
                     # generated for each conflict
                     genpref_count = 0
                     for teamsched in teamsched_list:
+                        game_date = teamsched['game_date'].date()
+                        field_id = teamsched['field_id']
+                        conflictindex_list = conflictindexerMatch(conflictteam_id,
+                            game_date)
+                        if not conflictindex_list:
+                            # no slot found, must be no game, continue to next game date
+                            continue
                         # use fieldday and fieldday_id info to get either
                         # standard or custom start and end times. Custom
                         # start/end times will be embedded in the calendarmap_list
-                        field_id = teamsched['field_id']
-                        fieldday_id = teamsched['fieldday_id']
                         start_time_dt = teamsched['start_time']
                         # we will create the preference for subsequent scheduling
                         # of the conflictdiv and conflictteam to end their game
@@ -86,10 +103,10 @@ class ConflictProcess(object):
                         # the reference team match ends
                         pref_dict = {'pref_id':pref_id, 'priority':priority,
                             'div_id':conflictdiv_id, 'team_id':conflictteam_id,
-                            'game_date':teamsched['game_date'].date(),
+                            'game_date':game_date,
                             'end_before_dt':start_time_dt,
                             'start_after_dt':start_time_dt+gameinterval_td,
-                            'field_id':teamsched['field_id'],
+                            'field_id':field_id,
                             'fieldday_id':teamsched['fieldday_id'],
                             'conflict_id':conflict_id}
                         pref_list.append(pref_dict)

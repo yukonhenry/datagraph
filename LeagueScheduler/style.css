@@ -155,5 +155,6 @@ div.bar {
   margin-right:40px;
 }
 .grid_cpane {
-  max-height:500px; width:100%;
+  max-height:800px; width:100%;
+  height:auto;
 }

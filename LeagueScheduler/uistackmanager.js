@@ -501,35 +501,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						idstr_obj.delrowbtn_id);
 					this.gstackcontainer_reg.addChild(info_cpane);
 				}, this);
-				/*
-				// add divinfo cpane and grid div
-				var idstr_obj = this.get_idstr_obj(
-					'div_id');
-				var div_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id,
-					class:'grid_cpane'
-				})
-				put(div_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
-				this.gstackcontainer_reg.addChild(div_cpane);
-				// add tournament divinfo cpane and grid div
-				idstr_obj = this.get_idstr_obj(
-					'tourndiv_id');
-				var tdiv_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id,
-					class:'grid_cpane'
-				})
-				put(tdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
-				this.gstackcontainer_reg.addChild(tdiv_cpane);
-				// add preference info cpane and grid div
-				idstr_obj = this.get_idstr_obj(
-					'pref_id');
-				var pdiv_cpane = new ContentPane({
-					id:idstr_obj.gridcpane_id,
-					class:'grid_cpane'
-				})
-				put(pdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
-				this.gstackcontainer_reg.addChild(pdiv_cpane);
-				*/
 				// Field info has a different structure - add field info border
 				// container, inside cpane and grid div
 				idstr_obj = this.get_idstr_obj(
@@ -537,7 +508,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var field_bcontainer = new BorderContainer({
 					id:idstr_obj.bcontainer_id,
 					design:'headline', gutters:true, liveSplitters:true,
-					style:"height:800px; width:100%"
+					style:"height:900px; width:100%"
 				})
 				var field_cpane = new ContentPane({
 					id:idstr_obj.gridcpane_id,

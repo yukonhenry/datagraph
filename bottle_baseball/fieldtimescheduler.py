@@ -21,6 +21,9 @@ from conflictprocess import ConflictProcess
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 game_team_CONST = 'GAME_TEAM'
+PRIORITY_1 = 1
+PRIORITY_2 = 2
+PRIORITY_3 = 4
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -98,6 +101,10 @@ class FieldTimeScheduleGenerator:
         wtuple = self.init_homefieldweight_list()
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
+        # in addition to fieldstatus_list, which tracks scheduled games
+        # by field and time slot, track schedule by div_id and team_id
+        self.connected_sched_list = list()
+        self.conindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.connected_sched_list)).get(x)
 
     def generateSchedule(self, totalmatch_tuple, extramatch_tuple=None):
         totalmatch_list = totalmatch_tuple.dict_list
@@ -123,10 +130,6 @@ class FieldTimeScheduleGenerator:
             # take one of those connected divisions and iterate through each division
             numgames_perteam_list = list()
             reqslots_perrnd_num = 0
-            # in addition to fieldstatus_list, which tracks scheduled games
-            # by field and time slot, track schedule by div_id and team_id
-            connected_sched_list = list()
-            conindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(connected_sched_list)).get(x)
             for div_id in connected_div_list:
                 divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                 divfield_list = divinfo['divfield_list']
@@ -185,7 +188,7 @@ class FieldTimeScheduleGenerator:
                     'last_date':_absolute_earliest_date,
                     'last_endtime':-1, 'team_id':x}
                     for x in range(1, totalteams+1)])
-                connected_sched_list.append({'div_id':div_id,
+                self.connected_sched_list.append({'div_id':div_id,
                     'sched_list':list()})
             logging.debug('ftscheduler: target early late games=%s divtotal target=%s',
                 self.timebalancer.target_earlylate_list, divtotal_el_list)
@@ -434,7 +437,7 @@ class FieldTimeScheduleGenerator:
                     self.updatetimegap_list(div_id, home_id, away_id, game_date,
                         gametime+gameinterval)
                     div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                    sched_list = connected_sched_list[conindexerGet(div_id)]['sched_list']
+                    sched_list = self.connected_sched_list[self.conindexerGet(div_id)]['sched_list']
                     # populate sched_list, which is an in-memory store of sched
                     # for the current connected_div_list
                     # start_time is a dt object
@@ -464,7 +467,7 @@ class FieldTimeScheduleGenerator:
                 else:
                     pref_len = 0
                 cftuple = self.conflictprocess_obj.process(connected_div_list,
-                    connected_sched_list, conindexerGet, pref_len)
+                    self.connected_sched_list, self.conindexerGet, pref_len)
                 conflictpref_list = cftuple.pref_list
                 fixteam_list = cftuple.fixteam_list
                 if self.prefinfo_list:
@@ -752,8 +755,9 @@ class FieldTimeScheduleGenerator:
 
     def ProcessPreferences(self, fset, div_set, fixteam_list):
         ''' process specified team constraints - see leaguedivprep data structure'''
-        fixindexerMatch = lambda x: [i for i,p in enumerate(fixteam_list)
-            if p['div_id']==x]
+        if fixteam_list:
+            fixindexerMatch = lambda x: [i for i,p in enumerate(fixteam_list)
+                if p['div_id']==x]
         constraint_status_list = list()
         conflict_status_list = list()
         confl_indexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflict_status_list)).get(x)
@@ -773,12 +777,12 @@ class FieldTimeScheduleGenerator:
                 # first sort by priority (ascending)
                 divconstraint_list.sort(key=itemgetter('priority'))
                 # get fixed (no-touch) teams for this division
-                fixindex_list = fixindexerMatch(div_id)
-                if fixindex_list is not None:
-                    divfixteam_list = [fixteam_list[x] for x in fixindex_list]
-                    divfixindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(divfixteam_list)).get(x)
-                else:
-                    divfixteam_list = None
+                divfixteam_list = None
+                if fixteam_list:
+                    fixindex_list = fixindexerMatch(div_id)
+                    if fixindex_list:
+                        divfixteam_list = [fixteam_list[x] for x in fixindex_list]
+                        divfixindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(divfixteam_list)).get(x)
                 for constraint in divconstraint_list:
                     cpref_id = constraint['pref_id']
                     cpriority = constraint['priority']
@@ -922,7 +926,7 @@ class FieldTimeScheduleGenerator:
                                             break  # from inner for canswapTF_list loop
                                         else:
                                             if ('swapped_priority' not in fstatus_slot or\
-                                                cpriority >= fstatus_slot['swapped_priority']) and\
+                                                cpriority > fstatus_slot['swapped_priority']) and\
                                                 (not divfixteam_list or (divfixindexerGet(home) is None and divfixindexerGet(away) is None)):
                                                 # if there was already a game
                                                 # into the slot and it was higher
@@ -984,11 +988,11 @@ class FieldTimeScheduleGenerator:
     def findMatchSwapForConstraint(self, fset, div_id, team_id, game_date, priority, swap_list):
         ''' from the list of candidate matches to swap with, find match to swap with that does not violate constraints.
         Priority description:
-        Priority 1: Use cost calculations - however, if refslot is an EL slot, if the EL cost of the opposite slot is
+        Priority 1: Use cost calculations - however, if refslot is an EL slot, if the EL cost of the opponent is
         above a threshold, then skip to next iteration; if EL cost is below the threshold,
         then increase mult weight when swap slot is an EL slot
         Priority 2: Use cost calculations - however, if refslot is an EL slot, then swap slot must also be an EL slot;
-        but if the EL cost of the opposite slot exceeds a priority-dependent threshold, skip iteration.
+        but if the EL cost of the opponent exceeds a priority-dependent threshold, skip iteration.
         if ref slot is not an EL slot, then increase mult weight when swap slot is an EL slot
         Priority 3: Use cost calucations - however, if refslot is an EL slot, then disallow that particular constraint
         Don't let a match swap in a ref EL slot, even if swap slot is an EL slot; however, if swap slot is an EL slot,
@@ -1031,14 +1035,14 @@ class FieldTimeScheduleGenerator:
         if (refslot_index == 0 or refslot_index == lastTrueSlot):
             # what we are saying here is that the reference team is currently
             # scheduled at the beginning or latest slot - an undesirable slot.
-            if priority == 3:
+            if priority == PRIORITY_3:
                 # for priority 3, we don't want to make the swap happen because
                 # other teams will be swapped into an undesirable slot
                 print '*** priority 3, refslot is EL, NONE dont be mean'
                 logging.debug("ftscheduler:findMatchSwapConstraint: teams %s is an EL slot, no swap",
                     refteams)
                 return 0
-            elif priority == 2 or priority == 1:
+            elif priority == PRIORITY_2 or priority == PRIORITY_1:
                 # if ref slot is an EL slot, swap slot needs to also be an EL slot
                 if refslot_index == 0:
                     requireLate_flag = True
@@ -1054,26 +1058,38 @@ class FieldTimeScheduleGenerator:
                 swap_elem = swap_list[swap_index]
                 swap_slot_index = swap_elem['slot_index']
                 EL_slot_state = (swap_slot_index == 0 or swap_slot_index == lastTrueSlot)
-                swap_cost_threshold = 1 if priority == 1 else 0  # priority dependent threshold
+                swap_cost_threshold = 1 if priority == PRIORITY_1 else 0  # priority dependent threshold
                 # ************ more cost logic
-                if (priority == 2 and (requireEarly_flag or requireLate_flag)) and not EL_slot_state:
+                if (priority == PRIORITY_2 and (requireEarly_flag or requireLate_flag)) and not EL_slot_state:
+                    # for priority two only EL slot to EL slot allowed
                     continue
                 elif requireEarly_flag and swap_slot_index == 0:
+                    # priority 1 or 2 is implied with existence of flag
                     refoppteam_swap_cost = self.timebalancer.getSingleTeamELstats(div_id, refoppteam_id, 'early')
                     if refoppteam_swap_cost >= swap_cost_threshold:
+                        # means that for reference opponent, the early cost target
+                        # is already exceeded - if we swap into the zero slot,
+                        # then it will have an even bigger imbalance (with too
+                        # many early slots)  Note the threshold is higher for
+                        # priority 1
                         continue
+                    else:
+                        swap_multweight = 2
                 elif requireLate_flag and swap_slot_index == lastTrueSlot:
                     refoppteam_swap_cost = self.timebalancer.getSingleTeamELstats(div_id, refoppteam_id, 'late')
                     if refoppteam_swap_cost >= swap_cost_threshold:
+                        # same logic here for late slot - see comment above
                         continue
-                elif ((priority == 2 and EL_slot_state) or
-                      (priority == 1 and (requireEarly_flag or requireLate_flag) and EL_slot_state)):
+                    else:
+                        swap_multweight = 2
+                elif priority == PRIORITY_2 and EL_slot_state:
                     swap_multweight = 2
-                elif priority ==3 and EL_slot_state:
+                elif priority == PRIORITY_3 and EL_slot_state:
                     swap_addweight = 1
                 swap_teams = swap_elem['teams']
-                # cost for swap teams current cost in current slot = attractive cost for swap teams to move out
-                # from current slot
+                # cost for swap teams current cost in current slot = attractive
+                # cost for swap teams to move out from current slot because
+                # el thresholds on sum of home and away teams have been exceeded.
                 # weight applied only if value is positive - since we are maximizing and want to attract if swap slot
                 # is an EL slot (based on priority)
                 swap_cost = self.timebalancer.getELcost_by_slot(swap_slot_index, swap_teams, lastTrueSlot)
@@ -1081,16 +1097,18 @@ class FieldTimeScheduleGenerator:
                 if swap_cost > 0:
                     swap_cost = (swap_multweight*swap_cost) + swap_addweight
                 # cost for swap teams to move into refslot (subtractive cost)
+                # what cost will look like if they move into the ref slot
                 swap_outgoing_cost = self.timebalancer.getELcost_by_slot(refslot_index, swap_teams, lastTrueSlot)
                 # cost for ref teams to move into swapslot (subtractive)
                 swap_incoming_cost = self.timebalancer.getELcost_by_slot(swap_slot_index, refteams, lastTrueSlot)
                 if swap_incoming_cost < 0:
-                    swap_incoming_cost = (swap_multweight*swap_incoming_cost) + swap_addweight
+                    # making it more negative
+                    swap_incoming_cost = (swap_multweight*swap_incoming_cost) - swap_addweight
                 total_cost = swap_cost - swap_outgoing_cost - swap_incoming_cost
                 swap_list[swap_index]['swap_cost'] = swap_cost
                 swap_list[swap_index]['swap_outgoing_cost'] = swap_outgoing_cost
                 swap_list[swap_index]['swap_incoming_cost'] = swap_incoming_cost
-                swap_list[swap_index]['total_cost'] = swap_cost - swap_outgoing_cost - swap_incoming_cost
+                swap_list[swap_index]['total_cost'] = total_cost
                 cost_list.append(swap_list[swap_index])
             if cost_list:
                 max_swap = max(cost_list, key=itemgetter('total_cost'))
