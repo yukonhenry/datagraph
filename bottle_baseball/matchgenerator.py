@@ -25,6 +25,7 @@ class MatchGenerator(object):
         self.numgames_perteam_list = nt*[0]
         self.bye_flag = False
         self.oddnumplay_mode = oddnumplay_mode
+        self._doublegame_list = None
         if (self.numTeams % 2):
             # if odd number of teams
             self.eff_numTeams = self.numTeams+1
@@ -378,8 +379,8 @@ class MatchGenerator(object):
                     # (which is normally not used for odd number divs with a bye)
                     extrateam_id = circlecenter_team
                 else:
-                    # just get first team in list
-                    extrateam_id = extrateam_list[0]
+                    # just get last team in list
+                    extrateam_id = extrateam_list[-1]
                 self.doublecount_list[extrateam_id-1] += 1
                 gamematch_dict = self.getBalancedHomeAwayTeams(circletop_team,
                     extrateam_id, game_count)

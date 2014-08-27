@@ -174,7 +174,7 @@ class SchedMaster(object):
                 'gameslots_perrnd_perdiv':match.gameslotsperday}
             totalmatch_list.append(args_obj)
             if self.oddnumplay_mode:
-                extramatch_list.append({'div_id':div_id,
+                extramatch_list.append({'div_id':divinfo['div_id'],
                     'match_list':match.doublegame_list})
                 eindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(extramatch_list)).get(x)
                 extramatch_tuple = _List_Indexer(extramatch_list, eindexerGet)
