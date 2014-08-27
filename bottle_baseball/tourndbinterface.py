@@ -15,7 +15,6 @@ field_id_list_CONST = 'FIELD_ID_LIST'
 gameinterval_CONST = 'GAMEINTERVAL'
 rr_gamedays_CONST = 'RR_GAMEDAYS'
 gameday_id_CONST = 'GAMEDAY_ID'
-match_id_CONST = 'MATCH_ID'
 start_time_CONST = 'START_TIME'
 gameday_data_CONST = 'GAMEDAY_DATA'
 # global for namedtuple
