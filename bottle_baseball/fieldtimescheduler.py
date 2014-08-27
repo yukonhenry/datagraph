@@ -21,9 +21,9 @@ from conflictprocess import ConflictProcess
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 game_team_CONST = 'GAME_TEAM'
-PRIORITY_1 = 1
-PRIORITY_2 = 2
-PRIORITY_3 = 4
+PRIORITY_1_RANGE = [1]
+PRIORITY_2_RANGE = [2,3]
+PRIORITY_3_RANGE = [4,5]
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
@@ -101,10 +101,6 @@ class FieldTimeScheduleGenerator:
         wtuple = self.init_homefieldweight_list()
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
-        # in addition to fieldstatus_list, which tracks scheduled games
-        # by field and time slot, track schedule by div_id and team_id
-        self.connected_sched_list = list()
-        self.conindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.connected_sched_list)).get(x)
 
     def generateSchedule(self, totalmatch_tuple, extramatch_tuple=None):
         totalmatch_list = totalmatch_tuple.dict_list
@@ -188,8 +184,6 @@ class FieldTimeScheduleGenerator:
                     'last_date':_absolute_earliest_date,
                     'last_endtime':-1, 'team_id':x}
                     for x in range(1, totalteams+1)])
-                self.connected_sched_list.append({'div_id':div_id,
-                    'sched_list':list()})
             logging.debug('ftscheduler: target early late games=%s divtotal target=%s',
                 self.timebalancer.target_earlylate_list, divtotal_el_list)
             # we are assuming still below that all fields in fset are shared by the field-sharing
@@ -437,14 +431,6 @@ class FieldTimeScheduleGenerator:
                     self.updatetimegap_list(div_id, home_id, away_id, game_date,
                         gametime+gameinterval)
                     div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                    sched_list = self.connected_sched_list[self.conindexerGet(div_id)]['sched_list']
-                    # populate sched_list, which is an in-memory store of sched
-                    # for the current connected_div_list
-                    # start_time is a dt object
-                    sched_list.append({'game_date':game_date,
-                        'start_time':gametime, 'home_id':home_id,
-                        'away_id':away_id, 'field_id':field_id,
-                        'fieldday_id':fieldday_id})
                     logging.info("div=%s%s home=%d away=%d round_id=%d, date=%s fieldday_id=%d field=%d gametime=%s slotindex=%d",
                         div['div_age'], div['div_gen'], home_id, away_id, round_id,
                         game_date, fieldday_id, field_id, gametime.time(),
@@ -461,62 +447,64 @@ class FieldTimeScheduleGenerator:
             # and then work on time rebalanceing
             self.timebalancer.ReTimeBalance(fset, connected_div_list)
             #self.ManualSwapTeams(fset, connected_div_list)
-            if self.conflictprocess_obj:
-                if self.prefinfo_list:
-                    pref_len = len(self.prefinfo_list)
-                else:
-                    pref_len = 0
-                cftuple = self.conflictprocess_obj.process(connected_div_list,
-                    self.connected_sched_list, self.conindexerGet, pref_len)
-                conflictpref_list = cftuple.pref_list
-                fixteam_list = cftuple.fixteam_list
-                if self.prefinfo_list:
-                    # if prefinfo_list already exists, then concatenate to it
-                    self.prefinfo_list.extend(conflictpref_list)
-                else:
-                    # if no prefinfo_list exists, then conflict-generated
-                    # pref list becomes the preference list
-                    self.prefinfo_list = conflictpref_list
-                    # we also need to create indexerGet and indexerMatch
-                    self.prefinfo_indexerGet = lambda x: dict((p['pref_id'],i)
-                        for i,p in enumerate(self.prefinfo_list)).get(x)
-                    self.prefinfo_indexerMatch = lambda x: [i for i,p in
-                        enumerate(self.prefinfo_list) if p['div_id'] == x]
-            else:
-                fixteam_list = None
+        # Do conflict/preference processing after all division scheduling is
+        # complete (not per-connected_div_list)
+        sched_tuple = self.create_connected_sched_list()
+        if self.conflictprocess_obj:
             if self.prefinfo_list:
-                status_list_tuple = self.ProcessPreferences(fset,
-                    connected_div_list, fixteam_list)
-                constraint_status_list = status_list_tuple.constraint
-                conflict_status_list = status_list_tuple.conflict
-                if self.pdbinterface:
-                    self.pdbinterface.write_constraint_status(
-                        constraint_status_list)
-                if conflict_status_list:
-                    self.cdbinterface.write_conflict_status(conflict_status_list)
-            # read from memory and store in db
-            for field_id in fset:
-                fieldday_id = 1
-                for fieldday_id, slotstatus_list in enumerate(self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'], start=1):
-                    if not slotstatus_list:
-                        # if fieldday is closed for that field, continue to next fieldday
-                        continue
-                    game_date = slotstatus_list['game_date']
-                    for match in slotstatus_list['sstatus_list']:
-                        if match['isgame']:
-                            start_time = match['start_time']
-                            teams = match['teams']
-                            div_id = teams['div_id']
-                            home_id = teams[home_CONST]
-                            away_id = teams[away_CONST]
-                            #div = getAgeGenderDivision(div_id)
-                            div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
-                            self.dbinterface.insertGameData(age=div['div_age'],
-                                gen=div['div_gen'], fieldday_id=fieldday_id,
-                                #game_date_str=game_date.strftime(date_format_CONST),
-                                #start_time_str=gametime.strftime(time_format_CONST),
-                                game_date=game_date, start_time=start_time,
-                                venue=field_id, home=home_id, away=away_id)
+                pref_len = len(self.prefinfo_list)
+            else:
+                pref_len = 0
+            cftuple = self.conflictprocess_obj.process_alt(sched_tuple, pref_len)
+            conflictpref_list = cftuple.pref_list
+            fixteam_list = cftuple.fixteam_list
+            if self.prefinfo_list:
+                # if prefinfo_list already exists, then concatenate to it
+                self.prefinfo_list.extend(conflictpref_list)
+            else:
+                # if no prefinfo_list exists, then conflict-generated
+                # pref list becomes the preference list
+                self.prefinfo_list = conflictpref_list
+                # we also need to create indexerGet and indexerMatch
+                self.prefinfo_indexerGet = lambda x: dict((p['pref_id'],i)
+                    for i,p in enumerate(self.prefinfo_list)).get(x)
+                self.prefinfo_indexerMatch = lambda x: [i for i,p in
+                    enumerate(self.prefinfo_list) if p['div_id'] == x]
+        else:
+            fixteam_list = None
+        if self.prefinfo_list:
+            status_list_tuple = self.ProcessPreferences(fixteam_list)
+            constraint_status_list = status_list_tuple.constraint
+            conflict_status_list = status_list_tuple.conflict
+            if self.pdbinterface:
+                self.pdbinterface.write_constraint_status(
+                    constraint_status_list)
+            if conflict_status_list:
+                self.cdbinterface.write_conflict_status(conflict_status_list)
+        # read from memory and store in db
+        field_list = [x['field_id'] for x in self.fieldinfo_list]
+        for field_id in field_list:
+            fieldday_id = 1
+            for fieldday_id, slotstatus_list in enumerate(self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'], start=1):
+                if not slotstatus_list:
+                    # if fieldday is closed for that field, continue to next fieldday
+                    continue
+                game_date = slotstatus_list['game_date']
+                for match in slotstatus_list['sstatus_list']:
+                    if match['isgame']:
+                        start_time = match['start_time']
+                        teams = match['teams']
+                        div_id = teams['div_id']
+                        home_id = teams[home_CONST]
+                        away_id = teams[away_CONST]
+                        #div = getAgeGenderDivision(div_id)
+                        div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+                        self.dbinterface.insertGameData(age=div['div_age'],
+                            gen=div['div_gen'], fieldday_id=fieldday_id,
+                            #game_date_str=game_date.strftime(date_format_CONST),
+                            #start_time_str=gametime.strftime(time_format_CONST),
+                            game_date=game_date, start_time=start_time,
+                            venue=field_id, home=home_id, away=away_id)
         self.dbinterface.setsched_status()
         return True  # for dbstatus to be returned to client
         # executes after entire schedule for all divisions is generated
@@ -753,7 +741,7 @@ class FieldTimeScheduleGenerator:
             slot_counter += 1
         return slot_counter
 
-    def ProcessPreferences(self, fset, div_set, fixteam_list):
+    def ProcessPreferences(self, fixteam_list):
         ''' process specified team constraints - see leaguedivprep data structure'''
         if fixteam_list:
             fixindexerMatch = lambda x: [i for i,p in enumerate(fixteam_list)
@@ -761,227 +749,236 @@ class FieldTimeScheduleGenerator:
         constraint_status_list = list()
         conflict_status_list = list()
         confl_indexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflict_status_list)).get(x)
-        for div_id in div_set:
-            divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+        div_set = set([x['div_id'] for x in self.prefinfo_list])
+        for cdiv_id in div_set:
+            divinfo = self.divinfo_list[self.divinfo_indexerGet(cdiv_id)]
             ginterval = divinfo['gameinterval']
+            divfield_list = divinfo['divfield_list']
             gameinterval = timedelta(0,0,0,0,ginterval) # to be able to add time - see leaguedivprep fieldseasonstatus
             # get constraints for each div
             divconstraint_list = [self.prefinfo_list[x]
-                for x in self.prefinfo_indexerMatch(div_id)]
-            if divconstraint_list:
-                # each time might have multiple constraints
-                # read each constraint and see if any are already met by default
-                # Note that constraints for each division may include both conflict
-                # and preference type constraints.  Make sure there is no confusiton
-                # between thte two when processing the constratin
-                # first sort by priority (ascending)
-                divconstraint_list.sort(key=itemgetter('priority'))
-                # get fixed (no-touch) teams for this division
-                divfixteam_list = None
-                if fixteam_list:
-                    fixindex_list = fixindexerMatch(div_id)
-                    if fixindex_list:
-                        divfixteam_list = [fixteam_list[x] for x in fixindex_list]
-                        divfixindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(divfixteam_list)).get(x)
-                for constraint in divconstraint_list:
-                    cpref_id = constraint['pref_id']
-                    cpriority = constraint['priority']
-                    cdiv_id = constraint['div_id']
-                    cteam_id = constraint['team_id']
-                    if 'conflict_id' in constraint:
-                        # preferences are generated  from conflict list in
-                        # conflictprocess_obj.process()
-                        conflict_id = constraint['conflict_id']
-                        start_after_dt = constraint['start_after_dt']
-                        end_before_dt = constraint['end_before_dt']
-                        cgame_date = constraint['game_date']
-                        # indicate constraint type for current loop
-                        constraint_type = "conflict"
-                    else:
-                        # preference info generated from UI config
-                        start_after_str = constraint.get('start_after')
-                        start_after_dt = parser.parse(start_after_str)
-                        end_before_str = constraint.get('end_before')
-                        end_before_dt = parser.parse(end_before_str)
-                        cgame_date = parser.parse(constraint['game_date']).date()
-                        constraint_type = "preference"
-                    break_flag = False
-                    swapmatch_list = []
-                    for f in fset:
-                        # reassign cstartafter_dt, cendbefore_time in case  it
-                        # was nulled out in previous loop
-                        cstartafter_time = start_after_dt
-                        cendbefore_time = end_before_dt
-                        # first get calendarmap_list for the field, and see if there
-                        # is an entry for the priority list game_date
-                        finfo = self.fieldinfo_list[self.fieldinfo_indexerGet(f)]
-                        fstart_time = parser.parse(finfo['start_time'])
-                        fend_time = parser.parse(finfo['end_time'])
-                        cmap_list = finfo['calendarmap_list']
-                        cmap_indexerMatch_list = lambda x: [i for i,p in
-                            enumerate(cmap_list) if p['date'].date() == x]
-                        cmap_index_list = cmap_indexerMatch_list(cgame_date)
-                        if cmap_index_list:
-                            # ok we confirmed that the cmap_list has an entry that
-                            # matches with the game date entered in the priority
-                            # list
-                            # we can assume there is only one match
-                            cmap_index = cmap_index_list[0]
-                            cmap = cmap_list[cmap_index]
-                            cmapfieldday_id = cmap['fieldday_id']
-                            if 'start_time' in cmap:
-                                # if start_time exists in cmap, then it means that
-                                # there has been a change applied using calendar UI
-                                # and cmap start and end times have precedence over
-                                # start and end times passed from the grid table
-                                fstart_time = parser.parse(calendarmap['start_time'])
-                                fend_time = parser.parse(calendarmap['end_time'])
-                            if cstartafter_time <= fstart_time:
-                                # if the startafter_time is before the earliest time
-                                # for that date, it is equivalent to startafter_time
-                                # not existing
-                                cstartafter_time = None
-                            if cendbefore_time >= fend_time:
-                                # similarly if the endbefore time is later than the
-                                # latest time on the field, it is the same as the
-                                # the endbefore time not defined
-                                cendbefore_time = None
-                            # we can support two separate continuous segments of desired slots (but not more than two)
-                            # define the type of segment basd on presend of start and endtimes and their values
-                            # comment visually shows time slots (not position accurate) that will satisfy time constraints
-                            segment_type = -1
-                            if cstartafter_time and not cendbefore_time:
-                                # [------TTTT]
-                                segment_type = 0
-                            elif not cstartafter_time and cendbefore_time:
-                                # [TTTT------]
-                                segment_type = 1
-                            elif cstartafter_time and cendbefore_time:
-                                if cendbefore_time > cstartafter_time:
-                                    # [---TTTTTT---]
-                                    segment_type = 2
-                                elif cendbefore_time < cstartafter_time:
-                                    #[TTTT----TTTTT]
-                                    segment_type = 3
-                                elif cendbefore_time == cstartafter_time:
-                                    # [TTTTTTTTTTTT] (no constraint)
-                                    logging.debug("ftscheduler:processprefs: constraint %d is not needed since start_after=end_before",
-                                        cpref_id)
-                                    continue # go to the next field in fset
-                            else:
-                                logging.debug("ftscheduler:processprefs: constraint %d nothing specified",
+                for x in self.prefinfo_indexerMatch(cdiv_id)]
+            # each time might have multiple constraints
+            # read each constraint and see if any are already met by default
+            # Note that constraints for each division may include both conflict
+            # and preference type constraints.  Make sure there is no confusiton
+            # between thte two when processing the constratin
+            # first sort by priority (ascending)
+            divconstraint_list.sort(key=itemgetter('priority'))
+            for constraint in divconstraint_list:
+                cpref_id = constraint['pref_id']
+                cpriority = constraint['priority']
+                #cdiv_id = constraint['div_id']
+                cteam_id = constraint['team_id']
+                if 'conflict_id' in constraint:
+                    # preferences are generated  from conflict list in
+                    # conflictprocess_obj.process()
+                    conflict_id = constraint['conflict_id']
+                    start_after_dt = constraint['start_after_dt']
+                    end_before_dt = constraint['end_before_dt']
+                    cgame_date = constraint['game_date']
+                    # indicate constraint type for current loop
+                    constraint_type = "conflict"
+                else:
+                    # preference info generated from UI config
+                    start_after_str = constraint.get('start_after')
+                    start_after_dt = parser.parse(start_after_str)
+                    end_before_str = constraint.get('end_before')
+                    end_before_dt = parser.parse(end_before_str)
+                    cgame_date = parser.parse(constraint['game_date']).date()
+                    constraint_type = "preference"
+                break_flag = False
+                swapmatch_list = []
+                for f in divfield_list:
+                    # reassign cstartafter_dt, cendbefore_time in case  it
+                    # was nulled out in previous loop
+                    cstartafter_time = start_after_dt
+                    cendbefore_time = end_before_dt
+                    # first get calendarmap_list for the field, and see if there
+                    # is an entry for the priority list game_date
+                    finfo = self.fieldinfo_list[self.fieldinfo_indexerGet(f)]
+                    fstart_time = parser.parse(finfo['start_time'])
+                    fend_time = parser.parse(finfo['end_time'])
+                    cmap_list = finfo['calendarmap_list']
+                    cmap_indexerMatch_list = lambda x: [i for i,p in
+                        enumerate(cmap_list) if p['date'].date() == x]
+                    cmap_index_list = cmap_indexerMatch_list(cgame_date)
+                    if cmap_index_list:
+                        # ok we confirmed that the cmap_list has an entry that
+                        # matches with the game date entered in the priority
+                        # list
+                        # we can assume there is only one match
+                        cmap_index = cmap_index_list[0]
+                        cmap = cmap_list[cmap_index]
+                        cmapfieldday_id = cmap['fieldday_id']
+                        if 'start_time' in cmap:
+                            # if start_time exists in cmap, then it means that
+                            # there has been a change applied using calendar UI
+                            # and cmap start and end times have precedence over
+                            # start and end times passed from the grid table
+                            fstart_time = parser.parse(calendarmap['start_time'])
+                            fend_time = parser.parse(calendarmap['end_time'])
+                        if cstartafter_time <= fstart_time:
+                            # if the startafter_time is before the earliest time
+                            # for that date, it is equivalent to startafter_time
+                            # not existing
+                            cstartafter_time = None
+                        if cendbefore_time >= fend_time:
+                            # similarly if the endbefore time is later than the
+                            # latest time on the field, it is the same as the
+                            # the endbefore time not defined
+                            cendbefore_time = None
+                        # we can support two separate continuous segments of desired slots (but not more than two)
+                        # define the type of segment basd on presend of start and endtimes and their values
+                        # comment visually shows time slots (not position accurate) that will satisfy time constraints
+                        segment_type = -1
+                        if cstartafter_time and not cendbefore_time:
+                            # [------TTTT]
+                            segment_type = 0
+                        elif not cstartafter_time and cendbefore_time:
+                            # [TTTT------]
+                            segment_type = 1
+                        elif cstartafter_time and cendbefore_time:
+                            if cendbefore_time > cstartafter_time:
+                                # [---TTTTTT---]
+                                segment_type = 2
+                            elif cendbefore_time < cstartafter_time:
+                                #[TTTT----TTTTT]
+                                segment_type = 3
+                            elif cendbefore_time == cstartafter_time:
+                                # [TTTTTTTTTTTT] (no constraint)
+                                logging.debug("ftscheduler:processprefs: constraint %d is not needed since start_after=end_before",
                                     cpref_id)
-                                continue
-                            # first
-                            # search through each field for the divset to 1)find if team is already scheduled in a desired slot; or
-                            # 2) if not, find the list of matches that the team can swap with during that day
-                            fstatus = self.fieldstatus_list[self.fstatus_indexerGet(f)]
-                            #fslots_num = fstatus['slotsperday']
-                            fsstatus_list =  fstatus['slotstatus_list'][cmapfieldday_id-1]['sstatus_list']
-                            # getting len of current fsstatus_list more accurate
-                            # than using slotsperday value
-                            fslots_num = len(fsstatus_list)
-                            # find out slot number that is designated by the 'start_after' constraint
-                            firstgame_slot = fsstatus_list[0]
-                            if not firstgame_slot or not firstgame_slot['isgame']:
-                                raise CodeLogicError("ftscheduler:ProccessContraints: firstgame for div %d, fieldday %d does not exist" % (cdiv_id, cmapfieldday_id))
-                            firstgame_time = firstgame_slot['start_time']  # first game time
-                            startafter_index = self.mapStartTimeToSlot(cstartafter_time, firstgame_time, gameinterval) if cstartafter_time else None
-                            if startafter_index and startafter_index > fslots_num - 1:
+                                continue # go to the next field in fset
+                        else:
+                            logging.debug("ftscheduler:processprefs: constraint %d nothing specified",
+                                cpref_id)
+                            continue
+                        # first
+                        # search through each field for the divset to 1)find if team is already scheduled in a desired slot; or
+                        # 2) if not, find the list of matches that the team can swap with during that day
+                        fstatus = self.fieldstatus_list[self.fstatus_indexerGet(f)]
+                        #fslots_num = fstatus['slotsperday']
+                        fsstatus_list =  fstatus['slotstatus_list'][cmapfieldday_id-1]['sstatus_list']
+                        # getting len of current fsstatus_list more accurate
+                        # than using slotsperday value
+                        fslots_num = len(fsstatus_list)
+                        # find out slot number that is designated by the 'start_after' constraint
+                        firstgame_slot = fsstatus_list[0]
+                        if not firstgame_slot or not firstgame_slot['isgame']:
+                            raise CodeLogicError("ftscheduler:ProccessContraints: firstgame for div %d, fieldday %d does not exist" % (cdiv_id, cmapfieldday_id))
+                        firstgame_time = firstgame_slot['start_time']  # first game time
+                        startafter_index = self.mapStartTimeToSlot(cstartafter_time, firstgame_time, gameinterval) if cstartafter_time else None
+                        if startafter_index and startafter_index > fslots_num - 1:
+                            if segment_type == 3:
+                                # if the segment was originally a segment 3 type,
+                                # change to a 1 type becasue the start time for
+                                # the second segment is too late
+                                segment_type = 1
+                            else:
                                 raise SchedulerConfigurationError("Constraint Configuration Error: Start after time is too late")
 
-                            # -1 return means that the end time is before the end of the first game
-                            endbefore_index = self.mapEndTimeToSlot(cendbefore_time, firstgame_time, gameinterval) if cendbefore_time else -2
+                        # -1 return means that the end time is before the end of the first game
+                        endbefore_index = self.mapEndTimeToSlot(cendbefore_time, firstgame_time, gameinterval) if cendbefore_time else -2
 
-                            fullindex_list = range(fslots_num)
-                            # define range of time slots that satisfy constraints
-                            if segment_type == 0:
-                                segment_range = range(startafter_index, fslots_num)
-                            elif segment_type == 1:
-                                segment_range = range(0, endbefore_index+1)
-                            elif segment_type == 2:
-                                segment_range = range(startafter_index, endbefore_index+1)
-                            elif segment_type == 3:
-                                segment_range = range(0,endbefore_index+1) + range(startafter_index, fslots_num)
-                            else:
-                                # ref http://www.diveintopython.net/native_data_types/formatting_strings.html for formatting string
-                                raise CodeLogicError("ftscheduler:process constraints - error with segment type, constraint %d" %(cpref_id,))
-                            # based on segment range, create list with T/F values - True represents slot that satisfies
-                            # time constraint
-                            canswapTF_list = [True if x in segment_range else False for x in fullindex_list]
-                            #print 'cd id canswap', cpref_id, canswapTF_list
-                            for slot_ind, slot_TF in enumerate(canswapTF_list):
-                                if slot_TF:
-                                    fstatus_slot = fsstatus_list[slot_ind]
-                                    # search through gameday slots where game is already scheduled
-                                    if fstatus_slot['isgame']:
-                                        teams = fstatus_slot['teams']
-                                        div_id = teams['div_id']
-                                        home = teams[home_CONST]
-                                        away = teams[away_CONST]
-                                        if div_id == cdiv_id and (home == cteam_id or away == cteam_id):
-                                            logging.info("ftscheduler:constraints: ***constraint satisfied with constraint=%d div=%d team=%d gameday=%d",
-                                                cpref_id, div_id, cteam_id, cmapfieldday_id)
-                                            break_flag = True
-                                            break  # from inner for canswapTF_list loop
-                                        else:
-                                            if ('swapped_priority' not in fstatus_slot or\
-                                                cpriority > fstatus_slot['swapped_priority']) and\
-                                                (not divfixteam_list or (divfixindexerGet(home) is None and divfixindexerGet(away) is None)):
-                                                # if there was already a game
-                                                # into the slot and it was higher
-                                                # priority, don't include it as
-                                                # part of candidate positions
-                                                swapmatch_list.append({
-                                                    'teams':teams,
-                                                    'slot_index':slot_ind,
-                                                    'field_id':f,
-                                                    'fieldday_id':cmapfieldday_id})
-                            else:
-                                logging.debug("ftscheduler:processprefs:candidate matches in field=%d constraint=%d for swap %s",
-                                              f, cpref_id, swapmatch_list)
-                                continue # to next field_id in fset loop
-                            break  # from outer for fset loop
+                        fullindex_list = range(fslots_num)
+                        # define range of time slots that satisfy constraints
+                        if segment_type == 0:
+                            segment_range = range(startafter_index, fslots_num)
+                        elif segment_type == 1:
+                            segment_range = range(0, endbefore_index+1)
+                        elif segment_type == 2:
+                            segment_range = range(startafter_index, endbefore_index+1)
+                        elif segment_type == 3:
+                            segment_range = range(0,endbefore_index+1) + range(startafter_index, fslots_num)
                         else:
-                            # if calendarmap does not produce a gamedate match
-                            continue
-                    if break_flag:
-                        #if 'conflict_id' in locals():
-                        if constraint_type == "conflict":
-                            logging.debug("ftscheduler:processprefs: conflict id %d pref_id %d already satisfied" %
-                                (conflict_id, cpref_id))
-                            cindex = confl_indexerGet(conflict_id)
-                            if cindex is not None:
-                                # conflict_id entry already exists
-                                conflict_status_list[cindex]['count'] += 1
-                            else:
-                                conflict_status_list.append(
-                                    {'conflict_id':conflict_id, 'count':1})
+                            # ref http://www.diveintopython.net/native_data_types/formatting_strings.html for formatting string
+                            raise CodeLogicError("ftscheduler:process constraints - error with segment type, constraint %d" %(cpref_id,))
+                        # based on segment range, create list with T/F values - True represents slot that satisfies
+                        # time constraint
+                        canswapTF_list = [True if x in segment_range else False for x in fullindex_list]
+                        #print 'cd id canswap', cpref_id, canswapTF_list
+                        for slot_ind, slot_TF in enumerate(canswapTF_list):
+                            if slot_TF:
+                                fstatus_slot = fsstatus_list[slot_ind]
+                                # search through gameday slots where game is already scheduled
+                                if fstatus_slot['isgame']:
+                                    teams = fstatus_slot['teams']
+                                    swapdiv_id = teams['div_id']
+                                    home = teams[home_CONST]
+                                    away = teams[away_CONST]
+                                    if swapdiv_id == cdiv_id and (home == cteam_id or away == cteam_id):
+                                        logging.info("ftscheduler:constraints: ***constraint satisfied with constraint=%d div=%d team=%d gameday=%d",
+                                            cpref_id, cdiv_id, cteam_id, cmapfieldday_id)
+                                        fstatus_slot['swapped_priority'] = cpriority
+                                        break  # from inner for canswapTF_list loop
+                                    else:
+                                       # get fixed (no-touch) teams for this division
+                                        divfixteam_list = None
+                                        if fixteam_list:
+                                            fixindex_list = fixindexerMatch(swapdiv_id)
+                                            if fixindex_list:
+                                                divfixteam_list = [fixteam_list[x] for x in fixindex_list]
+                                                divfixindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(divfixteam_list)).get(x)
+                                        if 'swapped_priority' not in fstatus_slot \
+                                            and (not divfixteam_list or (divfixindexerGet(home) is None and divfixindexerGet(away) is None)):
+                                                    # if there was already a game
+                                                    # into the slot and it was higher
+                                                    # priority, don't include it as
+                                                    # part of candidate positions
+                                                    swapmatch_list.append({
+                                                        'teams':teams,
+                                                        'slot_index':slot_ind,
+                                                        'field_id':f,
+                                                        'fieldday_id':cmapfieldday_id})
                         else:
-                            logging.debug("ftscheduler:processprefs: id %d already satisfied as is", cpref_id)
-                            print '*********preference ', cpref_id, 'is already satisfied'
-                            constraint_status_list.append({'pref_id':cpref_id,
-                                'status':1})
+                            logging.debug("ftscheduler:processprefs:candidate matches in field=%d constraint=%d for swap %s",
+                                          f, cpref_id, swapmatch_list)
+                            continue # to next field_id in fset loop
+                        break  # from outer for fset loop
                     else:
-                        logging.debug("ftscheduler:processprefs: pref id=%d  candidate swap=%s",
-                            cpref_id, swapmatch_list)
-                        print '####preference', cpref_id
-                        status_int = self.findMatchSwapForConstraint(fset, cdiv_id, cteam_id, cgame_date, cpriority, swapmatch_list)
-                        #if 'conflict_id' in locals():
-                        if constraint_type == "conflict":
-                            cindex = confl_indexerGet(conflict_id)
-                            if cindex is not None:
-                                # conflict_id entry already exists
-                                # status_int has a value of 0 or 1
-                                conflict_status_list[cindex]['count'] += status_int
-                            else:
-                                # add first entry for conflict_id in confict status
-                                # list - init value will be 0 or 1
-                                conflict_status_list.append(
-                                    {'conflict_id':conflict_id, 'count':status_int})
+                        # if calendarmap does not produce a gamedate match go to
+                        # next field
+                        continue
+                else:
+                    logging.debug("ftscheduler:processprefs: pref id=%d  candidate swap=%s",
+                        cpref_id, swapmatch_list)
+                    print '####preference', cpref_id
+                    status_int = self.findMatchSwapForConstraint(divfield_list, cdiv_id, cteam_id, cgame_date, cpriority, swapmatch_list)
+                    #if 'conflict_id' in locals():
+                    if constraint_type == "conflict":
+                        cindex = confl_indexerGet(conflict_id)
+                        if cindex is not None:
+                            # conflict_id entry already exists
+                            # status_int has a value of 0 or 1
+                            conflict_status_list[cindex]['count'] += status_int
                         else:
-                            constraint_status_list.append({'pref_id':cpref_id,
-                                'status':status_int})
+                            # add first entry for conflict_id in confict status
+                            # list - init value will be 0 or 1
+                            conflict_status_list.append(
+                                {'conflict_id':conflict_id, 'count':status_int})
+                    else:
+                        constraint_status_list.append({'pref_id':cpref_id,
+                            'status':status_int})
+                    # continue to next constraint
+                    continue
+                #if break_flag:
+                #if 'conflict_id' in locals():
+                if constraint_type == "conflict":
+                    logging.debug("ftscheduler:processprefs: conflict id %d pref_id %d already satisfied" %
+                        (conflict_id, cpref_id))
+                    cindex = confl_indexerGet(conflict_id)
+                    if cindex is not None:
+                        # conflict_id entry already exists
+                        conflict_status_list[cindex]['count'] += 1
+                    else:
+                        conflict_status_list.append(
+                            {'conflict_id':conflict_id, 'count':1})
+                else:
+                    logging.debug("ftscheduler:processprefs: id %d already satisfied as is", cpref_id)
+                    print '*********preference ', cpref_id, 'is already satisfied'
+                    constraint_status_list.append({'pref_id':cpref_id,
+                        'status':1})
         status_list_tuple = namedtuple('status_list_tuple', 'constraint conflict')
         return status_list_tuple(constraint_status_list, conflict_status_list)
 
@@ -1035,14 +1032,14 @@ class FieldTimeScheduleGenerator:
         if (refslot_index == 0 or refslot_index == lastTrueSlot):
             # what we are saying here is that the reference team is currently
             # scheduled at the beginning or latest slot - an undesirable slot.
-            if priority == PRIORITY_3:
+            if priority in PRIORITY_3_RANGE:
                 # for priority 3, we don't want to make the swap happen because
                 # other teams will be swapped into an undesirable slot
                 print '*** priority 3, refslot is EL, NONE dont be mean'
                 logging.debug("ftscheduler:findMatchSwapConstraint: teams %s is an EL slot, no swap",
                     refteams)
                 return 0
-            elif priority == PRIORITY_2 or priority == PRIORITY_1:
+            elif priority in PRIORITY_2_RANGE or priority in PRIORITY_1_RANGE:
                 # if ref slot is an EL slot, swap slot needs to also be an EL slot
                 if refslot_index == 0:
                     requireLate_flag = True
@@ -1058,9 +1055,9 @@ class FieldTimeScheduleGenerator:
                 swap_elem = swap_list[swap_index]
                 swap_slot_index = swap_elem['slot_index']
                 EL_slot_state = (swap_slot_index == 0 or swap_slot_index == lastTrueSlot)
-                swap_cost_threshold = 1 if priority == PRIORITY_1 else 0  # priority dependent threshold
+                swap_cost_threshold = 2 if priority in PRIORITY_1_RANGE else 0  # priority dependent threshold
                 # ************ more cost logic
-                if (priority == PRIORITY_2 and (requireEarly_flag or requireLate_flag)) and not EL_slot_state:
+                if (priority in PRIORITY_2_RANGE and (requireEarly_flag or requireLate_flag)) and not EL_slot_state:
                     # for priority two only EL slot to EL slot allowed
                     continue
                 elif requireEarly_flag and swap_slot_index == 0:
@@ -1082,9 +1079,9 @@ class FieldTimeScheduleGenerator:
                         continue
                     else:
                         swap_multweight = 2
-                elif priority == PRIORITY_2 and EL_slot_state:
+                elif priority in PRIORITY_2_RANGE and EL_slot_state:
                     swap_multweight = 2
-                elif priority == PRIORITY_3 and EL_slot_state:
+                elif priority in PRIORITY_3_RANGE and EL_slot_state:
                     swap_addweight = 1
                 swap_teams = swap_elem['teams']
                 # cost for swap teams current cost in current slot = attractive
@@ -1570,3 +1567,35 @@ class FieldTimeScheduleGenerator:
                 'distrib_list':distribution_list})
         tindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(targetfield_distribution_list)).get(x)
         return _List_Indexer(targetfield_distribution_list, tindexerGet)
+
+    def create_connected_sched_list(self):
+        # in addition to fieldstatus_list, which tracks scheduled games
+        # by field and time slot, track schedule by div_id and team_id
+        sched_list = list()
+        indexerGet = lambda x: dict((p['div_id'],i)
+            for i,p in enumerate(sched_list)).get(x)
+        field_list = [x['field_id'] for x in self.fieldinfo_list]
+        for field_id in field_list:
+            for fieldday_id, slotstatus_list in enumerate(self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'], start=1):
+                if not slotstatus_list:
+                    # if fieldday is closed for that field, continue to next fieldday
+                    continue
+                game_date = slotstatus_list['game_date']
+                for match in slotstatus_list['sstatus_list']:
+                    if match['isgame']:
+                        start_time = match['start_time']
+                        teams = match['teams']
+                        div_id = teams['div_id']
+                        home_id = teams[home_CONST]
+                        away_id = teams[away_CONST]
+                        match_dict = {'game_date':game_date,
+                        'start_time':start_time, 'home_id':home_id,
+                        'away_id':away_id, 'field_id':field_id,
+                        'fieldday_id':fieldday_id}
+                        index = indexerGet(div_id)
+                        if index is None:
+                            sched_list.append({'div_id':div_id,
+                                'sched_list':[match_dict]})
+                        else:
+                            sched_list[index]['sched_list'].append(match_dict)
+        return _List_Indexer(sched_list, indexerGet)
