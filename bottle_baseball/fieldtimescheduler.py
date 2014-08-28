@@ -991,6 +991,10 @@ class FieldTimeScheduleGenerator:
         # opponent coast at reference slot
         refoppteam_id = fstatus_tuple.oppteam_id
         reffieldday_id = fstatus_tuple.fieldday_id
+        fsstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(reffield_id)]['slotstatus_list'][reffieldday_id-1]['sstatus_list']
+        if 'swapped_priority' in fsstatus_list[refslot_index]:
+            # if the reference slot is already tagged as swapped, we can't reswap
+            return 0
         lastTrue_slot = self.findFieldGamedayLastTrueSlot(reffield_id,
             reffieldday_id)
         # note we will most likely continue to ignore refoppteam_cost value below as it has no
@@ -1029,9 +1033,9 @@ class FieldTimeScheduleGenerator:
                 # ************ more cost logic
                 if priority in PRIORITY_1_RANGE:
                     if refoppteam_id in divteam_set:
-                        swap_cost = 1*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+2*(refoppteam_new_cost+refteam_new_cost)
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+2*(refoppteam_new_cost+refteam_new_cost)
                     else:
-                        swap_cost = 1*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost-refoppteam_current_cost)+2*refteam_new_cost
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_current_cost-refoppteam_new_cost)+2*refteam_new_cost
                 elif priority in PRIORITY_2_RANGE:
                     if refEL_state and (swaphome_new_cost >= EL_cost_threshold or\
                         swapaway_new_cost >= EL_cost_threshold or (swaphome_new_cost+swapaway_new_cost)>=2*EL_cost_threshold):
@@ -1039,16 +1043,16 @@ class FieldTimeScheduleGenerator:
                     elif swapEL_state and refoppteam_id not in divteam_set and refoppteam_new_cost >= EL_cost_threshold:
                         continue
                     elif refoppteam_id in divteam_set:
-                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost+refteam_new_cost)
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+2*(refoppteam_new_cost+refteam_new_cost)
                     else:
-                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost-refoppteam_current_cost)+refteam_new_cost
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_current_cost-refoppteam_new_cost)+2*refteam_new_cost
                 else:
                     if refEL_state:
                         continue
                     elif swapEL_state and refoppteam_id not in divteam_set and refoppteam_new_cost >= EL_cost_threshold:
                         continue
                     else:
-                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost-refoppteam_current_cost)+refteam_new_cost
+                        swap_cost = (swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_current_cost-refoppteam_new_cost)+2*refteam_new_cost
                 swap_list[swapindex]['swap_cost'] = swap_cost
                 cost_list.append(swap_list[swapindex])
             if cost_list:
@@ -1057,7 +1061,7 @@ class FieldTimeScheduleGenerator:
                 #print 'max_swap', max_swap
                 if max_swap['field_id'] != reffield_id:
                     raise CodeLogicError("ftschedule:findSwapMatchForConstraints reffield %d max_swap field do Not match" % (reffield_id,))
-                fsstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(reffield_id)]['slotstatus_list'][reffieldday_id-1]['sstatus_list']
+                #fsstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(reffield_id)]['slotstatus_list'][reffieldday_id-1]['sstatus_list']
                 if fsstatus_list[refslot_index]['teams'] !=  refteams:
                     raise CodeLogicError("ftschedule:findSwapMatchConstraints refslotindex %d does not produce teams %s"
                                          % (refslot_index, refteams))
@@ -1072,8 +1076,8 @@ class FieldTimeScheduleGenerator:
                 # mark the constraint priority at the slot where the reference team
                 # was swapped intos
                 fsstatus_list[max_swap_slot_index]['swapped_priority'] = priority
-                logging.debug("ftscheduler:swapmatchconstraints: swapping refslot %d with slot %d, refteams %s with teams %s",
-                    refslot_index, max_swap_slot_index, refteams, max_swap_teams)
+                logging.debug("ftscheduler:swapmatchconstraints: swapping refslot %d with slot %d, refteams %s with teams %s on field %d fieldday %d",
+                    refslot_index, max_swap_slot_index, refteams, max_swap_teams, reffield_id, reffieldday_id)
                 print "****swapping refslot %d with slot %d, refteams %s with teams %s" % (refslot_index, max_swap_slot_index, refteams, max_swap_teams)
 
                 self.timebalancer.updateSlotELCounters(refslot_index,

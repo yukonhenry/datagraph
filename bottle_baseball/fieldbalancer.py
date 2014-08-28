@@ -144,11 +144,11 @@ class FieldBalancer(object):
                 penalty = abs(diffcount-1)*2
                 # penalty makes the diffcount even more negative
                 fielddiffcount['diffcount'] = (diffcount-1)*penalty
-            elif diffcount == 1:
+            elif diffcount > 0:
                 # count is approaching reference, define penalty
                 # additive penalty towards reaching/exceeding reference
-                penalty = 2
-                fielddiffcount['diffcount'] -= penalty
+                penalty = diffcount
+                fielddiffcount['diffcount'] *= penalty
         findexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(
             fielddiffcount_list)).get(x)
         # field counter for home team
