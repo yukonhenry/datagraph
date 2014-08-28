@@ -324,9 +324,27 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 					this.oddnumradio_value = constant.play_value;
 				}
 			},
-			oddnumsubmit_callback: function(deferred_obj, event) {
+			oddnumsubmit_callback: function(deferred_obj, raw_result, event) {
 				this.oddnum_dialog.hide();
-				deferred_obj.resolve({oddnum_mode:this.oddnumradio_value});
+				var oddnum_mode = this.oddnumradio_value;
+				if (oddnum_mode == 1) {
+					// if oddnum mode is 1, add a virtual team for game scheduling
+					// this allows all teams to have one game every game day
+					// one team will play twice.  Right now we will manually change
+					// the virtual team# to a real team# after the schedule is
+					// generated
+					arrayUtil.forEach(raw_result, function(item) {
+						var totalteams = item['totalteams'];
+						if (totalteams%2 == 1) {
+							item['totalteams']++;
+						}
+					})
+					deferred_obj.resolve({oddnum_mode:oddnum_mode,
+						raw_result:raw_result});
+				} else {
+					deferred_obj.resolve({oddnum_mode:oddnum_mode});
+				}
+
 			},
 			get_server_key_obj: function(raw_result) {
 				var deferred_obj = new Deferred();
@@ -340,12 +358,15 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 					}
 				})) {
 					this.oddnumradio_value = constant.bye_value;
+					// pass deferredobj and rawresult as they will be used
+					// if oddnum mode is 1
 					var args_obj = {init_radio_value: "BYE",
 						context:this,
 						radio1_callback:this.oddnumradio1_callback,
 						radio2_callback:this.oddnumradio2_callback,
 						submit_callback:this.oddnumsubmit_callback,
-						deferred_obj:deferred_obj};
+						deferred_obj:deferred_obj,
+						raw_result:raw_result};
 					this.oddnum_dialog = this.widgetgen.get_radiobtn_dialog(args_obj);
 					this.oddnum_dialog.show();
 				} else {

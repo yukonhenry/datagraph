@@ -181,6 +181,11 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 					storedata_json = JSON.stringify(raw_result);
 					this.info_obj.get_server_key_obj(raw_result).then(
 						lang.hitch(this,function(server_key_obj) {
+							if ('raw_result' in server_key_obj) {
+								storedata_json = JSON.stringify(
+									server_key_obj.raw_result)
+								delete server_key_obj.raw_result;
+							}
 							this.sendData_Server_DB(storedata_json, config_status,
 								server_key_obj);
 						})

@@ -684,41 +684,6 @@ class FieldTimeScheduleGenerator:
                     tel_target_list[team1_id-1], tel_target_list[team2_id-1] = \
                         tel_target_list[team2_id-1], tel_target_list[team1_id-1]
 
-    def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len):
-        ''' shift gameday timeslots '''
-        logging.debug("ftscheduler:compaction:shiftGameDayslots isgamelist=%s, field=%d gameday=%d src_begin=%d dst_begin=%d len=%d",
-                      isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len)
-        src_end = src_begin + shift_len
-        dst_end = dst_begin + shift_len
-        for i,j in zip(range(src_begin, src_end), range(dst_begin, dst_end)):
-            srcslot = fieldstatus_round[i]
-            dstslot = fieldstatus_round[j]
-            if srcslot['isgame']:
-                # if a game exists, shift to new time slot, and update db doc entry
-                dstslot['isgame'] = srcslot['isgame']
-                # if dstslot has a game (True field), then write to db
-                self.dbinterface.updateGameTime(field_id, fieldday_id,
-                    srcslot['start_time'].strftime(time_format_CONST),
-                    dstslot['start_time'].strftime(time_format_CONST))
-            else:
-                try:
-                    nextTrue_ind = isgame_list[i:].index(True)
-                except ValueError:
-                    logging.error("ftscheduler:compact:shiftGameDayslots last game ends at %d", i-1)
-                    for k in range(j, dst_end):
-                        fieldstatus_round[k]['isgame'] = False
-                else:
-                    newsrc_begin = i + nextTrue_ind
-                    # note +1 increment is important below when computing length from difference of indices
-                    newshift_length = dst_end + 1 - newsrc_begin
-                    newdst_begin = j
-                    self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
-                                           src_begin=newsrc_begin, dst_begin=newdst_begin, shift_len=newshift_length)
-                    for k in range(newdst_begin+newshift_length, dst_end):
-                        fieldstatus_round[k]['isgame'] = False
-                finally:
-                    break
-
     def findFieldGamedayLastTrueSlot(self, field_id, fieldday_id):
         sstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'][fieldday_id-1]['sstatus_list']
         isgame_list = [x['isgame']  for x in sstatus_list]
@@ -765,6 +730,8 @@ class FieldTimeScheduleGenerator:
             # between thte two when processing the constratin
             # first sort by priority (ascending)
             divconstraint_list.sort(key=itemgetter('priority'))
+            # get list of teams in div with constraints
+            cdivteam_set = set([x['team_id'] for x in divconstraint_list])
             for constraint in divconstraint_list:
                 cpref_id = constraint['pref_id']
                 cpriority = constraint['priority']
@@ -880,7 +847,6 @@ class FieldTimeScheduleGenerator:
 
                         # -1 return means that the end time is before the end of the first game
                         endbefore_index = self.mapEndTimeToSlot(cendbefore_time, firstgame_time, gameinterval) if cendbefore_time else -2
-
                         fullindex_list = range(fslots_num)
                         # define range of time slots that satisfy constraints
                         if segment_type == 0:
@@ -944,7 +910,9 @@ class FieldTimeScheduleGenerator:
                     logging.debug("ftscheduler:processprefs: pref id=%d  candidate swap=%s",
                         cpref_id, swapmatch_list)
                     print '####preference', cpref_id
-                    status_int = self.findMatchSwapForConstraint(divfield_list, cdiv_id, cteam_id, cgame_date, cpriority, swapmatch_list)
+                    status_int = self.findMatchSwapForConstraint(divfield_list,
+                        cdiv_id, cteam_id, cgame_date, cpriority, swapmatch_list,
+                        cdivteam_set)
                     #if 'conflict_id' in locals():
                     if constraint_type == "conflict":
                         cindex = confl_indexerGet(conflict_id)
@@ -982,7 +950,7 @@ class FieldTimeScheduleGenerator:
         status_list_tuple = namedtuple('status_list_tuple', 'constraint conflict')
         return status_list_tuple(constraint_status_list, conflict_status_list)
 
-    def findMatchSwapForConstraint(self, fset, div_id, team_id, game_date, priority, swap_list):
+    def findMatchSwapForConstraint(self, fset, div_id, team_id, game_date, priority, swap_list, divteam_set):
         ''' from the list of candidate matches to swap with, find match to swap with that does not violate constraints.
         Priority description:
         Priority 1: Use cost calculations - however, if refslot is an EL slot, if the EL cost of the opponent is
@@ -1000,6 +968,13 @@ class FieldTimeScheduleGenerator:
         swap_multweight = 1
         requireEarly_flag = False
         requireLate_flag = False
+        # threshold's that define how close EL costs can be exceeded
+        if priority in PRIORITY_1_RANGE:
+            EL_cost_threshold = 1
+        elif priority in PRIORITY_2_RANGE:
+            EL_cost_threshold = 1
+        elif priority in PRIORITY_3_RANGE:
+            EL_cost_threshold = 0
         # find where and when reference team is scheduled on the constraint gamedate
         fstatus_tuple = self.findFieldSeasonStatusSlot(fset, div_id, team_id,
             game_date)
@@ -1007,108 +982,77 @@ class FieldTimeScheduleGenerator:
             # reference team not scheduled, possible bye game
             logging.debug("ftscheduler:findMatchSwapForConstraint:possible bye game for div %d team %d game_dat %s" %(div_id, team_id, game_date));
             return 0;
+        # get reference team info
         refteams = fstatus_tuple.teams
         # reffield, refslot, reffieldday indicate where reference team is currently
         # scheduled (and does not meet constraint)
         reffield_id = fstatus_tuple.field_id
         refslot_index = fstatus_tuple.slot_index
-        # opponent that ref team is playing
+        # opponent coast at reference slot
         refoppteam_id = fstatus_tuple.oppteam_id
         reffieldday_id = fstatus_tuple.fieldday_id
-        lastTrueSlot = self.findFieldGamedayLastTrueSlot(reffield_id,
+        lastTrue_slot = self.findFieldGamedayLastTrueSlot(reffield_id,
             reffieldday_id)
         # note we will most likely continue to ignore refoppteam_cost value below as it has no
         # bearing on max operation (same value for all swap candidates)
-        if refslot_index == 0:
-            # get difference between current and target counts for opp team
-            refoppteam_cost = self.timebalancer.getSingleTeamELstats(div_id, refoppteam_id, 'early')
-        elif refslot_index == lastTrueSlot:
-            refoppteam_cost = self.timebalancer.getSingleTeamELstats(div_id,
-                refoppteam_id, 'late')
-        else:
-            refoppteam_cost = 0
-
-        # ********* cost parameters
-        if (refslot_index == 0 or refslot_index == lastTrueSlot):
-            # what we are saying here is that the reference team is currently
-            # scheduled at the beginning or latest slot - an undesirable slot.
-            if priority in PRIORITY_3_RANGE:
-                # for priority 3, we don't want to make the swap happen because
-                # other teams will be swapped into an undesirable slot
-                print '*** priority 3, refslot is EL, NONE dont be mean'
-                logging.debug("ftscheduler:findMatchSwapConstraint: teams %s is an EL slot, no swap",
-                    refteams)
-                return 0
-            elif priority in PRIORITY_2_RANGE or priority in PRIORITY_1_RANGE:
-                # if ref slot is an EL slot, swap slot needs to also be an EL slot
-                if refslot_index == 0:
-                    requireLate_flag = True
-                else:
-                    requireEarly_flag = True
-
-        #slist_field_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(swap_list)).get(x)
-        samefield_index_list = [i for i,j in enumerate(swap_list) if j['field_id']==reffield_id]
-        #print 'div team gameday slot field index', div_id, team_id, fieldday_id, refslot_index, reffield_id, samefield_index_list
-        if samefield_index_list:
-            cost_list = []
-            for swap_index in samefield_index_list:
-                swap_elem = swap_list[swap_index]
-                swap_slot_index = swap_elem['slot_index']
-                EL_slot_state = (swap_slot_index == 0 or swap_slot_index == lastTrueSlot)
-                swap_cost_threshold = 2 if priority in PRIORITY_1_RANGE else 0  # priority dependent threshold
+        refteam_current_cost = self.timebalancer.getSmartSingleTeamELstats(div_id,
+            team_id, refslot_index, lastTrue_slot)
+        refoppteam_current_cost = self.timebalancer.getSmartSingleTeamELstats(
+            div_id, refoppteam_id, refslot_index, lastTrue_slot)
+        refEL_state = True if refslot_index == 0 or refslot_index == lastTrue_slot else False
+        # for now just swap within same file
+        samefieldindex_list = [i for i,j in enumerate(swap_list) if j['field_id']==reffield_id]
+        if samefieldindex_list:
+            cost_list = list()
+            for swapindex in samefieldindex_list:
+                swapelem = swap_list[swapindex]
+                swapteams = swapelem['teams']
+                swapdiv_id = swapteams['div_id']
+                swaphome = swapteams['HOME']
+                swapway = swapteams['AWAY']
+                swapslot_index = swapelem['slot_index']
+                swaphome_current_cost = self.timebalancer.getSmartSingleTeamELstats(
+                    swapdiv_id, swaphome, swapslot_index, lastTrue_slot)
+                swapaway_current_cost = self.timebalancer.getSmartSingleTeamELstats(
+                    swapdiv_id, swaphome, swapslot_index, lastTrue_slot)
+                swapEL_state = True if swapslot_index == 0 or swapslot_index == lastTrue_slot else False
+                # get cost that would be incurred if swap was made
+                # criss-cross slots - swap to ref, ref to swap
+                refteam_new_cost = self.timebalancer.getSmartSingleTeamELstats(
+                    div_id, team_id, swapslot_index, lastTrue_slot)
+                refoppteam_new_cost = self.timebalancer.getSmartSingleTeamELstats(
+                    div_id, refoppteam_id, swapslot_index, lastTrue_slot)
+                swaphome_new_cost = self.timebalancer.getSmartSingleTeamELstats(
+                    swapdiv_id, swaphome, refslot_index, lastTrue_slot)
+                swapaway_new_cost = self.timebalancer.getSmartSingleTeamELstats(
+                    swapdiv_id, swaphome, refslot_index, lastTrue_slot)
                 # ************ more cost logic
-                if (priority in PRIORITY_2_RANGE and (requireEarly_flag or requireLate_flag)) and not EL_slot_state:
-                    # for priority two only EL slot to EL slot allowed
-                    continue
-                elif requireEarly_flag and swap_slot_index == 0:
-                    # priority 1 or 2 is implied with existence of flag
-                    refoppteam_swap_cost = self.timebalancer.getSingleTeamELstats(div_id, refoppteam_id, 'early')
-                    if refoppteam_swap_cost >= swap_cost_threshold:
-                        # means that for reference opponent, the early cost target
-                        # is already exceeded - if we swap into the zero slot,
-                        # then it will have an even bigger imbalance (with too
-                        # many early slots)  Note the threshold is higher for
-                        # priority 1
+                if priority in PRIORITY_1_RANGE:
+                    if refoppteam_id in divteam_set:
+                        swap_cost = 1*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+2*(refoppteam_new_cost+refteam_new_cost)
+                    else:
+                        swap_cost = 1*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost-refoppteam_current_cost)+2*refteam_new_cost
+                elif priority in PRIORITY_2_RANGE:
+                    if refEL_state and (swaphome_new_cost >= EL_cost_threshold or\
+                        swapaway_new_cost >= EL_cost_threshold or (swaphome_new_cost+swapaway_new_cost)>=2*EL_cost_threshold):
+                        continue
+                    elif swapEL_state and refoppteam_id not in divteam_set and refoppteam_new_cost >= EL_cost_threshold:
+                        continue
+                    elif refoppteam_id in divteam_set:
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost+refteam_new_cost)
+                    else:
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost-refoppteam_current_cost)+refteam_new_cost
+                else:
+                    if refEL_state:
+                        continue
+                    elif swapEL_state and refoppteam_id not in divteam_set and refoppteam_new_cost >= EL_cost_threshold:
                         continue
                     else:
-                        swap_multweight = 2
-                elif requireLate_flag and swap_slot_index == lastTrueSlot:
-                    refoppteam_swap_cost = self.timebalancer.getSingleTeamELstats(div_id, refoppteam_id, 'late')
-                    if refoppteam_swap_cost >= swap_cost_threshold:
-                        # same logic here for late slot - see comment above
-                        continue
-                    else:
-                        swap_multweight = 2
-                elif priority in PRIORITY_2_RANGE and EL_slot_state:
-                    swap_multweight = 2
-                elif priority in PRIORITY_3_RANGE and EL_slot_state:
-                    swap_addweight = 1
-                swap_teams = swap_elem['teams']
-                # cost for swap teams current cost in current slot = attractive
-                # cost for swap teams to move out from current slot because
-                # el thresholds on sum of home and away teams have been exceeded.
-                # weight applied only if value is positive - since we are maximizing and want to attract if swap slot
-                # is an EL slot (based on priority)
-                swap_cost = self.timebalancer.getELcost_by_slot(swap_slot_index, swap_teams, lastTrueSlot)
-                # ******** cost arithmetic using parameters
-                if swap_cost > 0:
-                    swap_cost = (swap_multweight*swap_cost) + swap_addweight
-                # cost for swap teams to move into refslot (subtractive cost)
-                # what cost will look like if they move into the ref slot
-                swap_outgoing_cost = self.timebalancer.getELcost_by_slot(refslot_index, swap_teams, lastTrueSlot)
-                # cost for ref teams to move into swapslot (subtractive)
-                swap_incoming_cost = self.timebalancer.getELcost_by_slot(swap_slot_index, refteams, lastTrueSlot)
-                if swap_incoming_cost < 0:
-                    # making it more negative
-                    swap_incoming_cost = (swap_multweight*swap_incoming_cost) - swap_addweight
-                total_cost = swap_cost - swap_outgoing_cost - swap_incoming_cost
-                swap_list[swap_index]['swap_cost'] = swap_cost
-                swap_list[swap_index]['swap_outgoing_cost'] = swap_outgoing_cost
-                swap_list[swap_index]['swap_incoming_cost'] = swap_incoming_cost
-                swap_list[swap_index]['total_cost'] = total_cost
-                cost_list.append(swap_list[swap_index])
+                        swap_cost = 2*(swaphome_current_cost-swaphome_new_cost+swapaway_current_cost-swapaway_new_cost)+(refoppteam_new_cost-refoppteam_current_cost)+refteam_new_cost
+                swap_list[swapindex]['swap_cost'] = swap_cost
+                cost_list.append(swap_list[swapindex])
             if cost_list:
-                max_swap = max(cost_list, key=itemgetter('total_cost'))
+                max_swap = max(cost_list, key=itemgetter('swap_cost'))
                 logging.debug("ftscheduler:findMatchSwapConstraints: max swap elem", max_swap)
                 #print 'max_swap', max_swap
                 if max_swap['field_id'] != reffield_id:
@@ -1133,8 +1077,8 @@ class FieldTimeScheduleGenerator:
                 print "****swapping refslot %d with slot %d, refteams %s with teams %s" % (refslot_index, max_swap_slot_index, refteams, max_swap_teams)
 
                 self.timebalancer.updateSlotELCounters(refslot_index,
-                    max_swap_slot_index, refteams, max_swap_teams, lastTrueSlot,
-                    lastTrueSlot)
+                    max_swap_slot_index, refteams, max_swap_teams, lastTrue_slot,
+                    lastTrue_slot)
                 return 1
             else:
                 logging.debug("ftscheduler:findMatchSwapConstraints cost list is empty, No Swap")
@@ -1170,72 +1114,6 @@ class FieldTimeScheduleGenerator:
             # possible bye game here
             logging.debug("constraints: findswapmatch can't find slot for div=%d team=%d gameday=%d" % (div_id, team_id, fieldday_id))
             return None
-
-    def compactTimeSchedule(self):
-        ''' compact time schedule by identifying scheduling gaps through False statueses in the 'isgame' field '''
-        for fieldstatus in self.fieldstatus_list:
-            field_id = fieldstatus['field_id']
-            fieldday_id = 1
-            for fieldstatus_round in fieldstatus['slotstatus_list']:
-                isgame_list = [x['isgame'] for x in fieldstatus_round]
-                #print "compactSchedule: field_id, isgame_list", fieldstatus['field_id'], isgame_list
-                # http://stackoverflow.com/questions/522372/finding-first-and-last-index-of-some-value-in-a-list-in-python
-                # first find if there are any gamedays where the first game is not held on the first
-                # available time slot for that field
-                # catch index errors below
-                try:
-                    firstgame_ind = isgame_list.index(True)
-                except ValueError:
-                    logging.error("ftscheduler:compactTimeScheduler: No games scheduled on field %d gameday %d",
-                                  field_id, fieldday_id)
-                    continue
-                else:
-                    fieldstatus_len = len(fieldstatus_round)
-                    if firstgame_ind != 0:
-                        dst_begin = 0
-                        shift_length = fieldstatus_len - firstgame_ind
-                        # no game at early time slot, shift all games so schedule for day begins at earliest slot
-                        # (note defaulting first game to earliest time slot may change in the future)
-                        # function compacts all remaining gaps (only one call to shiftGameDaySlots needed)
-                        logging.info("ftscheduler:compaction field=%d gameday=%d shift to daybreak first slot",
-                                     field_id, fieldday_id)
-                        self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
-                                               src_begin=firstgame_ind, dst_begin=dst_begin, shift_len=shift_length)
-                        for i in range(dst_begin+shift_length, fieldstatus_len):
-                            fieldstatus_round[i]['isgame'] = False
-                    else:
-                        # Game in first slot, iterate from this point to find and compact time schedule gaps.
-                        try:
-                            false_ind = isgame_list.index(False)
-                        except ValueError:
-                            logging.error("ftscheduler:compaction:field=%d gameday=%d is full", field_id, fieldday_id)
-                            # all slots filled w. games, no False state
-                            continue
-                        else:
-                            if false_ind == 0:
-                                # this should not happen based on if else
-                                raise TimeCompactionError(field_id, fieldday_id)
-                            try:
-                                true_ind = isgame_list[false_ind:].index(True)
-                            except ValueError:
-                                logging.error("ftscheduler:compaction:field=%d gameday=%d no more gaps; gameday schedule is continuous and good",
-                                              field_id, fieldday_id)
-                                # all slots filled w. games, no False state
-                                continue
-                            else:
-                                # amount of status indices we are shifting is the beginning of the current 'true' segment until the
-                                # end of the list
-                                dst_begin = false_ind
-                                src_begin = false_ind + true_ind
-                                shift_length = fieldstatus_len - src_begin
-                                logging.debug("ftscheduler:compaction:blockshift for field=%d gameday=%d from ind=%d to %d",
-                                              field_id, fieldday_id, src_begin, dst_begin)
-                                self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
-                                                       src_begin=src_begin, dst_begin=dst_begin, shift_len=shift_length)
-                                for i in range(dst_begin+shift_length, fieldstatus_len):
-                                    fieldstatus_round[i]['isgame'] = False
-                finally:
-                    fieldday_id += 1
 
     def getFieldSeasonStatus_list(self):
         # routine to return initialized list of field status slots -

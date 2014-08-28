@@ -527,6 +527,16 @@ class TimeBalancer(object):
         else:
             return None
 
+    def getSmartSingleTeamELstats(self, div_id, team_id, slot_index,
+        lastTrue_slot):
+        if slot_index == 0:
+            team_cost = self.getSingleTeamELstats(div_id, team_id, 'early')
+        elif slot_index == lastTrue_slot:
+            team_cost = self.getSingleTeamELstats(div_id, team_id, 'late')
+        else:
+            team_cost = 0
+        return team_cost
+
     def getSingleTeamELstats(self, div_id, team_id, el_str):
         ''' utility method to find difference between current and target early
         or late counters'''
@@ -789,3 +799,104 @@ class TimeBalancer(object):
                     home_currentel_dict = current_el_list[home_id-1]
                     away_currentel_dict = current_el_list[away_id-1]
                     self.incrementEL_counters(home_currentel_dict, away_currentel_dict, el_type)
+
+    def compactTimeSchedule(self):
+        ''' compact time schedule by identifying scheduling gaps through False statueses in the 'isgame' field '''
+        for fieldstatus in self.fieldstatus_list:
+            field_id = fieldstatus['field_id']
+            fieldday_id = 1
+            for fieldstatus_round in fieldstatus['slotstatus_list']:
+                isgame_list = [x['isgame'] for x in fieldstatus_round]
+                #print "compactSchedule: field_id, isgame_list", fieldstatus['field_id'], isgame_list
+                # http://stackoverflow.com/questions/522372/finding-first-and-last-index-of-some-value-in-a-list-in-python
+                # first find if there are any gamedays where the first game is not held on the first
+                # available time slot for that field
+                # catch index errors below
+                try:
+                    firstgame_ind = isgame_list.index(True)
+                except ValueError:
+                    logging.error("ftscheduler:compactTimeScheduler: No games scheduled on field %d gameday %d",
+                                  field_id, fieldday_id)
+                    continue
+                else:
+                    fieldstatus_len = len(fieldstatus_round)
+                    if firstgame_ind != 0:
+                        dst_begin = 0
+                        shift_length = fieldstatus_len - firstgame_ind
+                        # no game at early time slot, shift all games so schedule for day begins at earliest slot
+                        # (note defaulting first game to earliest time slot may change in the future)
+                        # function compacts all remaining gaps (only one call to shiftGameDaySlots needed)
+                        logging.info("ftscheduler:compaction field=%d gameday=%d shift to daybreak first slot",
+                                     field_id, fieldday_id)
+                        self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
+                                               src_begin=firstgame_ind, dst_begin=dst_begin, shift_len=shift_length)
+                        for i in range(dst_begin+shift_length, fieldstatus_len):
+                            fieldstatus_round[i]['isgame'] = False
+                    else:
+                        # Game in first slot, iterate from this point to find and compact time schedule gaps.
+                        try:
+                            false_ind = isgame_list.index(False)
+                        except ValueError:
+                            logging.error("ftscheduler:compaction:field=%d gameday=%d is full", field_id, fieldday_id)
+                            # all slots filled w. games, no False state
+                            continue
+                        else:
+                            if false_ind == 0:
+                                # this should not happen based on if else
+                                raise TimeCompactionError(field_id, fieldday_id)
+                            try:
+                                true_ind = isgame_list[false_ind:].index(True)
+                            except ValueError:
+                                logging.error("ftscheduler:compaction:field=%d gameday=%d no more gaps; gameday schedule is continuous and good",
+                                              field_id, fieldday_id)
+                                # all slots filled w. games, no False state
+                                continue
+                            else:
+                                # amount of status indices we are shifting is the beginning of the current 'true' segment until the
+                                # end of the list
+                                dst_begin = false_ind
+                                src_begin = false_ind + true_ind
+                                shift_length = fieldstatus_len - src_begin
+                                logging.debug("ftscheduler:compaction:blockshift for field=%d gameday=%d from ind=%d to %d",
+                                              field_id, fieldday_id, src_begin, dst_begin)
+                                self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
+                                                       src_begin=src_begin, dst_begin=dst_begin, shift_len=shift_length)
+                                for i in range(dst_begin+shift_length, fieldstatus_len):
+                                    fieldstatus_round[i]['isgame'] = False
+                finally:
+                    fieldday_id += 1
+
+    def shiftGameDaySlots(self, fieldstatus_round, isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len):
+        ''' shift gameday timeslots '''
+        logging.debug("ftscheduler:compaction:shiftGameDayslots isgamelist=%s, field=%d gameday=%d src_begin=%d dst_begin=%d len=%d",
+                      isgame_list, field_id, fieldday_id, src_begin, dst_begin, shift_len)
+        src_end = src_begin + shift_len
+        dst_end = dst_begin + shift_len
+        for i,j in zip(range(src_begin, src_end), range(dst_begin, dst_end)):
+            srcslot = fieldstatus_round[i]
+            dstslot = fieldstatus_round[j]
+            if srcslot['isgame']:
+                # if a game exists, shift to new time slot, and update db doc entry
+                dstslot['isgame'] = srcslot['isgame']
+                # if dstslot has a game (True field), then write to db
+                self.dbinterface.updateGameTime(field_id, fieldday_id,
+                    srcslot['start_time'].strftime(time_format_CONST),
+                    dstslot['start_time'].strftime(time_format_CONST))
+            else:
+                try:
+                    nextTrue_ind = isgame_list[i:].index(True)
+                except ValueError:
+                    logging.error("ftscheduler:compact:shiftGameDayslots last game ends at %d", i-1)
+                    for k in range(j, dst_end):
+                        fieldstatus_round[k]['isgame'] = False
+                else:
+                    newsrc_begin = i + nextTrue_ind
+                    # note +1 increment is important below when computing length from difference of indices
+                    newshift_length = dst_end + 1 - newsrc_begin
+                    newdst_begin = j
+                    self.shiftGameDaySlots(fieldstatus_round, isgame_list, field_id, fieldday_id,
+                                           src_begin=newsrc_begin, dst_begin=newdst_begin, shift_len=newshift_length)
+                    for k in range(newdst_begin+newshift_length, dst_end):
+                        fieldstatus_round[k]['isgame'] = False
+                finally:
+                    break
