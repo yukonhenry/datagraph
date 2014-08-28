@@ -327,6 +327,9 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 			oddnumsubmit_callback: function(deferred_obj, raw_result, event) {
 				this.oddnum_dialog.hide();
 				var oddnum_mode = this.oddnumradio_value;
+				deferred_obj.resolve({oddnum_mode:oddnum_mode});
+				/*
+				var oddnum_mode = this.oddnumradio_value;
 				if (oddnum_mode == 1) {
 					// if oddnum mode is 1, add a virtual team for game scheduling
 					// this allows all teams to have one game every game day
@@ -344,7 +347,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				} else {
 					deferred_obj.resolve({oddnum_mode:oddnum_mode});
 				}
-
+				*/
 			},
 			get_server_key_obj: function(raw_result) {
 				var deferred_obj = new Deferred();

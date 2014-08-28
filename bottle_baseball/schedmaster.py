@@ -141,7 +141,7 @@ class SchedMaster(object):
                 fieldinfo_tuple=self.fieldinfo_tuple,
                 prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
                 tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-                cdbinterface=cdbInterface, oddnumplay_mode=self.oddnumplay_mode)
+                cdbinterface=cdbInterface)
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 
@@ -159,33 +159,26 @@ class SchedMaster(object):
 
     def generate(self):
         totalmatch_list = []
-        if self.oddnumplay_mode:
-            extramatch_list = list()
+        totalbyeteam_list = list()
         for divinfo in self.divinfo_list:
             totalteams = divinfo['totalteams']
             # possibly rename below to 'totalrounddays' as totalgamedays may not
             # match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
+            div_id = divinfo['div_id']
             match = MatchGenerator(totalteams, totalgamedays,
                 oddnumplay_mode=self.oddnumplay_mode)
             match_list = match.generateMatchList()
-            args_obj = {'div_id':divinfo['div_id'], 'match_list':match_list,
+            args_obj = {'div_id':div_id, 'match_list':match_list,
                 'numgames_perteam_list':match.numgames_perteam_list,
                 'gameslots_perrnd_perdiv':match.gameslotsperday}
             totalmatch_list.append(args_obj)
-            if self.oddnumplay_mode:
-                extramatch_list.append({'div_id':divinfo['div_id'],
-                    'match_list':match.doublegame_list})
-                eindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(extramatch_list)).get(x)
-                extramatch_tuple = _List_Indexer(extramatch_list, eindexerGet)
+            if self.oddnumplay_mode and match.byeteam_list:
+                totalbyeteam_list.append({'div_id':div_id, 'byeteam_list':match.byeteam_list})
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
-        if self.oddnumplay_mode:
-            status = self.fieldtimeScheduleGenerator.generateSchedule(
-                totalmatch_tuple, extramatch_tuple)
-        else:
-            status = self.fieldtimeScheduleGenerator.generateSchedule(
-                totalmatch_tuple)
+        status = self.fieldtimeScheduleGenerator.generateSchedule(
+            totalmatch_tuple, self.oddnumplay_mode, totalbyeteam_list)
         return 1 if status else 0
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''

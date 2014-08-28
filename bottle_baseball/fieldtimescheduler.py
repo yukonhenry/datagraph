@@ -1,6 +1,6 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
-from itertools import chain
+from itertools import chain, groupby
 from schedule_util import roundrobin, enum, shift_list, \
     getConnectedDivisionGroup, all_isless, find_ge, find_le
 #ref Python Nutshell p.314 parsing strings to return datetime obj
@@ -17,7 +17,7 @@ import networkx as nx
 from timebalancer import TimeBalancer
 from fieldbalancer import FieldBalancer
 from conflictprocess import ConflictProcess
-
+from pprint import pprint
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 game_team_CONST = 'GAME_TEAM'
@@ -39,13 +39,12 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 class FieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         prefinfo_triple=None, pdbinterface=None, tminfo_tuple=None,
-        conflictinfo_list=None, cdbinterface=None, oddnumplay_mode=None):
+        conflictinfo_list=None, cdbinterface=None):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
-        self.oddnumplay_mode = oddnumplay_mode
         # pref list use is optional
         if prefinfo_triple:
             self.prefinfo_list = prefinfo_triple.dict_list
@@ -102,12 +101,9 @@ class FieldTimeScheduleGenerator:
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
 
-    def generateSchedule(self, totalmatch_tuple, extramatch_tuple=None):
+    def generateSchedule(self, totalmatch_tuple, oddnumplay_mode=None, totalbyeteam_list=None):
         totalmatch_list = totalmatch_tuple.dict_list
         totalmatch_indexerGet = totalmatch_tuple.indexerGet
-        if extramatch_tuple:
-            extramatch_list = extramatch_tuple.dict_list
-            extraindexerGet = extramatch_tuple.indexerGet
         self.checkFieldAvailability(totalmatch_tuple)
         self.dbinterface.dropgame_docs()  # drop current schedule collection
         EL_enum = self.timebalancer.EL_enum
@@ -355,10 +351,28 @@ class FieldTimeScheduleGenerator:
                     divteamref_list = teamrefdistrib_list[trindexerGet(div_id)]['div_sw_list']
                     # also get div reference count info
                     divref_list = divrefdistrib_list[drindexerGet(div_id)]['distrib_list']
+
+                    aggregnorm_list = aggregnorm_tuple.dict_list
+                    agindexerGet = aggregnorm_tuple.indexerGet
+                    targetfieldcount_list = [{'field_id':x,
+                        'count':int(round(aggregnorm_list[agindexerGet(x)]['normweight']*reqslots_perrnd_num))} for x in field_list]
+                    # verify individual count elements sum up to total number of slots required per round
+                    sumcount = sum(x['count'] for x in targetfieldcount_list)
+                    if sumcount != reqslots_perrnd_num:
+                        # if test fails, reassign last entry so that sum is consistent w
+                        # expected value
+                        # rotate which element gets the overwritten value to get the
+                        # correct sum; rotate so that one field does not get
+                        # excessive assignments
+                        target_index = round_id % len(field_list)
+                        partial_sum = sum(j['count']
+                            for i,j in enumerate(targetfieldcount_list) if i != target_index)
+                        # overwrite last element
+                        targetfieldcount_list[target_index]['count'] = reqslots_perrnd_num - partial_sum
                     sumsortedfield_list = self.fieldbalancer.findMinimumCountField(
                         home_fieldmetrics_list, away_fieldmetrics_list,
                         rd_fieldcount_list, reqslots_perrnd_num, hf_list,
-                        field_list, aggregnorm_tuple, divref_list, divteamref_list)
+                        field_list, targetfieldcount_list, divref_list, divteamref_list)
                     if not sumsortedfield_list:
                         raise FieldAvailabilityError(div_id)
                     logging.debug("rrgenobj while True loop:")
@@ -449,6 +463,7 @@ class FieldTimeScheduleGenerator:
             #self.ManualSwapTeams(fset, connected_div_list)
         # Do conflict/preference processing after all division scheduling is
         # complete (not per-connected_div_list)
+        # get alt representation of schedule
         sched_tuple = self.create_connected_sched_list()
         if self.conflictprocess_obj:
             if self.prefinfo_list:
@@ -481,6 +496,21 @@ class FieldTimeScheduleGenerator:
                     constraint_status_list)
             if conflict_status_list:
                 self.cdbinterface.write_conflict_status(conflict_status_list)
+        if oddnumplay_mode:
+            sched_tuple = self.create_connected_sched_list()
+            totalsched_list = sched_tuple.dict_list
+            sindexerGet = sched_tuple.indexerGet
+            for totalbyeteam_dict in totalbyeteam_list:
+                div_id = totalbyeteam_dict['div_id']
+                divfield_list = self.divinfo_list[self.divinfo_indexerGet(div_id)]['divfield_list']
+                byeteam_list = totalbyeteam_dict['byeteam_list']
+                sched_list = totalsched_list[sindexerGet(div_id)]['sched_list']
+                sched_list.sort(key=itemgetter('game_date', 'start_time'))
+                doublegame_counter_list = list()
+                for game_date, game_date_match_set in groupby(sched_list, key=itemgetter('game_date')):
+                    for start_time, start_time_match_set in groupby(game_date_match_set, key=itemgetter('start_time')):
+                        pass
+
         # read from memory and store in db
         field_list = [x['field_id'] for x in self.fieldinfo_list]
         for field_id in field_list:
@@ -1463,7 +1493,7 @@ class FieldTimeScheduleGenerator:
                     # if fieldday is closed for that field, continue to next fieldday
                     continue
                 game_date = slotstatus_list['game_date']
-                for match in slotstatus_list['sstatus_list']:
+                for slot_index, match in enumerate(slotstatus_list['sstatus_list']):
                     if match['isgame']:
                         start_time = match['start_time']
                         teams = match['teams']
@@ -1473,7 +1503,7 @@ class FieldTimeScheduleGenerator:
                         match_dict = {'game_date':game_date,
                         'start_time':start_time, 'home_id':home_id,
                         'away_id':away_id, 'field_id':field_id,
-                        'fieldday_id':fieldday_id}
+                        'fieldday_id':fieldday_id, 'slot_index':slot_index}
                         index = indexerGet(div_id)
                         if index is None:
                             sched_list.append({'div_id':div_id,

@@ -21,12 +21,12 @@
 #b schedmaster.py:240
 #b fielddbinterface.py:1192
 #b fieldtimescheduler.py:923, swapdiv_id==6 and (home_id==2 or away_id==2)
-b fieldtimescheduler.py:453
+b fieldtimescheduler.py:354, div_id==3
 #b fieldtimescheduler.py:748, conflict_id==8
 #b fieldtimescheduler.py:976, conflict_id==13
 #b fieldtimescheduler.py:985, conflict_id==13
 #b fieldtimescheduler.py:987, conflict_id==13
-#b fieldbalancer.py:1346
+b fieldbalancer.py:116
 #b fieldbalancer.py:991
 #b fieldbalancer.py:189
 #b dbinterface.py:636

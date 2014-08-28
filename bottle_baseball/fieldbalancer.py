@@ -74,7 +74,7 @@ class FieldBalancer(object):
 
     def findMinimumCountField(self, homemetrics_list,
         awaymetrics_list, rd_fieldcount_list, reqslots_perrnd_num,
-        hf_list, field_list, aggregnorm_tuple, divref_list, divteamref_list,
+        hf_list, field_list, targetfieldcount_list, divref_list, divteamref_list,
         submin=0):
         # This method returns an ordered list of candidate fields to the ftschedler,
         # which makes an initial field/date/time schedule assignment for the match.
@@ -99,6 +99,7 @@ class FieldBalancer(object):
         # get full home field lists(e.g. home field for 'away'-designated teams)
         # if there are no fields specified, then default to full list for that
         # team
+        '''
         aggregnorm_list = aggregnorm_tuple.dict_list
         agindexerGet = aggregnorm_tuple.indexerGet
         targetfieldcount_list = [{'field_id':x,
@@ -111,6 +112,7 @@ class FieldBalancer(object):
             partial_sum = sum(x['count'] for x in targetfieldcount_list[:-1])
             # overwrite last element
             targetfieldcount_list[-1]['count'] = reqslots_perrnd_num - partial_sum
+        '''
         tindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(
             targetfieldcount_list)).get(x)
         if hf_list:
@@ -202,7 +204,7 @@ class FieldBalancer(object):
             # sum field target differences to team target difference
             sumdiffcount_list = [{'field_id':x,
                 'sumdiffcount':home_diffcount_list[hdindexerGet(x)]['diffcount'] + away_diffcount_list[adindexerGet(x)]['diffcount'] +
-                    fielddiffcount_list[findexerGet(x)]['diffcount']} for x in hfunion_set]
+                    2*fielddiffcount_list[findexerGet(x)]['diffcount']} for x in hfunion_set]
             # get unique set of sumdiffcount values
             uniquecount_list = list(
                 set([x['sumdiffcount'] for x in sumdiffcount_list]))
