@@ -813,8 +813,8 @@ class FieldTimeScheduleGenerator:
                             # there has been a change applied using calendar UI
                             # and cmap start and end times have precedence over
                             # start and end times passed from the grid table
-                            fstart_time = parser.parse(calendarmap['start_time'])
-                            fend_time = parser.parse(calendarmap['end_time'])
+                            fstart_time = parser.parse(cmap['start_time'])
+                            fend_time = parser.parse(cmap['end_time'])
                         if cstartafter_time <= fstart_time:
                             # if the startafter_time is before the earliest time
                             # for that date, it is equivalent to startafter_time

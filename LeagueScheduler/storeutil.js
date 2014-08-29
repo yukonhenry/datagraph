@@ -282,6 +282,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 					title:"Advanced UI",
 					id:"editPane",
 					class:"allonehundred",
+					//class:"allauto",
 					//content:"<span style='margin-left:2em'>User/Organization ID: <strong>"+this.userid_name+"</strong></span>"
 					//doLayout:false,
 				})

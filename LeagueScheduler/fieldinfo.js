@@ -368,7 +368,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// attach all of the above form and its widgets to the title
 					// pane
 					var title_pane = new TitlePane({
-						title:'Select Dates', content:tpcontent_node
+						title:'Select Dates', content:tpcontent_node,
+						style:"overflow:auto"
 					})
 
 					detailed_leftcpane.addChild(title_pane);
@@ -757,7 +758,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 						// make sure to convert list of objects to json string
 						server_key_obj = {change_str:JSON.stringify(change_list)};
 						this.server_interface.getServerData(
-							"send_delta/"+this.userid_name+"/change/"+field_id,
+							"send_delta/"+this.userid_name+'/'+
+							this.activegrid_colname+"/change/"+field_id,
 							function(data) {
 								var dbstatus = data.dbstatus;
 							}, server_key_obj)
@@ -765,7 +767,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					if (remove_list.length > 0) {
 						server_key_obj = {remove_str:remove_list.join(',')};
 						this.server_interface.getServerData(
-							"send_delta/"+this.userid_name+"/remove/"+field_id,
+							"send_delta/"+this.userid_name+'/'+
+							this.activegrid_colname+"/remove/"+field_id,
 							function(data) {
 								var dbstatus = data.dbstatus;
 							}, server_key_obj)

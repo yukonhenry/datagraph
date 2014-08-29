@@ -25,6 +25,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			config_status:0, gridtooltip_list:null,
 			btntxtid_list:null, op_type:"", op_prefix:"", idmgr_obj:null,
 			infogrid_store:null, userid_name:"", widgetgen:null,
+			gridrow_handle:null, selected_gridrow:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -303,6 +304,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var delrowbtn_id = this.idmgr_obj.delrowbtn_id;
 				var delrowbtn_callback = lang.hitch(this, this.del_gridrow);
 				this.get_adddel_btn_widget('del', delrowbtn_id, delrowbtn_callback);
+				this.add_gridselect_handle();
 				this.update_configdone(-1, gridstatus_node); // reset
 				if (swapcpane_flag) {
 					this.uistackmgr_type.switch_pstackcpane({idproperty:idproperty,
@@ -340,6 +342,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				var delrowbtn_id = this.idmgr_obj.delrowbtn_id;
 				var delrowbtn_callback = lang.hitch(this, this.del_gridrow);
 				this.get_adddel_btn_widget('del', delrowbtn_id, delrowbtn_callback);
+				this.add_gridselect_handle();
 				this.update_configdone(-1, gridstatus_node); // reset
 			},
 			getInfoBtn_widget: function(label_str, idproperty_str, infobtn_id) {
@@ -396,10 +399,34 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				this.editgrid.schedInfoGrid.resize();
 			},
 			del_gridrow: function(event) {
-				this.infogrid_store.remove(this.totalrows_num)
+				if (this.selected_gridrow && this.selected_gridrow > 0) {
+					this.infogrid_store.remove(this.selected_gridrow);
+					var store_data = this.infogrid_store.query({},
+						{sort:[{attribute:"pref_id", descending: false}]}).map(
+							lang.hitch(this, function(item) {
+							if (item[this.idproperty] > this.selected_gridrow) {
+								item[this.idproperty]--
+							}
+							return item
+						}));
+					this.infogrid_store.setData(store_data)
+					this.selected_gridrow = null;
+				} else {
+					this.infogrid_store.remove(this.totalrows_num)
+				}
 				this.totalrows_num--;
 				this.editgrid.schedInfoGrid.refresh();
 				this.editgrid.schedInfoGrid.resize();
+			},
+			add_gridselect_handle: function() {
+				if (this.gridrow_handle)
+					this.gridrow_handle.remove();
+				this.gridrow_handle = this.editgrid.schedInfoGrid.on(
+					"dgrid-select",lang.hitch(this, function(event) {
+						var event_data = event.rows[0].data;
+						this.selected_gridrow = event_data[this.idproperty]
+					})
+				)
 			},
 			get_gridstatus_node: function(updatebtn_widget, op_type) {
 				var gridstatus_id = op_type+'gridstatus_id';

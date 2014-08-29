@@ -37,8 +37,10 @@ class RouteLogic:
     for decorator related tutorials and integrating bottle with methods.
     '''
     def __init__(self):
-        self.dbinterface_map = dict();
-        self.schedmaster_map = dict();
+        self.dbinterface_map_list = list();
+        self.dbindexerMatch = lambda x,y:[i for i,p in enumerate(
+            self.dbinterface_map_list) if p['userid_name']==x and p['db_type']==y]
+        self.schedmaster_map= dict();
 
 _routelogic_obj = RouteLogic()
 
@@ -154,7 +156,8 @@ def create_newdbcol(userid_name, db_type, newcol_name):
                             divstr_db_type=divstr_db_type)
     else:
         raise CodeLogicError("leaguedivprocess:create_newdbcol: db_type not recognized db_type=%s" % (db_type,))
-    _routelogic_obj.dbinterface_map[userid_name] = dbInterface
+    _routelogic_obj.dbinterface_map_list.append({'userid_name':userid_name,
+        'db_type':db_type, 'dbinterface':dbInterface})
     a = json.dumps({'test':'divasdf'})
     return callback_name+'('+a+')'
 
@@ -180,7 +183,8 @@ def get_dbcol(userid_name, db_type, getcol_name):
     callback_name = request.query.callback
     dbInterface = select_db_interface(userid_name, db_type, getcol_name)
     # save as member of global routelogic object to be used in send_delta function
-    _routelogic_obj.dbinterface_map[userid_name] = dbInterface
+    _routelogic_obj.dbinterface_map_list.append({'userid_name':userid_name,
+        'db_type':db_type, 'dbinterface':dbInterface})
     if db_type == 'newscheddb':
         return_obj = {'param_obj':dbInterface.getschedule_param(),
         'sched_status':dbInterface.getsched_status()}
@@ -248,10 +252,15 @@ def send_generate(userid_name):
         del schedMaster
     return callback_name+'('+a+')'
 
-@route('/send_delta/<userid_name>/<action_type>/<field_id:int>')
-def send_delta(userid_name, action_type, field_id):
+@route('/send_delta/<userid_name>/<col_name>/<action_type>/<field_id:int>')
+def send_delta(userid_name, col_name, action_type, field_id):
     callback_name = request.query.callback
-    dbInterface = _routelogic_obj.dbinterface_map[userid_name]
+    dbindex_list = _routelogic_obj.dbindexerMatch(userid_name, 'fielddb')
+    if dbindex_list:
+        dbindex = dbindex_list[0]
+        dbInterface = _routelogic_obj.dbinterface_map_list[dbindex]['dbinterface']
+    else:
+        dbInterface = select_db_interface(userid_name, 'fielddb', col_name)
     if action_type == 'remove':
         remove_str = request.query.remove_str
         remove_list = [int(x) for x in remove_str.split(',')]
