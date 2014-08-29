@@ -502,15 +502,57 @@ class FieldTimeScheduleGenerator:
             sindexerGet = sched_tuple.indexerGet
             for totalbyeteam_dict in totalbyeteam_list:
                 div_id = totalbyeteam_dict['div_id']
-                divfield_list = self.divinfo_list[self.divinfo_indexerGet(div_id)]['divfield_list']
+                # for u6, use first slot to get extra team
+                candidateslot_index = 0 if div_id in [1,2,8] else 1
+                divinfo = self.divinfo_list[self.divinfo_indexerGet(div_id)]
+                totalteams = divinfo['totalteams']
+                divfield_list = sorted(divinfo['divfield_list'])
+                #favor earlier-numbered field above
                 byeteam_list = totalbyeteam_dict['byeteam_list']
+                byeteam_iter = iter(byeteam_list)
                 sched_list = totalsched_list[sindexerGet(div_id)]['sched_list']
-                sched_list.sort(key=itemgetter('game_date', 'start_time'))
-                doublegame_counter_list = list()
+                # sorting by slot index assumes
+                sched_list.sort(key=itemgetter('game_date', 'slot_index'))
+                doublegame_list = list()
+                dindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(doublegame_list)).get(x)
+                extramatch_list = list()
                 for game_date, game_date_match_set in groupby(sched_list, key=itemgetter('game_date')):
-                    for start_time, start_time_match_set in groupby(game_date_match_set, key=itemgetter('start_time')):
-                        pass
-
+                    byeteam_id = byeteam_iter.next()['byeteam']
+                    if div_id == 8:
+                        if parser.parse("10/04/2014").date() != game_date.date():
+                            continue
+                    for slot_index, match_set in groupby(game_date_match_set, key=itemgetter('slot_index')):
+                        if slot_index >= candidateslot_index:
+                            candidateteam_list = list()
+                            for match in match_set:
+                                candidateteam_list.extend([match['home_id'], match['away_id']])
+                            candidateteam_list.sort()
+                            candidatecount_list = list()
+                            for candidateteam in candidateteam_list:
+                                dindex = dindexerGet(candidateteam)
+                                if not dindex:
+                                    extrateam_id = candidateteam
+                                    doublegame_list.append({'team_id':candidateteam,
+                                        'count':1})
+                                    break
+                                else:
+                                    ditem = doublegame_list[dindex]
+                                    candidatecount_list.append(ditem)
+                            else:
+                                # if all candidate teams have an try in doublegame_list, then find which team has lowest count of the teams
+                                mincount = min(candidatecount_list,
+                                    key=itemgetter('count'))['count']
+                                mincandidate_list = [x['team_id'] for x in candidatecount_list if x['count']==mincount]
+                                # all things equal, get a random team (get from end of list)
+                                extrateam_id = mincandidate_list[0]
+                                doublegame_list[dindexerGet(extrateam_id)]['count']+=1
+                                break # out of outer for loop
+                            break # out of outer for loop
+                    logging.debug("extra match for game date %s div %d byeteam %d extrateam %d" %
+                        (game_date, div_id, byeteam_id, extrateam_id))
+                    extramatch_list.append({'game_date':game_date, 'div_id':div_id,
+                        'home_id':byeteam_id, 'away_id':extrateam_id})
+                self.place_endschedule(divfield_list, extramatch_list)
         # read from memory and store in db
         field_list = [x['field_id'] for x in self.fieldinfo_list]
         for field_id in field_list:
@@ -539,6 +581,41 @@ class FieldTimeScheduleGenerator:
         return True  # for dbstatus to be returned to client
         # executes after entire schedule for all divisions is generated
         #self.compactTimeSchedule()
+
+    def place_endschedule(self, field_list, match_list):
+        ''' Find field and slot for the earliest last opening so separately
+        generated extra games can be added on.  Give results for each game date'''
+        # first create a map from field to slotstatus_list so we don't have to
+        # repeat the fieldstatus_list dereferencing for each match
+        slotstatus_map = dict()
+        for field_id in field_list:
+            slotstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list']
+            slotstatus_map[field_id] = slotstatus_list
+        for match in match_list:
+            game_date = match['game_date']
+            laststart_list = list()
+            for field_id in field_list:
+                slotstatus_list = slotstatus_map[field_id]
+                if not slotstatus_list:
+                    continue
+                fieldday_id, computedgame_date = self.mapdatetime_fieldday(field_id, game_date, 'min')
+                sstatus_list = slotstatus_list[fieldday_id-1]['sstatus_list']
+                isgame_list = [x['isgame']  for x in sstatus_list]
+                lastslot_index = len(isgame_list)-1-isgame_list[::-1].index(True)
+                laststart_list.append({'field_id':field_id,
+                    'lastslot_index':lastslot_index,
+                    'start_time':sstatus_list[lastslot_index]['start_time']})
+            earliestused = min(laststart_list, key=itemgetter('start_time'))
+            nextopen_field_id = earliestused['field_id']
+            nextopen_sstatus_list = slotstatus_map[nextopen_field_id][fieldday_id-1]['sstatus_list']
+            # MAKE sure to Increment
+            nextopen_slot_index = earliestused['lastslot_index'] + 1
+            nextopen_ftstatus = nextopen_sstatus_list[nextopen_slot_index]
+            nextopen_ftstatus['isgame'] = True
+            nextopen_ftstatus['teams'] = {'div_id': match['div_id'], home_CONST:match['home_id'], away_CONST:match['away_id']}
+            logging.debug("extra match div %d home %d away %d scheduled at field %d on game date %s start_time %s" %
+                (match['div_id'], match['home_id'], match['away_id'],
+                    nextopen_field_id, game_date, nextopen_ftstatus['start_time']))
 
     def updatetimegap_list(self, div_id, home, away, game_date, endtime):
         ''' update self.timegap_list entries with latest scheduled games '''
