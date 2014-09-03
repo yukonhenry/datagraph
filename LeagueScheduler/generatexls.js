@@ -17,8 +17,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		var constant = {
 			idproperty_str:'xls_id',
 			label_id_list:[{label:"by Division", genxls_id:'div_id'},
-						{label:"by Field", genxls_id:'field_id'},
-						{label:"by Team", genxls_id:'team_id'}],
+				{label:"by Field", genxls_id:'field_id'},
+				{label:"by Team", genxls_id:'team_id'},
+				{label:"by Referee Scheduler Compatible Format",
+				genxls_id:'referee_id'}],
 		};
 		var idconstant = {
 			// id for the dropdown btn
@@ -28,6 +30,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			div_cpane_id:"xlsdiv_cpane_id",
 			field_cpane_id:"xlsfield_cpane_id",
 			team_cpane_id:"xlsteam_cpane_id",
+			referee_cpane_id:"xlsreferee_cpane_id",
 			blank_cpane_id:"xlsblank_cpane_id"
 		}
 		return declare(null, {
@@ -53,7 +56,10 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						descrip_str:"by Field"},
 					{genxls_id:'team_id',
 						cpane_id:this.opconstant_obj.team_cpane_id,
-						descrip_str:"by Team"}
+						descrip_str:"by Team"},
+					{genxls_id:'referee_id',
+						cpane_id:this.opconstant_obj.referee_cpane_id,
+						descrip_str:"by Referee Format"},
 				];
 				this.columnsdef_obj_list = [{genxls_id:'div_id',
 					columsndef_obj:{}}

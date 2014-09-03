@@ -7,6 +7,15 @@ import os
 
 LOCALDIR_PATH = '/home/henry/workspace/datagraph/bottle_baseball/download/xls'
 SERVERDIR_PATH = '/home/tominaga/webapps/htdocs/xls'
+_reftrust_level = [{'div_id':1, 'cr':1, 'ar':1, 'ment':3},
+    {'div_id':2, 'cr':1, 'ar':1, 'ment':3}
+    {'div_id':3, 'cr':1, 'ar':1, 'ment':3}
+    {'div_id':4, 'cr':1, 'ar':1, 'ment':3}
+    {'div_id':5, 'cr':2, 'ar':2, 'ment':3},
+    {'div_id':6, 'cr':2, 'ar':2, 'ment':3},
+    {'div_id':7, 'cr':3, 'ar':2, 'ment':4},
+    {'div_id':8, 'cr':3, 'ar':2, 'ment':4}]
+_rindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_reftrust_level)).get(x)
 class XLS_Exporter:
     ''' this class and it's methods will eventually supersede sched_exporter
     class and methods '''
@@ -30,6 +39,8 @@ class XLS_Exporter:
             file_list = self.generate_fieldxls()
         elif genxls_id == 'team_id':
             file_list = self.generate_divteamxls()
+        elif genxls_id == 'referee_id':
+            file_list = self.generate_refereexls()
         return file_list
 
     def generate_divxls(self):
@@ -123,4 +134,11 @@ class XLS_Exporter:
                f.write(book.xls)
             f.close()
             file_list.append({'path':bookname_xls_relpath, 'mdata':div_str})
+        return file_list
+
+    def generate_refereexls(self):
+        headers = ['Match#','Date', 'Day', 'Time', 'Division', 'Week#', 'Home', 'Visitor', 'Field', 'cr_trust', 'ar_trust', 'm_trust']
+        datasheet = Dataset(title="Referee Scheduler Compatible")
+        datasheet.headers = list(headers)
+        file_sheet = list()
         return file_list
