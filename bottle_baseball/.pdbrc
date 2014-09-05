@@ -21,9 +21,9 @@
 #b schedmaster.py:240
 #b fielddbinterface.py:1192
 #b fieldtimescheduler.py:923, swapdiv_id==6 and (home_id==2 or away_id==2)
-b fieldtimescheduler.py:539, div_id==2
-b fieldtimescheduler.py:537, div_id==2
-b fieldtimescheduler.py:545, div_id==2
+#b fieldtimescheduler.py:539, div_id==2
+#b fieldtimescheduler.py:537, div_id==2
+#b fieldtimescheduler.py:545, div_id==2
 #b fieldtimescheduler.py:748, conflict_id==8
 #b fieldtimescheduler.py:976, conflict_id==13
 #b fieldtimescheduler.py:985, conflict_id==13
@@ -42,3 +42,4 @@ b fieldtimescheduler.py:545, div_id==2
 #b rrdbinterface.py:28
 #b userdbinterface.py:19
 #b scheddbinterface.py:38
+b leaguediv_process.py:310

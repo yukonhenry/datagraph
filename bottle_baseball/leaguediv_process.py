@@ -302,6 +302,27 @@ def get_schedule(userid_name, schedcol_name, idproperty, propid):
     a = json.dumps(return_dict)
     return callback_name+'('+a+')'
 
+@route('/get_teamtable/<userid_name>/<schedcol_name>/<div_age>/<div_gen>/<team_id:int>')
+def get_teamtable(userid_name, schedcol_name, div_age, div_gen, team_id):
+    callback_name = request.query.callback
+    schedMaster = _routelogic_obj.schedmaster_map.get(userid_name)
+    if schedMaster is None:
+        dbInterface = SchedDBInterface(mongoClient, userid_name, schedcol_name)
+        param = dbInterface.getschedule_param()
+        schedMaster = SchedMaster(mongoClient, userid_name, param['divdb_type'],
+            param['divcol_name'], param['fieldcol_name'], schedcol_name,
+            prefcol_name=param['prefcol_name'],
+            conflictcol_name=param['conflictcol_name'])
+        if not schedMaster.error_code:
+            # save schedMaster to global obj to reuse on get_schedule
+            _routelogic_obj.schedmaster_map[userid_name] = schedMaster
+    if schedMaster.schedcol_name == schedcol_name:
+        return schedMaster.getHTMLTeamTable(div_age, div_gen, team_id)
+    else:
+        return_dict = {}
+    a = json.dumps(return_dict)
+    return callback_name+'('+a+')'
+
 @route('/get_xls/<userid_name>/<schedcol_name>/<genxls_id>')
 def get_xls(userid_name, schedcol_name, genxls_id):
     callback_name = request.query.callback

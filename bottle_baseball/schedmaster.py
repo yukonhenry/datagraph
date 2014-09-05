@@ -12,6 +12,8 @@ from collections import namedtuple
 from dateutil import parser
 import logging
 from sched_exceptions import CodeLogicError
+from html import HTML
+
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
 _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
@@ -26,6 +28,7 @@ class SchedMaster(object):
     def __init__(self, mongoClient, userid_name, db_type, divcol_name,
         fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
         self._error_code = 0x0
+        self.userid_name = userid_name
         self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
             schedcol_name)
         # db_type is for the divinfo schedule attached to the fielddb spec
@@ -261,3 +264,28 @@ class SchedMaster(object):
             return False
         # consistent, success
         return True
+
+    def getHTMLTeamTable(self, div_age, div_gen, team_id):
+        return_dict = self.get_schedule('team_id', team_id,
+            div_age=div_age, div_gen=div_gen)
+        game_list = return_dict['game_list']
+        html = HTML()
+        table = html.table(width='100%', border='1px solid black')
+        table.caption(self.userid_name+" "+self.schedcol_name+" "+div_age+div_gen+str(team_id))
+        header_row = table.tr
+        header_row.th('Game Date', padding='5px')
+        header_row.th('Start Time', padding='5px')
+        header_row.th('Field', padding='5px')
+        header_row.th('Home', padding='5px')
+        header_row.th('Away', padding='5px')
+        for game in game_list:
+            game_row = table.tr
+            game_row.td(game['game_date'])
+            game_row.td(game['start_time'])
+            findex = self.fieldinfo_indexerGet(game['venue'])
+            if findex is not None:
+                field_name = self.fieldinfo_list[findex]['field_name']
+                game_row.td(field_name)
+            game_row.td(str(game['home']))
+            game_row.td(str(game['away']))
+        return str(html)
