@@ -140,5 +140,5 @@ class XLS_Exporter:
         headers = ['Match#','Date', 'Day', 'Time', 'Division', 'Week#', 'Home', 'Visitor', 'Field', 'cr_trust', 'ar_trust', 'm_trust']
         datasheet = Dataset(title="Referee Scheduler Compatible")
         datasheet.headers = list(headers)
-        file_sheet = list()
+        file_list = list()
         return file_list

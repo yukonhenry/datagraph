@@ -10,7 +10,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 		ToggleButton, Tooltip, baseinfoSingleton) {
 		var constant = {
 			createserver_path:"create_newdbcol/",
-			toserver_key:"info_data"
+			toserver_key:"info_data",
+			fromupdate:"fromupdate"
 		}
 		return declare(null, {
 			griddata_list:null,
@@ -155,7 +156,8 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/l
 			sendStoreInfoToServer: function(gridstatus_node, event) {
 				var raw_result = this.schedInfoStore.query();
 				var config_status = this.info_obj.checkconfig_status(raw_result);
-				this.info_obj.update_configdone(config_status, gridstatus_node)
+				this.info_obj.update_configdone(config_status, gridstatus_node,
+					constant.fromupdate)
 				var storedata_json = null;
 				var server_key_obj = null;
 				if (this.idproperty == "field_id" ||

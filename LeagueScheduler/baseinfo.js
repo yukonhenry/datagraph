@@ -15,7 +15,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 			serverstatus_key:"config_status",
-			serverdata_key:"info_list"
+			serverdata_key:"info_list",
+			fromserver:"fromserver", fromupdate:"fromupdate"
 		};
 		return declare(null, {
 			server_interface:null, editgrid:null, uistackmgr_type:null,
@@ -271,7 +272,8 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				args_obj.op_type = options_obj.op_type;
 				var gridstatus_node = this.reconfig_infobtn(args_obj);
 				// add config status text next to update btn
-				this.update_configdone(config_status, gridstatus_node);
+				this.update_configdone(config_status, gridstatus_node,
+					constant.fromserver);
 			},
 			// function to reassign infobtn_update with title string and callback
 			// function.  Also update pstack/gstack_cpane.
@@ -429,25 +431,31 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				)
 			},
 			get_gridstatus_node: function(updatebtn_widget, op_type) {
-				var gridstatus_id = op_type+'gridstatus_id';
-				var gridstatus_node = dom.byId(gridstatus_id);
-				if (!gridstatus_node) {
-					gridstatus_node = put(updatebtn_widget.domNode,
-						"+span.empty_smallgap_color[id=$]", gridstatus_id);
-					//gridstatus_node.innerHTML = 'test span';
+				var configstatus_id = this.idmgr_obj.configstatus_id;
+				var configstatus_node = dom.byId(configstatus_id);
+				if (!configstatus_node) {
+					configstatus_node = put(updatebtn_widget.domNode,
+						"+span.empty_smallgap_color[id=$]", configstatus_id);
 				}
-				return gridstatus_node;
+				return configstatus_node;
 			},
-			update_configdone: function(config_status, gridstatus_node) {
+			update_configdone: function(config_status, configstatus_node, src_str) {
+				var src_str = (typeof src_str === "undefined" || src_str === null) ? "" : src_str;
 				if (config_status == 1) {
-					gridstatus_node.style.color = 'green';
-					gridstatus_node.innerHTML = "Config Complete";
+					configstatus_node.style.color = 'green';
+					var config_str = "";
+					if (src_str == constant.fromserver) {
+						config_str = "Config Status Complete from Server";
+					} else {
+						config_str = "Config Status Updated and Complete";
+					}
+					configstatus_node.innerHTML = config_str;
 				} else if (config_status == 0) {
-					gridstatus_node.style.color = 'orange';
-					gridstatus_node.innerHTML = "Config Not Complete";
+					configstatus_node.style.color = 'orange';
+					configstatus_node.innerHTML = "Config Not Complete";
 				} else {
 					// implement reset condition
-					gridstatus_node.innerHTML = "";
+					configstatus_node.innerHTML = "";
 				}
 				// save as member var so that it can be accessed (i.e. send_delta)
 				this.config_status = config_status;
