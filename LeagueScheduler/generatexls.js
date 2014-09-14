@@ -4,13 +4,13 @@
  */
 // define class for creating pane(s) to host links to xls hardcopy files for the
 // generated schedule
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
+define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/_base/array", "dijit/registry", "dijit/DropDownMenu", "dijit/MenuItem",
 	"dijit/form/DropDownButton", "dijit/layout/ContentPane",
 	"dijit/layout/StackContainer",
 	"LeagueScheduler/idmgrSingleton", "LeagueScheduler/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, registry,
+	function(dom, declare, lang, arrayUtil, registry,
 		DropDownMenu, MenuItem, DropDownButton, ContentPane, StackContainer,
 		idmgrSingleton,
 		baseinfoSingleton, put) {
@@ -18,7 +18,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			idproperty_str:'xls_id',
 			label_id_list:[{label:"by Division", genxls_id:'div_id'},
 				{label:"by Field", genxls_id:'field_id'},
-				{label:"by Team", genxls_id:'team_id'},
+				{label:"by Team", genxls_id:'team_id'}]
 				//{label:"by Referee Scheduler Compatible Format", genxls_id:'referee_id'}],
 		};
 		var idconstant = {

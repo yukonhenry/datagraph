@@ -508,6 +508,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var field_bcontainer = new BorderContainer({
 					id:idstr_obj.bcontainer_id,
 					design:'headline', gutters:true, liveSplitters:true,
+					//class:'allonehundred'
 					style:"height:900px; width:100%"
 				})
 				var field_cpane = new ContentPane({

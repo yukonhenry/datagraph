@@ -6,14 +6,14 @@
 // ensure http://bugs.dojotoolkit.org/ticket/16408 has been resolved in the branch/release
 // that is being used.
 // dbootstrap reference: https://github.com/thesociable/dbootstrap
-require(["dbootstrap", "dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
+require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 		"dojo/_base/declare", "dojo/_base/lang",
 		"dojo/request/script", "dojo/_base/array", "dojo/request",
 		"LeagueScheduler/schedulerUtil", "LeagueScheduler/serverinterface",
 		"LeagueScheduler/baseinfoSingleton",
 		"LeagueScheduler/storeutil", "LeagueScheduler/userinfo",
 		"dojo/domReady!"],
-	function(dbootstrap, dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
+	function(dom, on, parser, registry, ready, declare, lang, script, arrayUtil, request, schedulerUtil,
 		serverinterface, baseinfoSingleton, storeUtil,
 		UserInfo) {
 		var constant = {SERVER_PREFIX:"http://localhost:8080/"};

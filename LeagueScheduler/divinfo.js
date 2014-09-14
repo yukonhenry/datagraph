@@ -1,5 +1,5 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
+define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 	"dojo/_base/lang", "dojo/_base/array", "dijit/Dialog",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
@@ -7,7 +7,7 @@ define(["dbootstrap", "dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
 	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
-	function(dbootstrap, declare, dom, Deferred, lang, arrayUtil, Dialog,
+	function(declare, dom, Deferred, lang, arrayUtil, Dialog,
 		registry, editor, NumberSpinner,
 		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
 		baseinfo, baseinfoSingleton, idmgrSingleton, put){

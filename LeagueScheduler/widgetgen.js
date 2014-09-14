@@ -1,13 +1,13 @@
 /* Utility functions to generate widgets and widget features
 */
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
+define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "dojo/_base/array", "dojo/Stateful", "dojo/store/Memory", "dojo/date",
     "dijit/registry", "dijit/Dialog", "dijit/form/Button", "dijit/form/RadioButton",
     "dijit/form/Select", "dijit/form/NumberSpinner", "dijit/form/DateTextBox",
     "dijit/form/Form", "dijit/form/ValidationTextBox",
     "dijit/Tooltip",
     "put-selector/put", "LeagueScheduler/baseinfoSingleton", "dojo/domReady!"],
-    function(dbootstrap, dom, declare, lang, arrayUtil, Stateful, Memory, date,
+    function(dom, declare, lang, arrayUtil, Stateful, Memory, date,
         registry, Dialog, Button, RadioButton, Select, NumberSpinner, DateTextBox,
         Form, ValidationTextBox,
         Tooltip, put, baseinfoSingleton) {

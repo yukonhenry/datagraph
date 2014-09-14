@@ -1,4 +1,4 @@
-define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
+define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
 	"dojo/_base/array",
 	"dijit/registry","dgrid/editor", "LeagueScheduler/baseinfo",
@@ -11,7 +11,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
 	"dijit/TitlePane", "dijit/layout/StackContainer",
 	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
-	function(dbootstrap, dom, on, declare, lang, date, Observable, Memory,
+	function(dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, idmgrSingleton,
 		WidgetGen,
 		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
@@ -378,7 +378,7 @@ define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare",
 					// that div will hold the dojox calendar.
 					var calendargrid_node = put("div");
 					var detailed_rightcpane = new ContentPane({
-						splitter:true, region:'center', class:'allauto',
+						splitter:true, region:'center', class:'allonehundred',
 						content:calendargrid_node
 					})
 					detailed_bordercontainer.addChild(detailed_leftcpane);

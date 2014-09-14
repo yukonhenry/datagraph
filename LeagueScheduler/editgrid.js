@@ -1,10 +1,10 @@
-define(["dbootstrap", "dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
+define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/date",
 	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dgrid/CellSelection", "dijit/form/ToggleButton", "dijit/Tooltip",
 	"LeagueScheduler/baseinfoSingleton", "dojo/domReady!"
-	], function(dbootstrap, dom, on, declare, lang, domClass, domStyle,
+	], function(dom, on, declare, lang, domClass, domStyle,
 	         arrayUtil, date, Observable, Memory,
 		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
 		ToggleButton, Tooltip, baseinfoSingleton) {

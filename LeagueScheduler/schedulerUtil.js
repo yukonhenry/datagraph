@@ -8,11 +8,11 @@ http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/
 				// without 3rd argument for  forEach, scope is global
 				// http://stackoverflow.com/questions/148901/is-there-a-better-way-to-do-optional-function-parameters-in-javascript
 */
-define(["dbootstrap", "dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
+define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/dom-class", "dojo/date",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
 	"LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
-	function(dbootstrap, dom, domConstruct, declare, lang, domClass, date,
+	function(dom, domConstruct, declare, lang, domClass, date,
 		arrayUtil,
 		registry, MenuItem, DivInfo, FieldInfo){
 		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};

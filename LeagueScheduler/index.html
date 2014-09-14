@@ -24,7 +24,7 @@
 			require(["dbootstrap", "dojo/dom", "dijit/layout/TabContainer",
                 "LeagueScheduler/scheduler", "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.43q";
+                var version_str = "v1.0.0.44a";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date()
                 greeting_node.innerHTML = version_str;
@@ -34,7 +34,7 @@
         <!-- Note doLayout:false sets size of container to that of the child panes http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html#dijit-layout-stackcontainer -->
         <!-- NOTE adding doLayout:false at the toplevel tabcontainer_id, has effect
         on size of the cpane display for both wizard and advanced.  Need to experiment more -->
-		<div data-dojo-type="dijit/layout/TabContainer" id="tabcontainer_id" class="height80">
+		<div data-dojo-type="dijit/layout/TabContainer" id="tabcontainer_id" class="height85">
     	</div>
 
     </body>

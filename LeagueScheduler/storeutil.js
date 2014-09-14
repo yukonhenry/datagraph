@@ -1,5 +1,5 @@
 // define observable store-related utility functions
-define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
+define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dojo/store/Observable","dojo/store/Memory","dijit/registry",
 	"dijit/DropDownMenu", "dijit/PopupMenuItem", "dijit/MenuItem",
 	"dijit/MenuBar", "dijit/MenuBarItem", "dijit/PopupMenuBarItem",
@@ -11,7 +11,7 @@ define(["dbootstrap", "dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo
 	"LeagueScheduler/conflictinfo",
 	"put-selector/put",
 	"dojo/domReady!"],
-	function(dbootstrap, dom, declare, lang, arrayUtil, Observable, Memory,
+	function(dom, declare, lang, arrayUtil, Observable, Memory,
 		registry, DropDownMenu, PopupMenuItem, MenuItem, MenuBar, MenuBarItem,
 		PopupMenuBarItem, Tooltip, DropDownButton, ContentPane,
 		baseinfoSingleton, WidgetGen, DivInfo, FieldInfo, NewSchedulerBase,
