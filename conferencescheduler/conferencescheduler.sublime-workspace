@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"student_",
+				"student_open_index_list"
+			],
+			[
 				"student_s",
 				"student_schedule_list"
 			],
@@ -510,10 +514,6 @@
 			[
 				"get_",
 				"get_obj"
-			],
-			[
-				"base",
-				"baseinfoSingleton"
 			]
 		]
 	},
@@ -523,7 +523,7 @@
 			"file": "scheduler.py",
 			"settings":
 			{
-				"buffer_size": 9130,
+				"buffer_size": 6945,
 				"line_ending": "Unix"
 			}
 		},
@@ -650,6 +650,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"teacher_schedule",
+			"teacher_schedule_list",
 			"teacher_seen_set",
 			"MAX_SLOTS",
 			"8",
@@ -775,9 +777,7 @@
 			"newsched_pane",
 			"newsched_cpane",
 			"suffix_id",
-			"this.newsched_name",
-			"get_dbcol",
-			"update_sched"
+			"this.newsched_name"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -931,25 +931,129 @@
 					"file": "scheduler.py",
 					"settings":
 					{
-						"buffer_size": 9130,
+						"buffer_size": 6945,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7920,
-								7920
+								6945,
+								6945
 							]
 						],
 						"settings":
 						{
+							"codeintel": true,
+							"codeintel_config":
+							{
+								"JavaScript":
+								{
+									"codeintel_max_recursive_dir_depth": 2.0,
+									"codeintel_scan_files_in_project": false,
+									"javascriptExtraPaths":
+									[
+									]
+								},
+								"PHP":
+								{
+									"codeintel_max_recursive_dir_depth": 5.0,
+									"codeintel_scan_files_in_project": false,
+									"phpExtraPaths":
+									[
+									]
+								},
+								"Python":
+								{
+									"env":
+									{
+									}
+								}
+							},
+							"codeintel_enabled_languages":
+							[
+								"JavaScript",
+								"Mason",
+								"XBL",
+								"XUL",
+								"RHTML",
+								"SCSS",
+								"Python",
+								"HTML",
+								"Ruby",
+								"Python3",
+								"XML",
+								"Sass",
+								"XSLT",
+								"Django",
+								"HTML5",
+								"Perl",
+								"CSS",
+								"Twig",
+								"Less",
+								"Smarty",
+								"Node.js",
+								"Tcl",
+								"TemplateToolkit",
+								"PHP"
+							],
+							"codeintel_live": true,
+							"codeintel_live_enabled_languages":
+							[
+								"JavaScript",
+								"Mason",
+								"XBL",
+								"XUL",
+								"RHTML",
+								"SCSS",
+								"Python",
+								"HTML",
+								"Ruby",
+								"Python3",
+								"XML",
+								"Sass",
+								"XSLT",
+								"Django",
+								"HTML5",
+								"Perl",
+								"CSS",
+								"Twig",
+								"Less",
+								"Smarty",
+								"Node.js",
+								"Tcl",
+								"TemplateToolkit",
+								"PHP"
+							],
+							"codeintel_max_recursive_dir_depth": 10.0,
+							"codeintel_scan_exclude_dir":
+							{
+								"JavaScript":
+								[
+									"/build/",
+									"/min/"
+								]
+							},
+							"codeintel_scan_files_in_project": true,
+							"codeintel_selected_catalogs":
+							[
+								"PyWin32",
+								"jQuery",
+								"Rails"
+							],
+							"codeintel_snippets": true,
+							"codeintel_syntax_map":
+							{
+								"Python Django": "Python"
+							},
+							"codeintel_tooltips": "popup",
+							"sublime_auto_complete": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2087.0,
+						"translation.y": 1789.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -966,8 +1070,8 @@
 						"selection":
 						[
 							[
-								816,
-								816
+								1303,
+								1303
 							]
 						],
 						"settings":

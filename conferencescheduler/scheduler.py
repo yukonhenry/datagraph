@@ -13,7 +13,7 @@ TIMESTAMP = 'Timestamp'
 TEACHER_HEADER = 'Teacher/Coach Office Hours'
 TEACHERNAME_PATTERN = "([\w.]+ [\w.]+) -"
 COACH_NAME_LIST = ['Martin Benes', 'Jeff Schloss', 'Seth McCadam', 'Jeff Kai', 'Devin Gill', 'Karen Lundgren', 'Katharina Golik', 'Trevor Tanhoff', 'Caitlin Curran']
-MAX_SLOTS = 12
+MAX_SLOTS = 16
 def confsched():
     gc = gspread.login("htominaga@gmail.com", "bxoausumpwtuaqid")
     entrysheet = gc.open("Sunday11_21_2014SBA").sheet1
@@ -47,7 +47,7 @@ def confsched():
             'timestamp':parser.parse(signup_dict[TIMESTAMP])})
         print student_name, teacher_name_list
         print "--------------------------"
-    print raw_student_teacher_map_list
+    #print raw_student_teacher_map_list
     # manage duplicate entries of student name
     dup_student_name_set = set([x for x in student_name_list if student_name_list.count(x) > 1])
     dup_student_name_set_len = len(dup_student_name_set)
@@ -96,78 +96,41 @@ def confsched():
     for st_map in norm_student_teacher_map_list:
         student_name = st_map['student_name']
         ssched_list = [{'sched_flag':False, 'teacher_name':""} for x in range(MAX_SLOTS)]
+        student_open_index_list = range(MAX_SLOTS)
         teacher_name_list = st_map['teacher_name_list']
         for teacher_name in teacher_name_list:
             if teacher_name not in teacher_seen_set:
                 default_teachersched_list = [{'sched_flag':False, 'student_name':""} for x in range(MAX_SLOTS)]
                 teacher_seen_set.add(teacher_name)
-                teacher_schedule_list.append({'teacher_name':teacher_name, 'schedule_list':default_teachersched_list, 'earliest_slot':0})
+                teacher_schedule_list.append({'teacher_name':teacher_name, 'schedule_list':default_teachersched_list})
         student_teacher_schedule_list = [x for x in teacher_schedule_list if x['teacher_name'] in teacher_name_list]
-        student_teacher_schedule_list.sort(key=itemgetter('earliest_slot'))
-        student_slot_index = 0
         studentteacher_seen_set = set()
         for teacher_schedule in student_teacher_schedule_list:
             teacher_name = teacher_schedule['teacher_name']
-            teacher_earliest_slot_index = teacher_schedule['earliest_slot']
-            if teacher_earliest_slot_index == student_slot_index:
-                # Match between teacher's earliest slot and the current open slot
-                # for student;
-                # first fill in the student schedule list
-                ssched_slot = ssched_list[student_slot_index]
-                if ssched_slot['sched_flag']:
-                    raise CodeLogicError("Student schedule already scheduled, should be open student %s teacher %s slot_index %d" % (student_name, teacher_name, student_slot_index))
-                ssched_slot['teacher_name'] = teacher_name
-                ssched_slot['sched_flag'] = True
-                student_slot_index += 1
-                # fill in the teacher schedule list
-                tsched_list = teacher_schedule['schedule_list']
-                tsched_slot = tsched_list[teacher_earliest_slot_index]
-                if not tsched_slot['sched_flag']:
-                    tsched_slot['student_name'] = student_name
-                    tsched_slot['sched_flag'] = True
-                    teacher_schedule['earliest_slot'] += 1
-                    studentteacher_seen_set.add(teacher_name)
-                else:
-                    raise CodeLogicError("teacher and student slots match, but teacher slot already scheduled")
-            elif teacher_earliest_slot_index < student_slot_index:
-                # note teacher schedule list is sorted in ascending order according
-                # to earliest_slot
-                tsched_list = teacher_schedule['schedule_list']
-                tsched_slot = tsched_list[student_slot_index]
-                if not tsched_slot['sched_flag']:
-                    # unscheduled slot, use it
-                    ssched_slot = ssched_list[student_slot_index]
-                    if ssched_slot['sched_flag']:
-                        raise CodeLogicError("Student schedule already scheduled, should be open student %s teacher %s teacher earliest slot index %d student_slot_index %d" % (student_name, teacher_name, teacher_earliest_slot_index, student_slot_index))
-                    else:
-                        ssched_slot['teacher_name'] = teacher_name
-                        ssched_slot['sched_flag'] = True
-                        student_slot_index += 1
-                        tsched_slot['student_name'] = student_name
-                        tsched_slot['sched_flag'] = True
-                        studentteacher_seen_set.add(teacher_name)
-                else:
-                    # go to the next teacher
-                    continue
-            else:
-                # teacher earliest slot is later than student slot
-                tsched_list = teacher_schedule['schedule_list']
-                tsched_slot = tsched_list[teacher_earliest_slot_index]
-                if not tsched_slot['sched_flag']:
-                    # unscheduled slot, use it
-                    ssched_slot = ssched_list[teacher_earliest_slot_index]
-                    if ssched_slot['sched_flag']:
-                        raise CodeLogicError("Student schedule already scheduled, should be open")
-                    else:
-                        ssched_slot['teacher_name'] = teacher_name
-                        ssched_slot['sched_flag'] = True
-                        #student_slot_index += 1
-                        tsched_slot['student_name'] = student_name
-                        tsched_slot['sched_flag'] = True
-                        teacher_schedule['earliest_slot'] += 1
-                        studentteacher_seen_set.add(teacher_name)
-            #print 'teacher', teacher_name, 'scheduled for student', student_name
+            tsched_list = teacher_schedule['schedule_list']
+            teacher_open_index_list = [i for i,j in enumerate(tsched_list) if not j['sched_flag']]
+            common_open_index_list = set(student_open_index_list).intersection(teacher_open_index_list)
+            earliest_open_index = min(common_open_index_list)
+            ssched_slot = ssched_list[earliest_open_index]
+            if ssched_slot['sched_flag']:
+                raise CodeLogicError("Student schedule already scheduled, should be open student %s teacher %s slot_index %d" % (student_name, teacher_name, earliest_open_index))
+            ssched_slot['teacher_name'] = teacher_name
+            ssched_slot['sched_flag'] = True
+            student_open_index_list.remove(earliest_open_index)
+            tsched_slot = tsched_list[earliest_open_index]
+            if tsched_slot['sched_flag']:
+                 CodeLogicError("Teacher schedule already scheduled, should be open student %s teacher %s slot_index %d" % (student_name, teacher_name, earliest_open_index))
+            tsched_slot['student_name'] = student_name
+            tsched_slot['sched_flag'] = True
+            studentteacher_seen_set.add(teacher_name)
+            print 'teacher', teacher_name, 'scheduled for student', student_name
         student_schedule_list.append({'student_name':student_name, 'schedule_list':ssched_list})
-    #pprint(student_schedule_list)
+    '''
+    pprint(student_schedule_list)
+    pprint(teacher_schedule_list)
+    '''
+    teacher_count_list = [{'teacher_name':x['teacher_name'], 'count':[y['sched_flag'] for y in x['schedule_list']].count(True)} for x in teacher_schedule_list]
+    teacher_count_list.sort(key=itemgetter('count'), reverse=True)
+    pprint(teacher_count_list)
 
 
