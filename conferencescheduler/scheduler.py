@@ -37,7 +37,7 @@ MAX_SLOTS = 22
 SLOT_TO_TIME_DICT = {0:"12:00pm", 1:"12:15pm", 2:"12:30pm", 3:"12:45pm", 4:"1pm",
     5:"1:15pm", 6:"1:30pm", 7:"1:45pm", 8:"11:15am", 9:"11am", 10:"10:45am",
     11:"10:30am", 12:"10:15am", 13:"10am", 14:"9:45am", 15:"9:30am", 16:"9:15am",
-    17:"9am", 18:"8:45am", 19:"8:30am", 20:"8:15am", 21:"8am"}
+    17:"9am", 18:"8:45am", 19:"8:30am", 20:"Fri 8:15am", 21:"Fri 8am"}
 TEACHER_TO_ROOM_DICT = {
     'Jeff Kai':'Coaches Office', 'Steve Ascher':"Echo", 'Andy Giordano':"OfficeAG",
     'Joanne Knox':"Sonora1", 'Devin Gill': "Coaches Conf", 'Caitlin Curran':"StaffCC",
@@ -49,9 +49,9 @@ TEACHER_TO_ROOM_DICT = {
 }
 # conference length (in minutes)
 CONF_LEN = timedelta(0,0,0,0,10)
-
+FILE_SUFFIX = "_v3"
 def custom_pprint(a_list, title_str):
-    fout = open(title_str+".txt", "w")
+    fout = open(title_str+FILE_SUFFIX".txt", "w")
     logging.info(title_str)
     fout.write(title_str+"\n")
     for a in a_list:
@@ -63,7 +63,7 @@ def custom_pprint(a_list, title_str):
 def confsched():
     gc = gspread.login("htominaga@gmail.com", "bxoausumpwtuaqid")
     #entrysheet = gc.open("Sunday11_21_2014SBA").sheet1
-    entrysheet = gc.open("SBA0923PM").sheet1
+    entrysheet = gc.open("924_2014SBA").sheet1
     # get the entire sheet
     signup_list = entrysheet.get_all_records()
     # sort by student name column
@@ -89,6 +89,8 @@ def confsched():
             teacher_name_list = re.findall(TEACHERNAME_PATTERN, teacher_descrip_list_string)
         else:
             teacher_name_list = None
+        if student_name == "Lily Rose Longton":
+            continue
         raw_student_teacher_map_list.append({'student_name':student_name,
             'teacher_name_list':teacher_name_list,
             'timestamp':parser.parse(signup_dict[TIMESTAMP])})
@@ -314,4 +316,5 @@ def confsched():
     xls_exporter.generate_teachersched_xls(norm_teacher_schedule_list)
     xls_exporter.generate_timesched_xls(entire_schedule_list, TEACHER_TO_ROOM_DICT.values())
     print teacher_seen_set
+    #xls_exporter.generate_wccind_xls(norm_teacher_schedule_list)
 

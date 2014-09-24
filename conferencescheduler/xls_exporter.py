@@ -4,6 +4,7 @@ from dateutil import parser
 import os, errno
 
 LOCALDIR_PATH = '/home/henry/workspace/datagraph/conferencescheduler/'
+FILE_SUFFIX = "_v3"
 class XLS_Exporter:
     ''' this class and it's methods will eventually supersede sched_exporter
     class and methods '''
@@ -30,7 +31,7 @@ class XLS_Exporter:
                 datasheet.append((start_time, end_time, room, teacher_name))
             datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
-        bookname_xls_relpath = "2014IndividualConference_byStudent.xls"
+        bookname_xls_relpath = "2014IndividualConference_byStudent"+FILE_SUFFIX+".xls"
         bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)
@@ -52,7 +53,7 @@ class XLS_Exporter:
                 datasheet.append((start_time, end_time, room, student_name))
             datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
-        bookname_xls_relpath = "2014IndividualConference_byStaff.xls"
+        bookname_xls_relpath = "2014IndividualConference_byStaff"+FILE_SUFFIX+".xls"
         bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)
@@ -98,7 +99,7 @@ class XLS_Exporter:
             datasheet.append(compressed_row['start_time_list'])
         datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
-        bookname_xls_relpath = "2014IndividualConference_allbytime.xls"
+        bookname_xls_relpath = "2014IndividualConference_allbytime"+FILE_SUFFIX+".xls"
         bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)

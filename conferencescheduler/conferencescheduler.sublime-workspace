@@ -4,92 +4,76 @@
 		"selected_items":
 		[
 			[
-				"HEAD",
-				"HEAD_COACH_DISCIP_LIST"
+				"next",
+				"next_open_index"
 			],
 			[
-				"teacher_sc",
-				"teacher_schedule_list"
+				"earliest",
+				"earliest_common_open_index"
 			],
 			[
-				"common",
-				"common_open_index_list"
+				"she",
+				"sheet1"
 			],
 			[
-				"teacher",
-				"teacher_name_list"
+				"earlie",
+				"earliest_slot"
+			],
+			[
+				"student_s",
+				"student_schedule_list"
+			],
+			[
+				"sched",
+				"sched_flag"
 			],
 			[
 				"student",
-				"student_teacher_map_list"
+				"student_slot_index"
 			],
 			[
-				"student_",
-				"student_name_list"
+				"teacher_s",
+				"teacher_schedule_list"
 			],
 			[
-				"teacher_d",
-				"teacher_descrip_list_string"
+				"norm",
+				"norm_student_teacher_map_list"
 			],
 			[
-				"TEA",
-				"TEACHERNAME_PATTERN"
+				"nor",
+				"norm_student_teacher_map_list"
 			],
 			[
-				"teacher_",
-				"teacher_descrip_list_string"
+				"dup",
+				"dup_student_name_set_len"
 			],
 			[
-				"signup_",
-				"signup_dict"
+				"si",
+				"signup_list_len"
 			],
 			[
-				"risk",
-				"risk_percentage"
+				"sign",
+				"signup_list"
 			],
 			[
-				"calc",
-				"calculate_risk_percentage"
+				"stu",
+				"student_name"
 			],
 			[
-				"Risk_fe",
-				"Risk_female_threshold_array"
+				"dup_",
+				"dup_student_name_set"
 			],
 			[
-				"Risk_male",
-				"Risk_male_threshold_array"
-			],
-			[
-				"diabetes",
-				"diabetes_flag"
-			],
-			[
-				"dial",
-				"diastolic_points"
-			],
-			[
-				"ldl_mea",
-				"ldl_measurement"
-			],
-			[
-				"age_",
-				"age_match_index"
-			],
-			[
-				"Dia",
-				"Diabetes_female_points_hash"
-			],
-			[
-				"Diabe",
-				"Diabetes_male_points_hash"
-			],
-			[
-				"dia",
-				"diastolic_value"
+				"dup_st",
+				"dup_student_teacher_map_dict"
 			],
 			[
 				"ldl",
 				"ldl_measurement"
+			],
+			[
+				"ldl_",
+				"ldl_measurements"
 			],
 			[
 				"add_gr",
@@ -514,6 +498,22 @@
 			[
 				"null",
 				"null"
+			],
+			[
+				"calendar",
+				"calendarmap_list"
+			],
+			[
+				"simple",
+				"simple_calendarmap_list"
+			],
+			[
+				"fielddate",
+				"fielddaymapdate_list"
+			],
+			[
+				"getca",
+				"getcalendarmap_obj"
 			]
 		]
 	},
@@ -523,32 +523,23 @@
 			"file": "scheduler.py",
 			"settings":
 			{
-				"buffer_size": 11406,
+				"buffer_size": 18905,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/henry/workspace/datagraph/bottle_baseball/fieldtimescheduler.py",
+			"file": "xls_exporter.py",
 			"settings":
 			{
-				"buffer_size": 101280,
+				"buffer_size": 8650,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": ".pdbrc",
+			"file": "sched_exceptions.py",
 			"settings":
 			{
-				"buffer_size": 46,
-				"line_ending": "Unix",
-				"name": "b scheduler.py:132"
-			}
-		},
-		{
-			"file": "confstart.py",
-			"settings":
-			{
-				"buffer_size": 602,
+				"buffer_size": 2146,
 				"line_ending": "Unix"
 			}
 		}
@@ -605,11 +596,10 @@
 	},
 	"file_history":
 	[
-		"/home/henry/workspace/medical/UnityHelloWorldPM.py",
+		"/home/henry/workspace/rails/risk/app/views/ldl_measurements/new.html.erb",
 		"/home/henry/.config/sublime-text-2/Packages/User/Ruby.sublime-settings",
-		"/home/henry/workspace/rails/risk/app/models/[dir",
-		"/home/henry/workspace/rails/risk/app/models/ldl_measurement.rb",
-		"/home/henry/workspace/rails/risk/app/models/hdl_measurement.rb",
+		"/home/henry/workspace/rails/risk/app/models/ldl.rb",
+		"/home/henry/workspace/rails/risk/db/migrate/20140918172737_create_ldls.rb",
 		"/home/henry/workspace/rails/risk/db/migrate/20140918014729_create_people.rb",
 		"/home/henry/workspace/Notebook/socket/dbsupport.class.php",
 		"/home/henry/workspace/datagraph/LeagueScheduler/tourndivinfo.js",
@@ -668,19 +658,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"lambda",
-			"urllib.parse",
-			"gettoken",
-			"urllib",
-			"http.client",
-			"diabetes_status",
-			"diabetes_flag",
-			"percent",
-			"calculate_risk",
-			".first",
-			"systolic",
-			"hdl",
-			"diabets",
+			"custom_pprint",
+			"pprint",
+			"earliest_open_index",
+			"earliest_slot",
+			"earliest_open_index",
+			":\n",
+			"teacher_seen_set",
+			"MAX_SLOTS",
+			"8",
+			"student_schedule_list",
+			"TIMESTAMP",
+			"student_name",
+			"student_teacher_map_list",
+			"name_len",
 			"referee",
 			"gridstatus_id",
 			"configstatus_id",
@@ -794,8 +785,7 @@
 			"createdivsched",
 			"getgrid_data",
 			"prepgrid_data",
-			"createnewsched_pane",
-			"newsched_pane"
+			"createnewsched_pane"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -803,11 +793,10 @@
 		"regex": false,
 		"replace_history":
 		[
-			"percentage",
-			"calculate_risk_points",
-			".last",
-			"diastolic",
-			"systolic",
+			"earliest_open_index",
+			"earliest_common_open_index",
+			"student",
+			"raw_student_teacher_map_list",
 			"configstatus",
 			"delrow",
 			"btn",
@@ -930,7 +919,8 @@
 			"visible_form_dom",
 			"fieldsched_",
 			"newsched_name",
-			"newdivinfo"
+			"newdivinfo",
+			"db_type"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -949,147 +939,43 @@
 					"file": "scheduler.py",
 					"settings":
 					{
-						"buffer_size": 11406,
+						"buffer_size": 18905,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6383,
-								6383
+								18544,
+								18544
 							]
 						],
 						"settings":
 						{
-							"codeintel": true,
-							"codeintel_config":
-							{
-								"JavaScript":
-								{
-									"codeintel_max_recursive_dir_depth": 2.0,
-									"codeintel_scan_files_in_project": false,
-									"javascriptExtraPaths":
-									[
-									]
-								},
-								"PHP":
-								{
-									"codeintel_max_recursive_dir_depth": 5.0,
-									"codeintel_scan_files_in_project": false,
-									"phpExtraPaths":
-									[
-									]
-								},
-								"Python":
-								{
-									"env":
-									{
-									}
-								}
-							},
-							"codeintel_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_live": true,
-							"codeintel_live_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_max_recursive_dir_depth": 10.0,
-							"codeintel_scan_exclude_dir":
-							{
-								"JavaScript":
-								[
-									"/build/",
-									"/min/"
-								]
-							},
-							"codeintel_scan_files_in_project": true,
-							"codeintel_selected_catalogs":
-							[
-								"PyWin32",
-								"jQuery",
-								"Rails"
-							],
-							"codeintel_snippets": true,
-							"codeintel_syntax_map":
-							{
-								"Python Django": "Python"
-							},
-							"codeintel_tooltips": "popup",
-							"sublime_auto_complete": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2053.0,
+						"translation.y": 4951.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "/home/henry/workspace/datagraph/bottle_baseball/fieldtimescheduler.py",
+					"file": "xls_exporter.py",
 					"settings":
 					{
-						"buffer_size": 101280,
+						"buffer_size": 8650,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								10570,
-								10570
+								5251,
+								5251
 							]
 						],
 						"settings":
@@ -1097,137 +983,6 @@
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2704.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": ".pdbrc",
-					"settings":
-					{
-						"buffer_size": 46,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								18,
-								18
-							]
-						],
-						"settings":
-						{
-							"auto_name": "b scheduler.py:132",
-							"codeintel": true,
-							"codeintel_config":
-							{
-								"JavaScript":
-								{
-									"codeintel_max_recursive_dir_depth": 2.0,
-									"codeintel_scan_files_in_project": false,
-									"javascriptExtraPaths":
-									[
-									]
-								},
-								"PHP":
-								{
-									"codeintel_max_recursive_dir_depth": 5.0,
-									"codeintel_scan_files_in_project": false,
-									"phpExtraPaths":
-									[
-									]
-								},
-								"Python":
-								{
-									"env":
-									{
-									}
-								}
-							},
-							"codeintel_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_live": true,
-							"codeintel_live_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_max_recursive_dir_depth": 10.0,
-							"codeintel_scan_exclude_dir":
-							{
-								"JavaScript":
-								[
-									"/build/",
-									"/min/"
-								]
-							},
-							"codeintel_scan_files_in_project": true,
-							"codeintel_selected_catalogs":
-							[
-								"PyWin32",
-								"jQuery",
-								"Rails"
-							],
-							"codeintel_snippets": true,
-							"codeintel_syntax_map":
-							{
-								"Python Django": "Python"
-							},
-							"codeintel_tooltips": "popup",
-							"sublime_auto_complete": true,
-							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -1236,127 +991,23 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "confstart.py",
+					"buffer": 2,
+					"file": "sched_exceptions.py",
 					"settings":
 					{
-						"buffer_size": 602,
+						"buffer_size": 2146,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								26,
-								26
+								816,
+								816
 							]
 						],
 						"settings":
 						{
-							"codeintel": true,
-							"codeintel_config":
-							{
-								"JavaScript":
-								{
-									"codeintel_max_recursive_dir_depth": 2.0,
-									"codeintel_scan_files_in_project": false,
-									"javascriptExtraPaths":
-									[
-									]
-								},
-								"PHP":
-								{
-									"codeintel_max_recursive_dir_depth": 5.0,
-									"codeintel_scan_files_in_project": false,
-									"phpExtraPaths":
-									[
-									]
-								},
-								"Python":
-								{
-									"env":
-									{
-									}
-								}
-							},
-							"codeintel_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_live": true,
-							"codeintel_live_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_max_recursive_dir_depth": 10.0,
-							"codeintel_scan_exclude_dir":
-							{
-								"JavaScript":
-								[
-									"/build/",
-									"/min/"
-								]
-							},
-							"codeintel_scan_files_in_project": true,
-							"codeintel_selected_catalogs":
-							[
-								"PyWin32",
-								"jQuery",
-								"Rails"
-							],
-							"codeintel_snippets": true,
-							"codeintel_syntax_map":
-							{
-								"Python Django": "Python"
-							},
-							"codeintel_tooltips": "popup",
-							"sublime_auto_complete": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
@@ -1401,10 +1052,6 @@
 		]
 	},
 	"menu_visible": true,
-	"output.exec":
-	{
-		"height": 100.0
-	},
 	"replace":
 	{
 		"height": 64.0
