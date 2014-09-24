@@ -7,8 +7,10 @@ import re
 import copy
 from pprint import pprint
 from dateutil import parser
+from datetime import timedelta
 from sched_exceptions import CodeLogicError
 import logging
+from xls_exporter import XLS_Exporter
 STUDENT_NAME = 'SBA Student Name'
 LAST_NAME = 'Last Name'
 FIRST_NAME = 'First Name'
@@ -31,7 +33,23 @@ ASST_COACH_DISCIP_LIST = [{'name':'Jeff Schloss', 'dtype':'n'},
 ]
 asstindexerGet = lambda x: dict((p['name'],i) for i,p in enumerate(ASST_COACH_DISCIP_LIST)).get(x)
 COACH_NAME_LIST = ['Martin Benes', 'Jeff Schloss', 'Seth McCadam', 'Jeff Kai', 'Devin Gill', 'Karen Lundgren', 'Katharina Golik', 'Trevor Tanhoff', 'Caitlin Curran']
-MAX_SLOTS = 24
+MAX_SLOTS = 22
+SLOT_TO_TIME_DICT = {0:"12:00pm", 1:"12:15pm", 2:"12:30pm", 3:"12:45pm", 4:"1pm",
+    5:"1:15pm", 6:"1:30pm", 7:"1:45pm", 8:"11:15am", 9:"11am", 10:"10:45am",
+    11:"10:30am", 12:"10:15am", 13:"10am", 14:"9:45am", 15:"9:30am", 16:"9:15am",
+    17:"9am", 18:"8:45am", 19:"8:30am", 20:"8:15am", 21:"8am"}
+TEACHER_TO_ROOM_DICT = {
+    'Jeff Kai':'Coaches Office', 'Steve Ascher':"Echo", 'Andy Giordano':"OfficeAG",
+    'Joanne Knox':"Sonora1", 'Devin Gill': "Coaches Conf", 'Caitlin Curran':"StaffCC",
+    'Martin Benes':"OfficeMB", 'Andy Knox':"Sonora2", 'Tracy Keller':"OfficeTK",
+    'Karen Lundgren':"StaffKL", 'Corbin Prychun':"Tioga",
+    'Katharina Golik':"Sports Sci", 'Kristen Giordano':"OfficeKG", 'Jeff Schloss':"OfficeJS",
+     'Seth McCadam':"OfficeSM", 'Jim Hudson':"OfficeJH", 'Trevor Tanhoff':"ConfTT",
+     'Diego Panasiti':"Ebbetts", 'Seth Dow':"Donner", 'Ambrose Tuscano':"Minaret"
+}
+# conference length (in minutes)
+CONF_LEN = timedelta(0,0,0,0,10)
+
 def custom_pprint(a_list, title_str):
     fout = open(title_str+".txt", "w")
     logging.info(title_str)
@@ -45,7 +63,7 @@ def custom_pprint(a_list, title_str):
 def confsched():
     gc = gspread.login("htominaga@gmail.com", "bxoausumpwtuaqid")
     #entrysheet = gc.open("Sunday11_21_2014SBA").sheet1
-    entrysheet = gc.open("Monday09_23_SBA").sheet1
+    entrysheet = gc.open("SBA0923PM").sheet1
     # get the entire sheet
     signup_list = entrysheet.get_all_records()
     # sort by student name column
@@ -139,7 +157,7 @@ def confsched():
         student_teacher_schedule_list = [x for x in teacher_schedule_list if x['teacher_name'] in teacher_name_list]
         sindexerGet = lambda x: dict((p['teacher_name'],i) for i,p in enumerate(student_teacher_schedule_list)).get(x)
         studentteacher_seen_set = set()
-        student_teacher_schedule_list.sort(key=itemgetter('earliest_open_index', 'priority'))
+        student_teacher_schedule_list.sort(key=itemgetter('priority', 'earliest_open_index'))
         for teacher_schedule in student_teacher_schedule_list:
             teacher_name = teacher_schedule['teacher_name']
             tsched_list = teacher_schedule['schedule_list']
@@ -177,13 +195,18 @@ def confsched():
                         if not tsched_slot['sched_flag']:
                             ssched_slot = ssched_list[hindex]
                             # note there could be more than one assistant coach
-                            if 'altteacher_list' in ssched_list:
-                                ssched_slot['altteacher_list'].append(teacher_name)
+                            if 'asstcoach_list' in ssched_slot:
+                                ssched_slot['asstcoach_list'].append(teacher_name)
                             else:
-                                ssched_slot['altteacher_list'] = [teacher_name]
+                                ssched_slot['asstcoach_list'] = [teacher_name]
                             tsched_slot = tsched_list[hindex]
                             tsched_slot['student_name'] = student_name
                             tsched_slot['sched_flag'] = True
+                            start_time_dt = parser.parse(SLOT_TO_TIME_DICT[hindex])
+                            tsched_slot['start_time_dt'] = start_time_dt
+                            end_time_dt = start_time_dt + CONF_LEN
+                            tsched_slot['end_time_dt'] = end_time_dt
+                            tsched_slot['room'] = TEACHER_TO_ROOM_DICT[headcoach_name]
                         else:
                             logging.debug("asst coach %s not able to see student %s at slot %d" % (teacher_name, student_name, hindex))
                             #raise CodeLogicError('asst coach %s already has spot scheduled at slot %d for student %s' % (teacher_name, hindex, student_name))
@@ -200,6 +223,11 @@ def confsched():
                 raise CodeLogicError("Student schedule already scheduled, should be open student %s teacher %s slot_index %d" % (student_name, teacher_name, earliest_common_open_index))
             ssched_slot['teacher_name'] = teacher_name
             ssched_slot['sched_flag'] = True
+            start_time_dt = parser.parse(SLOT_TO_TIME_DICT[earliest_common_open_index])
+            ssched_slot['start_time_dt'] = start_time_dt
+            end_time_dt = start_time_dt + CONF_LEN
+            ssched_slot['end_time_dt'] = end_time_dt
+            ssched_slot['room'] = TEACHER_TO_ROOM_DICT[teacher_name]
             student_open_index_list.remove(earliest_common_open_index)
             tsched_slot = tsched_list[earliest_common_open_index]
             # make assignment on the teacher side
@@ -207,6 +235,9 @@ def confsched():
                  CodeLogicError("Teacher schedule already scheduled, should be open student %s teacher %s slot_index %d" % (student_name, teacher_name, earliest_common_open_index))
             tsched_slot['student_name'] = student_name
             tsched_slot['sched_flag'] = True
+            tsched_slot['start_time_dt'] = start_time_dt
+            tsched_slot['end_time_dt'] = end_time_dt
+            tsched_slot['room'] = TEACHER_TO_ROOM_DICT[teacher_name]
             studentteacher_seen_set.add(teacher_name)
             if teacher_name in HEAD_COACH_LIST:
                 next_open_index = earliest_common_open_index+1
@@ -215,6 +246,11 @@ def confsched():
                     raise CodeLogicError("head coach %s next slot not open" % (teacher_name,))
                 nextssched_slot['teacher_name'] = teacher_name
                 nextssched_slot['sched_flag'] = True
+                start_time_dt = parser.parse(SLOT_TO_TIME_DICT[next_open_index])
+                nextssched_slot['start_time_dt'] = start_time_dt
+                end_time_dt = start_time_dt + CONF_LEN
+                nextssched_slot['end_time_dt'] = end_time_dt
+                nextssched_slot['room'] = TEACHER_TO_ROOM_DICT[teacher_name]
                 student_open_index_list.remove(next_open_index)
                 tsched_slot = tsched_list[next_open_index]
                 # make assignment on the teacher side
@@ -222,6 +258,9 @@ def confsched():
                      CodeLogicError("Teacher schedule already scheduled, should be open student %s teacher %s slot_index %d" % (student_name, teacher_name, earliest_common_open_index))
                 tsched_slot['student_name'] = student_name
                 tsched_slot['sched_flag'] = True
+                tsched_slot['start_time_dt'] = start_time_dt
+                tsched_slot['end_time_dt'] = end_time_dt
+                tsched_slot['room'] = TEACHER_TO_ROOM_DICT[teacher_name]
             # update earliest slot if required
             if earliest_common_open_index == min_teacher_open_index:
                 # if the earliest common index is the same as the earliest teacher index, then update teacher's minimum
@@ -230,7 +269,10 @@ def confsched():
             elif earliest_common_open_index < min_teacher_open_index:
                 raise CodeLogicError("earliest open %d is earlier than min teacher index %d" %(earliest_common_open_index, min_teacher_open_index))
             #print 'teacher', teacher_name, 'scheduled for student', student_name
-        student_schedule_list.append({'student_name':student_name, 'schedule_list':ssched_list})
+        #ssched_list.sort(key=itemgetter('start_time_dt'))
+        norm_ssched_list = [x for x in ssched_list if x['sched_flag']]
+        norm_ssched_list.sort(key=itemgetter('start_time_dt'))
+        student_schedule_list.append({'student_name':student_name, 'schedule_list':norm_ssched_list})
     #pprint(student_schedule_list)
     #pprint(teacher_schedule_list)
     '''
@@ -238,9 +280,38 @@ def confsched():
     teacher_count_list.sort(key=itemgetter('count'), reverse=True)
     pprint(teacher_count_list)
     '''
-    teacher_assign_list = [{'teacher_name':x['teacher_name'], 'count':[y['sched_flag'] for y in x['schedule_list']].count(True), 'student_request_list':[y['student_name'] for y in x['schedule_list'] if y['sched_flag']]} for x in teacher_schedule_list]
+    teacher_assign_list = [{'teacher_name':x['teacher_name'], 'student_request_list':list(set([y['student_name'] for y in x['schedule_list'] if y['sched_flag']])), 'count':len(set([y['student_name'] for y in x['schedule_list'] if y['sched_flag']])), } for x in teacher_schedule_list]
     teacher_assign_list.sort(key=itemgetter('count'), reverse=True)
+    norm_teacher_schedule_list = list()
+    #teacher_schedulecount_list = list()
+    for teacher_schedule in teacher_schedule_list:
+        teacher_schedule.update({'count':[x['sched_flag'] for x in teacher_schedule['schedule_list']].count(True)})
+        tsched_list = teacher_schedule['schedule_list']
+        norm_tsched_list = [x for x in tsched_list if x['sched_flag']]
+        norm_tsched_list.sort(key=itemgetter('start_time_dt'))
+        norm_teacher_schedule_list.append({'teacher_name':teacher_schedule['teacher_name'], 'count':teacher_schedule['count'], 'schedule_list':norm_tsched_list})
+
+    entire_schedule_list = list()
+    for student_schedule in student_schedule_list:
+        student_name = student_schedule['student_name']
+        ssched_list = student_schedule['schedule_list']
+        for ssched_slot in ssched_list:
+            sched_item = {'teacher_name':ssched_slot['teacher_name'],
+                'student_name':student_name,
+                'start_time_dt':ssched_slot['start_time_dt'],
+                'end_time_dt':ssched_slot['end_time_dt'],'room':ssched_slot['room']}
+            if 'asstcoach_list' in ssched_slot:
+                sched_item.update({'asstcoach_list':ssched_slot['asstcoach_list']})
+            entire_schedule_list.append(sched_item)
+    entire_schedule_list.sort(key=itemgetter('start_time_dt'))
+    teacher_schedule_list.sort(key=itemgetter('count'), reverse=True)
+    norm_teacher_schedule_list.sort(key=itemgetter('count'), reverse=True)
     custom_pprint(teacher_assign_list, "teacher_assign_list")
     custom_pprint(student_schedule_list, "student_schedule_list")
     custom_pprint(teacher_schedule_list, "teacher_schedule_list")
+    xls_exporter = XLS_Exporter()
+    xls_exporter.generate_studentsched_xls(student_schedule_list)
+    xls_exporter.generate_teachersched_xls(norm_teacher_schedule_list)
+    xls_exporter.generate_timesched_xls(entire_schedule_list, TEACHER_TO_ROOM_DICT.values())
+    print teacher_seen_set
 
