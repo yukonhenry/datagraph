@@ -149,6 +149,17 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				}
 				return info_list;
 			},
+			get_gridhelp_list: function() {
+				var gridhelp_list = [
+					{id:'tourndiv_id', help_str:"Identifier, Non-Editable"},
+					{id:'div_age', help_str:"Age or Primary Division Identifier, click cell to edit"},
+					{id:'div_gen', help_str:"Gender or Secondary Division Identifier, click cell to edit"},
+					{id:'totalteams', help_str:"Total # of Teams in the Division, click cell to edit"},
+					{id:'rrgames_num', help_str:"Number of games each team should play in the round robin portion of the tournament"},
+					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click cell to edit"},
+					{id:'mingap_time', help_str:"NOTE: Specify the minimum time gap between the end of one game and the start of the next (for each team)"}]
+				return gridhelp_list;
+			},
 			checkconfig_status: function(raw_result){
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than
