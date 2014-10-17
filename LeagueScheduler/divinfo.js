@@ -5,12 +5,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
-	"LeagueScheduler/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, Deferred, lang, arrayUtil, Dialog,
 		registry, editor, NumberSpinner,
 		NumberTextBox, ValidationTextBox, Form, StackContainer, ContentPane,
-		baseinfo, baseinfoSingleton, idmgrSingleton, put){
+		baseinfo, baseinfoSingleton, put){
 		var constant = {
 			idproperty_str:'div_id',
 			inputnum_str:'Number of Divisions',

@@ -2,10 +2,10 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberTextBox",
 	"dijit/form/ValidationTextBox","LeagueScheduler/baseinfo",
-	"LeagueScheduler/baseinfoSingleton",
+	"LeagueScheduler/baseinfoSingleton", "put-selector/put",
 	"dojo/domReady!"],
 	function(declare, dom, lang, registry, editor, NumberTextBox,
-		ValidationTextBox, baseinfo, baseinfoSingleton) {
+		ValidationTextBox, baseinfo, baseinfoSingleton, put) {
 		var constant = {
 			idproperty_str:"tourndiv_id",
 			updatebtn_str:"Update Tourn Div Info",
@@ -29,31 +29,33 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				// the store
 				var columnsdef_obj = {
 					tourndiv_id: "Div ID",
-					div_age: editor({label:"Age", autoSave:true},"text","dblclick"),
-					div_gen: editor({label:"Gender", autoSave:true}, "text", "dblclick"),
+					div_age: editor({label:"Age", autoSave:true,
+						set:function(item) {
+							// trim any leading or trailing whitespace characters
+							return item.div_age.trim();
+						}}, "text","click"),
+					div_gen: editor({label:"Gender", autoSave:true,
+						set:function(item) {
+							return item.div_gen.trim();
+						}}, "text","click"),
 					totalteams: editor({label:"Total Teams", autoSave:true,
 						set:function(item) {
 							return parseInt(item.totalteams)
-						}}, "text", "dblclick"),
-					totalbrackets: editor({label:"Total RR Brackets", autoSave:true,
+						}}, "text", "click"),
+					rrgames_num: editor({label:"RR games", autoSave:true,
 						set:function(item) {
-							return parseInt(item.totalbrackets)
-						}}, "text", "dblclick"),
-					elimination_num: editor({label:"Elimination #", autoSave:true,
-						set:function(item) {
-							return parseInt(item.elimination_num)
-						}}, "text", "dblclick"),
-					elimination_type: editor({label:"Elimination Type", field:"elimination_type", autoSave:true}, "text", "dblclick"),
-					field_id_str: editor({label:"Fields", field:"field_id_str", autoSave:true}, "text", "dblclick"),
+							return parseInt(item.rrgames_num)
+						}}, "text", "click"),
 					gameinterval: editor({label:"Inter-Game Interval (min)",
 						autoSave:true,
 						set:function(item) {
 							return parseInt(item.gameinterval)
-						}}, "text", "dblclick"),
-					rr_gamedays: editor({label:"Number RR Gamedays", autoSave:true,
+						}}, "text", "click"),
+					mingap_time: editor({label:"Per-team Minimum Gap (min)",
+						autoSave:true,
 						set:function(item) {
-							return parseInt(item.rr_gamedays)
-						}}, "text", "dblclick"),
+							return parseInt(item.mingap_time)
+						}}, "text", "click"),
 				};
 				return columnsdef_obj;
 			},
@@ -97,13 +99,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 						missingMessage:constant.ntextbox_str+' (positive integer)'
 					}, inputnum_node);
 				} else {
-					dbname_reg = registry.byId(constant.dbname_id);
-					inputnum_reg = registry.byId(constant.inputnum_id);
+					dbname_reg = registry.byId(dbname_id);
+					inputnum_reg = registry.byId(inputnum_id);
 				}
 				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
 					label:"Specify Number of Divisions and press ENTER",
 					position:['below','after']},
-					{connectId:[constant.dbname_id],
+					{connectId:[dbname_id],
 					label:"Specify Schedule Name",
 					position:['below','after']}];
 				var args_obj = {
@@ -111,11 +113,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					form_reg:form_reg,
 					entrynum_reg:inputnum_reg,
 					text_node_str: constant.text_node_str,
-					grid_id:constant.grid_id,
+					grid_id:grid_id,
 					updatebtn_str:constant.updatebtn_str,
 					tooltipconfig_list:tooltipconfig_list,
 					newgrid_flag:newgrid_flag,
-					cellselect_flag:false
+					cellselect_flag:false,
+					op_type:op_type
 				}
 				this.showConfig(args_obj);
 			},
@@ -130,9 +133,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					options_obj.op_type = this.op_type;
 				options_obj.cellselect_flag = false;
 				options_obj.text_node_str = "Division List Name";
-				options_obj.grid_id = constant.grid_id;
+				options_obj.grid_id = this.idmgr_obj.grid_id;
 				options_obj.updatebtn_str = constant.updatebtn_str;
-				options_obj.db_type = 'tourndb';
+				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},
 			getInitialList: function(divnum) {
@@ -141,11 +144,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					// make sure one of the keys matches the idProperty used for
 					// store.
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
-					                  totalteams:2,
-					                  totalbrackets:1,
-					                  elimination_num:1,
-					                  elimination_type:"",field_id_str:"",
-					                  gameinterval:1, rr_gamedays:1});
+						totalteams:2, rrgames_num:1, gameinterval:60,
+						mingap_time:60});
 				}
 				return info_list;
 			},
@@ -172,7 +172,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 								break_flag = true;
 								break;
 							}
-						} else if (prop == 'totalbrackets') {
+						} else if (prop == 'rrgames_num') {
 							if (item[prop] < 1) {
 								console.log("tourndivinfo:checkconfig:need at least one bracket");
 								break_flag = true;
