@@ -105,69 +105,6 @@ class XLS_Exporter:
             f.write(book.xls)
         f.close()
 
-    def generate_fieldxls(self):
-        headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
-        'Visitor', 'Venue']
-        datasheet_list = list()
-        for fieldinfo in self.fieldinfo_list:
-            field_name = fieldinfo['field_name']
-            field_id = fieldinfo['field_id']
-            datasheet = Dataset(title=field_name)
-            datasheet.headers = list(headers)
-            match_list = self.sdbinterface.get_schedule('field_id',
-                field_id=field_id)
-            tabformat_list = [(x['game_date'],
-                parser.parse(x['game_date']).strftime("%a"),
-                datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
-                x['div_age']+x['div_gen'], x['home'], x['away'], field_name)
-                for x in match_list]
-            for tabformat in tabformat_list:
-                datasheet.append(tabformat)
-            datasheet_list.append(datasheet)
-        book = Databook(datasheet_list)
-        bookname_xls_relpath = self.schedcol_name + "_byField.xls"
-        bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
-        with open(bookname_xls_fullpath,'wb') as f:
-            f.write(book.xls)
-        f.close()
-        return [{'path':bookname_xls_relpath}]
-
-    def generate_divteamxls(self):
-        headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
-        'Visitor', 'Venue']
-        file_list = list()
-        for divinfo in self.divinfo_list:
-            div_id = divinfo['div_id']
-            div_age = divinfo['div_age']
-            div_gen = divinfo['div_gen']
-            div_str = div_age + div_gen
-            totalteams = divinfo['totalteams']
-            datasheet_list = list()
-            for team_id in range(1, totalteams+1):
-                team_str = div_str + str(team_id)
-                datasheet = Dataset(title=team_str)
-                datasheet.headers = list(headers)
-                match_list = self.sdbinterface.get_schedule('team_id',
-                    div_age=div_age, div_gen=div_gen, team_id=team_id)
-                tabformat_list = [(x['game_date'],
-                    parser.parse(x['game_date']).strftime("%a"),
-                    datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
-                    div_str, x['home'], x['away'],
-                    self.fieldinfo_list[self.findexerGet(x['venue'])]['field_name'])
-                    for x in match_list]
-                for tabformat in tabformat_list:
-                    datasheet.append(tabformat)
-                datasheet_list.append(datasheet)
-            book = Databook(datasheet_list)
-            bookname_xls_relpath = self.schedcol_name + div_str+"_byTeam.xls"
-            bookname_xls_fullpath = os.path.join(self.dir_path,
-                bookname_xls_relpath)
-            with open(bookname_xls_fullpath,'wb') as f:
-               f.write(book.xls)
-            f.close()
-            file_list.append({'path':bookname_xls_relpath, 'mdata':div_str})
-        return file_list
-
     def mkdir_p(self, path):
         ''' http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
         '''

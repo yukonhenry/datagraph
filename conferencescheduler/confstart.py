@@ -1,5 +1,4 @@
 #!/usr/local/bin/python2.7
-# Copyright YukonTR 2013
 import time
 import logging
 from scheduler import confsched

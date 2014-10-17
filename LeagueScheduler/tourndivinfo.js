@@ -12,8 +12,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 			grid_id:"tourndivinfogrid_id",
 			text_node_str: 'Tournament Division List Name',
 			db_type:'tourndb',
-			form_id:'tourndiv_form_id', dbname_id:'tourndbname_id',
-			inputnum_id:'tourndivinputnum_id',
 			inputnum_str:'Number of Tournament Divisions',
 			dbname_str:'New Tourn Division List Name',
 			vtextbox_str:'Enter Tourn Division List Name',
@@ -59,17 +57,23 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 				};
 				return columnsdef_obj;
 			},
-			initialize: function(newgrid_flag) {
-				var form_reg = registry.byId(constant.form_id);
+			initialize: function(newgrid_flag, op_type) {
+				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
+				var form_id = this.idmgr_obj.form_id;
+				var dbname_id = this.idmgr_obj.dbname_id;
+				var inputnum_id = this.idmgr_obj.inputnum_id;
+				var grid_id = this.idmgr_obj.grid_id;
+				var form_reg = registry.byId(form_id);
 				var form_node = form_reg.domNode;
 				var dbname_reg = null;
 				var inputnum_reg = null;
+				var dbname_node = dom.byId(dbname_id);
 				if (!dbname_node) {
 					put(form_node, "label.label_box[for=$]",
-						constant.dbname_id, constant.dbname_str);
-					var dbname_node = put(form_node,
+						dbname_id, constant.dbname_str);
+					dbname_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.dbname_id)
+						dbname_id)
 					dbname_reg = new ValidationTextBox({
 						value:'',
 						regExp:'\\D[\\w]+',
@@ -80,10 +84,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
-						constant.inputnum_id, constant.inputnum_str);
+						inputnum_id, constant.inputnum_str);
 					var inputnum_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						constant.inputnum_id);
+						inputnum_id);
 					inputnum_reg = new NumberTextBox({
 						value:'1',
 						style:'width:5em',

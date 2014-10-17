@@ -1,5 +1,4 @@
 #!/usr/local/bin/python2.7
-# Copyright YukonTR 2014
 import gspread
 from operator import itemgetter
 from itertools import groupby
