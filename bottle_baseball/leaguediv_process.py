@@ -19,6 +19,7 @@ from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from rrdbinterface import RRDBInterface
 from schedmaster import SchedMaster
+from tournschedmaster import TournSchedMaster
 from scheddbinterface import SchedDBInterface
 from prefdbinterface import PrefDBInterface
 from teamdbinterface import TeamDBInterface
@@ -227,21 +228,24 @@ def send_generate(userid_name):
     divcol_name = request.query.divcol_name
     fieldcol_name = request.query.fieldcol_name
     schedcol_name = request.query.schedcol_name
-    prefcol_name = request.query.prefcol_name
-    conflictcol_name = request.query.conflictcol_name
-    schedMaster = SchedMaster(mongoClient, userid_name, db_type, divcol_name,
-        fieldcol_name, schedcol_name, prefcol_name=prefcol_name,
-        conflictcol_name=conflictcol_name)
-    if not schedMaster.error_code:
-        # save schedMaster to global obj to reuse on get_schedule
-        _routelogic_obj.schedmaster_map[userid_name] = schedMaster
-        dbstatus = schedMaster.generate()
-        a = json.dumps({"dbstatus":dbstatus})
-    else:
-        a = json.dumps({"error_code":schedMaster._error_code})
-        del schedMaster
-    return callback_name+'('+a+')'
-
+    if db_type == 'rrdb':
+        prefcol_name = request.query.prefcol_name
+        conflictcol_name = request.query.conflictcol_name
+        schedMaster = SchedMaster(mongoClient, userid_name, db_type, divcol_name,
+            fieldcol_name, schedcol_name, prefcol_name=prefcol_name,
+            conflictcol_name=conflictcol_name)
+        if not schedMaster.error_code:
+            # save schedMaster to global obj to reuse on get_schedule
+            _routelogic_obj.schedmaster_map[userid_name] = schedMaster
+            dbstatus = schedMaster.generate()
+            a = json.dumps({"dbstatus":dbstatus})
+        else:
+            a = json.dumps({"error_code":schedMaster._error_code})
+            del schedMaster
+        return callback_name+'('+a+')'
+    elif db_type == 'tourndb':
+        tournSchedMaster = TournSchedMaster(mongoClient, userid_name, divcol_name,
+            fieldcol_name, schedcol_name)
 @route('/send_delta/<userid_name>/<col_name>/<action_type>/<field_id:int>')
 def send_delta(userid_name, col_name, action_type, field_id):
     callback_name = request.query.callback

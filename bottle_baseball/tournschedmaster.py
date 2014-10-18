@@ -1,7 +1,6 @@
 ''' Copyright YukonTR 2014 '''
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
-from rrdbinterface import RRDBInterface
 from scheddbinterface import SchedDBInterface
 from prefdbinterface import PrefDBInterface
 from teamdbinterface import TeamDBInterface
