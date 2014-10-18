@@ -26,7 +26,7 @@ class RRDBInterface(BaseDBInterface):
         self.dbinterface.updateInfoDocument(document_list, set_obj, 'DIV_ID')
 
     def updateDB(self, update_data_str):
-        # right now this update operation is hardcoded to update divfield_list only
+        # right now this update operation is hardcoded to update divfield_list
         update_data_list = json.loads(update_data_str)
         for update_obj in update_data_list:
             query_obj = {'DIV_ID':update_obj['div_id']}

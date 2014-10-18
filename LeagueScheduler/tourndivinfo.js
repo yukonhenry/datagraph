@@ -1,10 +1,10 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
-define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
+define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dgrid/editor", "dijit/form/NumberTextBox",
 	"dijit/form/ValidationTextBox","LeagueScheduler/baseinfo",
 	"LeagueScheduler/baseinfoSingleton", "put-selector/put",
 	"dojo/domReady!"],
-	function(declare, dom, lang, registry, editor, NumberTextBox,
+	function(declare, dom, lang, arrayUtil, registry, editor, NumberTextBox,
 		ValidationTextBox, baseinfo, baseinfoSingleton, put) {
 		var constant = {
 			idproperty_str:"tourndiv_id",
@@ -144,8 +144,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
 					// make sure one of the keys matches the idProperty used for
 					// store.
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
-						totalteams:2, rrgames_num:1, gameinterval:60,
-						mingap_time:60});
+						totalteams:2, rrgames_num:2, gameinterval:80,
+						mingap_time:120});
 				}
 				return info_list;
 			},

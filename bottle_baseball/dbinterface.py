@@ -49,13 +49,14 @@ _PlusList_Status = namedtuple('_PlusList_Status', 'list config_status divstr_col
 # http://pythonhosted.org/flufl.enum/docs/using.html
 class DB_Col_Type(Enum):
     RoundRobin = 1
-    ElimTourn = 2
+    TournRR = 2
     FieldInfo = 3
     GeneratedSchedule = 4
     PreferenceInfo = 5
     TeamInfo = 6
     ConflictInfo = 7
     UserInfo = 8
+    ElimTourn = 9
 
 class MongoDBInterface:
     def __init__(self, mongoClient, userid_name=None, collection_name=None,

@@ -196,7 +196,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				} else {
 					storedata_json = JSON.stringify(raw_result);
 					// no server key
-					server_key_obj = dict()
+					server_key_obj = {};
 					this.sendData_Server_DB(storedata_json, config_status,
 						server_key_obj);
 				}

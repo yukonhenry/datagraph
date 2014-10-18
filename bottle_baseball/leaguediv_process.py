@@ -144,9 +144,11 @@ def create_newdbcol(userid_name, db_type, newcol_name):
     # ints that come across as strings over the wire back to int
     config_status = int(request.query.config_status)
     dbInterface = select_db_interface(userid_name, db_type, newcol_name)
-    if db_type in ['rrdb', 'tourndb']:
+    if db_type == 'rrdb':
         oddnum_mode = int(request.query.oddnum_mode)
         dbInterface.writeDB(info_data, config_status, oddnum_mode)
+    elif db_type == 'tourndb':
+        dbInterface.writeDB(info_data, config_status)
     elif db_type in ['fielddb', 'prefdb', 'teamdb', 'conflictdb']:
         # get divinfo parameters associated with fieldinfo obj
         divstr_colname = request.query.divstr_colname
@@ -216,18 +218,6 @@ def get_dbcol(userid_name, db_type, getcol_name):
                 'info_list':info_list, 'config_status':config_status}
             return_obj.update({'divstr_obj':divstr_obj})
     a = json.dumps(return_obj)
-    return callback_name+'('+a+')'
-
-@route('/get_scheddbcol/<getcol_name>')
-def get_scheddbcol(getcol_name):
-    callback_name = request.query.callback
-    divcode = int(request.query.divisioncode)
-    # revisit whether this call should be made against RRDBInterface
-    # or TournDBInterface
-    div = getTournAgeGenderDivision(divcode)
-    tdbInterface = TournDBInterface(mongoClient, getcol_name)
-    game_list = tdbInterface.readSchedDB(div.age, div.gender)
-    a = json.dumps({'game_list':game_list})
     return callback_name+'('+a+')'
 
 @route('/send_generate/<userid_name>')
@@ -383,7 +373,7 @@ def get_dbcollection(userid_name):
     rrdbcol_list = generic_dbInterface.getScheduleCollection(
         DB_Col_Type.RoundRobin, userid_name)
     tourndbcol_list = generic_dbInterface.getScheduleCollection(
-        DB_Col_Type.ElimTourn, userid_name)
+        DB_Col_Type.TournRR, userid_name)
     #cupschedcol_list = generic_dbInterface.getCupScheduleCollections(, userid_name)
     fielddb_list = generic_dbInterface.getScheduleCollection(
         DB_Col_Type.FieldInfo, userid_name)
