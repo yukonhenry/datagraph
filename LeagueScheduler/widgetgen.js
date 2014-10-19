@@ -226,6 +226,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var divstr_db_type = info_obj.divstr_db_type;
                 var db_type = (divstr_db_type == "") ?
                     constant.default_db_type:divstr_db_type;
+                var idproperty_str = (db_type == 'rrdb')?'div_id':'tourndiv_id'
                 if (colname) {
                     // first check to see whether data is in a current grid store
                     // Note info_obj points to where the divstr_list will eventually
@@ -234,7 +235,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // Reference w newschedulerbase/getdivselect_dropdown; info_obj
                     // is Not necessarily divinfo
                     // NOTE 'div_id' for get_obj should be a passed parameter as the obj might be tourndiv_id idprop object
-                    var divinfo_obj = baseinfoSingleton.get_obj('div_id', info_obj.op_type);
+                    var divinfo_obj = baseinfoSingleton.get_obj(idproperty_str,
+                        info_obj.op_type);
                     var options_obj = {colname:colname, info_obj:info_obj,
                         db_type:db_type};
                     if (divinfo_obj && divinfo_obj.infogrid_store &&
@@ -276,6 +278,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 // config_status below should always be 1 as the db's are selected
                 // from a list that includes only fully complete configurations
                 if (config_status) {
+                    var idproperty_str = (db_type == "rrdb")?'div_id':'tourndiv_id';
                     var divstr_list = arrayUtil.map(data_list,
                         function(item, index) {
                             // return both the divstr (string) and div_id value
@@ -285,13 +288,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                             // divfield_list and fieldcol_name can be undefined
                             // if field list has not been configured and divfield_list
                             // calculated.
-                            return {'divstr':item.div_age + item.div_gen,
-                                'div_id':item.div_id, 'totalteams':item.totalteams,
-                                'divfield_list':item.divfield_list
+                            var return_obj = {divstr:item.div_age + item.div_gen,
+                                //div_id:item.div_id,
+                                totalteams:item.totalteams,
+                                divfield_list:item.divfield_list
                                 //'divfield_list':item.divfield_list,
                                 //'fieldcol_name':item.fieldcol_name
                             };
-                        })
+                            return_obj[idproperty_str] = item[idproperty_str];
+                            return return_obj;
+                    })
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
                     info_obj.setdivstr_obj(colname, db_type);

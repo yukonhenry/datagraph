@@ -425,8 +425,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					this.gridrow_handle.remove();
 				this.gridrow_handle = this.editgrid.schedInfoGrid.on(
 					"dgrid-select",lang.hitch(this, function(event) {
-						var event_data = event.rows[0].data;
-						this.selected_gridrow = event_data[this.idproperty]
+						if ('rows' in event) {
+							var event_data = event.rows[0].data;
+							this.selected_gridrow = event_data[this.idproperty]
+						}
 					})
 				)
 			},

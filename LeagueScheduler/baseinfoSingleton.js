@@ -14,7 +14,7 @@ define(["dojo/_base/declare", "dojo/_base/array", "dojo/_base/lang",
 				this.watch_list = new Array();
 				arrayUtil.forEach(['advance', 'wizard'], function(item) {
 					arrayUtil.forEach(['field_id', 'pref_id', 'div_id', 'team_id',
-						'conflict_id'], function(id) {
+						'conflict_id', 'tourndiv_id'], function(id) {
 						// create separate watch object for each op_type and id
 						// separate watch obj necessary as different info_obj's
 						// may have different divstr_list's depending on the

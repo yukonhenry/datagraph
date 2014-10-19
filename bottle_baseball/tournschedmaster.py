@@ -2,9 +2,6 @@
 from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from scheddbinterface import SchedDBInterface
-from prefdbinterface import PrefDBInterface
-from teamdbinterface import TeamDBInterface
-from conflictdbinterface import ConflictDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
 from collections import namedtuple
@@ -23,26 +20,16 @@ PREFINFODATE_ERROR_MASK = 0x4
 # main class for launching schedule generator
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
-class SchedMaster(object):
-    def __init__(self, mongoClient, userid_name, db_type, divcol_name,
-        fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
+class TournSchedMaster(object):
+    def __init__(self, mongoClient, userid_name, divcol_name, fieldcol_name, schedcol_name):
         self._error_code = 0x0
         self.userid_name = userid_name
         self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
             schedcol_name)
         # db_type is for the divinfo schedule attached to the fielddb spec
-        if db_type == 'rrdb':
-            dbInterface = RRDBInterface(mongoClient, userid_name, divcol_name)
-        elif db_type == 'tourndb':
-            dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name)
-        else:
-            raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
+        dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name)
         dbtuple = dbInterface.readDBraw()
         if dbtuple.config_status == 1:
-            if dbtuple.oddnum_mode == 1:
-                self.oddnumplay_mode = True
-            else:
-                self.oddnumplay_mode = False
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
             self.divinfo_tuple = _List_Indexer(self.divinfo_list,
@@ -51,7 +38,6 @@ class SchedMaster(object):
             self.divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
-            self.oddnumplay_mode = False
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name)
         fdbtuple = fdbInterface.readDBraw();
@@ -72,78 +58,17 @@ class SchedMaster(object):
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
         else:
             self.simplifydivfield_list()
-        # get team-related field affinity information, if any
-        # use divcol_name as it shares collection name w divinfo
-        tmdbInterface = TeamDBInterface(mongoClient, userid_name, divcol_name)
-        if tmdbInterface.check_docexists():
-            tmdbtuple = tmdbInterface.readDBraw()
-            # recreate tminfo_list from db read, but leave out fields such as
-            # team name which is not needed for schedule generation
-            tminfo_list = [{'dt_id':x['dt_id'], 'div_id':x['div_id'],
-                'tm_id':x['tm_id'], 'af_list':x['af_list']}
-                for x in tmdbtuple.list]
-            # indexerGet for specific div_id and team_id match
-            tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
-            # indexermatch for list of team matches for specified div_id
-            tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x]
-            # _List_IndexerM gets dereferenced using indexerMatch instead of
-            # indexerGet
-            tminfo_tuple = _List_IndexerGM(tminfo_list, tminfo_indexerGet,
-                tminfo_indexerMatch)
-        else:
-            tminfo_tuple = None
-        # get pref list information, if any
-        if prefcol_name:
-            # preference list use is optional - only process if preference list
-            # exists
-            pdbInterface = PrefDBInterface(mongoClient, userid_name, prefcol_name)
-            pdbtuple = pdbInterface.readDBraw();
-            if pdbtuple.config_status == 1:
-                prefinfo_list = pdbtuple.list
-                prefinfo_indexerGet = lambda x: dict((p['pref_id'],i) for i,p in enumerate(prefinfo_list)).get(x)
-                prefinfo_indexerMatch = lambda x: [i for i,p in
-                    enumerate(prefinfo_list) if p['div_id'] == x]
-                prefinfo_triple = _List_IndexerGM(prefinfo_list,
-                    prefinfo_indexerGet, prefinfo_indexerMatch)
-            else:
-                prefinfo_triple = None
-                # raise error as client should only be displaying in select widget
-                # conflict lists that have config status complete
-                raise CodeLogicError("schedmaster:init: pref config not complete=%s" % (prefcol_name,))
-        else:
-            pdbInterface = None
-            prefinfo_triple = None
 
-        if conflictcol_name:
-            cdbInterface = ConflictDBInterface(mongoClient, userid_name,
-                conflictcol_name)
-            cdbtuple = cdbInterface.readDBraw()
-            if cdbtuple.config_status == 1:
-                conflictinfo_list = cdbtuple.list
-                #cindexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflictinfo_list)).get(x)
-                #conflictinfo_tuple = _List_Indexer(conflictinfo_list, cindexerGet)
-            else:
-                conflictinfo_list = None
-                #conflictinfo_tuple = None
-                # raise error as client should only be displaying in select widget
-                # conflict lists that have config status complete
-                raise CodeLogicError("schedmaster:init: conflict config not complete=%s" % (conflictcol_name,))
-        else:
-            conflictinfo_list = None
-            cdbInterface = None
-            #conflictinfo_tuple = None
-        if self.divinfo_tuple.dict_list and prefinfo_triple and prefinfo_triple.dict_list:
-            if not self.consistency_check(prefinfo_triple.dict_list):
-                self._error_code |= PREFINFODATE_ERROR_MASK
         if not self._error_code:
-            self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
-                prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)
+            self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name)
+            '''
             self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
                 dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
                 fieldinfo_tuple=self.fieldinfo_tuple,
                 prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
                 tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
                 cdbinterface=cdbInterface)
+            '''
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 
@@ -239,30 +164,6 @@ class SchedMaster(object):
                 'field_name':self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['field_name']}
                 for x in divinfo['divfield_list']]
             return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
-
-    def consistency_check(self, prefinfo_list):
-        '''preference info date consistency check against calendar map'''
-        cmap_list = list()
-        cindexerGet = lambda x: dict((p['date'],i)
-            for i,p in enumerate(cmap_list)).get(x)
-        for prefinfo in prefinfo_list:
-            game_date = parser.parse(prefinfo['game_date'])
-            for fieldinfo in self.fieldinfo_list:
-                cmap_list = fieldinfo['calendarmap_list']
-                index = cindexerGet(game_date)
-                if index is not None:
-                    # match found, break
-                    break
-            else:
-                # no match found, go to next prefinfo
-                continue
-            # match already found, break from prefinfo loop
-            break
-        else:
-            # prefinfo and fieldinfo list calendarmap not consistent
-            return False
-        # consistent, success
-        return True
 
     def getHTMLTeamTable(self, div_age, div_gen, team_id):
         # https://pypi.python.org/pypi/html/

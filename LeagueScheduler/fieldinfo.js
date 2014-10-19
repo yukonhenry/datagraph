@@ -850,12 +850,13 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var content_str = "";
 				var checkboxid_list = new Array();
 				var div_list = new Array();
+				var idproperty_str = (this.divstr_db_type == 'rrdb')?'div_id':'tourndiv_id';
 				arrayUtil.forEach(divstr_list, function(divstr_obj) {
 					var divstr = divstr_obj.divstr;
 					div_list.push(divstr);
 					var idstr = this.op_prefix+"checkbox"+divstr+field_id+"_id";
 					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-					'" value="'+divstr_obj.div_id+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+					'" value="'+divstr_obj[idproperty_str]+'"><label for="'+idstr+'">'+divstr+'</label><br>';
 					checkboxid_list.push(idstr);
 				}, this);
 				var button_id = this.op_prefix+'tdialogbtn'+field_id+'_id';
@@ -1172,11 +1173,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var config_status = divstr_obj.config_status;
 				var info_list = divstr_obj.info_list;
 				// hack for now; for correct implementation look at init_checkbox function and modify checkboxid_list to include div_id key
-				// make sure divstr_list is sorted according to div_id
-				/*
-				info_list.sort(function(a,b) {
-					return a.div_id-b.div_id;
-				}) */
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
 				// if divstr parameters were saved with fieldgrid info and returned
@@ -1197,13 +1193,17 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// however, there is a chance that a non-config-complete fieldgrid
 				// was saved to the server.
 				if (config_status) {
-					var divstr_list = arrayUtil.map(info_list,
-						function(item, index) {
-                            // return both the divstr (string) and div_id value
-                            // value used as the value for the checkbox in the fieldinfo grid dropdown
-                            return {'divstr':item.div_age + item.div_gen,
-                                'div_id':item.div_id};
-                        })
+					var idproperty_str = (this.divstr_db_type == "rrdb")?'div_id':'tourndiv_id';
+					var distr_list = divstr_list = arrayUtil.map(info_list,
+							function(item, index) {
+	                            // return both the divstr (string) and div_id value
+	                            // value used as the value for the checkbox in the fieldinfo grid dropdown
+	                            var return_obj = {
+	                            	divstr:item.div_age + item.div_gen};
+								return_obj[idproperty_str] = item[idproperty_str];
+	                            return return_obj;
+	                    	}
+					)
                     // save divinfo obj information that is attached to the current
                     // fieldinfo obj
                     baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
@@ -1219,6 +1219,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// field_id to div_id_list which is done in this grid/column)
 				// and save to divinfo db
 				var map_divfield_list = new Array();
+				var idproperty_str = (this.divstr_db_type == "rrdb")?'div_id':'tourndiv_id';
 				arrayUtil.forEach(raw_result, function(item) {
 					var field_id = item.field_id;
 					var field_name = item.field_name;
@@ -1234,7 +1235,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						// first see if there is an entry where the div_id matches
 						var match_obj = arrayUtil.filter(map_divfield_list,
 						function(item) {
-							return (item.div_id == div_id)
+							return (item[idproperty_str] == div_id)
 						})[0];
 						if (match_obj) {
 							// if div_id matches, append current field_id, field
@@ -1246,18 +1247,24 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 							// if not create a new div_id/field list obj element
 							// also add reference to current field collection name
 							// provide reference col name for field_id value
+							var map_divfield_obj = {
+								fieldcol_name:this.activegrid_colname,
+								divfield_list:[{field_id:field_id,
+									field_name:field_name}]}
+							map_divfield_obj[idproperty_str] = div_id;
+							map_divfield_list.push(map_divfield_obj);
+							/*
 							map_divfield_list.push({div_id:div_id,
 								fieldcol_name:this.activegrid_colname,
 								divfield_list:[{field_id:field_id,
-									field_name:field_name}]});
+									field_name:field_name}]}); */
 						}
 					}, this)
 				}, this)
 				// if we created the div to divfield map, then save it -
 				// first see if there is a local divinfo store that we can write to
 				if (map_divfield_list) {
-					var idproperty = (this.divstr_db_type == "rrdb")?'div_id':'tourndiv_id';
-					var divinfo_obj = baseinfoSingleton.get_obj(idproperty,
+					var divinfo_obj = baseinfoSingleton.get_obj(idproperty_str,
 						this.op_type);
 					if (divinfo_obj && divinfo_obj.infogrid_store &&
 						divinfo_obj.activegrid_colname == this.divstr_colname) {
@@ -1266,7 +1273,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						// db store - Note we are not writing to the fielddb store
 						var infogrid_store = divinfo_obj.infogrid_store;
 						arrayUtil.forEach(map_divfield_list, function(map_obj) {
-							var store_obj = infogrid_store.get(map_obj.div_id);
+							var store_obj = infogrid_store.get(
+								map_obj[idproperty_str]);
 							if (store_obj) {
 								store_obj.fieldcol_name = map_obj.fieldcol_name;
 								store_obj.divfield_list = map_obj.divfield_list;
@@ -1317,7 +1325,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
         		// create list of available dates during last week
         		//calc # days between start and end dates
         		// http://dojotoolkit.org/reference-guide/1.9/dojo/date.html
-        		var diffdays_num = date.difference(start_date, end_date);
+        		// add one to include the end date
+        		var diffdays_num = date.difference(start_date, end_date)+1;
         		var diffweeks_num = date.difference(start_date, end_date,
         			'week');
         		// get current configuration for days-of-week and it's length
@@ -1331,7 +1340,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
         		// calc baseline # of fielddays based on full weeks
         		var totalfielddays = dayweek_len * diffweeks_num;
         		// calc num days in last week (can be partial week)
-        		var lastwkdays_num = diffdays_num % diffweeks_num;
+        		var lastwkdays_num = diffdays_num % 7;
         		var lw_list = 0;
         		if (lastwkdays_num > 0) {
         			if (end_day >= start_day) {

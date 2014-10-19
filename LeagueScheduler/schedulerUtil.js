@@ -234,6 +234,9 @@ define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 			intersect: function(array1, array2) {
 				//Intersection of two arrays to find common eleemnts
 				//http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+				// make sure arrays are sorted, as intersection depends on it
+				array1.sort(function(a, b){return a-b});
+				array2.sort(function(a, b){return a-b});
 				var result = [];
 				// Don't destroy the original arrays
 				var a = array1.slice(0);

@@ -28,6 +28,17 @@ class TournDBInterface(BaseDBInterface):
         set_obj = {'CONFIG_STATUS':config_status}
         self.dbinterface.updateInfoDocument(document_list, set_obj, IDPROPERTY)
 
+    def updateDB(self, update_data_str):
+        # right now this update operation is hardcoded to update divfield_list
+        update_data_list = json.loads(update_data_str)
+        for update_obj in update_data_list:
+            query_obj = {IDPROPERTY:update_obj['tourndiv_id']}
+            # field collection name is an item assocated with divfield list -
+            # provides reference col name if dereference field_id is required
+            operator_obj = {"DIVFIELD_LIST":update_obj['divfield_list'],
+                "FIELDCOL_NAME":update_obj['fieldcol_name']}
+            self.dbinterface.updatedoc(query_obj, "$set", operator_obj)
+
     def readDB(self):
         listresult_tuple = self.dbinterface.getInfoDocument(IDPROPERTY)
         divlist = listresult_tuple.list
