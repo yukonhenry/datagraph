@@ -3,7 +3,7 @@ from tourndbinterface import TournDBInterface
 from fielddbinterface import FieldDBInterface
 from scheddbinterface import SchedDBInterface
 from matchgenerator import MatchGenerator
-from fieldtimescheduler import FieldTimeScheduleGenerator
+from tournfieldtimescheduler import TournamentFieldTimeScheduleGenerator
 from collections import namedtuple
 from dateutil import parser
 import logging
@@ -66,14 +66,9 @@ class TournSchedMaster(object):
 
         if not self._error_code:
             self.sdbInterface.setschedule_param(DB_TYPE, divcol_name, fieldcol_name)
-            '''
-            self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
+            self.fieldtimeScheduleGenerator = TournamentFieldTimeScheduleGenerator(
                 dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
-                fieldinfo_tuple=self.fieldinfo_tuple,
-                prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
-                tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-                cdbinterface=cdbInterface)
-            '''
+                fieldinfo_tuple=self.fieldinfo_tuple)
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 
@@ -126,6 +121,7 @@ class TournSchedMaster(object):
                 index = running_index
             totalmatch_list.append({IDPROPERTY_str: divinfo[IDPROPERTY_str],
                 'match_list':match_list, 'max_round':vgames_num})
+        self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list)
         status = True
         return 1 if status else 0
     def generate(self):

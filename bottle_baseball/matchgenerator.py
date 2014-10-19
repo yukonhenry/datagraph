@@ -9,7 +9,7 @@ home_CONST = 'HOME'
 away_CONST = 'AWAY'
 home_index_CONST = 0
 away_index_CONST = 1
-game_team_CONST = 'GAME_TEAM'
+GAME_TEAM = 'game_team'
 large_CONST = 1e7
 #import pdb
 #http://www.tutorialspoint.com/python/python_classes_objects.htm
@@ -129,7 +129,7 @@ class MatchGenerator(object):
         # ref http://stackoverflow.com/questions/2597104/break-the-nested-double-loop-in-python
         # for breaking out of double loops
         for (match_by_round, max_ind, min_ind) in product(self.match_by_round_list, maxdiff_ind_list, mindiff_ind_list):
-            round_list = match_by_round[game_team_CONST]
+            round_list = match_by_round[GAME_TEAM]
             round_id = match_by_round['round_id']
             max_team_id = max_ind + 1
             min_team_id = min_ind + 1
@@ -216,7 +216,7 @@ class MatchGenerator(object):
                     gamecount_id = edgematch['gamecount_id']
                     gamecount_index = gamecount_indexer.get(gamecount_id)
                     match_by_round = self.match_by_round_list[gamecount_index]
-                    round_list = match_by_round[game_team_CONST]
+                    round_list = match_by_round[GAME_TEAM]
                     try:
                         # note match_ind is just the position in the round_list, and not the
                         # round_id/game_count_id
@@ -371,7 +371,7 @@ class MatchGenerator(object):
                 else:
                     CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" % (CCW_team, CW_team))
             # round id is 1-index based, equivalent to team# at top of circle
-            self.match_by_round_list.append({'round_id':game_count, game_team_CONST:round_list})
+            self.match_by_round_list.append({'round_id':game_count, GAME_TEAM:round_list})
         return game_count
 
     def generateMatchList(self, teamid_map=None):
@@ -402,6 +402,6 @@ class MatchGenerator(object):
     def mapTeamID(self, teamid_map):
         # ref http://stackoverflow.com/questions/4291236/edit-the-values-in-a-list-of-dictionaries
         for round_matches in self.match_by_round_list:
-            game_list = round_matches[game_team_CONST]
+            game_list = round_matches[GAME_TEAM]
             for game in game_list:
                 game.update((k,teamid_map[v-1]) for k,v in game.iteritems())

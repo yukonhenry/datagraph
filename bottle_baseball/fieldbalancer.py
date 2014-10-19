@@ -13,6 +13,7 @@ from collections import namedtuple
 
 HOME = 'HOME'
 AWAY = 'AWAY'
+GAME_TEAM = 'game_team'
 BALANCEWEIGHT = 2
 field_iteration_max_CONST = 15
 mindiff_count_max_CONST = 4
@@ -1254,7 +1255,7 @@ class FieldBalancer(object):
         they are played. '''
         opponent_list = list()
         for perround_data in match_list:
-            perround_game_list = perround_data['GAME_TEAM']
+            perround_game_list = perround_data[GAME_TEAM]
             for game in perround_game_list:
                 if game['HOME'] == team_id:
                     opponent_list.append(game['AWAY'])

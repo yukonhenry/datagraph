@@ -11,7 +11,7 @@ away_CONST = 'AWAY'
 venue_count_CONST = 'VCNT'
 home_index_CONST = 0
 away_index_CONST = 1
-game_team_CONST = 'GAME_TEAM'
+game_team_CONST = 'game_team'
 venue_CONST = 'VENUE'
 # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
 time_format_CONST = '%H:%M'

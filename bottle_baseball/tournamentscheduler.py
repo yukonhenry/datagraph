@@ -3,7 +3,7 @@ from random import shuffle, seed
 import logging
 from sched_exceptions import CodeLogicError
 from matchgenerator import MatchGenerator
-from tournfieldtimescheduler import TournamentFieldTimeScheduler
+from tournfieldtimescheduler import TournamentFieldTimeScheduleGenerator
 from tourndbinterface import TournDBInterface
 from schedule_util import any_ismore, any_isless
 from sched_exporter import ScheduleExporter
@@ -83,7 +83,7 @@ class TournamentScheduler:
                     game_team_list = [{'HOME':i,'AWAY':j} for i,j in zip(partialgame_list[0], partialgame_list[1])]
                     print 'PARTIAL GAMETEAMLIST', game_team_list
                     match_list.append([{'ROUND_ID':virtualgamedays,
-                                      'GAME_TEAM':game_team_list}])
+                                      'game_team':game_team_list}])
 
             totalmatch_list.append({'div_id': division['div_id'],
                                     'match_list':match_list, 'max_round':virtualgamedays})

@@ -20,7 +20,7 @@ from conflictprocess import ConflictProcess
 from pprint import pprint
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
-game_team_CONST = 'GAME_TEAM'
+GAME_TEAM = 'game_team'
 PRIORITY_1_RANGE = [1]
 PRIORITY_2_RANGE = [2,3]
 PRIORITY_3_RANGE = [4,5]
@@ -251,7 +251,7 @@ class FieldTimeScheduleGenerator:
                     if rindex is not None:
                         div_id = div_dict['div_id']
                         match_list = divmatch_list[rindex]
-                        game_list = match_list[game_team_CONST]
+                        game_list = match_list[GAME_TEAM]
                         round_match_list = []
                         for game in game_list:
                             round_match_list.append({'div_id':div_id, 'game':game,
