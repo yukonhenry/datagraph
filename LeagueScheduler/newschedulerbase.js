@@ -343,7 +343,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
 				var pref_select_id = this.opconstant_obj.pref_select_id;
 				var conflict_select_id = this.opconstant_obj.conflict_select_id;
-
+				this.current_db_type = divdb_type;
 				var divcol_name = (typeof divcol_name === "undefined" ||
 					divcol_name === null) ? "" : divcol_name;
 				var fieldcol_name = (typeof fieldcol_name === "undefined" ||
@@ -492,6 +492,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var prefcol_name = (typeof prefcol_name === "undefined" || prefcol_name === null) ? "" : prefcol_name;
 				var conflictcol_name = (typeof conflictcol_name === "undefined" ||
 					conflictcol_name === null) ? "" : conflictcol_name;
+				this.current_db_type = divdb_type;
 				this.newsched_dom.innerHTML = "Schedule Name: <b>"+this.newsched_name+"</b>";
 				this.widgetgen.reload_dbytpe_radiobtn(radio1_id, radio2_id, divdb_type);
 				// div league select
@@ -759,11 +760,13 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// cross-reference widgetgen/get_leagueparam_list
 				var select_value = this.league_select_value;
 				var db_type = this.current_db_type;
+				var div_id_property = (db_type == 'rrdb')?'div_id':'tourndiv_id';
 				// check if the divselect_reg divsion select drop-down
 				// for team id selection has been created; if it has not
 				// create the dropdown.
 				// first see if divinfo information is in current store
-				var divinfo_obj = baseinfoSingleton.get_obj('div_id', this.op_type);
+				var divinfo_obj = baseinfoSingleton.get_obj(div_id_property,
+					this.op_type);
 				if (divinfo_obj && divinfo_obj.infogrid_store &&
 					divinfo_obj.activegrid_colname == select_value) {
 					// if in store, get data and create dropdown

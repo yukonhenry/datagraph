@@ -242,10 +242,19 @@ def send_generate(userid_name):
         else:
             a = json.dumps({"error_code":schedMaster._error_code})
             del schedMaster
-        return callback_name+'('+a+')'
     elif db_type == 'tourndb':
-        tournSchedMaster = TournSchedMaster(mongoClient, userid_name, divcol_name,
+        schedMaster = TournSchedMaster(mongoClient, userid_name, divcol_name,
             fieldcol_name, schedcol_name)
+        if not schedMaster.error_code:
+            # save schedMaster to global obj to reuse on get_schedule
+            _routelogic_obj.schedmaster_map[userid_name] = schedMaster
+            dbstatus = schedMaster.prepGenerate()
+            a = json.dumps({"dbstatus":dbstatus})
+        else:
+            a = json.dumps({"error_code":schedMaster._error_code})
+            del schedMaster
+    return callback_name+'('+a+')'
+
 @route('/send_delta/<userid_name>/<col_name>/<action_type>/<field_id:int>')
 def send_delta(userid_name, col_name, action_type, field_id):
     callback_name = request.query.callback

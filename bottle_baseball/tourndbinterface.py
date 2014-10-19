@@ -55,7 +55,7 @@ class TournDBInterface(BaseDBInterface):
     def readDBraw(self):
         liststatus_tuple = self.dbinterface.getInfoDocument(IDPROPERTY)
         divlist = liststatus_tuple.list
-        result = listresult_tuple.result
+        result = liststatus_tuple.result
         config_status = result['CONFIG_STATUS']
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
         return _List_Status(divinfo_list, config_status)

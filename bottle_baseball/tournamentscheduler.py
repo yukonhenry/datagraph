@@ -87,7 +87,8 @@ class TournamentScheduler:
 
             totalmatch_list.append({'div_id': division['div_id'],
                                     'match_list':match_list, 'max_round':virtualgamedays})
-        tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface, self.tfield_tuple,
+        tourn_ftscheduler = TournamentFieldTimeScheduler(self.tdbInterface,
+            self.tfield_tuple,
                                                          self.tourn_divinfo,
                                                          self.tindexerGet)
         tourn_ftscheduler.generateSchedule(totalmatch_list)
