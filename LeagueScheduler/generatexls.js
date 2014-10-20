@@ -36,6 +36,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			idproperty:constant.idproperty_str, idmgr_obj:null, op_type:"",
 			server_interface:null, schedcol_name:"",
 			stackcpane_list:null, stackcontainer_widget:null, userid_name:"",
+			db_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -111,7 +112,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							var descrip_str = item.descrip_str;
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
-								this.schedcol_name+'/'+item.genxls_id,
+								this.schedcol_name+'/'+this.db_type+'/'+
+								item.genxls_id,
 								lang.hitch(this, this.create_links), null,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}

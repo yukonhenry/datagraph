@@ -59,6 +59,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				};
 				return columnsdef_obj;
 			},
+			getfixedcolumnsdef_obj: function () {
+				var columnsdef_obj = {
+					tourndiv_id:"Div ID",
+					div_age:"Age Group/Primary Group ID",
+					div_gen:"Gender/Secondary Group ID",
+					totalteams:"Total #Teams",
+					totalgamedays:"Total # Games",
+					gameinterval:"Game Interval(min)",
+					mingap_time:"Minimum Gap Time(min)"
+				};
+				return columnsdef_obj;
+			},
 			initialize: function(newgrid_flag, op_type) {
 				var op_type = (typeof op_type === "undefined" || op_type === null) ? "advance" : op_type;
 				var form_id = this.idmgr_obj.form_id;

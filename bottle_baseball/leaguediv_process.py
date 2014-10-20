@@ -326,20 +326,26 @@ def get_teamtable(userid_name, schedcol_name, div_age, div_gen, team_id):
     a = json.dumps(return_dict)
     return callback_name+'('+a+')'
 
-@route('/get_xls/<userid_name>/<schedcol_name>/<genxls_id>')
-def get_xls(userid_name, schedcol_name, genxls_id):
+@route('/get_xls/<userid_name>/<schedcol_name>/<db_type>/<genxls_id>')
+def get_xls(userid_name, schedcol_name, db_type, genxls_id):
     callback_name = request.query.callback
     schedMaster = _routelogic_obj.schedmaster_map.get(userid_name)
     if schedMaster is None:
         dbInterface = SchedDBInterface(mongoClient, userid_name, schedcol_name)
         param = dbInterface.getschedule_param()
-        schedMaster = SchedMaster(mongoClient, userid_name, param['divdb_type'],
-            param['divcol_name'], param['fieldcol_name'], schedcol_name,
-            prefcol_name=param['prefcol_name'],
-            conflictcol_name=param['conflictcol_name'])
+        if db_type == 'rrdb':
+            schedMaster = SchedMaster(mongoClient, userid_name, param['divdb_type'],
+                param['divcol_name'], param['fieldcol_name'], schedcol_name,
+                prefcol_name=param['prefcol_name'],
+                conflictcol_name=param['conflictcol_name'])
+        elif db_type == 'tourndb':
+            schedMaster = TournSchedMaster(mongoClient, userid_name,
+                param['divcol_name'], param['fieldcol_name'], schedcol_name)
         if not schedMaster.error_code:
             # save schedMaster to global obj to reuse on get_schedule
             _routelogic_obj.schedmaster_map[userid_name] = schedMaster
+        else:
+            del schedMaster
     if schedMaster.schedcol_name == schedcol_name:
         xls_exporter = schedMaster.xls_exporter
         if xls_exporter is None:
@@ -348,7 +354,7 @@ def get_xls(userid_name, schedcol_name, genxls_id):
                 fieldinfo_tuple=schedMaster.fieldinfo_tuple,
                 sdbInterface=schedMaster.sdbInterface)
             schedMaster.xls_exporter = xls_exporter
-        file_list = xls_exporter.export(genxls_id)
+        file_list = xls_exporter.export(genxls_id, db_type)
         return_dict = {'file_list':file_list}
     else:
         return_dict = {}

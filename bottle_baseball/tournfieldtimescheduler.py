@@ -8,7 +8,6 @@ from datetime import timedelta
 from dateutil import parser
 from copy import deepcopy
 from collections import namedtuple
-from leaguedivprep import getTournAgeGenderDivision
 from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, CodeLogicError, SchedulerConfigurationError
 import logging
 from math import ceil
@@ -127,25 +126,31 @@ class TournamentFieldTimeScheduleGenerator:
                     selected_tfstatus['teams'] = rrgame
                     self.updateTeamTimeGap_list(div_id, home, away, efieldday_id, selected_tfstatus['start_time']+gameinterval)
             for field_id in fieldset:
-                fieldday_id = 1
-                for fieldday_list in self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list']:
-                    if fieldday_list:
-                        for match in fieldday_list['sstatus_list']:
-                            if match['isgame']:
-                                gametime = match['start_time']
-                                teams = match['teams']
-                                div_id = teams[IDPROPERTY_str]
-                                home_id = teams['home']
-                                away_id = teams['away']
-                                div = getTournAgeGenderDivision(div_id)
-                                print div.age, div.gender, fieldday_id, field_id, home_id, away_id, teams, gametime
-                                '''
-                                self.dbinterface.insertGameData(age=div.age,
-                                    gen=div.gender, fieldday_id,
-                                    start_time=gametime.strftime(time_format_CONST),
-                                    venue=field_id, home=home_id, away=away_id)
-                                '''
-                    fieldday_id += 1
+                for fieldday_id, slotstatus_list in enumerate(
+                    self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list'], start=1):
+                    if not slotstatus_list:
+                        continue
+                    game_date = slotstatus_list['game_date']
+                    for match in slotstatus_list['sstatus_list']:
+                        if match['isgame']:
+                            start_time = match['start_time']
+                            teams = match['teams']
+                            div_id = teams[IDPROPERTY_str]
+                            home_id = teams['home']
+                            away_id = teams['away']
+                            div = div = self.divinfo_list[self.dindexerGet(div_id)]
+                            self.dbinterface.insertGameData(age=div['div_age'],
+                                gen=div['div_gen'], fieldday_id=fieldday_id,
+                                #game_date_str=game_date.strftime(date_format_CONST),
+                                #start_time_str=gametime.strftime(time_format_CONST),
+                                game_date=game_date, start_time=start_time,
+                                venue=field_id, home=home_id, away=away_id)
+                            '''
+                            self.dbinterface.insertGameData(age=div.age,
+                                gen=div.gender, fieldday_id,
+                                start_time=gametime.strftime(time_format_CONST),
+                                venue=field_id, home=home_id, away=away_id)
+                            '''
         self.dbinterface.setsched_status()
 
     def getTournFieldSeasonStatus_list(self):
@@ -428,18 +433,12 @@ class TournamentFieldTimeScheduleGenerator:
                 gamestart += gameinterval
                 continue
             break
-            '''
-            if status_list:
-                status = status_list[0]
-                logging.debug("tournftscheduler:findalt:alt found gameday=%d slot=%d", gameday, slot_index)
-                #print 'alt field gameday target', status[0], gameday, target_slot
-                break
-            '''
         else:
             logging.debug("tournftscheduler:findaltfs:status_list is null gameday=%d target_start=%s div_id=%d home=%d away=%d",gameday, target_start, div_id, home, away)
             next_gameday = gameday + 1
             alt_list = None
-            while True or next_gameday > 3:
+            #while True or next_gameday > 3:
+            while True:
                 try:
                     alt_list = self.findNextEarliestFieldSlot(field_list, next_gameday, div_id)
                 except ValueError:

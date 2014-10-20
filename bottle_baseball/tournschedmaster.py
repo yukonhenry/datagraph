@@ -176,7 +176,7 @@ class TournSchedMaster(object):
                 divinfo['divfield_list'] = new_list
 
     def get_schedule(self, idproperty, propid, div_age="", div_gen=""):
-        if idproperty == 'div_id':
+        if idproperty == 'tourndiv_id':
             divinfo = self.divinfo_list[self.divinfo_indexerGet(propid)]
             game_list = self.sdbInterface.get_schedule(idproperty,
                 div_age=divinfo['div_age'], div_gen=divinfo['div_gen'])

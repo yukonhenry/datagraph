@@ -92,7 +92,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.newschedwatch_obj.set('league_fg_flag',
 							this.newschedwatch_obj.get('leagueselect_flag') && value);
 					}));
-				var resultpane_id_list = ['div_id', 'field_id', 'team_id',
+				var resultpane_id_list = ['div_id', 'tourndiv_id', 'field_id', 'team_id',
 					'fair_id', 'pref_id', 'conflict_id', 'xls_id'];
 				// reassign values for all the constant dom id's by adding an
 				// op_type (first three chars) prefix
@@ -123,18 +123,22 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				for (var key in idconstant) {
 					this.opconstant_obj[key] = op_prefix+idconstant[key]
 				}
-				this.info_grid_mapobj = {div_id:null, field_id:null, team_id:null,
+				this.info_grid_mapobj = {div_id:null, tourndiv_id:null,
+					field_id:null, team_id:null,
 					fair_id:null, pref_id:null, conflict_id:null};
-				this.info_handle_mapobj = {div_id:null, field_id:null,
+				this.info_handle_mapobj = {div_id:null, tourndiv_id:null,
+					field_id:null,
 					team_id:null, fair_id:null};
 				this.gridmethod_mapobj = {
 					div_id:lang.hitch(this, this.createdivsched_grid),
+					tourndiv_id:lang.hitch(this, this.createdivsched_grid),
 					field_id:lang.hitch(this, this.createfieldsched_grid),
 					team_id:lang.hitch(this, this.createteamsched_grid),
 					fair_id:lang.hitch(this, this.createfairsched_grid)};
-				this.sched_store_mapobj = {div_id:null, field_id:null,
+				this.sched_store_mapobj = {div_id:null, tourndiv_id:null,
+					field_id:null,
 					team_id:null, fair_id:null};
-				this.sched_grid_mapobj = {div_id:null, field_id:null, team_id:null,
+				this.sched_grid_mapobj = {div_id:null, tourndiv_id:null, field_id:null, team_id:null,
 					fair_id:null};
 				this.calendarmap_obj = new Object();
 				this.errormgr_obj = new ErrorManager();
@@ -582,11 +586,12 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedstatustxt_node);
 				// create new tab to hold table grid for newsched information
 				this.tabcontainer_reg = registry.byId(constant.tabcontainer_id);
-				var cpane_id = this.cpane_id_mapobj.div_id;
-				var cpane_txt_id = this.cpane_txt_id_mapobj.div_id;
-				var cpane_grid_id = this.cpane_grid_id_mapobj.div_id;
-				var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.div_id;
-				var cpane_schedheader_id = this.cpane_schedheader_id_mapobj.div_id;
+				var div_id_property = (this.current_db_type == 'rrdb')?'div_id':'tourndiv_id';
+				var cpane_id = this.cpane_id_mapobj[div_id_property];
+				var cpane_txt_id = this.cpane_txt_id_mapobj[div_id_property];
+				var cpane_grid_id = this.cpane_grid_id_mapobj[div_id_property];
+				var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[div_id_property];
+				var cpane_schedheader_id = this.cpane_schedheader_id_mapobj[div_id_property];
 				var args_obj = {
 					suffix_id:cpane_id,
 					// define contents of div pane
@@ -594,7 +599,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					title_suffix:' by Div',
 				}
 				this.createnewsched_pane(args_obj);
-				this.prepgrid_data('div_id', dbstatus);
+				this.prepgrid_data(div_id_property, dbstatus);
 				//--- results field pane
 				cpane_id = this.cpane_id_mapobj.field_id;
 				cpane_txt_id = this.cpane_txt_id_mapobj.field_id;
@@ -680,7 +685,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.xls_obj = new GenerateXLS({op_type:this.op_type,
 						server_interface:this.server_interface,
 						schedcol_name:this.newsched_name,
-						userid_name:this.userid_name});
+						userid_name:this.userid_name,
+						db_type:this.current_db_type});
 				}
 				this.xls_obj.generate_xlscpane_widgets(xls_cpane);
 			},
@@ -688,8 +694,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var statusnode_id = null;
 				var select_value = null;
 				var db_type = null;
-				if (idproperty == 'div_id') {
-					statusnode_id = this.cpane_txt_id_mapobj.div_id;
+				if (idproperty == 'div_id' || idproperty == 'tourndiv_id') {
+					statusnode_id = this.cpane_txt_id_mapobj[idproperty];
 					select_value = this.server_key_obj.divcol_name;
 					db_type = this.server_key_obj.db_type;
 					this.getgrid_data(idproperty, select_value, db_type);
@@ -777,18 +783,20 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// depends on config_status being true to create dropdown
 					data_obj.config_status = divinfo_obj.config_status;
 					this.createdivselect_dropdown(data_obj, {idproperty:idproperty,
-						select_id:select_id});
+						select_id:select_id, div_id_property:div_id_property});
 				} else {
 					// if not in store get from server
 					this.server_interface.getServerData(
 						'get_dbcol/'+this.userid_name+'/'+db_type+'/'+select_value,
 						lang.hitch(this, this.createdivselect_dropdown), null,
-						{idproperty:idproperty, select_id:select_id});
+						{idproperty:idproperty, select_id:select_id,
+							div_id_property:div_id_property});
 				}
 			},
 			createdivselect_dropdown:function(data_obj, options_obj) {
 				var idproperty = options_obj.idproperty;
 				var select_id = options_obj.select_id;
+				var div_id_property = options_obj.div_id_property;
 				if (data_obj.config_status == 1) {
 					var info_list = data_obj.info_list;
 					// compare against div dropdown function in schedutil
@@ -796,7 +804,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					arrayUtil.forEach(info_list, function(item, index) {
 						var divstr = item.div_age + item.div_gen;
 						// division code is 1-index based so increment by 1
-						option_list.push({label:divstr, value:item.div_id,
+						option_list.push({label:divstr, value:item[div_id_property],
 							selected:false, totalteams:item.totalteams,
 							div_age:item.div_age, div_gen:item.div_gen});
 					});
@@ -866,27 +874,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			createinfo_grid: function(idproperty, columnsdef_obj, griddata_list, query_obj) {
 				var query_obj = (typeof query_obj === "undefined" || query_obj === null) ? "" : query_obj;
-				/*
-				if (idproperty == 'field_id') {
-					var simple_calendarmap_list = new Array();
-					arrayUtil.forEach(griddata_list, function(item, index) {
-						var start_date = new Date(item.start_date);
-						var args_obj = {dayweek_list:item.dr.split(','),
-							start_date:start_date,
-							totalfielddays:item.totalfielddays};
-						// get calendarmap list that maps fieldday_id to calendar
-						// date, for each field
-						var one_calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
-						//this.calendarmap_list.push({field_id:item.field_id,
-						//	calendarmap_list:one_calendarmap_list})
-						this.calendarmap_obj[item.field_id] = one_calendarmap_list;
-						simple_calendarmap_list.push(one_calendarmap_list);
-					}, this)
-					//ref http://stackoverflow.com/questions/1316371/converting-a-javascript-array-to-a-function-arguments-list
-					// for converting array to variable arguments for a function
-					this.common_calendardate_list = _.intersection.apply(null,
-						simple_calendarmap_list);
-				} */
 				var info_grid = this.info_grid_mapobj[idproperty];
 				if (!info_grid) {
 					var cpane_grid_id = this.cpane_grid_id_mapobj[idproperty];

@@ -32,29 +32,30 @@ class XLS_Exporter:
             self.dir_path = SERVERDIR_PATH
         mkdir_p(self.dir_path)
 
-    def export(self, genxls_id):
+    def export(self, genxls_id, db_type):
+        div_id_property = 'div_id' if db_type == 'rrdb' else 'tourndiv_id'
         if genxls_id == 'div_id':
-            file_list = self.generate_divxls()
+            file_list = self.generate_divxls(div_id_property)
         elif genxls_id == 'field_id':
             file_list = self.generate_fieldxls()
         elif genxls_id == 'team_id':
-            file_list = self.generate_divteamxls()
+            file_list = self.generate_divteamxls(div_id_property)
         elif genxls_id == 'referee_id':
             file_list = self.generate_refereexls()
         return file_list
 
-    def generate_divxls(self):
+    def generate_divxls(self, genxls_id):
         headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
             'Visitor', 'Venue']
         datasheet_list = list()
         for divinfo in self.divinfo_list:
-            div_id = divinfo['div_id']
+            div_id = divinfo[genxls_id]
             div_age = divinfo['div_age']
             div_gen = divinfo['div_gen']
             div_str = div_age + div_gen
             datasheet = Dataset(title=div_str)
             datasheet.headers = list(headers)
-            match_list = self.sdbinterface.get_schedule('div_id', div_age=div_age,
+            match_list = self.sdbinterface.get_schedule(genxls_id, div_age=div_age,
                 div_gen=div_gen)
             # note conversions for time from 24-hour to am/pm format
             tabformat_list = [(x['game_date'],
@@ -100,12 +101,12 @@ class XLS_Exporter:
         f.close()
         return [{'path':bookname_xls_relpath}]
 
-    def generate_divteamxls(self):
+    def generate_divteamxls(self, div_id_property):
         headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
         'Visitor', 'Venue']
         file_list = list()
         for divinfo in self.divinfo_list:
-            div_id = divinfo['div_id']
+            div_id = divinfo[div_id_property]
             div_age = divinfo['div_age']
             div_gen = divinfo['div_gen']
             div_str = div_age + div_gen

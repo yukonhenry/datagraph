@@ -62,7 +62,7 @@ class SchedDBInterface:
 
     def get_schedule(self, idproperty, div_age='', div_gen='', field_id=0,
         team_id=0, divinfo=None, fieldinfo_tuple=None):
-        if idproperty == 'div_id':
+        if idproperty == 'div_id' or idproperty == 'tourndiv_id':
             game_list = self.dbinterface.getdiv_schedule(div_age, div_gen)
             # switch key to lower case for transfer to client
             #game_list = [{k.lower():v for k,v in x.items()}

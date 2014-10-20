@@ -556,7 +556,6 @@ class FieldTimeScheduleGenerator:
         # read from memory and store in db
         field_list = [x['field_id'] for x in self.fieldinfo_list]
         for field_id in field_list:
-            fieldday_id = 1
             for fieldday_id, slotstatus_list in enumerate(self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'], start=1):
                 if not slotstatus_list:
                     # if fieldday is closed for that field, continue to next fieldday
