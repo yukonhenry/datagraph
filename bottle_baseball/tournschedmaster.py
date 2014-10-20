@@ -92,8 +92,8 @@ class TournSchedMaster(object):
             print tourndiv_id
             totalteams = divinfo['totalteams']
             team_list = self.getTeamID_list(totalteams)
-            rrgames_num = divinfo['rrgames_num']
-            minbracket_size = rrgames_num+1
+            totalgamedays = divinfo['totalgamedays']
+            minbracket_size = totalgamedays+1
             brackets_num = totalteams / minbracket_size
             running_index = 0
             bracket_team_list = list()
@@ -111,9 +111,9 @@ class TournSchedMaster(object):
                 # calculate virtual number of game days required as parameter for
                 # MatchGenerator object.  Value is equal to #games if #teams is even,
                 # if odd, add one to #games.
-                vgames_num = rrgames_num if bracket_size%2==0 else rrgames_num+1
+                vgames_num = totalgamedays if bracket_size%2==0 else totalgamedays+1
                 match = MatchGenerator(bracket_size, vgames_num,
-                    maxGamesPerTeam=rrgames_num)
+                    maxGamesPerTeam=totalgamedays)
                 bracket_match_list = match.generateMatchList(
                     teamid_map=team_id_list)
                 match_list.append(bracket_match_list)

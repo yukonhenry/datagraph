@@ -42,9 +42,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						set:function(item) {
 							return parseInt(item.totalteams)
 						}}, "text", "click"),
-					rrgames_num: editor({label:"RR games", autoSave:true,
+					totalgamedays: editor({label:"RR games", autoSave:true,
 						set:function(item) {
-							return parseInt(item.rrgames_num)
+							return parseInt(item.totalgamedays)
 						}}, "text", "click"),
 					gameinterval: editor({label:"Inter-Game Interval (min)",
 						autoSave:true,
@@ -144,7 +144,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// make sure one of the keys matches the idProperty used for
 					// store.
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
-						totalteams:2, rrgames_num:2, gameinterval:80,
+						totalteams:2, totalgamedays:2, gameinterval:80,
 						mingap_time:120});
 				}
 				return info_list;
@@ -155,7 +155,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					{id:'div_age', help_str:"Age or Primary Division Identifier, click cell to edit"},
 					{id:'div_gen', help_str:"Gender or Secondary Division Identifier, click cell to edit"},
 					{id:'totalteams', help_str:"Total # of Teams in the Division, click cell to edit"},
-					{id:'rrgames_num', help_str:"Number of games each team should play in the round robin portion of the tournament"},
+					{id:'totalgamedays', help_str:"Number of games each team should play in the round robin portion of the tournament"},
 					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click cell to edit"},
 					{id:'mingap_time', help_str:"NOTE: Specify the minimum time gap between the end of one game and the start of the next (for each team)"}]
 				return gridhelp_list;
@@ -183,7 +183,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								break_flag = true;
 								break;
 							}
-						} else if (prop == 'rrgames_num') {
+						} else if (prop == 'totalgamedays') {
 							if (item[prop] < 1) {
 								console.log("tourndivinfo:checkconfig:need at least one bracket");
 								break_flag = true;
