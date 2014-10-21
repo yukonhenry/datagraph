@@ -16,6 +16,19 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
 _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
 
+_U10B_team_list = [{'team_id_list': [3, 4, 8, 12], 'bracket_id': 1},
+                {'team_id_list': [16,18,20,24], 'bracket_id': 2},
+                {'team_id_list': [1,5,6,10], 'bracket_id': 3},
+                {'team_id_list': [14,15,17,23], 'bracket_id': 4},
+                {'team_id_list': [2,7,9,11], 'bracket_id': 5},
+                {'team_id_list': [13,19,21,22], 'bracket_id': 6}]
+_U10B_indexerGet = lambda x: dict((p['bracket_id'],i) for i,p in enumerate(_U10B_team_list)).get(x)
+_U10G_team_list = [{'team_id_list': [8,1,7,9], 'bracket_id': 1},
+                {'team_id_list': [19,5,10,6], 'bracket_id': 2},
+                {'team_id_list': [17,12, 15,3], 'bracket_id': 3},
+                {'team_id_list': [14,11,13,16], 'bracket_id': 4},
+                {'team_id_list': [20,2,22,4,21], 'bracket_id': 5}]
+_U10G_indexerGet = lambda x: dict((p['bracket_id'],i) for i,p in enumerate(_U10G_team_list)).get(x)
 DIVCONFIG_INCOMPLETE_MASK = 0x1
 FIELDCONFIG_INCOMPLETE_MASK = 0x2
 PREFINFODATE_ERROR_MASK = 0x4
@@ -84,7 +97,6 @@ class TournSchedMaster(object):
     def error_code(self):
         return self._error_code
 
-
     def prepGenerate(self):
         totalmatch_list = list()
         for divinfo in self.divinfo_list:
@@ -96,7 +108,7 @@ class TournSchedMaster(object):
             minbracket_size = totalgamedays+1
             brackets_num = totalteams / minbracket_size
             running_index = 0
-            bracket_team_list = list()
+            #bracket_team_list = list()
             index = 0
             match_list = list()
             for bracket_id in range(1, brackets_num+1):
@@ -105,9 +117,16 @@ class TournSchedMaster(object):
                 else:
                     bracket_size = totalteams - index
                 running_index += bracket_size
-                team_id_list = team_list[index:running_index]
-                bracket_dict = {'bracket_id':bracket_id,
-                    'team_id_list':team_id_list}
+                if tourndiv_id == 1:
+                    team_id_list = _U10B_team_list[_U10B_indexerGet(bracket_id)]['team_id_list']
+                elif tourndiv_id == 2:
+                    team_id_list = _U10G_team_list[_U10G_indexerGet(bracket_id)]['team_id_list']
+                else:
+                    team_id_list = team_list[index:running_index]
+                if bracket_size != len(team_id_list):
+                     raise CodeLogicError('tournschedmaster:bracketsze mismatch div %d bracketsize %d team_id_list %s' % (tourndiv_id, bracket_size, team_id_list))
+                #bracket_dict = {'bracket_id':bracket_id,
+                #    'team_id_list':team_id_list}
                 # calculate virtual number of game days required as parameter for
                 # MatchGenerator object.  Value is equal to #games if #teams is even,
                 # if odd, add one to #games.
@@ -117,12 +136,11 @@ class TournSchedMaster(object):
                 bracket_match_list = match.generateMatchList(
                     teamid_map=team_id_list)
                 match_list.append(bracket_match_list)
-                bracket_team_list.append(bracket_dict)
+                #bracket_team_list.append(bracket_dict)
                 index = running_index
             totalmatch_list.append({IDPROPERTY_str: divinfo[IDPROPERTY_str],
                 'match_list':match_list, 'max_round':vgames_num})
-        self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list)
-        status = True
+        status = self.fieldtimeScheduleGenerator.generateSchedule(totalmatch_list)
         return 1 if status else 0
     def generate(self):
         totalmatch_list = []

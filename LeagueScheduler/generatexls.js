@@ -132,7 +132,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							var descrip_str = item.descrip_str;
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
-								this.schedcol_name+'/'+item.genxls_id,
+								this.schedcol_name+'/'+this.db_type+'/'+item.genxls_id,
 								lang.hitch(this, this.create_links), null,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}

@@ -112,7 +112,11 @@ class XLS_Exporter:
             div_str = div_age + div_gen
             totalteams = divinfo['totalteams']
             datasheet_list = list()
-            for team_id in range(1, totalteams+1):
+            if div_id == 2:
+                teamrange = range(1,18)+range(19,23)
+            else:
+                teamrange = range(1,totalteams+1)
+            for team_id in teamrange:
                 team_str = div_str + str(team_id)
                 datasheet = Dataset(title=team_str)
                 datasheet.headers = list(headers)
