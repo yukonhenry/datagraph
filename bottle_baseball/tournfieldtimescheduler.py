@@ -133,14 +133,22 @@ class TournamentFieldTimeScheduleGenerator:
                     ginterval = divinfo['gameinterval']
                     mingap_time = divinfo['mingap_time']
                     gameinterval = timedelta(0,0,0,0,ginterval)
+                    # get absolute datetime that satisfies gaptime requirement
                     nextmin_datetime = self.getcandidate_daytime(div_id, home, away, field_list, latest_endtime-gameinterval, mingap_time)
-                    current_fieldday_id = search_tuple[0]
-                    current_start = search_tuple[1]
+                    # get earliest date for each field that satisfies nextmin_datetime requirement
+                    mindate_tuple = self.getmindate_tuple(nextmin_datetime, field_list)
+                    # group them according to date
+                    datesortedfield_list = self.datesort_fields(mindate_tuple,
+                        field_list)
+                    #current_fieldday_id = search_tuple[0]
+                    #current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based on gameday
                     # if check in the list comprehension below exists as slotstatus_list[index] might be None if there is a closed_list
                     # (closed gameday list)
-                    starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_fieldday_id-1]['sstatus_list'][0]['start_time']) for f in field_list if self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_fieldday_id-1]]
-                    found_tuple = self.findAlternateFieldSlot(field_list, current_fieldday_id, current_start, starttime_list, endtime_list, gameinterval, div_id, home, away)
+                    #starttime_list = [(f,self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_fieldday_id-1]['sstatus_list'][0]['start_time']) for f in field_list if self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][current_fieldday_id-1]]
+                    found_tuple = self.findAlternateFieldSlot(field_list,
+                        endtime_list, gameinterval, div_id, home, away,
+                        nextmin_datetime, datesortedfield_list)
                     #earliest_dict = earliestfield_list.pop()
                     #efield = earliest_dict['field_id']
                     #eslot = earliest_dict['index']
@@ -456,7 +464,44 @@ class TournamentFieldTimeScheduleGenerator:
                 logging.debug("tournftscheduler:validateTimeSlot: validation failed new target slot=%d target gameday=%d",target_slot, target_gameday)
         return (validate, target_slot, target_gameday)
 
-    def findAlternateFieldSlot(self, field_list, gameday, target_start, starttime_list, endtime_list, gameinterval, div_id, home, away):
+    def getmindate_tuple(self, nextmin_datetime, field_list):
+        mindate_list = []
+        for field_id in field_list:
+            minfieldday_id, min_date = self.mapdatetime_fieldday(field_id,
+                nextmin_datetime, key='min')
+            mindate_dict = {'field_id':field_id,
+                'fieldday_id':minfieldday_id, 'date':min_date}
+            mindate_list.append(mindate_dict)
+        # sort according to date
+        mindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(mindate_list)).get(x)
+        return _List_Indexer(mindate_list, mindexerGet)
+
+    def datesort_fields(self, mindate_tuple, field_list):
+        mindate_list = mindate_tuple.dict_list
+        mindexerGet = mindate_tuple.indexerGet
+        mindate_list.sort(key=itemgetter('date'))
+        dategroup = groupby(mindate_list, key=itemgetter('date'))
+        datesortedfield_list = [{'date':k,
+            'field_list':[{'field_id':v['field_id'], 'fieldday_id':v['fieldday_id']}]} for k, v in dategroup]
+        '''
+        date_list = list(set([x['date'] for x in mindate_list]))
+        datesortedfield_list = [{'date':x, 'field_list':[]} for x in date_list]
+        dindexerGet = lambda x: dict((p['date'],i) for i,p in enumerate(datesortedfield_list)).get(x)
+        for field_id in field_list:
+            mindate_dict = mindate_list[mindexerGet(field_id)]
+            dsfield_dict = datesortedfield_list[dindexerGet(mindate_dict['date'])]
+            dsfield_dict['field_list'].append({'field_id':field_id,
+                'fieldday_id':mindate_dict['fieldday_id']})
+        datesortedfield_list.sort(key=itemgetter('date'))
+        '''
+        return datesortedfield_list
+
+    def findAlternateFieldSlot(self, field_list, endtime_list, gameinterval,
+        div_id, home, away, nextmin_datetime, datesortedfield_list):
+        target_start_time = nextmin_datetime.time()
+        for dsfield_dict in datesortedfield_list:
+            dategame_date = dsfield_dict['date']
+            datefield_list = dsfield_dict['field_list']
         min_start = min(starttime_list, key=itemgetter(1))[1]
         max_end = max(endtime_list, key=itemgetter(1))[1]
         gameinterval_sec = gameinterval.total_seconds()
