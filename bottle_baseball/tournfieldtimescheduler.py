@@ -103,7 +103,7 @@ class TournamentFieldTimeScheduleGenerator:
             fieldset = reduce(set.union,
                               map(set,[self.divinfo_list[self.dindexerGet(x)]['divfield_list'] for x in connected_div_list]))
             field_list = list(fieldset)
-            max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['slotsperday'] for f in field_list)-1
+            #max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['slotsperday'] for f in field_list)-1
 
             endtime_list = [(f,parser.parse(self.fieldinfo_list[self.findexerGet(f)]['end_time'])) for f in field_list]
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
@@ -319,13 +319,14 @@ class TournamentFieldTimeScheduleGenerator:
                             'isgame':False})
                         start_time += gameinterval
                     slotstatus_dict['sstatus_list'] = lstatus_list
+                    slotstatus_dict['slotsperday'] = len(lstatus_list)
                 else:
                     slotstatus_dict['sstatus_list'] = deepcopy(sstatus_list)
+                    slotstatus_dict['slotsperday'] = sstatus_len
                 slotstatus_list.append(slotstatus_dict)
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
             fieldstatus_list.append({'field_id':f['field_id'],
-                'slotstatus_list':slotstatus_list,
-                'slotsperday':sstatus_len})
+                'slotstatus_list':slotstatus_list})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldstatus_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldstatus_list, fstatus_indexerGet)
@@ -516,9 +517,10 @@ class TournamentFieldTimeScheduleGenerator:
             for datefield in datefield_list:
                 field_id = datefield['field_id']
                 fieldday_id = datefield['fieldday_id']
-                tfstatus_dict = self.tfstatus_list[self.tfindexerGet(field_id)]
-                slotsperday = tfstatus_dict['slotsperday']
-                sstatus_list = tfstatus_dict['slotstatus_list'][fieldday_id-1]['sstatus_list']
+                slotstatus_list = self.tfstatus_list[self.tfindexerGet(field_id)]['slotstatus_list']
+                slotstatus_dict = slotstatus_list[fieldday_id-1]
+                slotsperday = slotstatus_dict['slotsperday']
+                sstatus_list = slotstatus_list[fieldday_id-1]['sstatus_list']
                 for slot_index in range(slotsperday):
                     sstatus_dict = sstatus_list[slot_index]
                     start_time = sstatus_dict['start_time']
