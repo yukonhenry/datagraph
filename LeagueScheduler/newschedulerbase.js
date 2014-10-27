@@ -558,12 +558,14 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				schedstatustxt_node.style.color = 'red';
 				// save server_key_obj to a member variable, as this will 'lock' the
 				// values and used as data for the newly generate schedule cpanes.
+				// NOTE: tournament type of elimination is a hack for now
 				this.server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
 					prefcol_name:this.pref_select_value,
 					conflictcol_name:this.conflict_select_value,
 					db_type:this.current_db_type,
-					schedcol_name:this.newsched_name};
+					schedcol_name:this.newsched_name,
+					tourn_type:'elimination'};
 				this.server_interface.getServerData(
 					"send_generate/"+this.userid_name,
 					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,

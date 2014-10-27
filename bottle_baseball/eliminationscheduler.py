@@ -57,7 +57,6 @@ class EliminationScheduler:
                     cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
                     # provide round sequencing information that will be usefol for
                     # fieldtime scheduling
-                #roundteam_list = [pm_list[x-1] for x in carryseed_list]
                 logging.debug("elimsched:gen:**************")
                 logging.debug("elimsched:gen:round %d rteam %s",
                               round_id, rteam_list)

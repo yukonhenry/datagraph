@@ -56,10 +56,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						set:function(item) {
 							return parseInt(item.mingap_time)
 						}}, "text", "click"),
-					elimination_num: editor({label:"Elimination #",
+					elimination_type: editor({label:"Elimination Type",
 						autoSave:true,
 						set:function(item) {
-							return parseInt(item.elimination_num)
+							return item.elimination_type.trim().toUpperCase()
 						}}, "text", "click")
 				};
 				return columnsdef_obj;
@@ -73,7 +73,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					totalgamedays:"Total # Games",
 					gameinterval:"Game Interval(min)",
 					mingap_time:"Minimum Gap Time(min)",
-					elimination_num:"Elimination #"
+					elimination_type:"Elimination Type"
 				};
 				return columnsdef_obj;
 			},
@@ -163,7 +163,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// store.
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
 						totalteams:2, totalgamedays:2, gameinterval:80,
-						mingap_time:120, elimination_num:2});
+						mingap_time:120, elimination_type:'D'});
 				}
 				return info_list;
 			},
@@ -176,7 +176,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					{id:'totalgamedays', help_str:"Number of games each team should play in the round robin portion of the tournament"},
 					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click cell to edit"},
 					{id:'mingap_time', help_str:"NOTE: Specify the minimum time gap between the end of one game and the start of the next (for each team)"},
-					{id:'elimination_num', help_str:"Elimination tournament type(1-single elimination; 2 - double elimination"}]
+					{id:'elimination_type', help_str:"Elimination tournament type('C'- Consolation; 'D'- double elimination; 'S'- single elimination"}]
 				return gridhelp_list;
 			},
 			checkconfig_status: function(raw_result){
@@ -208,9 +208,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								break_flag = true;
 								break;
 							}
-						} else if (prop == 'elimination_num') {
-							if (item[prop] < 1 || item[prop] > 2) {
-								console.log("tourndivinfo:checkconfig:only single or double elimination supported");
+						} else if (prop == 'elimination_type') {
+							prop_item = item[prop];
+							if (prop_item != 'C' && prop_item != 'S' &&
+								prop_item != 'D') {
+								console.log("tourndivinfo:checkconfig:specify single, double, or consolation elim type");
 								break_flag = true;
 								break;
 							}

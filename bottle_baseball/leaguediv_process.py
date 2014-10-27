@@ -243,12 +243,13 @@ def send_generate(userid_name):
             a = json.dumps({"error_code":schedMaster._error_code})
             del schedMaster
     elif db_type == 'tourndb':
+        tourn_type = request.query.tourn_type
         schedMaster = TournSchedMaster(mongoClient, userid_name, divcol_name,
-            fieldcol_name, schedcol_name)
+            fieldcol_name, schedcol_name, tourn_type)
         if not schedMaster.error_code:
             # save schedMaster to global obj to reuse on get_schedule
             _routelogic_obj.schedmaster_map[userid_name] = schedMaster
-            dbstatus = schedMaster.prepGenerate()
+            dbstatus = schedMaster.schedGenerate()
             a = json.dumps({"dbstatus":dbstatus})
         else:
             a = json.dumps({"error_code":schedMaster._error_code})

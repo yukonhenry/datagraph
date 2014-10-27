@@ -59,13 +59,3 @@ class TournDBInterface(BaseDBInterface):
         config_status = result['CONFIG_STATUS']
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]
         return _List_Status(divinfo_list, config_status)
-
-    def readSchedDB(self, age, gender):
-        dbgame_list = self.dbinterface.findElimTournDivisionSchedule(age, gender, min_game_id=3)
-        game_list = []
-        for dbgame in dbgame_list:
-            print dbgame
-            game_list.append({'gameday_id':dbgame[gameday_id_CONST],
-                             'start_time':dbgame[start_time_CONST]})
-        return dbgame_list
-

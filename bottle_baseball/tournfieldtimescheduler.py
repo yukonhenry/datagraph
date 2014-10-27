@@ -27,8 +27,10 @@ _absolute_earliest_date = parser.parse('01/01/2010').date()
 _min_timegap = timedelta(0,0,0,0,160) # in minutes
 
 class TournamentFieldTimeScheduleGenerator:
-    def __init__(self, dbinterface, fieldinfo_tuple, divinfo_tuple):
+    def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
+        tourn_type='RR'):
         self.dbinterface = dbinterface
+        self.tourn_type = tourn_type
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.findexerGet = fieldinfo_tuple.indexerGet
         self.connected_div_components = getConnectedDivisionGroup(self.fieldinfo_list)
@@ -195,74 +197,6 @@ class TournamentFieldTimeScheduleGenerator:
         self.dbinterface.setsched_status()
         return True
 
-    def getTournFieldSeasonStatus_list(self):
-        # routine to return initialized list of field status slots -
-        # which are all initially set to False
-        # each entry of list is a dictionary with two elemnts - (1)field_id
-        # (2) - two dimensional matrix of True/False status (outer dimension is
-        # round_id, inner dimenstion is time slot)
-        fieldseason_status_list = []
-        for f in self.fieldinfo_list:
-            f_id = f['field_id']
-            totalfielddays = f['tfd']
-            gamestart = parser.parse(f['start_time'])
-            end_time = parser.parse(f['end_time'])
-            # take max for now - this is a simplification
-            # default for phmsa is that divisions that share a field have
-            # same game intervals
-            ginterval = max(self.divinfo_list[self.dindexerGet(p)]['gameinterval'] for p in f['primaryuse_list'])
-            # convert to datetime compatible obj
-            gameinterval = timedelta(0,0,0,0,ginterval)
-            # slotstatus_list has a list of statuses, one for each gameslot
-            # create game status list for default start/end time days
-            sstatus_list = []
-            while gamestart + gameinterval <= end_time:
-                # for above, correct statement should be adding pure gametime only
-                sstatus_list.append({'start_time':gamestart, 'isgame':False})
-                gamestart += gameinterval
-            max_slot_index = len(sstatus_list)-1
-
-            # find gamedays with different field availability times
-            ldays_list = f.get('limiteddays')
-            lallstatus_list = []
-            if ldays_list:
-                for lday in ldays_list:
-                    lgameday = lday['gameday']
-                    lgamestart = parser.parse(lday['start_time'])
-                    lgameend = parser.parse(lday['end_time'])
-                    lstatus_list = []
-                    while lgamestart + gameinterval <= lgameend:
-                        lstatus_list.append({'start_time':lgamestart,
-                                            'isgame':False})
-                        lgamestart += gameinterval
-                    lallstatus_list.append({'lgameday':lgameday,
-                                           'lstatus_list':lstatus_list})
-                lindexerGet = lambda x: dict((p['lgameday'],i) for i,p in enumerate(lallstatus_list)).get(x)
-
-            # find gamedays w closed field
-            closed_list = f.get('closed_gameday_list')
-            # assign appropriate slotsstatus list for each gameday
-            # for current field_id
-            slotstatus_list = totalfielddays*[None] #initialize
-            for gameday in range(1,totalfielddays+1):
-                if closed_list and gameday in closed_list:
-                    # leave slotstatus_list entry as None
-                    continue
-                elif lallstatus_list and lindexerGet(gameday) is not None:
-                    lindex = lindexerGet(gameday)
-                    # decrement index by one from gameday value as gameday is
-                    # 1-indexed
-                    slotstatus_list[gameday-1] = lallstatus_list[lindex]['lstatus_list']
-                else:
-                    slotstatus_list[gameday-1] = deepcopy(sstatus_list)
-
-            fieldseason_status_list.append({'field_id':f['field_id'],
-                                            'slotstatus_list':slotstatus_list,
-                                            'max_slot_index':max_slot_index,
-                                            'end_time':end_time})
-        fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldseason_status_list)).get(x)
-        return _List_Indexer(fieldseason_status_list, fstatus_indexerGet)
-
     def getFieldSeasonStatus_list(self):
         # routine to return initialized list of field status slots -
         # which are all initially set to False
@@ -288,7 +222,7 @@ class TournamentFieldTimeScheduleGenerator:
             # note the below is a duplicate check to one of the tests in
             # fieldcheckavailability
             # If checks do not produce consistent results look at test logic.
-            if totalfielddays < totalgamedays:
+            if self.tourn_type == 'RR' and totalfielddays < totalgamedays:
                 raise FieldTimeAvailabilityError("Note enough total fielddays %d to cover required totalgamedays" % (totalfielddays,),
                     totalgamedays_list)
                 return None
