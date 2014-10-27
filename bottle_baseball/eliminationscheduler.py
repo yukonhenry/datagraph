@@ -131,7 +131,7 @@ class EliminationScheduler:
             return None
 
     def generate_lseed_list(self, round_id, seed_list):
-        # create seeing list for losing bracket
+        # create seeding list for losing bracket
         # reverse order of incoming seeding list such that returned list can also
         # be accessed starting index 0 (instead of index -1)
         slen = len(seed_list)

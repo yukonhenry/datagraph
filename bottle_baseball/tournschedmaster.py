@@ -11,6 +11,7 @@ from sched_exceptions import CodeLogicError
 from html import HTML
 from random import shuffle, seed
 from bisect import bisect_left
+from schedule_util import flatten
 from pprint import pprint
 _power_2s_CONST = [1,2,4,8,16,32,64]
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
@@ -222,7 +223,7 @@ class TournSchedMaster(object):
             if elimination_type != 'D':
                 rmatch_dict['match_list'][0]['comment'] = 'Championship Game'
                 rmatch_dict['match_list'][0]['round'] = 'Champ'
-            divmatch_list.append({'div_id': division['div_id'],
+            divmatch_list.append({'div_id': divinfo['div_id'],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
                 'max_round':totalrounds})
@@ -258,7 +259,7 @@ class TournSchedMaster(object):
             return None
 
     def generate_lseed_list(self, round_id, seed_list):
-        # create seeing list for losing bracket
+        # create seeding list for losing bracket
         # reverse order of incoming seeding list such that returned list can also
         # be accessed starting index 0 (instead of index -1)
         slen = len(seed_list)
