@@ -12,11 +12,24 @@ from html import HTML
 from random import shuffle, seed
 from bisect import bisect_left
 from schedule_util import flatten
+from itertools import chain, groupby
+from operator import itemgetter
+from schedule_util import roundrobin
 from pprint import pprint
 _power_2s_CONST = [1,2,4,8,16,32,64]
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
 _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
+
+# group ordering based on round and whether bracket is winner or loser type
+
+_tempSCHEDORDER_list = [{'div_id':1, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
+    {'div_id':2, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
+    {'div_id':3, 'order_list':[1,2,2,3,4,4,7,5,6]},
+    {'div_id':4, 'order_list':[1,2,2,3,5,4,8,6,7]},
+    {'div_id':5, 'order_list':[1,2,2,3,3,4,5,5,7,6]},
+    {'div_id':6, 'order_list':[1,2,2,3,4,4,6,5]}]
+_SCHED_ORDER_list = [{'totalteams':7, 'order_list':[1,2,2,3,4,4,6,5]}]
 
 _U10B_team_list = [{'team_id_list': [3, 4, 8, 12], 'bracket_id': 1},
                 {'team_id_list': [16,18,20,24], 'bracket_id': 2},
@@ -47,6 +60,7 @@ class TournSchedMaster(object):
         self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
             schedcol_name)
         self.tourn_type = tourn_type
+        self.totalmatch_list = list()
         # db_type is for the divinfo schedule attached to the fielddb spec
         dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name)
         dbtuple = dbInterface.readDBraw()
@@ -168,14 +182,14 @@ class TournSchedMaster(object):
             for round_id in range(1, totalrounds+1):
                 if round_id == 1:
                     r1bye_num = maxpower2 - totalteams
-                    teams_num = totalteams - r1bye_num
-                    seed_id_list = team_id_list[-teams_num:]
+                    roundteams_num = totalteams - r1bye_num
+                    seed_id_list = team_id_list[-roundteams_num:]
                     rteam_list = ['S'+str(s) for s in seed_id_list]
                     cumulative_list = []
                     cindexerGet = None
                 else:
-                    teams_num = maxpower2/_power_2s_CONST[round_id-1]
-                    seed_id_list = range(1,teams_num+1)
+                    roundteams_num = maxpower2/_power_2s_CONST[round_id-1]
+                    seed_id_list = range(1, roundteams_num+1)
                     # rm_list is from previous round, make sure to call this before
                     # rmatch_dict in this round
                     rm_list = rmatch_dict['match_list']
@@ -193,7 +207,7 @@ class TournSchedMaster(object):
                 print 'round rteam', round_id, rteam_list
                 # control number to determine pairings is the sum of the highest
                 # and lowest seed number of teams playing in round 1
-                numgames = teams_num/2
+                numgames = roundteams_num/2
                 # ref http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
                 # for flattening two-deep and regular nested lists
                 lseed_list = self.generate_lseed_list(round_id, seed_id_list)
@@ -223,11 +237,11 @@ class TournSchedMaster(object):
             if elimination_type != 'D':
                 rmatch_dict['match_list'][0]['comment'] = 'Championship Game'
                 rmatch_dict['match_list'][0]['round'] = 'Champ'
-            divmatch_list.append({'div_id': divinfo['div_id'],
+            divmatch_list.append({'div_id': divinfo[IDPROPERTY_str],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
                 'max_round':totalrounds})
-            if numteams > 2:
+            if totalteams > 2:
                 last_match_id_count = match_id_count
                 match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type, divmatch_list)
                 if elimination_type =='D':
@@ -353,7 +367,7 @@ class TournSchedMaster(object):
                         wr_cumulative_list = [{'match_id':y['match_id'],
                         'cumulative':y['cumulative']}
                         for y in match_list[wr_ind]['match_list']]
-                    # get number of incoming teams from winner'sbracket
+                        # get number of incoming teams from winner'sbracket
                         wr_nt = len(ctuple_list)
                         if wr_nt == len(carryseed_list):
                             # bring the default bracket size back up because of increase
@@ -522,8 +536,8 @@ class TournSchedMaster(object):
                 for x in divinfo['divfield_list']]
             return {'metrics_list':metrics_list, 'divfield_list':divfield_list}
 
-    def getTeamID_list(self, numteams):
-        team_id_list = range(1,numteams+1)
+    def getTeamID_list(self, teams_num):
+        team_id_list = range(1,teams_num+1)
         # ref http://docs.python.org/2/library/random.html#random.shuffle
         # doc above for random shuffle (e.g. for an)
         # start the seed with same number so random functions generates
