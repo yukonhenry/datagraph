@@ -1,5 +1,4 @@
 # call python -m pdb hello.py
-#b matchgenerator.py:402
 #b fieldtimescheduler.py:234, (max([x['count'] for x in home_fieldmetrics_list])-min([x['count'] for x in home_fieldmetrics_list]) > 1 or max([x['count'] for x in away_fieldmetrics_list])-min([x['count'] for x in away_fieldmetrics_list]) > 1) and (home_id==21 or away_id==21)
 #b fieldtimescheduler.py:432, div_id==2 and (home_id==20 or away_id==20)
 #(Pdb) commands 1
@@ -17,7 +16,7 @@
 #b elimfieldtimescheduler.py:362, div_id==3
 #b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
-#b elimfieldtimescheduler.py:338
+#b tournfieldtimescheduler.py:297
 #b tournschedmaster.py:461
 #b schedmaster.py:240
 #b fielddbinterface.py:51
@@ -43,4 +42,5 @@
 #b rrdbinterface.py:28
 #b userdbinterface.py:19
 #b scheddbinterface.py:38
-b leaguediv_process.py:285
+#b leaguediv_process.py:285
+b xls_exporter.py:94

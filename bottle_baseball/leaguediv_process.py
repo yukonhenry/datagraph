@@ -355,7 +355,12 @@ def get_xls(userid_name, schedcol_name, db_type, genxls_id):
                 fieldinfo_tuple=schedMaster.fieldinfo_tuple,
                 sdbInterface=schedMaster.sdbInterface)
             schedMaster.xls_exporter = xls_exporter
-        file_list = xls_exporter.export(genxls_id, db_type)
+        if db_type == 'tourndb':
+            tourn_type = request.query.tourn_type
+            file_list = xls_exporter.export(genxls_id, db_type,
+                tourn_type=tourn_type)
+        else:
+            file_list = xls_exporter.export(genxls_id, db_type)
         return_dict = {'file_list':file_list}
     else:
         return_dict = {}

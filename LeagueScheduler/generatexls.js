@@ -74,6 +74,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			},
 			generate_xlscpane_widgets: function(xls_cpane) {
 				// called from callback fun after send_generate returns w data
+				var server_key_obj = null;
 				var ddown_btn = registry.byId(this.opconstant_obj.ddown_btn_id);
 				if (!ddown_btn) {
 					// create widgets only if they don't already exist
@@ -110,11 +111,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// as long as the cpane is not the default blank cpane,
 							// get all links and populate
 							var descrip_str = item.descrip_str;
+							// NOTE: this is a hack for elimination tourn
+							// type
+							if (this.db_type == 'tourndb') {
+								server_key_obj = {tourn_type:"elimination"}
+							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
 								this.schedcol_name+'/'+this.db_type+'/'+
 								item.genxls_id,
-								lang.hitch(this, this.create_links), null,
+								lang.hitch(this, this.create_links), server_key_obj,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}
 					}, this)
@@ -130,10 +136,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// as long as the cpane is not the default blank cpane,
 							// get all links and populate
 							var descrip_str = item.descrip_str;
+							if (this.db_type == 'tourndb') {
+								server_key_obj = {tourn_type:"elimination"}
+							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
 								this.schedcol_name+'/'+this.db_type+'/'+item.genxls_id,
-								lang.hitch(this, this.create_links), null,
+								lang.hitch(this, this.create_links), server_key_obj,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}
 					}, this)

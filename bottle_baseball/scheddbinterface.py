@@ -70,12 +70,12 @@ class SchedDBInterface:
         self.dbinterface.drop_collection()
 
     def get_schedule(self, idproperty, div_age='', div_gen='', field_id=0,
-        team_id=0, divinfo=None, fieldinfo_tuple=None):
+        team_id=0, divinfo=None, fieldinfo_tuple=None, elim_flag=False):
         if idproperty == 'div_id' or idproperty == 'tourndiv_id':
-            game_list = self.dbinterface.getdiv_schedule(div_age, div_gen)
-            # switch key to lower case for transfer to client
-            #game_list = [{k.lower():v for k,v in x.items()}
-            #for x in game_list]
+            if not elim_flag:
+                game_list = self.dbinterface.getdiv_schedule(div_age, div_gen)
+            else:
+                game_list = self.dbinterface.getelimdiv_schedule(div_age, div_gen)
         elif idproperty == 'field_id':
             game_list = self.dbinterface.getfield_schedule(field_id)
             # switch key to lower case for transfer to client

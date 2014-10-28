@@ -243,6 +243,25 @@ class MongoDBInterface:
                 'gameday_data':gameday_data})
         return game_list
 
+    def getelimdiv_schedule(self,age, gender):
+        # this db read involves match_id
+        result_list = self.collection.aggregate([{"$match":{div_age_CONST:age,
+            div_gen_CONST:gender, sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name}},
+            {"$group":{'_id':{'GAME_DATE_ORD':"$GAME_DATE_ORD",
+            'START_TIME':"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE",
+            'match_id':"$MATCH_ID", 'comment':"$COMMENT", 'round':"$ROUND"}}}},{"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
+        game_list = []
+        for result in result_list['result']:
+            #print 'result',result
+            sortkeys = result['_id']
+            game_date = date.fromordinal(sortkeys['GAME_DATE_ORD']).strftime(date_format_CONST)
+            start_time = sortkeys['START_TIME'].strftime(time_format_CONST)
+            gameday_data = result[gameday_data_CONST]
+            game_list.append({'game_date':game_date, 'start_time':start_time,
+                'gameday_data':gameday_data})
+        return game_list
+
     def findDivisionSchedule(self, age, gender, min_game_id=None):
         # use mongodb aggregation framework to group results by shared gametime.
         # query for all rounds at once - alternate way is to loop query based

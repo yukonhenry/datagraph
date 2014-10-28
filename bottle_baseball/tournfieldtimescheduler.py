@@ -182,7 +182,7 @@ class TournamentFieldTimeScheduleGenerator:
                             div_id = teams[IDPROPERTY_str]
                             home_id = teams['home']
                             away_id = teams['away']
-                            div = div = self.divinfo_list[self.dindexerGet(div_id)]
+                            div = self.divinfo_list[self.dindexerGet(div_id)]
                             self.dbinterface.insertGameData(age=div['div_age'],
                                 gen=div['div_gen'], fieldday_id=fieldday_id,
                                 #game_date_str=game_date.strftime(date_format_CONST),
@@ -293,7 +293,7 @@ class TournamentFieldTimeScheduleGenerator:
                             match_id = teams['match_id']
                             comment = teams['comment']
                             around = teams['round']
-                            div = div = self.divinfo_list[self.dindexerGet(div_id)]
+                            div = self.divinfo_list[self.dindexerGet(div_id)]
                             self.dbinterface.insertElimGameData(age=div['div_age'],
                                 gen=div['div_gen'], fieldday_id=fieldday_id,
                                 #game_date_str=game_date.strftime(date_format_CONST),

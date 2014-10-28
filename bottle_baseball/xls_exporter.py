@@ -32,10 +32,13 @@ class XLS_Exporter:
             self.dir_path = SERVERDIR_PATH
         mkdir_p(self.dir_path)
 
-    def export(self, genxls_id, db_type):
+    def export(self, genxls_id, db_type, tourn_type=None):
         div_id_property = 'div_id' if db_type == 'rrdb' else 'tourndiv_id'
         if genxls_id == 'div_id':
-            file_list = self.generate_divxls(div_id_property)
+            if tourn_type != 'elimination':
+                file_list = self.generate_divxls(div_id_property)
+            else:
+                file_list = self.generate_elimdivxls(div_id_property)
         elif genxls_id == 'field_id':
             file_list = self.generate_fieldxls()
         elif genxls_id == 'team_id':
@@ -45,8 +48,8 @@ class XLS_Exporter:
         return file_list
 
     def generate_divxls(self, genxls_id):
-        headers = ['Match ID', 'Game Date', 'Day', 'Time', 'Division', 'Home',
-            'Visitor', 'Venue', '', 'Comment']
+        headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
+            'Visitor', 'Venue']
         datasheet_list = list()
         for divinfo in self.divinfo_list:
             div_id = divinfo[genxls_id]
@@ -58,6 +61,36 @@ class XLS_Exporter:
             match_list = self.sdbinterface.get_schedule(genxls_id, div_age=div_age,
                 div_gen=div_gen)
             # note conversions for time from 24-hour to am/pm format
+            tabformat_list = [(x['game_date'],
+                parser.parse(x['game_date']).strftime("%a"),
+                datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
+                div_str, y['home'], y['away'],
+                self.fieldinfo_list[self.findexerGet(y['venue'])]['field_name']) for x in match_list for y in x['gameday_data']]
+            for tabformat in tabformat_list:
+                datasheet.append(tabformat)
+            datasheet_list.append(datasheet)
+        book = Databook(datasheet_list)
+        bookname_xls_relpath = self.schedcol_name + "_byDiv.xls"
+        bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
+        with open(bookname_xls_fullpath,'wb') as f:
+            f.write(book.xls)
+        f.close()
+        return [{'path':bookname_xls_relpath}]
+
+    def generate_elimdivxls(self, genxls_id):
+        headers = ['Match ID', 'Game Date', 'Day', 'Time', 'Division', 'Home',
+            'Visitor', 'Venue', '', 'Comment']
+        datasheet_list = list()
+        for divinfo in self.divinfo_list:
+            div_id = divinfo[genxls_id]
+            div_age = divinfo['div_age']
+            div_gen = divinfo['div_gen']
+            div_str = div_age + div_gen
+            datasheet = Dataset(title=div_str)
+            datasheet.headers = list(headers)
+            match_list = self.sdbinterface.get_schedule(genxls_id, div_age=div_age,
+                div_gen=div_gen, elim_flag=True)
+            # note conversions for time from 24-hour to am/pm format
             tabformat_list = [(y['match_id'], x['game_date'],
                 parser.parse(x['game_date']).strftime("%a"),
                 datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
@@ -68,7 +101,7 @@ class XLS_Exporter:
                 datasheet.append(tabformat)
             datasheet_list.append(datasheet)
         book = Databook(datasheet_list)
-        bookname_xls_relpath = self.schedcol_name + "_byDiv.xls"
+        bookname_xls_relpath = self.schedcol_name + "_byDivision.xls"
         bookname_xls_fullpath = os.path.join(self.dir_path, bookname_xls_relpath)
         with open(bookname_xls_fullpath,'wb') as f:
             f.write(book.xls)
