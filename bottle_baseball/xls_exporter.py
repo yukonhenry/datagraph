@@ -45,8 +45,8 @@ class XLS_Exporter:
         return file_list
 
     def generate_divxls(self, genxls_id):
-        headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',
-            'Visitor', 'Venue']
+        headers = ['Match ID', 'Game Date', 'Day', 'Time', 'Division', 'Home',
+            'Visitor', 'Venue', '', 'Comment']
         datasheet_list = list()
         for divinfo in self.divinfo_list:
             div_id = divinfo[genxls_id]
@@ -58,11 +58,12 @@ class XLS_Exporter:
             match_list = self.sdbinterface.get_schedule(genxls_id, div_age=div_age,
                 div_gen=div_gen)
             # note conversions for time from 24-hour to am/pm format
-            tabformat_list = [(x['game_date'],
+            tabformat_list = [(y['match_id'], x['game_date'],
                 parser.parse(x['game_date']).strftime("%a"),
                 datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
                 div_str, y['home'], y['away'],
-                self.fieldinfo_list[self.findexerGet(y['venue'])]['field_name']) for x in match_list for y in x['gameday_data']]
+                self.fieldinfo_list[self.findexerGet(y['venue'])]['field_name'],
+                '', y['comment']) for x in match_list for y in x['gameday_data']]
             for tabformat in tabformat_list:
                 datasheet.append(tabformat)
             datasheet_list.append(datasheet)

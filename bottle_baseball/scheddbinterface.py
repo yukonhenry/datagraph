@@ -46,6 +46,15 @@ class SchedDBInterface:
                     'VENUE':venue, 'HOME':home, 'AWAY':away}
         docID = self.dbinterface.insertdoc(document)
 
+    def insertElimGameData(self, age, gen, fieldday_id, game_date, start_time, venue, home, away, match_id, comment, around):
+        document = {'DIV_AGE':age, 'DIV_GEN':gen, 'FIELDDAY_ID':fieldday_id,
+                    'GAME_DATE':game_date,
+                    'START_TIME':start_time,
+                    'GAME_DATE_ORD':game_date.toordinal(),
+                    'VENUE':venue, 'HOME':home, 'AWAY':away,
+                    'MATCH_ID':match_id, 'COMMENT':comment,
+                    'AROUND':around}
+        docID = self.dbinterface.insertdoc(document)
     def setsched_status(self):
         self.dbinterface.setSchedStatus_col(1)
 
