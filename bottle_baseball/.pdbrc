@@ -18,7 +18,7 @@
 #b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
 #b elimfieldtimescheduler.py:338
-b tournschedmaster.py:461
+#b tournschedmaster.py:461
 #b schedmaster.py:240
 #b fielddbinterface.py:51
 #b fieldtimescheduler.py:923, swapdiv_id==6 and (home_id==2 or away_id==2)
@@ -43,4 +43,4 @@ b tournschedmaster.py:461
 #b rrdbinterface.py:28
 #b userdbinterface.py:19
 #b scheddbinterface.py:38
-#b leaguediv_process.py:157
+b leaguediv_process.py:285

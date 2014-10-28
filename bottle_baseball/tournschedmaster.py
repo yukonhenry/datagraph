@@ -11,10 +11,10 @@ from sched_exceptions import CodeLogicError
 from html import HTML
 from random import shuffle, seed
 from bisect import bisect_left
-from schedule_util import flatten
+from schedule_util import flatten, roundrobin
 from itertools import chain, groupby
 from operator import itemgetter
-from schedule_util import roundrobin
+from sched_exceptions import CodeLogicError, SchedulerConfigurationError
 from pprint import pprint
 _power_2s_CONST = [1,2,4,8,16,32,64]
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
@@ -29,8 +29,11 @@ _tempSCHEDORDER_list = [{'div_id':1, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
     {'div_id':4, 'order_list':[1,2,2,3,5,4,8,6,7]},
     {'div_id':5, 'order_list':[1,2,2,3,3,4,5,5,7,6]},
     {'div_id':6, 'order_list':[1,2,2,3,4,4,6,5]}]
-_SCHED_ORDER_list = [{'totalteams':7, 'order_list':[1,2,2,3,4,4,6,5]}]
-
+_SCHEDORDER_list = [{'totalteams':7, 'order_list':[(1,2),(2,3),(3,4),(6,5)]},
+    {'totalteams':10, 'order_list':[(1,3),(2,4),(3,5),(4,6),(8,7)]},
+    {'totalteams':12, 'order_list':[(1,3),(2,4),(3,5),(4,6),(8,7)]},
+    {'totalteams':15, 'order_list':[(1,2),(2,3),(3,4),(4,5),(8,6),(8,7)]}]
+_SCHEDORDERindexerGet = lambda x: dict((p['totalteams'],i) for i,p in enumerate(_SCHEDORDER_list)).get(x)
 _U10B_team_list = [{'team_id_list': [3, 4, 8, 12], 'bracket_id': 1},
                 {'team_id_list': [16,18,20,24], 'bracket_id': 2},
                 {'team_id_list': [1,5,6,10], 'bracket_id': 3},
@@ -116,9 +119,9 @@ class TournSchedMaster(object):
 
     def schedGenerate(self):
         if self.tourn_type == 'RR':
-            self.prepGenerate()
-        else:
-            self.elimGenerate()
+            return self.prepGenerate()
+        elif self.tourn_type == 'elimination':
+            return self.elimGenerate()
 
     def prepGenerate(self):
         totalmatch_list = list()
@@ -168,6 +171,7 @@ class TournSchedMaster(object):
 
     def elimGenerate(self):
         match_id_count = 0
+        totalmatch_list = list()
         for divinfo in self.divinfo_list:
             match_id_begin = match_id_count
             elimination_type = divinfo['elimination_type']
@@ -240,7 +244,7 @@ class TournSchedMaster(object):
             divmatch_list.append({'div_id': divinfo[IDPROPERTY_str],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
-                'max_round':totalrounds})
+                'max_round':totalrounds, 'totalteams':totalteams})
             if totalteams > 2:
                 last_match_id_count = match_id_count
                 match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type, divmatch_list)
@@ -260,9 +264,13 @@ class TournSchedMaster(object):
                     match_id_count += 1
             else:
                 logging.warning("elimsched:gen: there should at least be three teams in div %d to make scheduling meaningful", div_id)
-            self.totalmatch_list.append({'div_id':div_id, 'divmatch_list':self.addOverallRoundID(divmatch_list), 'match_id_range':(match_id_begin+1, match_id_count)})
-        elim_ftscheduler = EliminationFieldTimeScheduler(self.tdbInterface, self.tfield_tuple, self.tourn_divinfo, self.tindexerGet)
-        elim_ftscheduler.generateSchedule(self.totalmatch_list)
+            totalmatch_list.append({'div_id':div_id, 'divmatch_list':self.addOverallRoundID(divmatch_list, totalteams),
+                'match_id_range':(match_id_begin+1, match_id_count)})
+        pprint(totalmatch_list)
+        status = self.fieldtimeScheduleGenerator.generateElimSchedule(totalmatch_list)
+        #elim_ftscheduler = EliminationFieldTimeScheduler(self.tdbInterface, self.tfield_tuple, self.tourn_divinfo, self.tindexerGet)
+        #elim_ftscheduler.generateSchedule(self.totalmatch_list)
+        return 1 if status else 0
 
     def getCumulative_teams(self, clist, cGet, match_id):
         if clist:
@@ -450,30 +458,28 @@ class TournSchedMaster(object):
                             'max_round':cround_id})
         return match_id_count
 
-    def addOverallRoundID(self, divmatch_list):
-        # TODO: need to correct schedorder for divid 5 below
-        schedorder_list = [{'div_id':1, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
-            {'div_id':2, 'order_list':[1,3,2,4,4,5,6,6,9,7,8]},
-            {'div_id':3, 'order_list':[1,2,2,3,4,4,7,5,6]},
-            {'div_id':4, 'order_list':[1,2,2,3,5,4,8,6,7]},
-            {'div_id':5, 'order_list':[1,2,2,3,3,4,5,5,7,6]},
-            {'div_id':6, 'order_list':[1,2,2,3,4,4,6,5]}]
-        sindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(schedorder_list)).get(x)
+    def addOverallRoundID(self, adivmatch_list, totalteams):
         adjustedmatch_list = [{'div_id':dkey,
             'divmatch_list':[x['divmatch_list'] for x in ditems]}
-            for dkey, ditems in groupby(divmatch_list,key=itemgetter('div_id'))]
+            for dkey, ditems in groupby(adivmatch_list,key=itemgetter('div_id'))]
         # adjustedmatch_list should only have one element per div
         divmatch_list = adjustedmatch_list[0]['divmatch_list']
         rrgenobj = roundrobin(divmatch_list)
         next_abs = 1
         multiplex_match_list = []
+        schedorder_index = _SCHEDORDERindexerGet(totalteams)
+        if schedorder_index is None:
+            raise CodeLogicError("addOverallRoundID:No index for totalteams=%d" % (totalteams,))
         for ind, rmatch_dict in enumerate(rrgenobj):
             div_id = rmatch_dict['div_id']
-            olist = schedorder_list[sindexerGet(div_id)]['order_list']
+            round_id = rmatch_dict['round_id']
+            round_index = round_id-1
+            olist = _SCHEDORDER_list[schedorder_index]['order_list']
+            #olist = schedorder_list[sindexerGet(div_id)]['order_list']
             if rmatch_dict['btype'] == 'W':
-                rmatch_dict['absround_id'] = olist[ind]
+                rmatch_dict['absround_id'] = olist[round_index][0]
             else:
-                rmatch_dict['absround_id'] = olist[ind]
+                rmatch_dict['absround_id'] = olist[round_index][1]
             logging.info("elimsched:addOverallRoundID div %d round %d ind %d btype %s abs %d", rmatch_dict['div_id'], rmatch_dict['round_id'] , ind+1, rmatch_dict['btype'], rmatch_dict['absround_id'])
             multiplex_match_list.append(rmatch_dict)
         logging.info("*******************")

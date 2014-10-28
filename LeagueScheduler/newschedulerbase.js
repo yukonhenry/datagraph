@@ -950,7 +950,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					grid_row.date = item.game_date;
 					grid_row.time = item.start_time;
 					arrayUtil.forEach(item.gameday_data, function(item2) {
-						grid_row[item2.venue] = item2.home+'v'+item2.away;
+						grid_row[item2.venue] = item2.home+' v '+item2.away;
 					})
 					grid_list.push(grid_row);
 				}, this)
