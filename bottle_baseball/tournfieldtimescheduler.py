@@ -17,12 +17,15 @@ from random import shuffle
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id fieldday_id slot_index')
 time_format_CONST = '%H:%M'
-u10div_tuple = (100,200)
 GAME_TEAM_str = 'game_team'
 _absolute_earliest_time = parser.parse('05:00').time()
 _absolute_earliest_date = parser.parse('01/01/2010').date()
 _min_timegap = timedelta(0,0,0,0,160) # in minutes
-
+# temporary hack to force abs round forward to a particular fieldday -
+# doing this to keep all matches for a given div_id and absround_id to fall on
+# on the same day
+_force_absround_to_fieldday_list = [{'div_id':1, 'fieldday_map':[1,2,2]}]
+_findexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_force_absround_to_fieldday_list)).get(x)
 class TournamentFieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         tourn_type='RR'):
@@ -112,11 +115,6 @@ class TournamentFieldTimeScheduleGenerator:
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
             #field_cycle = cycle(fieldset)
             self.initTeamTimeGap_list(connected_div_list)
-            '''
-            if set(connected_div_list) == set(u10div_tuple):
-                # if we are processing div U10, preallocate field time slots to each division (as they have different max rounds)
-                self.reserveFieldTimeSlots(connected_div_list, field_list)
-            '''
             current_fieldday_id = 1
             #earliestfield_list = None
             for round_games in grouped_match_list:
@@ -139,7 +137,7 @@ class TournamentFieldTimeScheduleGenerator:
                     mingap_time = divinfo['mingap_time']
                     gameinterval = timedelta(0,0,0,0,ginterval)
                     # get absolute datetime that satisfies gaptime requirement
-                    nextmin_datetime = self.getcandidate_daytime(div_id, home, away, field_list, latest_endtime-gameinterval, mingap_time)
+                    nextmin_datetime = self.getcandidate_daytime(div_id, home, away, latest_endtime-gameinterval, mingap_time)
                     # get earliest date for each field that satisfies nextmin_datetime requirement
                     mindate_tuple = self.getmindate_tuple(nextmin_datetime, field_list)
                     # group them according to date
@@ -244,9 +242,10 @@ class TournamentFieldTimeScheduleGenerator:
                     ginterval = divinfo['gameinterval']
                     mingap_time = divinfo['mingap_time']
                     gameinterval = timedelta(0,0,0,0,ginterval)
+                    elimination_type = divinfo['elimination_type']
                     # get absolute datetime that satisfies gaptime requirement
                     nextmin_datetime = self.getElimcandidate_daytime(div_id, home, away, field_list, latest_endtime-gameinterval, mingap_time,
-                        absround_id)
+                        absround_id, elimination_type)
                     # get earliest date for each field that satisfies nextmin_datetime requirement
                     mindate_tuple = self.getmindate_tuple(nextmin_datetime, field_list)
                     # group them according to date
@@ -378,32 +377,6 @@ class TournamentFieldTimeScheduleGenerator:
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldstatus_list, fstatus_indexerGet)
 
-    def findNextEarliestFieldSlot(self, field_list, cur_gameday, div_id):
-        cur_gameday_ind = cur_gameday-1
-        status_list = [(f,
-                        self.tfstatus_list[self.tfindexerGet(f)]['slotstatus_list'][cur_gameday_ind]['sstatus_list'])
-                        for f in field_list]
-        if div_id in u10div_tuple:
-            allindex_list = [(s[0],[i for i,j in enumerate(s[1]) if not j['isgame'] and j[IDPROPERTY_str]==div_id]) for s in status_list if not all(x['isgame'] for x in s[1])]
-            if not allindex_list:
-                return None
-            try:
-                firstindex_list = [(x[0],min(x[1])) for x in allindex_list]
-            except ValueError:
-                raise ValueError
-            print 'firstind for U10', div_id, allindex_list, firstindex_list
-        else:
-            firstindex_list = [(s[0],[x['isgame'] for x in s[1]].index(False))
-                                for s in status_list if not all(x['isgame'] for x in s[1])]
-        if not firstindex_list:
-            return None
-        #print 'firstindex', firstindex_list
-        mintime = min(firstindex_list, key=itemgetter(1))
-        #print 'mintime', mintime
-        mintime_list = [{'field_id':f[0], 'index':f[1]} for f in firstindex_list if f[1] == min(firstindex_list, key=itemgetter(1))[1]]
-        #print 'mintime_list', mintime_list
-        return mintime_list
-
     def initTeamTimeGap_list(self, div_list):
         for div_id in div_list:
             if div_id == 2:
@@ -450,9 +423,8 @@ class TournamentFieldTimeScheduleGenerator:
         gapteam_dict['last_date'] = game_date.date()
         gapteam_dict['fieldday_id'] = fieldday_id
 
-    def getcandidate_daytime(self, div_id, home, away, field_list, latest_starttime,
+    def getcandidate_daytime(self, div_id, home, away, latest_starttime,
         mingap_time):
-        #minslot_gap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
         homegap_dict = self.timegap_list[self.timegap_indexerGet((div_id, home))[0]]
         awaygap_dict = self.timegap_list[self.timegap_indexerGet((div_id, away))[0]]
         homegap_gameday = homegap_dict['last_date']
@@ -495,7 +467,7 @@ class TournamentFieldTimeScheduleGenerator:
         return nextmin_datetime
 
     def getElimcandidate_daytime(self, div_id, home, away, field_list,
-        latest_starttime, mingap_time, absround_id):
+        latest_starttime, mingap_time, absround_id, elimination_type):
         team_list = [int(t[1:]) for t in (home, away) if t[0] !='S']
         if team_list:
             teamgap_date_list = [self.timegap_list[self.timegap_indexerGet((div_id, team))[0]]['last_date'] for team in team_list]
@@ -520,6 +492,24 @@ class TournamentFieldTimeScheduleGenerator:
                     next_date = nextmin_datetime.date() + timedelta(days=1)
                     next_start = _absolute_earliest_time
                     nextmin_datetime = datetime.combine(next_date, next_start)
+            if elimination_type == 'S':
+                # for single elimination tournament, if there is a force-fieldday
+                # map defined for the division:
+                findex = _findexerGet(div_id)
+                if findex is not None:
+                    # get the target fieldday for the abs round (subtract 1 to
+                    # index in)
+                    target_fieldday = _force_absround_to_fieldday_list[findex]['fieldday_map'][absround_id-1]
+                    # find the earliest calendar date corresponding to the fieldday
+                    # mapped for each field in field_list
+                    min_target_date = min(self.mapfieldday_datetime(f,
+                        target_fieldday) for f in field_list).date()
+                    if nextmin_datetime.date() < min_target_date:
+                        # if the calculated next min datetime is earlier than the
+                        # target date derived from the force-fieldday map, then
+                        # push the next min datetime to that target date
+                        nextmin_datetime = datetime.combine(min_target_date,
+                            _absolute_earliest_time)
         else:
             next_date = _absolute_earliest_date
             next_start = _absolute_earliest_time
@@ -559,6 +549,7 @@ class TournamentFieldTimeScheduleGenerator:
         target_start_time = nextmin_datetime.time()
         gameinterval_sec = gameinterval.total_seconds()
         slot_list = list()
+        pprint(datesortedfield_list)
         for dsfield_dict in datesortedfield_list:
             game_date = dsfield_dict['date']
             datefield_list = dsfield_dict['field_list']

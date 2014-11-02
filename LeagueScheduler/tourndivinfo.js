@@ -60,6 +60,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						autoSave:true,
 						set:function(item) {
 							return item.elimination_type.trim().toUpperCase()
+						}}, "text", "click"),
+					thirdplace_enable: editor({label:"Gen 3rd Place Match",
+						autoSave:true,
+						set:function(item) {
+							return item.thirdplace_enable.trim().toUpperCase()
 						}}, "text", "click")
 				};
 				return columnsdef_obj;
@@ -73,7 +78,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					totalgamedays:"Total # Games",
 					gameinterval:"Game Interval(min)",
 					mingap_time:"Minimum Gap Time(min)",
-					elimination_type:"Elimination Type"
+					elimination_type:"Elimination Type",
+					thirdplace_enable:"Gen 3rd Place Match"
 				};
 				return columnsdef_obj;
 			},
@@ -163,7 +169,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					// store.
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
 						totalteams:2, totalgamedays:2, gameinterval:80,
-						mingap_time:120, elimination_type:'D'});
+						mingap_time:120, elimination_type:'D',
+						thirdplace_enable:'N'});
 				}
 				return info_list;
 			},
@@ -176,7 +183,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					{id:'totalgamedays', help_str:"Number of games each team should play in the round robin portion of the tournament"},
 					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click cell to edit"},
 					{id:'mingap_time', help_str:"NOTE: Specify the minimum time gap between the end of one game and the start of the next (for each team)"},
-					{id:'elimination_type', help_str:"Elimination tournament type('C'- Consolation; 'D'- double elimination; 'S'- single elimination"}]
+					{id:'elimination_type', help_str:"Elimination tournament type('C'- Consolation; 'D'- double elimination; 'S'- single elimination"},
+					{id:'thirdplace_enable', help_str:"3rd Place Match Generation required? ('Y'- Yes; 'N'- No"}]
 				return gridhelp_list;
 			},
 			checkconfig_status: function(raw_result){
@@ -209,10 +217,21 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								break;
 							}
 						} else if (prop == 'elimination_type') {
-							prop_item = item[prop];
+							// grab first character (trim and upper case converion
+							// already completed in editor command)
+							var prop_item = item[prop].charAt(0);
 							if (prop_item != 'C' && prop_item != 'S' &&
 								prop_item != 'D') {
 								console.log("tourndivinfo:checkconfig:specify single, double, or consolation elim type");
+								break_flag = true;
+								break;
+							}
+						} else if (prop == 'thirdplace_enable') {
+							// trim string (both sides), convert to upper case,
+							// and grab first character
+							var prop_item = item[prop].charAt(0);
+							if (prop_item != 'Y' && prop_item != 'N') {
+								console.log("tourndivinfo:checkconfig: Specify 'Y' or 'N' for enabling/disabling 3rd place match generation");
 								break_flag = true;
 								break;
 							}
