@@ -4,11 +4,12 @@ This production level software implements round-robin league and tournament sche
 
 ### Algorithm
 
-This software creates the schedule by first generating round robin matches and then making venue and time slot allocations.  The latter is accomplished by formulating the scheduling problem as a discrete nonlinear programming optimization problem with defined cost functions.  Cost function components represent:
+This software creates the schedule by first generating round robin matches and then making venue and time slot allocations.  The latter is accomplished by formulating the scheduling problem as a discrete optimization problem with defined cost functions.  Cost function components represent:
 * Attaining fairness for venue distribution and undesirable time slot distribution
 * Meeting target venue distribution when affinity/home fields are specified
 * home/away balancing
-In addition, scheduling time preferences and constraints represented as constraints, weighted by configured priorities.  Priority values also determined how aggressive the algorithm should work to meet constraints at the expense of sacrificing fairness for others.
+
+In addition, scheduling time preferences and constraints represented as soft constraints, weighted by configured priorities. Priority values also determined how aggressive the algorithm should work to meet constraints at the expense of sacrificing fairness for others.  Constraint violation is represented as penalty costs incorporated into the overall cost function.
 
 ### Implementation:
 Algorithm implmentation in Python on a hosted (cloud) backend server, with storage of schedule and configuration information on a key:value db (mongodb).  Web-based UI implemented in js, utilizing dojo framework.  dojo components such as dgrid and dojox calendar are heavily utiized.  UI<->backend data exchange through http rest interface, with python bottle used as the server-side controller routing.
