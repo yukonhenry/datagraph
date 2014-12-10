@@ -1,4 +1,4 @@
-Sports League Scheduling Application:
+##Sports League Scheduling Application:
 -------------------------
 Differentiators:
 - Maximizes Fairness
@@ -7,7 +7,7 @@ Differentiators:
 
 This production level software (used to produce schedules for 1500+ player leagues over the course of two years) implements round-robin league and elimination tournament scheduler software for amateur sports leagues.  There are distinct characterizations with operating amateur sports leagues compared to professional or upper-tier semi-pro leagues, which is driven by scarcity of resources and an abundance of constraints, preferences, and conflicts.  In addition, there is a much larger need to maximize fairness and convenience for the former, in place of maximizing profit, competitiveness, and entertainment value for the latter.  The operational task for match scheduling for amateur leagues has complexities that, compared to their professional counterparts, are accentuated by a)large number of teams/players in a league competing for limited access to resources, and especially what are considered quality resources (i.e. desirable fields, desirable time of day to play, qualified coaches, etc.); b) evaluators and benefactors of the quality of generated schedule is much larger and diverse - i.e. administrators, coaches, players, and families all have a large influence into providing requirements for the quality of a schedule.  These factors contribute to the demand that generated schedules maximize fairness and convenience while satisfying and avoiding a large number of constraints and conflicts.
 
-### Algorithm
+#### Algorithm
 The application presents a very good use case for formulating and solving a highly constrained discrete optimization problem.
 
 This software creates the schedule by first generating round robin matches and then making venue and time slot allocations.  The latter is accomplished by formulating the scheduling problem as a discrete optimization problem with defined cost functions.  Cost function components represent:
@@ -20,7 +20,7 @@ In addition, scheduling time preferences and constraints represented as soft con
 * Individual team time preferences
 * Match time avoidance for pairs of teams
 
-### Implementation stack:
+#### Implementation stack:
 Algorithm implmentation in Python on a hosted (cloud) backend server, with storage of schedule and configuration information on a key:value db (mongodb).  Web-based UI implemented in js, utilizing dojo framework.  dojo components such as dgrid and dojox calendar are heavily utiized.  UI<->backend data exchange through http rest interface, with python bottle used for server-side controller routing.
 
 #### Code Structure:
