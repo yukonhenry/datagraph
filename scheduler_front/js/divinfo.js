@@ -1,10 +1,10 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 	"dojo/_base/lang", "dojo/_base/array", "dijit/Dialog",
-	"dijit/registry", "dgrid/editor", "dijit/form/NumberSpinner",
+	"dijit/registry", "dgrid/Editor", "dijit/form/NumberSpinner",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer", "dijit/layout/ContentPane",
-	"LeagueScheduler/baseinfo", "LeagueScheduler/baseinfoSingleton",
+	"scheduler_front/baseinfo", "scheduler_front/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, Deferred, lang, arrayUtil, Dialog,
 		registry, editor, NumberSpinner,

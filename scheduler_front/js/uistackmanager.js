@@ -1,48 +1,67 @@
 /* manage UI content pane structure, especially switching stack container panes */
 define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 	"dijit/registry", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
-	"dijit/layout/BorderContainer", "put-selector/put",
-	"LeagueScheduler/idmgrSingleton", "dojo/domReady!"],
+	"dijit/layout/BorderContainer", "dijit/form/Form", "put-selector/put",
+	"scheduler_front/idmgrSingleton", "dojo/domReady!"],
 	function(declare, lang, arrayUtil, dom, registry, StackContainer, ContentPane,
-		BorderContainer, put, idmgrSingleton) {
+		BorderContainer, Form, put, idmgrSingleton) {
 		var constant = {
-			// param stack  cpaneid's
-			nscpane_id:"wiznewschedcpane_id",
+			// param stack id's
+			dummy_id:"dummy_id",
+			//nscpane_id:"newschedcpane_id",
 			// grid stack id's
+			blankcpane_id:"blankcpane_id",
 			// entry_pt id's
 			init:"init", fromdb:"fromdb", fromdel:"fromdel",
 		};
 		return declare(null, {
-			pstackcontainer_list:null, pstackmap_list:null,
-			gstackcontainer_list:null, gstackmap_list:null,
+			pstackcontainer_reg:null, pstackmap_list:null,
+			gstackcontainer_reg:null, gstackmap_list:null,
 			cpanestate_list:null, updatebtn_widget:null,
-			current_grid:null, null_cpanestate:null, wizardid_list:null,
+			current_grid:null, null_cpanestate:null,
+			advanceid_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				// For the wizard page, there will be stack container
-				// per wizard pane (wizard page); control for switching
-				// panes will be limited to switching cpanes within the wizard
-				// pane.
-				this.pstackcontainer_list = new Array();
-				this.gstackcontainer_list = new Array();
-				this.resetcpane_list = new Array()
-				this.blankcpane_list = new Array();
-				this.gstackmap_list = new Array();
-				this.cpanestate_list = new Array();
-				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
+				// get advanceid_list before any call to get_idstr_obj
+				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
+					'advance');
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id'];
-				arrayUtil.forEach(id_list, function(item) {
-					// strip off the 'id' suffix portion
-					var idmgr_obj = idmgrSingleton.get_idmgr_obj({id:item,
-						op_type:"wizard"})
-					this.pstackcontainer_list.push({id:item,
-						container_id:idmgr_obj.pcontainer_id})
-					this.gstackcontainer_list.push({id:item,
-						container_id:idmgr_obj.gcontainer_id})
-					this.resetcpane_list.push({id:item,
-						cpane_id:idmgr_obj.resetcpane_id})
-					this.blankcpane_list.push({id:item,
-						cpane_id:idmgr_obj.blankcpane_id})
+				// define param stack mapping that maps tuple (idproperty, config stage)->
+				// param content pane
+				var preconfig_list = arrayUtil.map(id_list, function(item) {
+					return {id:item, p_stage:'preconfig',
+						pane_id:this.get_idstr_obj(item).numcpane_id};
+				}, this)
+				var config_list = arrayUtil.map(id_list, function(item) {
+					return {id:item, p_stage:'config',
+						pane_id:this.get_idstr_obj(item).textbtncpane_id};
+				}, this)
+				this.pstackmap_list = preconfig_list.concat(config_list);
+				// define mapping object for the grid content pane
+				// gstackmap_list maps from id to corresponding grid name
+				// note idprop newsched_id has no grid the cpane is blank.
+				// for gstackmap_list, it is best to hardcode than do a loop as
+				// commented out above as there are special cases for certain id's
+				// the key here is to assing the toplevel cpane hosts the grid
+				// (not the immediate cpane around the grid).  e.g. for field_id
+				// there is an overall border container
+				this.gstackmap_list = [
+					{id:'newsched_id', pane_id:constant.blankcpane_id},
+					{id:'div_id',
+						pane_id:this.get_idstr_obj('div_id').gridcpane_id},
+					{id:'tourndiv_id',
+						pane_id:this.get_idstr_obj('tourndiv_id').gridcpane_id},
+					{id:'field_id', pane_id:this.get_idstr_obj('field_id').bcontainer_id},
+					{id:'pref_id', pane_id:this.get_idstr_obj('pref_id').gridcpane_id},
+					{id:'team_id', pane_id:this.get_idstr_obj('team_id').gridcpane_id},
+					{id:'conflict_id', pane_id:this.get_idstr_obj('conflict_id').gridcpane_id},];
+				this.cpanestate_list = new Array();
+				this.null_cpanestate = {
+						p_pane:null, p_stage:null, entry_pt:null,
+						g_pane:constant.blankcpane_id,
+						text_str:"", btn_callback:null, updatebtn_str:"",
+						active_flag:false};
+				arrayUtil.forEach(id_list, function(item, index) {
 					/* cpanestate_list tracks current configuration state for each
 					idproperty: p_pane: parameter pane name, p_stage: parameter p_stage state, entry_pt: who called - init or getserverdb,
 					g_pane: grid name, text_str, btn_callback: send server button
@@ -51,64 +70,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					*/
 					this.cpanestate_list.push({id:item,
 						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:idmgr_obj.blankcpane_id,
+						g_pane:constant.blankcpane_id,
 						text_str:"", btn_callback:null, updatebtn_str:"",
 						active_flag:false});
-				}, this)
-				/*
-				arrayUtil.forEach(id_list, function(item, index) {
-					var blankcpane_id = this.getuniquematch_obj(
-						this.blankcpane_list, 'id', item.id).cpane_id;
-					this.cpanestate_list.push({id:item.id,
-						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:blankcpane_id,
-						text_str:"", btn_callback:null, updatebtn_str:"",
-						active_flag:false});
-				}, this); */
-				// define param stack mapping that maps tuple (idproperty, config stage)->
-				// param content pane
-				// create pstackmap_list and gstackmap_list manually for newsched_id
-				this.pstackmap_list = new Array();
-				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
-					pane_id:constant.nscpane_id});
-				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
-					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
-				// note the id_list does not include newsched_id as the grid structure
-				// for newsched_id is a little bit different than the other id's
-				// so we can't use the for loop to create the preconfig and config
-				// panes
-				// rest of id's have a common structure
-				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
-					'team_id', 'conflict_id'];
-				arrayUtil.forEach(id_list, function(idproperty) {
-					this.pstackmap_list.push({id:idproperty, p_stage:'preconfig',
-						pane_id:this.get_idstr_obj(idproperty).numcpane_id});
-					this.pstackmap_list.push({id:idproperty, p_stage:'config',
-						pane_id:this.get_idstr_obj(idproperty).textbtncpane_id});
-				}, this)
-				// define mapping object for the grid content pane
-				// gstackmap_list maps from id to corresponding grid name
-				// note idprop newsched_id has no grid the cpane is blank.
-				// also field_id points to bcontainer and not gridcpane
-				var newsched_blankcpane_id = this.getuniquematch_obj(
-					this.blankcpane_list, 'id', 'newsched_id').cpane_id;
-				this.gstackmap_list = [
-					{id:'newsched_id', pane_id:newsched_blankcpane_id},
-					{id:'div_id',
-						pane_id:this.get_idstr_obj('div_id').gridcpane_id},
-					{id:'tourndiv_id',
-						pane_id:this.get_idstr_obj('tourndiv_id').gridcpane_id},
-					{id:'field_id',
-						pane_id:this.get_idstr_obj('field_id').bcontainer_id},
-					{id:'pref_id',
-						pane_id:this.get_idstr_obj('pref_id').gridcpane_id},
-					{id:'team_id',
-						pane_id:this.get_idstr_obj('team_id').gridcpane_id},
-					{id:'conflict_id',
-						pane_id:this.get_idstr_obj('conflict_id').gridcpane_id}];
+				}, this);
 			},
 			get_idstr_obj: function(id) {
-				var idmgr_obj = this.getuniquematch_obj(this.wizardid_list,
+				var idmgr_obj = this.getuniquematch_obj(this.advanceid_list,
 					'id', id);
 				return idmgr_obj.idstr_obj;
 			},
@@ -123,9 +91,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var id = args_obj.idproperty;
 				var p_stage = args_obj.p_stage;
 				var select_pane = this.getp_pane(id, p_stage);
-				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', id).container_id;
-				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
-				pstackcontainer_reg.selectChild(select_pane);
+				this.pstackcontainer_reg.selectChild(select_pane);
 				// retrieve actual obj and find index
 				var state_obj = this.get_cpanestate(id);
 				var match_obj = state_obj.match_obj;
@@ -139,41 +105,17 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				//this.cpanestate_list[index] = match_obj;
 			},
 			reset_cpane: function(idproperty) {
-				// reset cpanes for both param and grid to quiescent state
-				// first get parame container id and widget correspdnding to current idprop
-				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', idproperty).container_id;
-				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
-				var resetcpane_id = this.getuniquematch_obj(this.resetcpane_list, 'id', idproperty).cpane_id;
 				// reset pstackcpane for idproperty to quiscent/initial state
-				pstackcontainer_reg.selectChild(resetcpane_id);
+				this.pstackcontainer_reg.selectChild(constant.dummy_id);
 				var match_obj = this.get_cpanestate(idproperty).match_obj;
-				var null_cpanestate = this.get_null_cpanestate(idproperty);
-				lang.mixin(match_obj, null_cpanestate);
-				var gstackcontainer_id = this.getuniquematch_obj(this.gstackcontainer_list, 'id', idproperty).container_id;
-				var gstackcontainer_reg = registry.byId(gstackcontainer_id);
-				gstackcontainer_reg.selectChild(null_cpanestate.g_pane);
+				lang.mixin(match_obj, this.null_cpanestate);
+				this.gstackcontainer_reg.selectChild(constant.blankcpane_id);
 				this.reset_cpanestate_active();
 			},
 			swapactive_pgstackcpane: function(match_obj) {
-				var pstackcontainer_id = this.getuniquematch_obj(this.pstackcontainer_list, 'id', match_obj.id).container_id;
-				var pstackcontainer_reg = registry.byId(pstackcontainer_id);
-				pstackcontainer_reg.selectChild(match_obj.p_pane);
-				var gstackcontainer_id = this.getuniquematch_obj(this.gstackcontainer_list, 'id', match_obj.id).container_id;
-				var gstackcontainer_reg = registry.byId(gstackcontainer_id);
-				gstackcontainer_reg.selectChild(match_obj.g_pane);
+				this.pstackcontainer_reg.selectChild(match_obj.p_pane);
+				this.gstackcontainer_reg.selectChild(match_obj.g_pane);
 				this.setreset_cpanestate_active(match_obj);
-			},
-			get_null_cpanestate: function(idproperty) {
-				// get initialization version of cpanestate which is specific for
-				// the idproperty
-				var blankcpane_id = this.getuniquematch_obj(
-					this.blankcpane_list, 'id', idproperty).cpane_id;
-				var null_cpanestate = {
-						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:blankcpane_id,
-						text_str:"", btn_callback:null, updatebtn_str:"",
-						active_flag:false};
-				return null_cpanestate;
 			},
 			get_cpanestate: function(id) {
 				var idmatch_list = arrayUtil.filter(this.cpanestate_list,
@@ -226,8 +168,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				var blankcpane_flag = (typeof blankcpane_flag === "undefined") ? false:blankcpane_flag;
 				var select_pane = "";
 				if (blankcpane_flag) {
-					select_pane = this.getuniquematch_obj(
-						this.blankcpane_list, 'id', id).cpane_id;
+					select_pane = constant.blankcpane_id;
 				} else {
 					var idmatch_list = arrayUtil.filter(this.gstackmap_list,
 						function(item, index) {
@@ -237,9 +178,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 					this.current_grid = current_grid;
 					//this.current_grid.resize();
 				}
-				var gstackcontainer_id = this.getuniquematch_obj(this.gstackcontainer_list, 'id', id).container_id;
-				var gstackcontainer_reg = registry.byId(gstackcontainer_id);
-				gstackcontainer_reg.selectChild(select_pane);
+				this.gstackcontainer_reg.selectChild(select_pane);
 				// update cpane list state
 				var state_obj = this.get_cpanestate(id);
 				var match_obj = state_obj.match_obj;
@@ -281,7 +220,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						} else {
 							// remaining pstage is 'config', switch to preconfig
 							// get the preconfig pane
-							info_obj.initialize(newgrid_flag, "wizard");
+							info_obj.initialize(newgrid_flag);
 						}
 					} else {
 						// this should not happen since active_flag was on
@@ -296,18 +235,18 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 							// if previous match for idprop was also an init
 							// then just swap into that
 							this.swapactive_pgstackcpane(match_obj);
-							if (new_idproperty != 'newsched_id')
+							if (new_idproperty != 'newsched_id') {
 								// newsched_id does not have reconfig... method
-								match_obj.op_type = "wizard";
 								info_obj.reconfig_infobtn_fromuistack(match_obj);
+							}
 						} else {
 							// else if previous match for idprop was from server
 							// then call init
-							info_obj.initialize(newgrid_flag, "wizard");
+							info_obj.initialize(newgrid_flag);
 						}
 					} else {
 						// if no p_stage with matched obj, then initialize
-						info_obj.initialize(newgrid_flag, "wizard");
+						info_obj.initialize(newgrid_flag);
 					}
 				}
 			},
@@ -328,8 +267,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				For each of the scenarios above, we need to decide if we need to get
 				data from the server and/or switch content panes; we also need to
 				determine if grid needs to be swapped or created*/
-				//var item = event.label; // see calling function that creates
-				// menuitem to confirm use of event.label
+				// NOTE: look at calling function to ensure that use menuitem label
+				// is equivalent to item value;
+				//var item = event.label;
 				// Reassigning back to options_obj needed for each info_obj's getserverDBInfo processing
 				//options_obj.item = item;
 				var info_obj = options_obj.info_obj;
@@ -372,8 +312,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 											idproperty:new_idproperty,
 											swapcpane_flag:true,
 											newgrid_flag:false,
-											entry_pt:constant.fromdb,
-											op_type:"wizard"
+											entry_pt:constant.fromdb
 										}
 										info_obj.reconfig_infobtn(args_obj);
 									} else {
@@ -435,8 +374,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 									idproperty:new_idproperty,
 									swapcpane_flag:true,
 									newgrid_flag:false,
-									entry_pt:constant.fromdb,
-									op_type:"wizard"
+									entry_pt:constant.fromdb
 								}
 								info_obj.reconfig_infobtn(args_obj);
 							} else {
@@ -458,9 +396,156 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				//http://dojo-toolkit.33424.n3.nabble.com/Force-ContentPane-to-scroll-to-top-when-showing-td158406.html
 				// ensure edit pane scroll resets to top
 				// seems like scrolling to top only works if it works off of onLoad and not onShow
-				var pane_dom = dom.byId("wiztop_cpane_id");
+				var pane_dom = dom.byId("editPane");
 				pane_dom.scrollTop = 0;
 			},
+			create_paramcpane_stack: function(container_cpane) {
+				// programmatically create parameter config cpane stack
+				// reference on use of different kinds of id's:
+				// http://dojotoolkit.org/reference-guide/1.9/dijit/registry.html#data-dojo-id-jsid-before-dojo-1-6
+				// http://stackoverflow.com/questions/12469140/difference-between-id-and-data-dojo-id
+				this.pstackcontainer_reg = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%"
+				})
+				container_cpane.addChild(this.pstackcontainer_reg);
+				// create dummy blank pane
+				var dummy_cpane = new ContentPane({
+					id:constant.dummy_id
+				})
+				this.pstackcontainer_reg.addChild(dummy_cpane);
+				// add newsched config input cpanes
+				// note there is no button, just text id in cpane
+				// for newsched there is no more config after
+				// preconfig stage
+				var id_list = ['newsched_id', 'team_id']
+				arrayUtil.forEach(id_list, function(idproperty) {
+					var idstr_obj = this.get_idstr_obj(idproperty);
+					var txtbtn_cpane = new ContentPane({
+						id:idstr_obj.textbtncpane_id});
+					put(txtbtn_cpane.containerNode, "span[id=$]",
+						idstr_obj.text_id);
+					if (idproperty == 'team_id') {
+						put(txtbtn_cpane.containerNode, "button[id=$]",
+							idstr_obj.btn_id);
+					} else {
+						put(txtbtn_cpane.containerNode, "br");
+					}
+					this.pstackcontainer_reg.addChild(txtbtn_cpane)
+				}, this)
+				// add generic txt + button cpane for all config cpane's outside
+				// of newsched_id
+				var txtbtn_cpane = new ContentPane({
+					// Note the idproperty can be any of the infoobj idproperties
+					// as the cpane is all shared (getidstrobj also returns the same
+					// textbtncpane_id)
+					id:this.get_idstr_obj("div_id").textbtncpane_id
+				})
+				// for team_id the txt and btn nodes will be added in teaminfo
+				// code after the div select is added in the same pane
+				var container_node = txtbtn_cpane.containerNode;
+				put(container_node, "span[id=$]",
+					this.get_idstr_obj("div_id").text_id);
+				put(container_node, "button[id=$]",
+					this.get_idstr_obj("div_id").btn_id);
+				this.pstackcontainer_reg.addChild(txtbtn_cpane);
+				// add pre-config cpanes for all id's
+				// Note newsched doesn't untilize a numbertextbox
+				// but ok to go ahead and use 'numcpane_id's
+				id_list = ['div_id', 'tourndiv_id', 'field_id', 'pref_id',
+					'team_id', 'conflict_id', 'newsched_id'];
+				arrayUtil.forEach(id_list, function(idproperty) {
+					var idstr_obj = this.get_idstr_obj(idproperty);
+					var id_cpane = new ContentPane({
+						id:idstr_obj.numcpane_id
+					})
+					if (idproperty != 'team_id') {
+						// form id not relevant for team_id
+						var id_form = new Form({
+							id:idstr_obj.form_id
+						})
+						id_cpane.addChild(id_form);
+					}
+					this.pstackcontainer_reg.addChild(id_cpane);
+				}, this)
+			},
+			create_grid_stack: function(container_cpane) {
+				// programmatically create grid stack
+				// manage switching between grids by using content panes embedded in stack container
+				// note http://dojotoolkit.org/reference-guide/1.9/dijit/layout/StackContainer.html for layout guidance
+				// http://css.maxdesign.com.au/floatutorial/
+				this.gstackcontainer_reg = new StackContainer({
+					doLayout:false,
+					style:"clear:left"
+				})
+				container_cpane.addChild(this.gstackcontainer_reg);
+				// add blank pane (for resetting)
+				var blank_cpane = new ContentPane({
+					id:constant.blankcpane_id
+				})
+				this.gstackcontainer_reg.addChild(blank_cpane);
+				// use arrayutil loop for id's that have common grid structure
+				var idproperty_list = ['div_id', 'tourndiv_id', 'pref_id',
+					'team_id', 'conflict_id'];
+				arrayUtil.forEach(idproperty_list, function(idproperty) {
+					var idstr_obj = this.get_idstr_obj(idproperty);
+					var info_cpane = new ContentPane({
+						id:idstr_obj.gridcpane_id,
+						class:'grid_cpane'
+					})
+					var container_node = info_cpane.containerNode;
+					put(container_node, "div[id=$]", idstr_obj.grid_id);
+					put(container_node, "button.empty_smallgap[id=$]",
+						idstr_obj.addrowbtn_id);
+					put(container_node, "button.empty_smallgap[id=$]",
+						idstr_obj.delrowbtn_id);
+					this.gstackcontainer_reg.addChild(info_cpane);
+				}, this);
+				// Field info has a different structure - add field info border
+				// container, inside cpane and grid div
+				idstr_obj = this.get_idstr_obj(
+					'field_id');
+				var field_bcontainer = new BorderContainer({
+					id:idstr_obj.bcontainer_id,
+					design:'headline', gutters:true, liveSplitters:true,
+					//class:'allonehundred'
+					style:"height:900px; width:100%"
+				})
+				var field_cpane = new ContentPane({
+					id:idstr_obj.gridcpane_id,
+					region:'top',
+					class:'grid_cpane'
+					//style:"height:500px; width:100%"
+				})
+				put(field_cpane.containerNode, "div[id=$]",
+					idstr_obj.grid_id);
+				put(field_cpane.containerNode, "button.empty_smallgap[id=$]",
+					idstr_obj.addrowbtn_id);
+				put(field_cpane.containerNode, "button.empty_smallgap[id=$]",
+					idstr_obj.delrowbtn_id);
+				field_bcontainer.addChild(field_cpane);
+				this.gstackcontainer_reg.addChild(field_bcontainer);
+				/*
+				// add team info cpane
+				idstr_obj = this.get_idstr_obj(
+					'team_id');
+				var tmdiv_cpane = new ContentPane({
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
+				})
+				put(tmdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
+				this.gstackcontainer_reg.addChild(tmdiv_cpane);
+				// add conflict info cpane and grid div
+				idstr_obj = this.get_idstr_obj(
+					'conflict_id');
+				var cdiv_cpane = new ContentPane({
+					id:idstr_obj.gridcpane_id,
+					class:'grid_cpane'
+				})
+				put(cdiv_cpane.containerNode, "div[id=$]", idstr_obj.grid_id);
+				this.gstackcontainer_reg.addChild(cdiv_cpane);
+				*/
+			}
 		});
 	}
 );

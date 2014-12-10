@@ -5,24 +5,25 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <!--<link rel="stylesheet" href="../dijit/themes/claro/claro.css" media="screen">-->
-        <link rel="stylesheet" href="../dbootstrap/build/theme/dbootstrap/theme/dbootstrap/dbootstrap.css" media="screen">
-        <link rel="stylesheet" href="style.css" media="screen">
-        <link rel="stylesheet" href="scheduledgridstyle.css" media="screen">
-        <link rel="stylesheet" href="../dojox/widget/Wizard/Wizard.css" media="screen">
+        <link rel="stylesheet" href="static/dbootstrap/theme/dbootstrap/dbootstrap.css" media="screen">
+        <link rel="stylesheet" href="css/style.css" media="screen">
+        <link rel="stylesheet" href="css/scheduledgridstyle.css" media="screen">
+        <link rel="stylesheet" href="static/dojox/widget/Wizard/Wizard.css" media="screen">
         <!-- see https://github.com/thesociable/dbootstrap/issues/75
         for issues with dojox calendar and dbootstrap; do hard replace from claro in .css files as mentioned in link -->
-        <link rel="stylesheet" href="../dojox/calendar/themes/dbootstrap/Calendar.css" />
+        <link rel="stylesheet" href="static/dojox/calendar/themes/dbootstrap/Calendar.css" />
         <title>YukonTR Scheduler</title>
     </head>
     <body class="dbootstrap">
         <h1><a href="http://www.yukontr.com/">YukonTR</a> Sports League Scheduler <small id="versiongreeting"></small> </h1>
         <h3><i>Maximize fairness, satisfy constraints, and resolve conflicts</i></h3>
     	<!-- load Dojo -->
-    	<script src="../dojo/dojo.js"
-            data-dojo-config="async: true , packages: [{location:'../dbootstrap/build/theme/dbootstrap', name:'dbootstrap'}]"></script>
+    	<script src="static/dojo/dojo.js"
+            data-dojo-config="async: true , packages: [{location:'../dbootstrap', name:'dbootstrap'},
+                {name:'scheduler_front', location:'/scheduler_front/js'}]"></script>
         <script>
 			require(["dbootstrap", "dojo/dom", "dijit/layout/TabContainer",
-                "LeagueScheduler/scheduler", "dojo/domReady!"],
+                "scheduler_front/scheduler", "dojo/domReady!"],
 			function(dbootstrap, dom){
                 var version_str = "v1.0.0.45g";
                 var greeting_node = dom.byId("versiongreeting");

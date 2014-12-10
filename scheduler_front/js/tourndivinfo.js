@@ -1,8 +1,8 @@
 // ref http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-	"dijit/registry", "dgrid/editor", "dijit/form/NumberTextBox",
-	"dijit/form/ValidationTextBox","LeagueScheduler/baseinfo",
-	"LeagueScheduler/baseinfoSingleton", "put-selector/put",
+	"dijit/registry", "dgrid/Editor", "dijit/form/NumberTextBox",
+	"dijit/form/ValidationTextBox","scheduler_front/baseinfo",
+	"scheduler_front/baseinfoSingleton", "put-selector/put",
 	"dojo/domReady!"],
 	function(declare, dom, lang, arrayUtil, registry, editor, NumberTextBox,
 		ValidationTextBox, baseinfo, baseinfoSingleton, put) {

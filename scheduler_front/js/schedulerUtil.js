@@ -11,7 +11,7 @@ http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/
 define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/dom-class", "dojo/date",
 	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
-	"LeagueScheduler/divinfo", "LeagueScheduler/fieldinfo", "dojo/domReady!"],
+	"scheduler_front/divinfo", "scheduler_front/fieldinfo", "dojo/domReady!"],
 	function(dom, domConstruct, declare, lang, domClass, date,
 		arrayUtil,
 		registry, MenuItem, DivInfo, FieldInfo){
