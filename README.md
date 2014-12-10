@@ -15,12 +15,9 @@ In addition, scheduling time preferences and constraints represented as soft con
 Algorithm implmentation in Python on a hosted (cloud) backend server, with storage of schedule and configuration information on a key:value db (mongodb).  Web-based UI implemented in js, utilizing dojo framework.  dojo components such as dgrid and dojox calendar are heavily utiized.  UI<->backend data exchange through http rest interface, with python bottle used as the server-side controller routing.
 
 #### Code Structure:
-* bottle_baseball directory includes py code that implements the schduling algorithm.  Entry pt is schedstart.py.  leaguedivprocess.py implements that bottle framework that routes incoming requests from the UI.  xxdbinterface.py implements various db interface requests.  schedmaster.py implements entry point for schedule generation.  matchgenerator.py implements time/place independent match generation, with xxfieldtimescheduler.py implementing time/venue assignments.
-* leaguescheduler directory includes js code for UI.  scheduler.js is the main js module loaded from index.hmtl.  UI code follows two separate paths (for wizard, and 'advanced' UI - for content pane creation, but merge together once the per-pane UI components are generated.  Dojo framework provides the infrastructure, with heavy use of dgrid, dodjox calendar, and local dojo store
+* scheduler_service directory includes schduling algorithm implementation, along with router logic and storage interfaces.  Python implementation, utilizing bottle for router support and mongodb for scheduling storage. Entry pt is schedstart.py.  schedmaster.py implements entry point for schedule generation.  matchgenerator.py implements time/place independent match generation, with xxfieldtimescheduler.py implementing time/venue assignments.
+* scheduler_front directory includes js code for UI component geneartion utilizing dojo libraries.  scheduler.js is the main js module loaded from index.hmtl.  UI code follows two separate paths (for wizard, and 'advanced' UI - for content pane creation, but merge together once the per-pane UI components are generated.  Dojo framework provides the infrastructure, with heavy use of dgrid, dodjox calendar, and local dojo store
 
-#### Running code with UI at http://www.yukontr.com/apps/LeagueScheduler/
-
-### Other code in datagraph respository
-Note this repository also includes experimental nlp+visualization code utilizing nltk and d3js
+####Evaluate software @ http://www.yukontr.com/apps/LeagueScheduler/
 ####Any questions or comments should be directed to henry@yukontr.com
 
