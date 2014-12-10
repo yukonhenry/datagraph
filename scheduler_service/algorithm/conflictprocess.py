@@ -3,7 +3,7 @@ import logging
 from operator import itemgetter
 from datetime import timedelta
 from collections import namedtuple
-from sched_exceptions import CodeLogicError
+from util.sched_exceptions import CodeLogicError
 
 _Pref_Fixed_tuple = namedtuple('_Pref_Fixed_tuple', 'pref_list fixteam_list')
 class ConflictProcess(object):

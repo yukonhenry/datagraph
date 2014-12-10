@@ -194,11 +194,6 @@ define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				this.server_interface.getServerData("getcupschedule/"+item,
 					this.server_interface.server_ack);
 			},
-			export_rr2013: function(options_obj) {
-				var item = options_obj.item;
-				this.server_interface.getServerData("export_rr2013/"+item,
-					this.server_interface.server_ack);
-			},
 			detect_arrayduplicate: function(arry) {
 				// detect duplicate elements in array
 				// ref http://stackoverflow.com/questions/840781/easiest-way-to-find-duplicate-values-in-a-javascript-array

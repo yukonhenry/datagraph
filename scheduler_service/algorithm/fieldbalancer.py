@@ -1,12 +1,12 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime
-from schedule_util import all_value, enum, shift_list, \
+from util.schedule_util import all_value, enum, shift_list, \
     all_isless, find_ge, find_le
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 import logging
 from operator import itemgetter
-from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, \
+from util.sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, \
      CodeLogicError, SchedulerConfigurationError
 from math import ceil, floor
 from collections import namedtuple

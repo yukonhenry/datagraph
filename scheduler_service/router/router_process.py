@@ -7,26 +7,22 @@ from bottle import route, request
 import networkx as nx
 from networkx.readwrite import json_graph
 from networkx import connected_components
-from matchgenerator import MatchGenerator
-from dbinterface import MongoDBInterface, DB_Col_Type
-from leaguedivprep import getDivisionData, getTournAgeGenderDivision
-from sched_exporter import ScheduleExporter
-from tournamentscheduler import TournamentScheduler
-from eliminationscheduler import EliminationScheduler
+from algorithm.matchgenerator import MatchGenerator
+from db.dbinterface import MongoDBInterface, DB_Col_Type
 import logging
-from singletonlite import mongoClient, hostserver, generic_dbInterface, creation_time
-from tourndbinterface import TournDBInterface
-from fielddbinterface import FieldDBInterface
-from rrdbinterface import RRDBInterface
-from schedmaster import SchedMaster
-from tournschedmaster import TournSchedMaster
-from scheddbinterface import SchedDBInterface
-from prefdbinterface import PrefDBInterface
-from teamdbinterface import TeamDBInterface
-from conflictdbinterface import ConflictDBInterface
-from userdbinterface import UserDBInterface
-from sched_exceptions import CodeLogicError
-from xls_exporter import XLS_Exporter
+from util.singletonlite import mongoClient, hostserver, generic_dbInterface, creation_time
+from db.tourndbinterface import TournDBInterface
+from db.fielddbinterface import FieldDBInterface
+from db.rrdbinterface import RRDBInterface
+from algorithm.schedmaster import SchedMaster
+from algorithm.tournschedmaster import TournSchedMaster
+from db.scheddbinterface import SchedDBInterface
+from db.prefdbinterface import PrefDBInterface
+from db.teamdbinterface import TeamDBInterface
+from db.conflictdbinterface import ConflictDBInterface
+from db.userdbinterface import UserDBInterface
+from util.sched_exceptions import CodeLogicError
+from util.xls_exporter import XLS_Exporter
 from operator import itemgetter
 
 #_dbInterface = MongoDBInterface(mongoClient)
@@ -51,89 +47,6 @@ http://www.tutorial.useiis7.net/dojodoc/001/
 http://myadventuresincoding.wordpress.com/2011/01/02/creating-a-rest-api-in-python-using-bottle-and-mongodb/
 http://gotofritz.net/blog/weekly-challenge/restful-python-api-bottle/
 http://bottlepy.org/docs/dev/tutorial.html#request-routing
-'''
-
-@route('/exportschedule')
-def exportSchedule():
-    callback_name = request.query.callback
-    schedExporter = ScheduleExporter(_dbInterface)
-    ldata_divinfo = getLeagueDivInfo().dict_list
-    for division in ldata_divinfo:
-        schedExporter.exportDivTeamSchedules(div_id=division['div_id'], age=division['div_age'], gen=division['div_gen'],
-                                             numteams=division['totalteams'])
-        schedExporter.exportTeamSchedules(div_id=division['div_id'], age=division['div_age'], gen=division['div_gen'],
-                                             numteams=division['totalteams'])
-        schedExporter.exportDivSchedules(division['div_id'])
-        schedExporter.exportDivSchedulesRefFormat()
-    a = json.dumps({"status":'ready'})
-    return callback_name+'('+a+')'
-
-@route('/export_rr2013/<tourn_divinfo_col>')
-def export_rr2013(tourn_divinfo_col):
-    callback_name = request.query.callback
-    tournamentSched = TournamentScheduler(mongoClient, tourn_divinfo_col)
-    tournamentSched.exportSchedule()
-    a = json.dumps({"status":'ready'})
-    return callback_name+'('+a+')'
-
-@route('/export_elim2013/<tourn_divinfo_col>')
-def export_elim2013(tourn_divinfo_col):
-    callback_name = request.query.callback
-    elimsched = EliminationScheduler(mongoClient, tourn_divinfo_col)
-    elimsched.exportSchedule()
-    a = json.dumps({"status":'ready'})
-    return callback_name+'('+a+')'
-
-@route('/getcupschedule/<tourn_divinfo_col>')
-def getCupSchedule(tourn_divinfo_col):
-    callback_name = request.query.callback
-    tournamentsched = TournamentScheduler(mongoClient, tourn_divinfo_col)
-    tournamentsched.prepGenerate()
-    a = json.dumps({"dbstatus":tournamentsched.tdbInterface.dbInterface.getSchedStatus()})
-    return callback_name+'('+a+')'
-
-@route('/elimination2013/<tourn_divinfo_col>')
-def elimination2013(tourn_divinfo_col):
-    callback_name = request.query.callback
-    elimsched = EliminationScheduler(mongoClient, tourn_divinfo_col)
-    elimsched.generate()
-    a = json.dumps({"dbstatus":elimsched.tdbInterface.dbInterface.getSchedStatus()})
-    return callback_name+'('+a+')'
-
-
-@route('/teamdata/<tid:int>', method='GET')
-def teamdata(tid):
-    callback_name = request.query.callback
-    # divcode is 0-index based; see html and js code
-    divcode = int(request.query.divisioncode)
-    divdata = getDivisionData(divcode)
-    age = divdata['div_age']
-    gender = divdata['div_gen']
-    teamdata_list = _dbInterface.findTeamSchedule(age, gender, tid)
-    # http://stackoverflow.com/questions/13708857/mongodb-aggregation-framework-nested-arrays-subtract-expression
-    # http://docs.mongodb.org/manual/reference/aggregation/
-    #col.aggregate({$match:{age:'U12',gender:'G'}},{$project:{game_list:1}},{$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},{$match:{$or:[{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.HOME':1},{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_LIST.AWAY':1}]}})
-    '''
-    result_list = div_schedule_col.aggregate([{"$match":{'age':age,'gender':gender}},
-                                            {"$project":{'game_list':1}},
-                                            {"$unwind":"$game_list"},
-                                            {"$unwind":"$game_list.GAMEDAY_DATA"},
-                                            {"$unwind":"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},
-                                            {"$match":{"$or":[{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_TEAM.HOME':tid},
-                                                              {'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.GAME_TEAM.AWAY':tid}]}}])
-
-'''
-    a = json.dumps({'teamdata_list':teamdata_list})
-    return callback_name+'('+a+')'
-
-    '''
-    # mongo shell aggregate command
-    # col.aggregate({$unwind:"$game_list"},{$unwind:"$game_list.GAMEDAY_DATA"},{$unwind:"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"}, {$match:{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':8}})
-    result_list = div_schedule_col.aggregate([{"$unwind":"$game_list"},
-                                              {"$unwind":"$game_list.GAMEDAY_DATA"},
-                                              {"$unwind":"$game_list.GAMEDAY_DATA.VENUE_GAME_LIST"},
-                                              {"$match":{'game_list.GAMEDAY_DATA.VENUE_GAME_LIST.VENUE':fid}},
-                                              {"$sort":{'game_list.GAMEDAY_ID':1,'game_list.GAMEDAY_DATA.START_TIME':1}}])
 '''
 
 # create new db collection based on new schedule parameters (currently for tournament format)

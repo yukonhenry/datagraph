@@ -1,15 +1,14 @@
 ''' Copyright YukonTR 2013 '''
 
-from schedule_util import getConnectedDivisionGroup
 from itertools import groupby, cycle
 from operator import itemgetter
-from schedule_util import roundrobin, enum, shift_list, \
+from util.schedule_util import roundrobin, enum, shift_list, \
     getConnectedDivisionGroup, all_isless, find_ge, find_le, all_same
 from datetime import datetime, timedelta, date
 from dateutil import parser
 from copy import deepcopy
 from collections import namedtuple
-from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, CodeLogicError, SchedulerConfigurationError
+from util.sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, CodeLogicError, SchedulerConfigurationError
 import logging
 from math import ceil
 from pprint import pprint

@@ -2,12 +2,12 @@
 ''' Copyright YukonTR 2013 '''
 from dbinterface import DB_Col_Type
 from basedbinterface import BaseDBInterface
-from schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist, \
+from util.schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist, \
     getcalendarmap_list
 import simplejson as json
 from collections import namedtuple
 from dateutil import parser
-from sched_exceptions import SchedulerConfigurationError
+from util.sched_exceptions import SchedulerConfigurationError
 import logging
 
 # global for namedtuple

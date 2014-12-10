@@ -1,6 +1,6 @@
 #!/usr/bin/python
-from singletonlite import mongoClient
-from schedmaster import SchedMaster
+from util.singletonlite import mongoClient
+from algorithm.schedmaster import SchedMaster
 import logging
 
 def main():

@@ -4,7 +4,7 @@
 # ref http://stackoverflow.com/questions/10936709/why-does-a-python-module-act-like-a-singleton
 import socket
 from pymongo import MongoClient
-from dbinterface import MongoDBInterface
+from db.dbinterface import MongoDBInterface
 from time import asctime
 
 if socket.gethostname() == 'web380.webfaction.com':

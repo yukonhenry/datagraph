@@ -1,20 +1,19 @@
 ''' Copyright YukonTR 2014 '''
-from tourndbinterface import TournDBInterface
-from fielddbinterface import FieldDBInterface
-from scheddbinterface import SchedDBInterface
+from db.tourndbinterface import TournDBInterface
+from db.fielddbinterface import FieldDBInterface
+from db.scheddbinterface import SchedDBInterface
 from matchgenerator import MatchGenerator
 from tournfieldtimescheduler import TournamentFieldTimeScheduleGenerator
 from collections import namedtuple
 from dateutil import parser
 import logging
-from sched_exceptions import CodeLogicError
 from html import HTML
 from random import shuffle, seed
 from bisect import bisect_left
-from schedule_util import flatten, roundrobin
+from util.schedule_util import flatten, roundrobin
 from itertools import chain, groupby
 from operator import itemgetter
-from sched_exceptions import CodeLogicError, SchedulerConfigurationError
+from util.sched_exceptions import CodeLogicError, SchedulerConfigurationError
 from pprint import pprint
 _POWER_2S = [1,2,4,8,16,32,64]
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')

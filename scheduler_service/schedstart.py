@@ -1,10 +1,10 @@
-#!/usr/local/bin/python2.7
+#!/usr/bin/python2.7
 # Copyright YukonTR 2013
 from bottle import route, request, run
 import sys, socket
 import time
 import logging
-from leaguediv_process import *
+from router import router_process
 
 def main():
     #logging.basicConfig(filename='debug.log', filemode='w', level=logging.DEBUG)

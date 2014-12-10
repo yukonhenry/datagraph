@@ -3,7 +3,7 @@ from itertools import product
 import networkx as nx
 from math import sqrt
 import logging
-from sched_exceptions import CodeLogicError
+from util.sched_exceptions import CodeLogicError
 bye_CONST = 'BYE'  # to designate teams that have a bye for the game cycle
 home_CONST = 'HOME'
 away_CONST = 'AWAY'

@@ -1,15 +1,14 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime, timedelta
 from itertools import chain, groupby
-from schedule_util import roundrobin, enum, shift_list, \
+from util.schedule_util import roundrobin, enum, shift_list, \
     getConnectedDivisionGroup, all_isless, find_ge, find_le
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
-from leaguedivprep import getSwapTeamInfo
 import logging
 from operator import itemgetter
 from copy import deepcopy
-from sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, \
+from util.sched_exceptions import FieldAvailabilityError, TimeSlotAvailabilityError, FieldTimeAvailabilityError, \
      CodeLogicError, SchedulerConfigurationError
 from math import ceil, floor
 from collections import namedtuple, deque, Counter
@@ -753,8 +752,9 @@ class FieldTimeScheduleGenerator:
         calendarmap_indexerGet = lambda x: dict((p['fieldday_id'],i) for i,p in enumerate(calendarmap_list)).get(x)
         return calendarmap_list[calendarmap_indexerGet(fieldday_id)]['date']
 
+    '''
     def ManualSwapTeams(self, fset, div_set):
-        ''' Manual Swap Teams as specified in _swap_team_info in leaguedivprep '''
+        # Manual Swap Teams as specified in _swap_team_info in leaguedivprep
         cel_indexerGet = self.timebalancer.cel_indexerGet
         tel_indexerGet = self.timebalancer.tel_indexerGet
         for div_id in div_set:
@@ -789,6 +789,7 @@ class FieldTimeScheduleGenerator:
                         cel_counter_list[team2_id-1], cel_counter_list[team1_id-1]
                     tel_target_list[team1_id-1], tel_target_list[team2_id-1] = \
                         tel_target_list[team2_id-1], tel_target_list[team1_id-1]
+    '''
 
     def findFieldGamedayLastTrueSlot(self, field_id, fieldday_id):
         sstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'][fieldday_id-1]['sstatus_list']

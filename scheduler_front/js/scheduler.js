@@ -32,23 +32,7 @@ require(["dojo/dom", "dojo/on", "dojo/parser", "dijit/registry","dojo/ready",
 			userinfo_obj.create();
 			console.log("load userinfo pane complete");
 		}
-/*
-		var elimination2013 = function(evt) {
-		    script.get(constant.SERVER_PREFIX+"elimination2013/phmsacup2013", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {
-	        	//console.log("getalldiv schedule status"+adata.status);
-			});
-		}
-		var export_elim2013 = function(evt) {
-			//dom.byId("status").innerHTML = "";
-	        script.get(constant.SERVER_PREFIX+"export_elim2013/phmsacup2013", {
-	        	jsonp:"callback"
-	        }).then(function(adata) {exp
-	        	//console.log("getalldiv schedule status"+adata.status);
-			});
-		}
-		*/
+
 		var resizeEditPaneGrids = function(evt) {
 			console.log("show edit pane");
 			if (uiStackManager && uiStackManager.current_grid) {

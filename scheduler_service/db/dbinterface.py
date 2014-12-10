@@ -4,7 +4,6 @@ import simplejson as json
 # http://api.mongodb.org/python/current/tutorial.html
 from pymongo import  *
 from collections import Counter, namedtuple
-from leaguedivprep import getDivID
 import logging
 import socket
 from flufl.enum import Enum
