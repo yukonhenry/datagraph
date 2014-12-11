@@ -253,7 +253,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}
 				} else {
 					if (this.infogrid_store) {
-						if (this.serverinfo_list || this.infogrid_store.query(query_obj).total == 0) {
+						if (this.serverinfo_list || this.infogrid_store.filter(query_obj).total == 0) {
 							if (this.serverinfo_list && this.serverinfo_list.length > 0) {
 								// if server data exists, use that
 								info_list = this.serverinfo_list;

@@ -1,12 +1,14 @@
 define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 	"dojo/dom-class", "dojo/dom-style", "dojo/_base/array", "dojo/date",
-	"dojo/store/Observable", "dojo/store/Memory", "dijit/registry",
+	"dstore/Trackable", "dstore/Memory", "dijit/registry",
 	"dgrid/OnDemandGrid", "dgrid/Editor", "dgrid/Keyboard", "dgrid/Selection",
 	"dgrid/CellSelection", "dijit/form/ToggleButton", "dijit/Tooltip",
 	"scheduler_front/baseinfoSingleton", "dojo/domReady!"
+	// Make updates for dgrid ver 0.4
+	// ref https://github.com/SitePen/dgrid/blob/master/doc/migrating/0.4-Migration.md
 	], function(dom, on, declare, lang, domClass, domStyle,
-	         arrayUtil, date, Observable, Memory,
-		registry, OnDemandGrid, editor, Keyboard, Selection, CellSelection,
+		arrayUtil, date, Trackable, Memory,
+		registry, OnDemandGrid, Editor, Keyboard, Selection, CellSelection,
 		ToggleButton, Tooltip, baseinfoSingleton) {
 		var constant = {
 			createserver_path:"create_newdbcol/",
@@ -36,7 +38,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				if (this.idproperty == 'div_id' ||
 					this.idproperty == 'tourndiv_id') {
 				//	|| this.idproperty == 'pref_id') {
-					this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
+				//	this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
+					var TrackableMemory = declare([Memory, Trackable]);
+					this.schedInfoStore = new TrackableMemory({data:this.griddata_list, idProperty:this.idproperty});
 				} else if (this.idproperty == 'team_id') {
 					// for team_id, the store idproperty is the default "id" field
 					this.schedInfoStore = new Memory({data:this.griddata_list,
@@ -52,20 +56,21 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 					this.info_obj.editgrid_obj = this;
 				} */
 				if (this.cellselect_flag) {
-					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, CellSelection]))({
-						store: this.schedInfoStore,
+					this.schedInfoGrid = new (declare([OnDemandGrid, Editor, Keyboard, CellSelection]))({
+						collection: this.schedInfoStore,
 						columns : columnsdef_obj,
 						selectionMode:"single"
 					}, this.grid_id);
 				} else {
-					this.schedInfoGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
-						store: this.schedInfoStore,
+					this.schedInfoGrid = new (declare([OnDemandGrid, Editor, Keyboard, Selection]))({
+						collection: this.schedInfoStore,
 						columns : columnsdef_obj,
 						selectionMode:"single"
 					}, this.grid_id);
 				}
 				if (typeof query_obj !== "undefined") {
-					this.schedInfoGrid.set("query", query_obj);
+					this.schedInfoGrid.set("collection",
+						this.schedInfoStore.filter(query_obj));
 				}
 				this.schedInfoGrid.startup();
 				console.log("grid start");
@@ -154,7 +159,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				}
 			},
 			sendStoreInfoToServer: function(gridstatus_node, event) {
-				var raw_result = this.schedInfoStore.query();
+				var raw_result = this.schedInfoStore.filter();
 				var config_status = this.info_obj.checkconfig_status(raw_result);
 				this.info_obj.update_configdone(config_status, gridstatus_node,
 					constant.fromupdate)
@@ -218,7 +223,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				// of doing setData everytime new data comes in
 				// setData does not work with observable stores - see comment in fieldinfo.js
 				this.colname = colname;
-				this.schedInfoStore.setData(griddata_list);
+				this.schedInfoStore.set("collection",griddata_list);
 				this.schedInfoGrid.refresh();
 				this.schedInfoGrid.resize();
 				// we might not always need to switch the gstack, but do it
@@ -241,7 +246,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				if (!queryonly_flag) {
 					var griddata_list = args_obj.griddata_list;
 					var store_idproperty = args_obj.store_idproperty;
-					if (this.schedInfoStore.query(query_obj).total == 0) {
+					if (this.schedInfoStore.filter(query_obj).total == 0) {
 						// query produces empty, so add griddata_list elements
 						// (but not setData because we are not resetting all data, e.g.
 						// data that was outside of the query)
@@ -260,7 +265,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 						}, this)
 					}
 				}
-				this.schedInfoGrid.set("query", query_obj);
+				this.schedInfoGrid.set("collection", this.schedInfoStore.filter(query_obj));
 				this.schedInfoGrid.refresh();
 				this.schedInfoGrid.resize();
 				// we might not always need to switch the gstack, but do it

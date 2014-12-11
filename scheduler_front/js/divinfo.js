@@ -45,41 +45,41 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
-				var columnsdef_obj = {
-					div_id: "Div ID",
-					div_age: editor({label:"Age", autoSave:true,
+				var columnsdef_obj = [
+					{field: "div_id", label: "Div ID"},
+					{field: "div_age", label:"Age", autoSave:true,
 						set:function(item) {
 							// trim any leading or trailing whitespace characters
 							return item.div_age.trim();
-						}},"text","click"),
-					div_gen: editor({label:"Gender", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field: "div_gen", label:"Gender", autoSave:true,
 						set:function(item) {
 							return item.div_gen.trim();
-						}}, "text", "click"),
-					totalteams: editor({label:"Total Teams", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field:"totalteams", label:"Total Teams", autoSave:true,
 						set:function(item) {
 							return parseInt(item.totalteams)
-						}}, "text", "click"),
-					numweeks: editor({label:"Number Weeks", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field:"numweeks", label:"Number Weeks", autoSave:true,
 						set:function(item) {
 							return parseInt(item.numweeks)
-						}}, "text", "click"),
-					numgdaysperweek: editor({label:"#Games per week per team", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field:"numgdaysperweek", label:"#Games per week per team", autoSave:true,
 						set:function(item) {
 							return parseInt(item.numgdaysperweek)
-						}}, "text", "click"),
-					totalgamedays: {label:"Total Gamedays per team",
+						}, editor:"text", editOn:"click"},
+					{field:"totalgamedays", label:"Total Gamedays per team",
 						set:function(item) {
 							return parseInt(item.numgdaysperweek) *
 								parseInt(item.numweeks);
 						}
 					},
-					gameinterval: editor({label:"Inter-Game Interval (min)",
+					{field:"gameinterval", label:"Inter-Game Interval (min)",
 						autoSave:true,
 						set:function(item) {
 							return parseInt(item.gameinterval)
-						}}, "text", "click"),
-					mingap_days: editor({label:"Minimum Gap (days)", autoSave:true,
+						}, editor:"text", editOn: "click"},
+					{field:"mingap_days", label:"Minimum Gap (days)", autoSave:true,
 						change_flag:false,
 						editorArgs:{
 							style:'width:70px', value:1, smallDelta:1,
@@ -93,9 +93,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 								this.change_flag = false;
 								return (7/item.numgdaysperweek-1)
 							}
-						}
-					}, NumberSpinner),
-					maxgap_days: editor({label:"Maximum Gap (days)", autoSave:true,
+						}, editor:NumberSpinner},
+					{field:"maxgap_days", label:"Maximum Gap (days)", autoSave:true,
 						change_flag:false,
 						editorArgs:{
 							style:'width:70px', value:2, smallDelta:1,
@@ -106,9 +105,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 								this.change_flag = false;
 								return (7/item.numgdaysperweek+1)
 							}
-						}
-					}, NumberSpinner)
-				};
+						}, editor:NumberSpinner}
+				];
 				return columnsdef_obj;
 			},
 			// column definition for fixed (uneditable) grid used for schedule
@@ -229,7 +227,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				return gridhelp_list;
 			},
 			update_numweeks: function(numweeks) {
-				this.infogrid_store.query({})
+				this.infogrid_store.filter({})
 				.forEach(lang.hitch(this, function(obj) {
 					obj.numweeks = numweeks;
 					obj.totalgamedays = numweeks*obj.numgdaysperweek;

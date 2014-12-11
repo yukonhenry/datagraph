@@ -1,18 +1,20 @@
 define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/Stateful",
-	"dojo/_base/array", "dojo/keys", "dojo/store/Memory", "dojo/store/Observable",
+	"dojo/_base/array", "dojo/keys", "dstore/Memory", "dstore/Trackable",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/DateTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer","dijit/layout/ContentPane", "dgrid/Grid",
-	"dgrid/OnDemandGrid", "dgrid/Keyboard", "dgrid/Selection",
+	"dgrid/OnDemandGrid", "dgrid/Editor", "dgrid/Keyboard", "dgrid/Selection",
 	"scheduler_front/editgrid", "scheduler_front/baseinfoSingleton",
 	"scheduler_front/widgetgen", "scheduler_front/idmgrSingleton",
 	"scheduler_front/generatexls", "scheduler_front/errormanager",
 	"put-selector/put", "dojo/domReady!"],
+	// Make updates for dgrid ver 0.4id
+	// ref https://github.com/SitePen/dgrid/blob/master/doc/migrating/0.4-Migration.md
 	function(dom, on, declare, lang, Stateful, arrayUtil, keys,
-		Memory, Observable, registry, Tooltip, ValidationTextBox, Select, Button,
-		DateTextBox, Form, StackContainer, ContentPane, Grid, OnDemandGrid,
+		Memory, Trackable, registry, Tooltip, ValidationTextBox, Select, Button,
+		DateTextBox, Form, StackContainer, ContentPane, Grid, OnDemandGrid, Editor,
 		Keyboard, Selection, EditGrid, baseinfoSingleton, WidgetGen,
 		idmgrSingleton, GenerateXLS, ErrorManager, put) {
 		var constant = {
@@ -742,7 +744,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						info_obj.infogrid_store &&
 						info_obj.activegrid_colname == select_value) {
 						var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
-						var griddata_list = info_obj.infogrid_store.query();
+						var griddata_list = info_obj.infogrid_store.filter();
 						this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
 					} else {
 						// if info is not available in the store, get it from
@@ -779,7 +781,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					divinfo_obj.activegrid_colname == select_value) {
 					// if in store, get data and create dropdown
 					var data_obj = new Object();
-					data_obj.info_list = divinfo_obj.infogrid_store.query();
+					data_obj.info_list = divinfo_obj.infogrid_store.filter();
 					// need to create config status property for data_list
 					// before passing to createdivselect_dropdown as function
 					// depends on config_status being true to create dropdown
@@ -879,7 +881,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var info_grid = this.info_grid_mapobj[idproperty];
 				if (!info_grid) {
 					var cpane_grid_id = this.cpane_grid_id_mapobj[idproperty];
-					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
+					var StaticGrid = declare([OnDemandGrid, Editor, Keyboard, Selection]);
 					info_grid = new StaticGrid({
 						columns:columnsdef_obj,
 						selectionMode:"single"
@@ -1032,15 +1034,17 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// if store already exists, repopulate store with new data
 					// and refresh grid
 					sched_grid.set("columns", columnsdef_obj);
-					sched_store.setData(game_list);
+					sched_store.set("collection",game_list);
 					sched_grid.refresh();
 				} else {
 					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
-					sched_store = new Observable(new Memory({data:game_list, idProperty:store_idproperty}));
-					var StaticGrid = declare([OnDemandGrid, Keyboard, Selection]);
+					//sched_store = new Observable(new Memory({data:game_list, idProperty:store_idproperty}));
+					var TrackableMemory = declare([Memory, Trackable]);
+					sched_store = new TrackableMemory({data:game_list, idProperty:store_idproperty});
+					var StaticGrid = declare([OnDemandGrid, Editor, Keyboard, Selection]);
 					sched_grid = new StaticGrid({
 						columns:columnsdef_obj,
-						store:sched_store
+						collection:sched_store
 					}, cpane_schedgrid_id);
 					sched_grid.startup();
 					this.sched_store_mapobj[idproperty] = sched_store;

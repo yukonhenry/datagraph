@@ -1,13 +1,13 @@
 /* Utility functions to generate widgets and widget features
 */
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
-    "dojo/_base/array", "dojo/Stateful", "dojo/store/Memory", "dojo/date",
+    "dojo/_base/array", "dojo/Stateful", "dojo/date",
     "dijit/registry", "dijit/Dialog", "dijit/form/Button", "dijit/form/RadioButton",
     "dijit/form/Select", "dijit/form/NumberSpinner", "dijit/form/DateTextBox",
     "dijit/form/Form", "dijit/form/ValidationTextBox",
     "dijit/Tooltip",
     "put-selector/put", "scheduler_front/baseinfoSingleton", "dojo/domReady!"],
-    function(dom, declare, lang, arrayUtil, Stateful, Memory, date,
+    function(dom, declare, lang, arrayUtil, Stateful, date,
         registry, Dialog, Button, RadioButton, Select, NumberSpinner, DateTextBox,
         Form, ValidationTextBox,
         Tooltip, put, baseinfoSingleton) {
@@ -242,7 +242,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     if (divinfo_obj && divinfo_obj.infogrid_store &&
                         divinfo_obj.activegrid_colname == colname) {
                         var data_obj = new Object();
-                        data_obj.info_list = divinfo_obj.infogrid_store.query();
+                        data_obj.info_list = divinfo_obj.infogrid_store.filter();
                         data_obj.config_status = divinfo_obj.config_status;
                         this.create_divstr_list(data_obj, options_obj)
                     } else {

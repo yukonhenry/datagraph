@@ -403,7 +403,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			del_gridrow: function(event) {
 				if (this.selected_gridrow && this.selected_gridrow > 0) {
 					this.infogrid_store.remove(this.selected_gridrow);
-					var store_data = this.infogrid_store.query({},
+					var store_data = this.infogrid_store.filter({},
 						{sort:[{attribute:"pref_id", descending: false}]}).map(
 							lang.hitch(this, function(item) {
 							if (item[this.idproperty] > this.selected_gridrow) {
@@ -411,7 +411,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							}
 							return item
 						}));
-					this.infogrid_store.setData(store_data)
+					this.infogrid_store.set("collection",store_data)
 					this.selected_gridrow = null;
 				} else {
 					this.infogrid_store.remove(this.totalrows_num)
@@ -531,8 +531,15 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					this.gridtooltip_list = new Array();
 					var tooltipconfig_list = new Array();
 					arrayUtil.forEach(gridhelp_list, function(help_obj) {
+						// make changes to accomodate dgrid 0.4 structure
+						// grid.columns is an array of objects, with 'field' key
+						// carraying the effective id of the column
+						var match_obj = arrayUtil.filter(grid.columns,
+						function(item) {
+							return item.field == help_obj.id;
+						})
 						var tooltipconfig = {
-							connectId:[grid.columns[help_obj.id].headerNode],
+							connectId:[match_obj.headerNode],
 							label:help_obj.help_str,
 							position:['above', 'before']}
 						tooltipconfig_list.push(tooltipconfig);
