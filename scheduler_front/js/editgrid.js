@@ -159,52 +159,50 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				}
 			},
 			sendStoreInfoToServer: function(gridstatus_node, event) {
-				var raw_result = this.schedInfoStore.filter();
-				var config_status = this.info_obj.checkconfig_status(raw_result);
-				this.info_obj.update_configdone(config_status, gridstatus_node,
-					constant.fromupdate)
-				var storedata_json = null;
-				var server_key_obj = null;
-				if (this.idproperty == "field_id" ||
-					this.idproperty == "pref_id") {
-					// for field or pref id's modify grid data before sending to
-						// server - also attach divstr information also
-					var newlist = this.info_obj.modify_toserver_data(raw_result);
-					storedata_json = JSON.stringify(newlist);
-					// get colname and db_type for the divinfo obj attached to the
-					// current fieldinfo obj.
-					server_key_obj = this.info_obj.get_server_key_obj();
-					this.sendData_Server_DB(storedata_json, config_status,
-						server_key_obj);
-				} else  if (this.idproperty == "team_id" ||
-					this.idproperty == "conflict_id") {
-					// no need to modify results for this id
-					storedata_json = JSON.stringify(raw_result);
-					// get server key
-					server_key_obj = this.info_obj.get_server_key_obj();
-					this.sendData_Server_DB(storedata_json, config_status,
-						server_key_obj);
-				} else if (this.idproperty == "div_id") {
-					storedata_json = JSON.stringify(raw_result);
-					this.info_obj.get_server_key_obj(raw_result).then(
-						lang.hitch(this,function(server_key_obj) {
-							/*
-							if ('raw_result' in server_key_obj) {
-								storedata_json = JSON.stringify(
-									server_key_obj.raw_result)
-								delete server_key_obj.raw_result;
-							} */
-							this.sendData_Server_DB(storedata_json, config_status,
-								server_key_obj);
-						})
-					)
-				} else {
-					storedata_json = JSON.stringify(raw_result);
-					// no server key
-					server_key_obj = {};
-					this.sendData_Server_DB(storedata_json, config_status,
-						server_key_obj);
-				}
+				// with ver 0.4, dstore.filter() returns not just date, but storage
+				// configuration parameters - use fetch() promise to get stored data
+				this.schedInfoStore.fetch().then(lang.hitch(this, function(results){
+					//var raw_result = this.schedInfoStore.filter();
+					var config_status = this.info_obj.checkconfig_status(results);
+					this.info_obj.update_configdone(config_status, gridstatus_node,
+						constant.fromupdate)
+					var storedata_json = null;
+					var server_key_obj = null;
+					if (this.idproperty == "field_id" ||
+						this.idproperty == "pref_id") {
+						// for field or pref id's modify grid data before sending to
+							// server - also attach divstr information also
+						var newlist = this.info_obj.modify_toserver_data(results);
+						storedata_json = JSON.stringify(newlist);
+						// get colname and db_type for the divinfo obj attached to the
+						// current fieldinfo obj.
+						server_key_obj = this.info_obj.get_server_key_obj();
+						this.sendData_Server_DB(storedata_json, config_status,
+							server_key_obj);
+					} else  if (this.idproperty == "team_id" ||
+						this.idproperty == "conflict_id") {
+						// no need to modify results for this id
+						storedata_json = JSON.stringify(results);
+						// get server key
+						server_key_obj = this.info_obj.get_server_key_obj();
+						this.sendData_Server_DB(storedata_json, config_status,
+							server_key_obj);
+					} else if (this.idproperty == "div_id") {
+						storedata_json = JSON.stringify(results);
+						this.info_obj.get_server_key_obj(results).then(
+							lang.hitch(this,function(server_key_obj) {
+								this.sendData_Server_DB(storedata_json, config_status,
+									server_key_obj);
+							})
+						)
+					} else {
+						storedata_json = JSON.stringify(results);
+						// no server key
+						server_key_obj = {};
+						this.sendData_Server_DB(storedata_json, config_status,
+							server_key_obj);
+					}
+				}));
 			},
 			sendData_Server_DB: function(storedata_json, config_status, server_key_obj) {
 				server_key_obj[constant.toserver_key] = storedata_json;
