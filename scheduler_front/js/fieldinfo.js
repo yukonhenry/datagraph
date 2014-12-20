@@ -52,61 +52,38 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
-				var columnsdef_obj = {
-					field_id: "Field ID",
-					field_name: editor({label:"Name", autoSave:true},"text"),
-					pr: {label:"Primary Use",
-						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
-					},
-					start_date: editor({label:"Start Date", autoSave:true,
-						//columntype:false,
+				var columnsdef_list = [
+					{field: "field_id", label: "Field ID"},
+					{field:"field_name", label:"Name", autoSave:true,
+						editor:"text"},
+					{field:"pr", label:"Primary Use",
+						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)},
+					{field:"start_date", label:"Start Date", autoSave:true,
 						editorArgs:{
 							style:'width:100px',
-						},
-					}, DateTextBox),
-					end_date: editor({label:"End Date", autoSave:true,
-						//columntype:false,
+						}, editor:DateTextBox},
+					{field:"end_date", label:"End Date", autoSave:true,
 						editorArgs:{
 							style:'width:100px',
-						},
-					}, DateTextBox),
-					start_time: editor({label:"Start Time", autoSave:true,
-						//columntype:false,
-						editorArgs: {
-							style:"width:100px"
-						},
-						// note adding editorArgs w constraints timePattern
-						// HH:MM:ss turns time display into 24-hr format
-						// do not use if 12 hour am/pm format is desired
-						// set function def not needed as we are going to just
-						// store date object.  Using str representation of time
-						// is not effective for initial display if initial store
-						// does not have date object and only has str representation
-						/*
+						}, editor:DateTextBox},
+					{field:"start_time", label:"Start Time", autoSave:true,
 						editorArgs:{
-							constraints: {
-								timePattern: 'HH:mm:ss',
-								clickableIncrement: 'T00:15:00',
-								visibleIncrement: 'T00:15:00',
-								visibleRange: 'T01:00:00'
-							},
-						}, */
-					}, TimeTextBox),
-					end_time: editor({label:"End Time", autoSave:true,
-						//columntype:false,
-						editorArgs: {
-							style:"width:100px"
-						},
-					}, TimeTextBox),
-					dr:{label:"Days of Week",
-						renderCell: lang.hitch(this, this.dayweek_actionRenderCell)},
-					detaileddates: {label:"Detailed Config",
+							style:'width:100px',
+						}, editor:TimeTextBox},
+					{field:"end_time", label:"End Time", autoSave:true,
+						editorArgs:{
+							style:'width:100px',
+						}, editor:TimeTextBox},
+					{field:"dr", label:"Days of Week",
+						renderCell: lang.hitch(this,
+							this.dayweek_actionRenderCell)},
+					{field:"detaileddates", label:"Detailed Config",
 						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
-					tfd: {label:"# Open Field Days",
+					{field:"tfd", label:"# Open Field Days",
 						set:lang.hitch(this, this.calc_totalfielddays)
 					}
-				};
-				return columnsdef_obj;
+				];
+				return columnsdef_list;
 			},
 			getfixedcolumnsdef_obj: function () {
 				var columnsdef_obj = {
@@ -414,25 +391,28 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						for (var f_id = 1; f_id < this.totalrows_num+1; f_id++) {
 							// even though edit_calendar was called for a specific
 							// field, populate calendar store with all fields
-							var item = this.editgrid.schedInfoStore.get(f_id);
-							// convert string elements to int; also sort ascending
-	        				var dayweekint_list = arrayUtil.map(
-	        					item.dr.split(','), function(item2) {
-	        					return parseInt(item2);
-	        					});
-	        				// http://www.w3schools.com/jsref/jsref_sort.asp
-	        				dayweekint_list.sort(function(a, b){return a-b});
-							var args_obj = {dayweek_list:dayweekint_list,
-								start_date:item.start_date,
-								tfd:item.tfd,
-								start_time_str:item.start_time.toLocaleTimeString(),
-								end_time_str:item.end_time.toLocaleTimeString()};
-							// get calendarmap list that maps fieldday_id to calendar
-							// date, for each field
-							var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
-							var fieldevent_str = constant.default_fieldevent_str;
-							this.populate_calendar_store(calendarmap_list,
-								item.field_id, fieldevent_str);
+							this.editgrid.schedInfoStore.get(f_id).then(
+								lang.hitch(this, function(item) {
+								// convert string elements to int; also sort ascending
+								var dayweekint_list = arrayUtil.map(
+									item.dr.split(','), function(item2) {
+									return parseInt(item2);
+								});
+								// http://www.w3schools.com/jsref/jsref_sort.asp
+								dayweekint_list.sort(function(a, b){return a-b});
+								var args_obj = {dayweek_list:dayweekint_list,
+									start_date:item.start_date,
+									tfd:item.tfd,
+									start_time_str:item.start_time.toLocaleTimeString(),
+									end_time_str:item.end_time.toLocaleTimeString()};
+								// get calendarmap list that maps fieldday_id to calendar
+								// date, for each field
+								var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
+								var fieldevent_str = constant.default_fieldevent_str;
+								this.populate_calendar_store(calendarmap_list,
+									item.field_id, fieldevent_str);
+									})
+							);
 						}
 					}
 					// create dojox calendar - note we create a (blank) calendar
@@ -916,9 +896,12 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
 					display_str = display_str.substring(0, display_str.length-1);
 					value_str = value_str.substring(0, value_str.length-1);
-					var store_elem = this.editgrid.schedInfoStore.get(field_id);
-					store_elem.pr = value_str;
-					this.editgrid.schedInfoStore.put(store_elem);
+					this.infogrid_store.get(field_id).then(
+						lang.hitch(this, function(store_elem) {
+							store_elem.pr = value_str;
+							this.infogrid_store.put(store_elem);
+						})
+					);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dropdownbtn_reg = registry.byId(this.op_prefix+"fielddropdownbtn"+field_id+"_id");
 					dropdownbtn_reg.set('label', display_str);
@@ -1033,11 +1016,14 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				display_str = display_str.substring(0, display_str.length-1);
 				value_str = value_str.substring(0, value_str.length-1);
 				if (this.editgrid) {
-					var store_elem = this.editgrid.schedInfoStore.get(field_id);
-					store_elem.dr = value_str;
-					store_elem.tfd = this.calc_totalfielddays(store_elem);
-					//store_elem.dayweek_num = numdays;
-					this.editgrid.schedInfoStore.put(store_elem);
+					this.editgrid.schedInfoStore.get(field_id).then(
+						lang.hitch(this, function(store_elem){
+							store_elem.dr = value_str;
+							store_elem.tfd = this.calc_totalfielddays(store_elem);
+							//store_elem.dayweek_num = numdays;
+							this.editgrid.schedInfoStore.put(store_elem);
+						})
+					);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
 					var dwdropdownbtn_reg = registry.byId(this.op_prefix+"dwfielddropdownbtn"+field_id+"_id");
 					dwdropdownbtn_reg.set('label', display_str);
@@ -1273,13 +1259,12 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						// db store - Note we are not writing to the fielddb store
 						var infogrid_store = divinfo_obj.infogrid_store;
 						arrayUtil.forEach(map_divfield_list, function(map_obj) {
-							var store_obj = infogrid_store.get(
-								map_obj[idproperty_str]);
-							if (store_obj) {
-								store_obj.fieldcol_name = map_obj.fieldcol_name;
-								store_obj.divfield_list = map_obj.divfield_list;
-								infogrid_store.put(store_obj);
-							}
+							infogrid_store.get(map_obj[idproperty_str]).then(
+								function(store_obj) {
+									store_obj.fieldcol_name = map_obj.fieldcol_name;
+									store_obj.divfield_list = map_obj.divfield_list;
+									infogrid_store.put(store_obj);
+								});
 						})
 					}
 					// send divfield update to server (regardless of whether there

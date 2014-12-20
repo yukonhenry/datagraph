@@ -441,9 +441,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					span_node.innerHTML = display_str;
 				}
 				if (this.editgrid) {
-					var store_elem = this.editgrid.schedInfoStore.get(dt_id);
-					store_elem.af_list = value_list;
-					this.editgrid.schedInfoStore.put(store_elem);
+					var infostore = this.edigrid.schedInfoStore;
+					infostore.get(dt_id).then(function(store_elem) {
+						store_elem.af_list = value_list;
+						infostore.put(store_elem);
+					});
 				}
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {

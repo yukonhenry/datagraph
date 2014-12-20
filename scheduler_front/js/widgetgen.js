@@ -242,7 +242,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     if (divinfo_obj && divinfo_obj.infogrid_store &&
                         divinfo_obj.activegrid_colname == colname) {
                         var data_obj = new Object();
-                        data_obj.info_list = divinfo_obj.infogrid_store.filter();
+                        divinfo_obj.infogrid_store.fetch().then(
+                            function(info_list) {
+                                data_obj.info_list = info_list;
+                            })
                         data_obj.config_status = divinfo_obj.config_status;
                         this.create_divstr_list(data_obj, options_obj)
                     } else {

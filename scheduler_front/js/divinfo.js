@@ -45,7 +45,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
-				var columnsdef_obj = [
+				var columnsdef_list = [
 					{field: "div_id", label: "Div ID"},
 					{field: "div_age", label:"Age", autoSave:true,
 						set:function(item) {
@@ -107,7 +107,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 							}
 						}, editor:NumberSpinner}
 				];
-				return columnsdef_obj;
+				return columnsdef_list;
 			},
 			// column definition for fixed (uneditable) grid used for schedule
 			// result grid

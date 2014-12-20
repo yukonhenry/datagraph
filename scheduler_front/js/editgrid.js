@@ -255,11 +255,15 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 						// query produced results, so we will overwrite any data existing
 						// in the store with new griddata data
 						arrayUtil.forEach(griddata_list, function(item) {
+							// put does both update and create
+							// returns a promise but we are not using it right now
+							this.schedInfoStore.put(item);
+							/*
 							if (this.schedInfoStore.get(item[store_idproperty])) {
 								this.schedInfoStore.put(item);
 							} else {
 								this.schedInfoStore.add(item);
-							}
+							} */
 						}, this)
 					}
 				}

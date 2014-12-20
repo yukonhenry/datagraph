@@ -35,9 +35,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
-				var columnsdef_obj = {
-					pref_id: "ID",
-					priority: editor({label:"Priority", autoSave:true,
+				var columnsdef_list = [
+					{field:"pref_id", label:"Pref ID"},
+					{field:"priority", label:"Priority", autoSave:true,
 						editorArgs:{
 							constraints:{min:1, max:500},
 							promptMessage:'Enter Priority Number (lower is higher priority)',
@@ -45,46 +45,30 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							missingMessage:'Enter Priority',
 							value:'1',
 							style:"width:auto",
-						}}, NumberTextBox),
+						}, editor:NumberTextBox},
 					// for embedded select objects autoSave is disabled as the saves
 					// will happen manually after select event is captured
 					// autoSave does NOT work
-					div_id: {label:"Division",
+					{field:"div_id", label:"Division",
 						renderCell: lang.hitch(this, this.div_select_render)
 					},
-					team_id: {label:"Team ID",
+					{field:"team_id", label:"Team ID",
 						renderCell: lang.hitch(this, this.team_select_render)
 					},
-					/*
-					div_id: editor({label:"Divison", autoSave:false,
+					{field:"game_date", label:'Game Date', autoSave:true,
 						editorArgs:{
 							style:"width:auto",
-							name:"division_select",
-							options:[{label:"Select League first", selected:true, value:""}],
-					}}, Select),
-					team_id: editor({label:"Team Id", autoSave:false,
-						editorArgs:{
-							//style:"width:auto",
-							name:"team_select",
-							options:[{label:"Select Div first", selected:true, value:""}]
-						}}, Select), */
-					game_date: editor({label:'Game Date', autoSave:true,
+						}, editor:DateTextBox},
+					{field:"start_after", label:'Start After', autoSave:true,
 						editorArgs:{
 							style:"width:auto",
-						}
-					}, DateTextBox),
-					start_after: editor({label:'Start After', autoSave:true,
+						}, editor:TimeTextBox},
+					{field:"end_before", label:'End Before', autoSave:true,
 						editorArgs:{
 							style:"width:auto",
-						}
-					}, TimeTextBox),
-					end_before: editor({label:'End Before', autoSave:true,
-						editorArgs:{
-							style:"width:auto",
-						}
-					}, TimeTextBox),
-				};
-				return columnsdef_obj;
+						}, editor:TimeTextBox},
+				];
+				return columnsdef_list;
 			},
 			getfixedcolumnsdef_obj: function() {
 				// column definition for constraint satisfaction cpane display
@@ -325,9 +309,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var divoption_list = options_obj.option_list;
 				var pref_id = options_obj.pref_id;
 				// go ahead and save the div_id that was selected
-				var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
-				pref_obj.div_id = divevent;
-				this.editgrid.schedInfoStore.put(pref_obj);
+				this.editgrid.schedInfoStore.get(pref_id).then(
+				lang.hitch(this, function(pref_obj) {
+					pref_obj.div_id = divevent;
+					this.editgrid.schedInfoStore.put(pref_obj);
+				}));
 				// find the totalteams match corresponding to the div_id event
 				var match_option = arrayUtil.filter(divoption_list,
 					function(item) {
@@ -448,9 +434,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						options:option_list, style:"width:auto",
 						id:team_select_id,
 						onChange: lang.hitch(this, function(event) {
-							var pref_obj = this.editgrid.schedInfoStore.get(pref_id);
-							pref_obj.team_id = event;
-							this.editgrid.schedInfoStore.put(pref_obj);
+							var infostore = this.editgrid.schedInfoStore;
+							infostore.get(pref_id).then(
+								function(pref_obj) {
+									pref_obj.team_id = event;
+									infostore.put(pref_obj);
+								}
+							);
 						})
 					}, select_node)
 				} else {

@@ -744,8 +744,11 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						info_obj.infogrid_store &&
 						info_obj.activegrid_colname == select_value) {
 						var columnsdef_obj = info_obj.getfixedcolumnsdef_obj();
-						var griddata_list = info_obj.infogrid_store.filter();
-						this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
+						info_obj.infogrid_store.fetch().then(
+							lang.hitch(this, function(griddata_list) {
+								this.createinfo_grid(idproperty, columnsdef_obj, griddata_list);
+							})
+						);
 					} else {
 						// if info is not available in the store, get it from
 						// the server.
@@ -781,7 +784,10 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					divinfo_obj.activegrid_colname == select_value) {
 					// if in store, get data and create dropdown
 					var data_obj = new Object();
-					data_obj.info_list = divinfo_obj.infogrid_store.filter();
+                    divinfo_obj.infogrid_store.fetch().then(
+						function(info_list) {
+	                    	data_obj.info_list = info_list;
+	                     })
 					// need to create config status property for data_list
 					// before passing to createdivselect_dropdown as function
 					// depends on config_status being true to create dropdown

@@ -30,9 +30,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     id:this.idproperty, op_type:this.op_type});
             },
             getcolumnsdef_obj: function() {
-                var columnsdef_obj = {
-                    conflict_id:"ID",
-                    priority: editor({label:"Priority", autoSave:true,
+                var columnsdef_list = [
+                    {field:"conflict_id", label:"ID"},
+                    {field:"priority", label:"Priority", autoSave:true,
                         editorArgs:{
                             constraints:{min:1, max:500},
                             promptMessage:'Enter Priority Number (lower is higher priority)',
@@ -41,21 +41,21 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                             value:'1',
                             //style:'width:6em',
                             style:"width:auto",
-                        }}, NumberTextBox),
-                    div_1_id: {label:"Division",
+                        }, editor:NumberTextBox},
+                    {field:"div_1_id", label:"Division",
                         renderCell: lang.hitch(this, this.div_select_render)
                     },
-                    team_1_id: {label:"Team ID",
+                    {field:"team_1_id", label:"Team ID",
                         renderCell: lang.hitch(this, this.team_select_render)
                     },
-                    div_2_id: {label:"Conflict Division",
+                    {field:"div_2_id", label:"Conflict Division",
                         renderCell: lang.hitch(this, this.div_select_render)
                     },
-                    team_2_id: {label:"Conflict Team ID",
+                    {field:"team_2_id", label:"Conflict Team ID",
                         renderCell: lang.hitch(this, this.team_select_render)
                     },
-                }
-                return columnsdef_obj;
+                ]
+                return columnsdef_list;
             },
             getfixedcolumnsdef_obj: function() {
                 // col definition for displaying conflict satisfaction cpane
@@ -298,10 +298,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                         options:option_list, style:"width:auto",
                         id:team_select_id,
                         onChange: lang.hitch(this, function(event) {
-                            var conflict_obj = this.editgrid.schedInfoStore.get(
-                                conflict_id);
-                            conflict_obj['team_'+column_num_str+'_id'] = event;
-                            this.editgrid.schedInfoStore.put(conflict_obj);
+                            var infostore = this.editgrid.schedInfoStore;
+                            infostore.get(conflict_id).then(
+                            function(conflict_obj) {
+                                conflict_obj['team_'+column_num_str+'_id'] = event;
+                                infostore.put(conflict_obj);
+                            });
                         })
                     }, select_node)
                 } else {
@@ -356,9 +358,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 var divoption_list = options_obj.option_list;
                 var conflict_id = options_obj.conflict_id;
                 var divcol_id = options_obj.divcol_id;
-                var conflict_obj = this.editgrid.schedInfoStore.get(conflict_id);
-                conflict_obj[divcol_id] = divevent;
-                this.editgrid.schedInfoStore.put(conflict_obj);
+                this.editgrid.schedInfoStore.get(conflict_id).then(
+                    lang.hitch(this, function(conflict_obj) {
+                        conflict_obj[divcol_id] = divevent;
+                        this.editgrid.schedInfoStore.put(conflict_obj);
+                    })
+                );
                 // find the totalteams match corresponding to the div_id event
                 var match_option = arrayUtil.filter(divoption_list,
                     function(item) {
