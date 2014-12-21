@@ -1,11 +1,11 @@
 define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/Stateful",
-	"dojo/_base/array", "dojo/keys", "dstore/Memory", "dstore/Trackable",
+	"dojo/_base/array", "dojo/keys", "dstore/Memory",
 	"dijit/registry", "dijit/Tooltip",
 	"dijit/form/ValidationTextBox","dijit/form/Select", "dijit/form/Button",
 	"dijit/form/DateTextBox", "dijit/form/Form",
 	"dijit/layout/StackContainer","dijit/layout/ContentPane", "dgrid/Grid",
-	"dgrid/OnDemandGrid", "dgrid/Editor", "dgrid/Keyboard", "dgrid/Selection",
+	"dgrid/Keyboard", "dgrid/Selection",
 	"scheduler_front/editgrid", "scheduler_front/baseinfoSingleton",
 	"scheduler_front/widgetgen", "scheduler_front/idmgrSingleton",
 	"scheduler_front/generatexls", "scheduler_front/errormanager",
@@ -13,8 +13,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 	// Make updates for dgrid ver 0.4id
 	// ref https://github.com/SitePen/dgrid/blob/master/doc/migrating/0.4-Migration.md
 	function(dom, on, declare, lang, Stateful, arrayUtil, keys,
-		Memory, Trackable, registry, Tooltip, ValidationTextBox, Select, Button,
-		DateTextBox, Form, StackContainer, ContentPane, Grid, OnDemandGrid, Editor,
+		Memory, registry, Tooltip, ValidationTextBox, Select, Button,
+		DateTextBox, Form, StackContainer, ContentPane, Grid,
 		Keyboard, Selection, EditGrid, baseinfoSingleton, WidgetGen,
 		idmgrSingleton, GenerateXLS, ErrorManager, put) {
 		var constant = {
@@ -69,7 +69,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id_mapobj:null,
 			cpane_schedheader_id_mapobj:null,
 			info_grid_mapobj:null, info_handle_mapobj:null, gridmethod_mapobj:null,
-			sched_store_mapobj:null, sched_grid_mapobj:null,
+			sched_grid_mapobj:null,
 			calendarmap_obj:null,
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", opconstant_obj:null,
@@ -137,9 +137,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					field_id:lang.hitch(this, this.createfieldsched_grid),
 					team_id:lang.hitch(this, this.createteamsched_grid),
 					fair_id:lang.hitch(this, this.createfairsched_grid)};
-				this.sched_store_mapobj = {div_id:null, tourndiv_id:null,
-					field_id:null,
-					team_id:null, fair_id:null};
 				this.sched_grid_mapobj = {div_id:null, tourndiv_id:null, field_id:null, team_id:null,
 					fair_id:null};
 				this.calendarmap_obj = new Object();
@@ -887,7 +884,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var info_grid = this.info_grid_mapobj[idproperty];
 				if (!info_grid) {
 					var cpane_grid_id = this.cpane_grid_id_mapobj[idproperty];
-					var StaticGrid = declare([OnDemandGrid, Editor, Keyboard, Selection]);
+					var StaticGrid = declare([Grid, Keyboard, Selection]);
 					info_grid = new StaticGrid({
 						columns:columnsdef_obj,
 						selectionMode:"single"
@@ -1033,29 +1030,20 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					constant.team_id);
 			},
 			createsched_grid: function(idproperty, game_list, columnsdef_obj, store_idproperty) {
-				// get store and grid for this idproperty
-				var sched_store = this.sched_store_mapobj[idproperty];
+				// grid for this idproperty
 				var sched_grid = this.sched_grid_mapobj[idproperty];
-				if (sched_store) {
-					// if store already exists, repopulate store with new data
-					// and refresh grid
-					sched_grid.set("columns", columnsdef_obj);
-					sched_store.set("collection",game_list);
+				if (sched_grid) {
 					sched_grid.refresh();
 				} else {
 					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
-					//sched_store = new Observable(new Memory({data:game_list, idProperty:store_idproperty}));
-					var TrackableMemory = declare([Memory, Trackable]);
-					sched_store = new TrackableMemory({data:game_list, idProperty:store_idproperty});
-					var StaticGrid = declare([OnDemandGrid, Editor, Keyboard, Selection]);
+					var StaticGrid = declare([Grid, Keyboard, Selection]);
 					sched_grid = new StaticGrid({
 						columns:columnsdef_obj,
-						collection:sched_store
+						selectionMode:"single"
 					}, cpane_schedgrid_id);
-					sched_grid.startup();
-					this.sched_store_mapobj[idproperty] = sched_store;
 					this.sched_grid_mapobj[idproperty] = sched_grid;
 				}
+				sched_grid.renderArray(game_list);
 				sched_grid.resize();
 			},
 			createnewsched_pane: function(args_obj) {
