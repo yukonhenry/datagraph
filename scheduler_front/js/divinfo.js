@@ -202,15 +202,33 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},
-			getInitialList: function(divnum) {
+			getInitialList: function(divnum, colname) {
 				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					info_list.push({div_id:i, div_age:"", div_gen:"",
 						totalteams:10, numweeks:this.base_numweeks,
 						numgdaysperweek:1, totalgamedays:this.base_numweeks,
-						gameinterval:60, mingap_days:5, maxgap_days:8});
+						gameinterval:60, mingap_days:5, maxgap_days:8,
+						coldiv_id:this.startref_id+i,
+						colname:colname
+					});
 				}
+				this.startref_id += divnum;
 				return info_list;
+			},
+			modify_toserver_data: function(raw_result) {
+				var newlist = arrayUtil.map(raw_result, function(item) {
+					// leave out dt_id to send to server (recreate when
+					// data returned from server)
+					return {div_id:item.div_id, div_age:item.div_age,
+						div_gen:item.div_gen, totalteams:item.totalteams,
+						numweeks:item.numweeks,
+						numgdaysperweek:item.numgdaysperweek,
+						totalgamedays:item.totalgamedays,
+						gameinterval:item.gameinterval,
+						mingap_days:item.mingap_days, maxgap_days:item.maxgap_days}
+				})
+				return newlist;
 			},
 			get_gridhelp_list: function() {
 				var gridhelp_list = [
@@ -227,7 +245,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				return gridhelp_list;
 			},
 			update_numweeks: function(numweeks) {
-				this.infogrid_store.filter({})
+				this.infogrid_store.filter({colname:this.activegrid_colname})
 				.forEach(lang.hitch(this, function(obj) {
 					obj.numweeks = numweeks;
 					obj.totalgamedays = numweeks*obj.numgdaysperweek;

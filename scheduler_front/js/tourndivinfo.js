@@ -162,7 +162,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},
-			getInitialList: function(divnum) {
+			getInitialList: function(divnum, colname) {
 				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
 					// make sure one of the keys matches the idProperty used for
@@ -170,9 +170,31 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
 						totalteams:2, totalgamedays:2, gameinterval:80,
 						mingap_time:120, elimination_type:'D',
-						thirdplace_enable:'N'});
+						thirdplace_enable:'N',
+						coltourndiv_id:this.startref_id+i,
+						colname:colname});
 				}
+				this.startref_id += divnum;
 				return info_list;
+			},
+			modify_toserver_data: function(raw_result) {
+				// recreate data list to send to server; drop properties
+				// useful for local store but not useful for server store
+				// Note how we are recreating the list by cloning and dropping
+				// unneeded properties; compare against divinfo and other info_obj
+				// where we are recreating the new list object by explicitly
+				// specifying each property
+				var newlist = new Array();
+				raw_result.map(function(item) {
+					var newobj = lang.clone(item);
+					// drop properties we don't need to send to server
+					delete newobj.colname;
+					delete newobj.coltourndiv_id;
+					return newobj;
+				}).forEach(function(obj) {
+					newlist.push(obj);
+				});
+				return newlist;
 			},
 			get_gridhelp_list: function() {
 				var gridhelp_list = [

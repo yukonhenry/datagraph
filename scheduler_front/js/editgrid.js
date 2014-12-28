@@ -40,13 +40,13 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				//	|| this.idproperty == 'pref_id') {
 				//	this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 					var TrackableMemory = declare([Memory, Trackable]);
-					this.schedInfoStore = new TrackableMemory({data:this.griddata_list, idProperty:this.idproperty});
+					this.schedInfoStore = new TrackableMemory({data:this.griddata_list, idProperty:"col"+this.idproperty});
 				} else if (this.idproperty == 'team_id') {
 					// for team_id, the store idproperty is the default "id" field
 					this.schedInfoStore = new Memory({data:this.griddata_list,
 						idProperty:"dt_id"});
 				} else {
-					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.idproperty});
+					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:"col"+this.idproperty});
 				}
 				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
 				// 'in' operator is generic and works through inherited objects
@@ -168,28 +168,25 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 						constant.fromupdate)
 					var storedata_json = null;
 					var server_key_obj = null;
+					var newlist = null;
 					if (this.idproperty == "field_id" ||
-						this.idproperty == "pref_id") {
+						this.idproperty == "pref_id" ||
+						this.idproperty == "conflict_id" ||
+						this.idproperty == "team_id" ||
+						this.idproperty == "tourndiv_id") {
 						// for field or pref id's modify grid data before sending to
 							// server - also attach divstr information also
-						var newlist = this.info_obj.modify_toserver_data(results);
+						newlist = this.info_obj.modify_toserver_data(results);
 						storedata_json = JSON.stringify(newlist);
 						// get colname and db_type for the divinfo obj attached to the
 						// current fieldinfo obj.
 						server_key_obj = this.info_obj.get_server_key_obj();
 						this.sendData_Server_DB(storedata_json, config_status,
 							server_key_obj);
-					} else  if (this.idproperty == "team_id" ||
-						this.idproperty == "conflict_id") {
-						// no need to modify results for this id
-						storedata_json = JSON.stringify(results);
-						// get server key
-						server_key_obj = this.info_obj.get_server_key_obj();
-						this.sendData_Server_DB(storedata_json, config_status,
-							server_key_obj);
 					} else if (this.idproperty == "div_id") {
-						storedata_json = JSON.stringify(results);
-						this.info_obj.get_server_key_obj(results).then(
+						newlist = this.info_obj.modify_toserver_data(results);
+						storedata_json = JSON.stringify(newlist);
+						this.info_obj.get_server_key_obj(newlist).then(
 							lang.hitch(this,function(server_key_obj) {
 								this.sendData_Server_DB(storedata_json, config_status,
 									server_key_obj);
@@ -221,7 +218,11 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				// of doing setData everytime new data comes in
 				// setData does not work with observable stores - see comment in fieldinfo.js
 				this.colname = colname;
-				this.schedInfoStore.set("collection",griddata_list);
+				arrayUtil.forEach(griddata_list, function(item) {
+					this.schedInfoStore.put(item);
+				}, this);
+				var query_obj = {colname:colname};
+				this.schedInfoGrid.set("collection", this.schedInfoStore.filter(query_obj));
 				this.schedInfoGrid.refresh();
 				this.schedInfoGrid.resize();
 				// we might not always need to switch the gstack, but do it
@@ -300,4 +301,5 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 					this.refresh_handle.remove();
 			}
 		});
-	})
+	}
+)

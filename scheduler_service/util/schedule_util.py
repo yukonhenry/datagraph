@@ -172,7 +172,7 @@ def getConnectedDivisionGroup(fieldinfo_list, key='primaryuse_list'):
     #(instead of saving list of connected components); used by leaguediv_process to
     #determine schedule allocation of connected divisions
     #connected_graph = json_graph.node_link_data(G)
-    return connected_div_components
+    return list(connected_div_components)
 
 # flatten arbitrarily nested lists
 # http://stackoverflow.com/questions/2158395/flatten-an-irregular-list-of-lists-in-python

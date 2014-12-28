@@ -27,6 +27,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			btntxtid_list:null, op_type:"", op_prefix:"", idmgr_obj:null,
 			infogrid_store:null, userid_name:"", widgetgen:null,
 			gridrow_handle:null, selected_gridrow:null,
+			startref_id:0, configstatus_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -38,6 +39,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					storeutil_obj:this.storeutil_obj,
 					server_interface:this.server_interface
 				});
+				// config status list is an in-memory tracker for config
+				// status, given a particular collection
+				this.configstatus_list = new Array();
 			},
 			showConfig: function(args_obj) {
 				var tooltipconfig_list = args_obj.tooltipconfig_list;
@@ -80,7 +84,19 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						}
 						//rownum, is the total # of divisions/fields/current config
 						this.totalrows_num = entrynum_reg.get("value");
-						var info_list = this.getInitialList(this.totalrows_num);
+						// check if infogrid_store exists and if entries exist for
+						// current colname; if exists, delete those elements from
+						// local store
+						if (this.infogrid_store) {
+							this.infogrid_store.filter({
+								colname:this.activegrid_colname
+							}).forEach(function(item) {
+								this.infogrid_store.remove(
+									this.infogrid_store.getIdentity(item))
+							}, this)
+						}
+						var info_list = this.getInitialList(this.totalrows_num,
+							this.activegrid_colname);
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						// if idproperty is field, create radio buttons for
@@ -190,34 +206,64 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 			},
 			getServerDBInfo: function(options_obj) {
+				// called when data is retrieved from server, which occurs when
+				// edit is called on existing grid.
 				// note third parameter maps to query object, which in this case
 				// there is none.  But we need to provide some argument as js does
 				// not support named function arguments.  Also specifying "" as the
 				// parameter instead of null might be a better choice as the query
 				// object will be emitted in the jsonp request (though not consumed
 				// at the server)
-				var item = options_obj.item;
+				var colname = options_obj.item;
+				this.activegrid_colname = colname;
+				if (this.infogrid_store) {
+					this.infogrid_store.filter({colname:colname}).fetch().then(
+					lang.hitch(this, function(results) {
+						if (results.totalLenght > 0) {
+							var config_status = arrayUtil.filter(
+								this.configstatus_list, function(item) {
+									return item.colname == colname;
+								})[0].config_status;
+							server_data[constant.serverstatus_key] = results.config_status;
+							this.createEditGrid(results, options_obj, config_status);
+							return;
+						}
+					}))
+				}
 				var getserver_path = "get_dbcol/";
 				// define key for object returned from server to get
 				// status of configuration - config_status
 				this.server_interface.getServerData(
-					getserver_path+this.userid_name+'/'+options_obj.db_type+'/'+item,
-					lang.hitch(this, this.createEditGrid), null, options_obj);
+					getserver_path+this.userid_name+'/'+options_obj.db_type+'/'+colname,
+					lang.hitch(this, this.pipegrid_data), null, options_obj);
 			},
-			createEditGrid: function(server_data, options_obj) {
-				// don't create grid if a grid already exists and it points to the same schedule db col
-				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
-				this.activegrid_colname = options_obj.item;
+			pipegrid_data: function(server_data, options_obj) {
+				// process data that is actually returned from server before
+				// calling createEditGrid, which is a common target function for
+				// both initialization-generated grid data and server-returned
+				// grid data.
+				// get colname (note this.activegrid_colname should already have
+				// been assigned in previous calling function getServerDBInfo)
+				var colname = options_obj.item;
 				var columnsdef_obj = this.getcolumnsdef_obj();
-				var idproperty = this.idproperty;
-				// if server data is fielddb information, then we need to do
-				// some data conversion (convert to date obj) before passing onto grid
 				// Note server_key is key for outgoing request
 				// serverdata_key is for incoming data
 				var data_list = server_data[constant.serverdata_key];
-				// extract configuration status from server. integer value 0/1
 				var config_status = server_data[constant.serverstatus_key];
-				this.totalrows_num = data_list.length;
+				// save away config status in config status list data struct
+				this.configstatus_list.push({colname:colname,
+					config_status:config_status})
+				// for colname data retrieved from server store, augment
+				// collection name and local store id
+				var idproperty = this.idproperty;
+				var store_idproperty = "col"+this.idproperty;
+				arrayUtil.forEach(data_list, function(data) {
+					data.colname = colname;
+					// local store id is generated by idproperty value shifted
+					// by current offset (offset does Not need to match offset used
+					// when creating grid initially)
+					data[store_idproperty] = data[idproperty]+this.startref_id;
+				}, this)
 				if (options_obj.db_type == 'fielddb') {
 					if (idproperty == 'field_id') {
 						data_list = this.modifyserver_data(data_list,
@@ -240,6 +286,17 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						alert('check conflict db_type/idproperty consistency');
 					}
 				}
+				this.createEditGrid(data_list, options_obj, config_status);
+			},
+			createEditGrid: function(data_list, options_obj, config_status) {
+				// don't create grid if a grid already exists and it points to the same schedule db col
+				// if grid needs to be generated, make sure to clean up prior to recreating editGrid
+				this.activegrid_colname = options_obj.item;
+				var idproperty = this.idproperty;
+				// if server data is fielddb information, then we need to do
+				// some data conversion (convert to date obj) before passing onto grid
+				this.totalrows_num = data_list.length;
+				var columnsdef_obj = this.getcolumnsdef_obj();
 				if (!this.server_interface) {
 					console.log("no server interface");
 					alert("no server interface, check if service running");
@@ -407,8 +464,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			del_gridrow: function(event) {
 				if (this.selected_gridrow && this.selected_gridrow > 0) {
 					this.infogrid_store.remove(this.selected_gridrow);
-					var store_data = this.infogrid_store.filter({},
-						{sort:[{attribute:"pref_id", descending: false}]}).map(
+					var store_data = this.infogrid_store.filter(
+						{colname:this.activegrid_colname})
+						.sort({property:"pref_id", descending: false}).map(
 							lang.hitch(this, function(item) {
 							if (item[this.idproperty] > this.selected_gridrow) {
 								item[this.idproperty]--

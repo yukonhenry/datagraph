@@ -1165,7 +1165,6 @@ class FieldTimeScheduleGenerator:
             if cost_list:
                 max_swap = max(cost_list, key=itemgetter('swap_cost'))
                 logging.debug("ftscheduler:findMatchSwapConstraints: max swap elem", max_swap)
-                #print 'max_swap', max_swap
                 if max_swap['field_id'] != reffield_id:
                     raise CodeLogicError("ftschedule:findSwapMatchForConstraints reffield %d max_swap field do Not match" % (reffield_id,))
                 #fsstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(reffield_id)]['slotstatus_list'][reffieldday_id-1]['sstatus_list']

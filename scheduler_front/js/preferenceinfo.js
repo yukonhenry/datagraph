@@ -148,6 +148,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						delete item.satisfy;
 					}
 					var newobj = lang.clone(item);
+					delete newobj.colpref_id;
+					delete newobj.colname;
 					newobj.game_date = newobj.game_date.toLocaleDateString();
 					newobj.start_after = newobj.start_after.toLocaleTimeString();
 					newobj.end_before = newobj.end_before.toLocaleTimeString();
@@ -230,14 +232,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},
-			getInitialList: function(num) {
+			getInitialList: function(num, colname) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
 					info_list.push({pref_id:i, div_id:"", team_id:"",
 						priority:i, game_date:this.today,
 						start_after:new Date(2014,0,1,8,0,0),
-						end_before:new Date(2014,0,1,17,0,0)});
+						end_before:new Date(2014,0,1,17,0,0),
+						colpref_id:this.startref_id+i,
+						colname:colname
+					});
 				}
+				this.startref_id += num;
 				return info_list;
 			},
 			get_gridhelp_list: function() {

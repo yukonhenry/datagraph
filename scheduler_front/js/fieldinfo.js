@@ -171,7 +171,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				options_obj.db_type = constant.db_type;
 				this.inherited(arguments);
 			},
-			getInitialList: function(fieldnum) {
+			getInitialList: function(fieldnum, colname) {
 				// return value defines structure for store for grid
 				// http://dojo-toolkit.33424.n3.nabble.com/1-9-dijit-form-TimeTextBox-visibleRange-bug-td3997566.html
 				var later_date = date.add(this.today, 'month', 3);
@@ -183,8 +183,12 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						start_date:this.today, end_date:later_date,
 						start_time:new Date(2014,0,1,8,0,0),
 						end_time:new Date(2014,0,1,17,0,0),
-						dr:"", detaileddates:"", tfd:0});
+						dr:"", detaileddates:"", tfd:0,
+						colfield_id:this.startref_id+i,
+						colname:colname
+					});
 				}
+				this.startref_id += fieldnum;
 				return info_list;
 			},
 			get_gridhelp_list: function() {
@@ -1288,6 +1292,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						delete item.calendarmap_list;
 					}
 					var newobj = lang.clone(item);
+					// drop properties we don't need to send to server
+					delete newobj.colname;
+					delete newobj.colfield_id;
 					newobj.start_date = newobj.start_date.toLocaleDateString();
 					newobj.end_date = newobj.end_date.toLocaleDateString();
 					newobj.start_time = newobj.start_time.toLocaleTimeString();

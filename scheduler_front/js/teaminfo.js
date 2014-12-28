@@ -108,12 +108,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					this.userid_name+'/'+constant.db_type+'/'+options_obj.item,
 					lang.hitch(this, this.prepgrid_data));
 			},
-			getInitialList: function(num, div_id) {
+			getInitialList: function(num, div_id, colname) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
 					info_list.push({tm_id:i, tm_name:"", af_list:[],
-					div_id:div_id, dt_id:"dv"+div_id+"tm"+i});
+					div_id:div_id, dt_id:"dv"+div_id+"tm"+i+this.startref_id,
+					colname:colname});
 				}
+				this.startref_id += num;
 				return info_list;
 			},
 			get_gridhelp_list: function() {
@@ -226,11 +228,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 							return item.div_id == div_id_event;
 						})) {
 							info_list = info_list.concat(this.getInitialList(
-								this.totalrows_num, div_id_event));
+								this.totalrows_num, div_id_event,
+								this.activegrid_colname));
 						}
 					} else {
 						info_list = this.getInitialList(this.totalrows_num,
-						div_id_event);
+						div_id_event, this.activegrid_colname);
 					}
 					info_list.sort(function(a,b) {
 						return a.tm_id-b.tm_id
@@ -264,12 +267,13 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								})) {
 									info_list = info_list.concat(
 										this.getInitialList(this.totalrows_num,
-											div_id_event));
+											div_id_event, this.activegrid_colname));
 								}
 							} else {
 								// if div_id data does not exist, add initilization data
 								info_list = this.getInitialList(
-									this.totalrows_num, div_id_event);
+									this.totalrows_num, div_id_event,
+									this.activegrid_colname);
 							}
 							info_list.sort(function(a,b) {
 								return a.tm_id-b.tm_id

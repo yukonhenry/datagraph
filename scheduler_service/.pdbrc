@@ -18,10 +18,11 @@
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
 #b tournfieldtimescheduler.py:297
 #b tournschedmaster.py:490
-#b schedmaster.py:240
+#b algorithm/schedmaster.py:183
 #b fielddbinterface.py:51
 #b fieldtimescheduler.py:923, swapdiv_id==6 and (home_id==2 or away_id==2)
-#b fieldtimescheduler.py:539, div_id==2
+b algorithm/fieldtimescheduler.py:82
+b algorithm/fieldtimescheduler.py:104
 #b fieldtimescheduler.py:537, div_id==2
 #b fieldtimescheduler.py:545, div_id==2
 #b fieldtimescheduler.py:748, conflict_id==8
@@ -33,7 +34,6 @@
 #b fieldbalancer.py:189
 #b dbinterface.py:636
 #b leaguediv_process.py:214, db_type=='newscheddb'
-#b schedule_util.py:265
 #b prefdbinterface.py:14
 #b teamdbinterface.py:21
 #b rrdbinterface.py:23
@@ -42,5 +42,6 @@
 #b rrdbinterface.py:28
 #b userdbinterface.py:19
 #b scheddbinterface.py:38
-b router/router_process.py:63
+#b router/router_process.py:63
+
 #b xls_exporter.py:94

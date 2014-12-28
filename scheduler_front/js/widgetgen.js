@@ -353,7 +353,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     }, start_dtbox_node);
                     this.start_dtbox.startup();
                 } else {
-                    this.start_dtbox = registry.byNode(start_dtbox_node);
+                    if (!this.start_dtbox)
+                        // registry.byNode is not returning widget, use byId
+                        this.start_dtbox = registry.byId(start_datebox_id);
+                    //this.start_dtbox = registry.byNode(start_dtbox_node);
                 }
                 // create season end date entry
                 var end_dtbox_node = dom.byId(end_datebox_id);
@@ -390,7 +393,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     }, end_dtbox_node);
                     this.end_dtbox.startup();
                 } else {
-                    this.end_dtbox = registry.byNode(end_dtbox_node);
+                    if (!this.end_dtbox)
+                        this.end_dtbox = registry.byId(end_datebox_id);
                 }
                 // create season length spinner
                 var sl_spinner_node = dom.byId(sl_spinner_id);
@@ -421,7 +425,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     this.sl_spinner.startup();
                     //put(topdiv_node, "br");
                 } else {
-                    this.sl_spinner = registry.byNode(sl_spinner_node);
+                    if (!this.sl_spinner)
+                        this.sl_spinner = registry.byId(sl_spinner_id);
                 }
                 // create button to save season start/end/length
                 var sdbtn_node = dom.byId(sdbtn_id);
@@ -440,7 +445,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     sdbtn.startup();
                     put(topdiv_node, "br, br");
                 } else {
-                    sdbtn = registry.byNode(sdbtn_node);
+                    sdbtn = registry.byId(sdbtn_id);
                 }
             },
             getSeasonDatesFromInput: function(op_type, event) {

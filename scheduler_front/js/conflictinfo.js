@@ -127,13 +127,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 }
                 this.showConfig(args_obj);
             },
-            getInitialList: function(num) {
+            getInitialList: function(num, colname) {
                 var info_list = new Array();
                 for (var i = 1; i < num+1; i++) {
                     info_list.push({conflict_id:i, priority:2,
                         div_1_id:"", team_1_id:"",
-                        div_2_id:"", team_2_id:""});
+                        div_2_id:"", team_2_id:"",
+                        colconflict_id:this.startref_id+i,
+                        colname:colname});
                 }
+                this.startref_id += num;
                 return info_list;
             },
             getServerDBInfo: function(options_obj) {
@@ -166,6 +169,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     {id:'team_2_id',
                         help_str:"Select Team ID for the second conflict team"}]
                 return gridhelp_list;
+            },
+            modify_toserver_data: function(raw_result) {
+                var newlist = arrayUtil.map(raw_result, function(item) {
+                    // leave out dt_id to send to server (recreate when
+                    // data returned from server)
+                    return {conflict_id:item.conflict_id,
+                        priority:item.priority,
+                        div_1_id:item.div_1_id, div_2_id:item.div_2_id,
+                        team_1_id:item.team_1_id, team_2_id:item.team_2_id
+                    }
+                })
+                return newlist;
             },
             modifyserver_data: function(data_list, divstr_obj) {
                 // see comments for fieldinfo modifyserver_data - process divstr
