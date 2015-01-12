@@ -25,6 +25,11 @@ Algorithm implmentation in Python on a hosted (cloud) backend server, with stora
 
 #### Code Structure:
 * scheduler_service directory includes schduling algorithm implementation, along with router logic and storage interfaces.  Python implementation, utilizing bottle for router support and mongodb for scheduling storage. Entry pt is schedstart.py.  schedmaster.py implements entry point for schedule generation.  matchgenerator.py implements time/place independent match generation, with xxfieldtimescheduler.py implementing time/venue assignments.
+Utilized python libraries/tools/frameworks:
+  * bottle (for routing)
+  * pymongo (mongodb interface)
+  * networkx (graph algorithms for match generation support)
+  * tablib (xls ouput support)
 * scheduler_front directory includes js code for UI component geneartion utilizing dojo libraries.  scheduler.js is the main js module loaded from index.hmtl.  UI code follows two separate paths (for wizard, and 'advanced' UI - for content pane creation, but merge together once the per-pane UI components are generated.  Dojo framework provides the infrastructure, with heavy use of dgrid, dodjox calendar, and local dojo store
 
 ####Evaluate software @ http://www.yukontr.com/apps/LeagueScheduler/
