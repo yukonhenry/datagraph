@@ -27,47 +27,48 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// IMPORTANT: make sure one field matches the idproperty string, if
 				// the idproperty is going to be used at the idProperty field for
 				// the store
-				var columnsdef_obj = {
-					tourndiv_id: "Div ID",
-					div_age: editor({label:"Age", autoSave:true,
+				// implement dstore 0.4 compatibility
+				// ref https://github.com/SitePen/dgrid/blob/v0.4.0/doc/migrating/0.4-Migration.md
+				var columnsdef_list = [
+					{field: "tourndiv_id", label: "Div ID"},
+					{field: "div_age", label:"Age", autoSave:true,
 						set:function(item) {
 							// trim any leading or trailing whitespace characters
 							return item.div_age.trim();
-						}}, "text","click"),
-					div_gen: editor({label:"Gender", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field: "div_gen", label:"Gender", autoSave:true,
 						set:function(item) {
 							return item.div_gen.trim();
-						}}, "text","click"),
-					totalteams: editor({label:"Total Teams", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field:"totalteams", label:"Total Teams", autoSave:true,
 						set:function(item) {
 							return parseInt(item.totalteams)
-						}}, "text", "click"),
-					totalgamedays: editor({label:"RR games", autoSave:true,
+						}, editor:"text", editOn:"click"},
+					{field:"totalgamedays", label:"Total Gamedays per team",
 						set:function(item) {
-							return parseInt(item.totalgamedays)
-						}}, "text", "click"),
-					gameinterval: editor({label:"Inter-Game Interval (min)",
+							return parseInt(item.totalgamedays);
+						}
+					},
+					{field:"gameinterval", label:"Inter-Game Interval (min)",
 						autoSave:true,
 						set:function(item) {
 							return parseInt(item.gameinterval)
-						}}, "text", "click"),
-					mingap_time: editor({label:"Per-team Minimum Gap (min)",
+						}, editor:"text", editOn: "click"},
+					{field:"mingap_time", label:"Per-team Minimum Gap (min)",
 						autoSave:true,
 						set:function(item) {
 							return parseInt(item.mingap_time)
-						}}, "text", "click"),
-					elimination_type: editor({label:"Elimination Type",
-						autoSave:true,
+						}, editor:"text", editOn: "click"},
+					{field: "elimination_type", label:"Elimination Type", autoSave:true,
 						set:function(item) {
-							return item.elimination_type.trim().toUpperCase()
-						}}, "text", "click"),
-					thirdplace_enable: editor({label:"Gen 3rd Place Match",
-						autoSave:true,
+							return item.elimination_type.trim().toUpperCase();
+						}, editor:"text", editOn:"click"},
+					{field: "thirdplace_enable", label:"Gen 3rd Place Match", autoSave:true,
 						set:function(item) {
-							return item.thirdplace_enable.trim().toUpperCase()
-						}}, "text", "click")
-				};
-				return columnsdef_obj;
+							return item.thirdplace_enable.trim().toUpperCase();
+						}, editor:"text", editOn:"click"}					
+				];
+				return columnsdef_list;
 			},
 			getfixedcolumnsdef_obj: function () {
 				var columnsdef_obj = {
@@ -75,7 +76,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					div_age:"Age Group/Primary Group ID",
 					div_gen:"Gender/Secondary Group ID",
 					totalteams:"Total #Teams",
-					totalgamedays:"Total # Games",
+					totalgamedays:"Total # Games for RR portion",
 					gameinterval:"Game Interval(min)",
 					mingap_time:"Minimum Gap Time(min)",
 					elimination_type:"Elimination Type",
@@ -126,7 +127,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					dbname_reg = registry.byId(dbname_id);
 					inputnum_reg = registry.byId(inputnum_id);
 				}
-				var tooltipconfig_list = [{connectId:[constant.inputnum_id],
+				var tooltipconfig_list = [{connectId:[inputnum_id],
 					label:"Specify Number of Divisions and press ENTER",
 					position:['below','after']},
 					{connectId:[dbname_id],

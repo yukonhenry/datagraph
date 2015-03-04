@@ -4,7 +4,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 	"dijit/form/RadioButton", "scheduler_front/widgetgen",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"scheduler_front/editgrid", "scheduler_front/baseinfoSingleton",
-	"scheduler_front/idmgrSingleton", "put-selector/put",
+	"scheduler_front/idmgrSingleton", "put-selector/put", "underscore-min",
 	"dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, keys,
 		registry, Tooltip, Button, RadioButton, WidgetGen, Form, StackContainer,
@@ -595,11 +595,14 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					arrayUtil.forEach(gridhelp_list, function(help_obj) {
 						// make changes to accomodate dgrid 0.4 structure
 						// grid.columns is an array of objects, with 'field' key
-						// carraying the effective id of the column
-						var match_obj = arrayUtil.filter(grid.columns,
-						function(item) {
-							return item.field == help_obj.id;
-						})
+						// carrying the effective id of the column
+						// In addition, grid.columns is an object, so we need to map to
+						// equivalent list - use underscore library
+						var match_obj = arrayUtil.filter(_.values(grid.columns),
+							function(item) {
+								return item.field == help_obj.id;
+							}
+						)[0]
 						var tooltipconfig = {
 							connectId:[match_obj.headerNode],
 							label:help_obj.help_str,
