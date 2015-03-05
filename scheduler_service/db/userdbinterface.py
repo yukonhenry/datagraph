@@ -19,8 +19,6 @@ class UserDBInterface(BaseDBInterface):
         return result
 
     def writeDB(self, userid_name):
-        '''create dummy entry with config_status - just to make it compatible with
-        dbInterface.getScheduleCollection
-        '''
         document = {USERID_NAME:userid_name}
         self.dbinterface.insertdoc(document)
+        return True
