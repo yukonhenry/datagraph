@@ -29,7 +29,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			default_fieldevent_str:"Sports"
 		};
 		return declare(baseinfo, {
- 			idproperty:constant.idproperty_str, calendar_store:null,
+ 			idproperty:constant.idproperty_str,
+ 			store_idproperty:"col"+constant.idproperty_str,
+ 			calendar_store:null,
  			calendar_id:1,
 			fieldselect_widget:null, fieldevent_reg:null, eventdate_reg:null,
 			starttime_reg:null, endtime_reg:null,

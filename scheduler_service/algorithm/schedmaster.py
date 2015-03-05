@@ -13,6 +13,7 @@ from dateutil import parser
 import logging
 from util.sched_exceptions import CodeLogicError
 from html import HTML
+from external.message import RabbitInterface
 
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')

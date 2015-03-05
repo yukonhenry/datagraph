@@ -24,6 +24,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(baseinfo, {
 			idproperty:constant.idproperty_str,
+			store_idproperty:"dt_id",
 			db_type:constant.db_type,
 			//divstr_colname, divstr_db_type, widgetgen are all member var's
 			// that have to do with the db_type radiobutton /
@@ -244,6 +245,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						server_interface:this.server_interface,
 						grid_id:this.idmgr_obj.grid_id,
 						idproperty:this.idproperty,
+						store_idproperty:this.store_idproperty,
 						cellselect_flag:false,
 						info_obj:this, userid_name:this.userid_name,
 						uistackmgr_type:this.uistackmgr_type,

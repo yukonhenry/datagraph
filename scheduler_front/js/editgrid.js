@@ -22,7 +22,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 			grid_id:"",
 			error_node:null,
 			errorHandle:null, datachangeHandle:null, header_handle:null,
-			idproperty:null,
+			idproperty:null, store_idproperty:null,
 			cellselect_flag:false, cellselect_handle:null, refresh_handle:null,
 			info_obj:null, uistackmgr_type:null, storeutil_obj:null, db_type:null,
 			userid_name:"",
@@ -40,13 +40,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				//	|| this.idproperty == 'pref_id') {
 				//	this.schedInfoStore = new Observable(new Memory({data:this.griddata_list, idProperty:this.idproperty}));
 					var TrackableMemory = declare([Memory, Trackable]);
-					this.schedInfoStore = new TrackableMemory({data:this.griddata_list, idProperty:"col"+this.idproperty});
-				} else if (this.idproperty == 'team_id') {
-					// for team_id, the store idproperty is the default "id" field
-					this.schedInfoStore = new Memory({data:this.griddata_list,
-						idProperty:"dt_id"});
+					this.schedInfoStore = new TrackableMemory({data:this.griddata_list, idProperty:this.store_idproperty});
 				} else {
-					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:"col"+this.idproperty});
+					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.store_idproperty});
 				}
 				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
 				// 'in' operator is generic and works through inherited objects

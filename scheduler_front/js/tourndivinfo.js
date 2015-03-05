@@ -19,6 +19,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 		};
 		return declare(baseinfo, {
 			idproperty:constant.idproperty_str, db_type:constant.db_type,
+			store_idproperty:"col"+constant.idproperty_str,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -66,7 +67,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					{field: "thirdplace_enable", label:"Gen 3rd Place Match", autoSave:true,
 						set:function(item) {
 							return item.thirdplace_enable.trim().toUpperCase();
-						}, editor:"text", editOn:"click"}					
+						}, editor:"text", editOn:"click"}
 				];
 				return columnsdef_list;
 			},
@@ -166,8 +167,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			getInitialList: function(divnum, colname) {
 				var info_list = new Array();
 				for (var i = 1; i < divnum+1; i++) {
-					// make sure one of the keys matches the idProperty used for
-					// store.
+					// coltourndiv_id maps to idProperty for store
 					info_list.push({tourndiv_id:i, div_age:"", div_gen:"",
 						totalteams:2, totalgamedays:2, gameinterval:80,
 						mingap_time:120, elimination_type:'D',

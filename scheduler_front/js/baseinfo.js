@@ -27,7 +27,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			btntxtid_list:null, op_type:"", op_prefix:"", idmgr_obj:null,
 			infogrid_store:null, userid_name:"", widgetgen:null,
 			gridrow_handle:null, selected_gridrow:null,
-			startref_id:0, configstatus_list:null,
+			startref_id:0, configstatus_list:null, idproperty:null,
+			store_idproperty:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -122,6 +123,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 								grid_id:grid_id, userid_name:this.userid_name,
 								//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 								idproperty:this.idproperty,
+								store_idproperty:this.store_idproperty,
 								cellselect_flag:cellselect_flag,
 								info_obj:this,
 								uistackmgr_type:this.uistackmgr_type,
@@ -308,6 +310,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						grid_id:options_obj.grid_id, userid_name:this.userid_name,
 						//error_node:dom.byId("divisionInfoInputGridErrorNode"),
 						idproperty:idproperty,
+						store_idproperty:this.store_idproperty,
 						cellselect_flag:options_obj.cellselect_flag,
 						info_obj:this,
 						uistackmgr_type:this.uistackmgr_type,
@@ -440,21 +443,20 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				}
 			},
 			add_gridrow: function(event) {
-				this.infogrid_store.get(this.totalrows_num).then(
-					lang.hitch(this, function(last_entry) {
-						var init_obj = this.getInitialList(1)[0];
-						for (var key in init_obj) {
-							// copy key:value paris from the last row entry as a helper
-							// to prefill elements for the newly added row.
-							// lang.mixin is not used as we only want to copy keys that
-							// exist in the target
-							if (key != this.idproperty) {
-								init_obj[key] = last_entry[key]
-							}
-						}
+				// ref https://github.com/SitePen/dstore/blob/master/docs/Collection.md
+				// Need to create filter builder instead of direct filter
+				//({key:value}) call as key is a variable.  See Ref
+				var filter = new this.infogrid_store.Filter();
+				var sfilter = filter.eq(this.idproperty, this.totalrows_num)
+					.eq("colname", this.activegrid_colname);
+				this.infogrid_store.filter(sfilter).fetch().then(
+					lang.hitch(this, function(results) {
+						// copy current last element
+						var newlast_entry = lang.clone(results[0]);
 						this.totalrows_num++;
-						init_obj[this.idproperty] = this.totalrows_num;
-						this.infogrid_store.add(init_obj)
+						newlast_entry[this.idproperty] = this.totalrows_num;
+						newlast_entry[this.store_idproperty] += 1;
+						this.infogrid_store.add(newlast_entry)
 						this.editgrid.schedInfoGrid.refresh();
 						this.editgrid.schedInfoGrid.resize();
 					})
@@ -466,7 +468,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					this.infogrid_store.remove(this.selected_gridrow);
 					var store_data = this.infogrid_store.filter(
 						{colname:this.activegrid_colname})
-						.sort({property:"pref_id", descending: false}).map(
+						.sort({property:this.idproperty, descending: false}).map(
 							lang.hitch(this, function(item) {
 							if (item[this.idproperty] > this.selected_gridrow) {
 								item[this.idproperty]--

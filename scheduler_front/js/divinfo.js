@@ -38,6 +38,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 		};
 		return declare(baseinfo, {
 			idproperty:constant.idproperty_str,
+			store_idproperty:"col"+constant.idproperty_str,
 			db_type:constant.db_type,
 			base_numweeks:0, oddnumradio_value:-1, oddnum_dialog:null,
 			constructor: function(args) {
