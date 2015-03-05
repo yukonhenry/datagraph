@@ -8,3 +8,12 @@
 - sudo pip install bottle
 - sudo pip install html
 - sudo pip install tablib
+- sudo pip install pika
+
+#### Anaconda
+- conda install pymongo
+- conda install --channel https://conda.binstar.org/jsverch simplejson  (one of the channels that has the latest simplejson version; found through binstart search -t conda simplejson)
+- conda install --channel https://conda.binstar.org/auto flufl.enumy
+- conda install --channel https://conda.binstar.org/mhworth pika
+- For html lib, download from https://pypi.python.org/pypi/html/, unpack and do python setup.py install (assuming python points to anaconda env)
+
