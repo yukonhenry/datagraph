@@ -45,11 +45,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						set:function(item) {
 							return parseInt(item.totalteams)
 						}, editor:"text", editOn:"click"},
-					{field:"totalgamedays", label:"Total Gamedays per team",
+					{field:"totalgamedays", label:"Total Gamedays per team", autoSave:true,
 						set:function(item) {
-							return parseInt(item.totalgamedays);
-						}
-					},
+							return parseInt(item.totalgamedays)
+						}, editor:"text", editOn:"click"},
 					{field:"gameinterval", label:"Inter-Game Interval (min)",
 						autoSave:true,
 						set:function(item) {

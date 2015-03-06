@@ -11,8 +11,6 @@ start_time_CONST = 'START_TIME'
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
-_List_Status_Mode = namedtuple('_List_Status_Mode',
-    'list config_status oddnum_mode')
 
 ''' class to convert process new tournament schedule.  All namespace conversion between
 js object keys and db document keys happen here '''

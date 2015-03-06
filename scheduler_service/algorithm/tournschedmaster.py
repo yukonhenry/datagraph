@@ -87,7 +87,7 @@ class TournSchedMaster(object):
             self._error_code |= FIELDCONFIG_INCOMPLETE_MASK
 
         # create list of div_ids that do not have a 'divfield_list' key
-        divreqfields_list = [x['div_id'] for x in self.divinfo_list if 'divfield_list' not in x]
+        divreqfields_list = [x[IDPROPERTY_str] for x in self.divinfo_list if 'divfield_list' not in x]
         # if there are div_id's with no 'divfield_list' key, create it
         if divreqfields_list:
             self.divfield_correlate(self.fieldinfo_list, dbInterface, divreqfields_list)
@@ -539,7 +539,7 @@ class TournSchedMaster(object):
                 if div_id in div_list:
                     index = self.divinfo_indexerGet(div_id)
                     if index is not None:
-                        divset.update(div_id)
+                        divset.add(div_id)
                         divinfo = self.divinfo_list[index]
                         # check existence of key 'divfield_list' - if it exists, append to list of fields, if not create
                         if 'divfield_list' in divinfo:

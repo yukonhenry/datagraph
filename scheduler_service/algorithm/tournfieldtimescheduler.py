@@ -20,11 +20,16 @@ GAME_TEAM_str = 'game_team'
 _absolute_earliest_time = parser.parse('05:00').time()
 _absolute_earliest_date = parser.parse('01/01/2010').date()
 _min_timegap = timedelta(0,0,0,0,160) # in minutes
-# temporary hack to force abs round forward to a particular fieldday -
-# doing this to keep all matches for a given div_id and absround_id to fall on
-# on the same day
-_force_absround_to_fieldday_list = [{'div_id':1, 'fieldday_map':[1,2,2]}]
-_findexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_force_absround_to_fieldday_list)).get(x)
+# Current implementation for elimination tournaments has the intergame gap for
+# each team satisfy the minimum time gap, i.e. matches are scheduled to
+# complete as soon as possible (greedy time-wise) as long as various
+# constraints are satisfied.  If we want to arbitrarily stretch out the
+# schedule, e.g. matches for a particular round should fall on a certain
+# (later than necessary date), then define _force_absround_to_fieldday_list,
+# with a list-implied mapping from round# (list index+1) to fieldday_id
+# Eventually UI support will be required.
+#_force_absround_to_fieldday_list = [{'div_id':1, 'fieldday_map':[1,2,2]}]
+#_findexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_force_absround_to_fieldday_list)).get(x)
 class TournamentFieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         tourn_type='RR'):
@@ -491,7 +496,7 @@ class TournamentFieldTimeScheduleGenerator:
                     next_date = nextmin_datetime.date() + timedelta(days=1)
                     next_start = _absolute_earliest_time
                     nextmin_datetime = datetime.combine(next_date, next_start)
-            if elimination_type == 'S':
+            if elimination_type == 'S' and "_force_absround_to_fieldday_list" in globals():
                 # for single elimination tournament, if there is a force-fieldday
                 # map defined for the division:
                 findex = _findexerGet(div_id)
