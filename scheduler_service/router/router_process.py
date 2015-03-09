@@ -1,5 +1,7 @@
 #!/usr/bin/python
-''' Copyright YukonTR 2013 '''
+''' Copyright YukonTR 2013
+This file includes functions to route incoming requests from client.
+Utilizes bottle route infrastructure '''
 import simplejson as json
 import time
 from pprint import pprint
@@ -24,8 +26,6 @@ from db.userdbinterface import UserDBInterface
 from util.sched_exceptions import CodeLogicError
 from util.xls_exporter import XLS_Exporter
 from operator import itemgetter
-
-#_dbInterface = MongoDBInterface(mongoClient)
 
 class RouteLogic:
     '''ref http://stackoverflow.com/questions/8725605/bottle-framework-and-oop-using-method-instead-of-function and

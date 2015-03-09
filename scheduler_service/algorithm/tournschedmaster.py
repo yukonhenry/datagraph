@@ -9,7 +9,6 @@ from dateutil import parser
 import logging
 from html import HTML
 from random import shuffle, seed
-from bisect import bisect_left
 from math import ceil, log
 from util.schedule_util import flatten, roundrobin
 from itertools import chain, groupby
@@ -300,7 +299,6 @@ class TournSchedMaster(object):
 
     def createConsolationRound(self, div_id, match_list, wr_total, match_id_count,
         elimination_type, divmatch_list):
-
         # create the seed list for the consolation matches by getting
         # the 'losing' seed number from the previous round
         # x in [-1,-2] intended to get last and second-to-last match_list
@@ -327,7 +325,6 @@ class TournSchedMaster(object):
                               ctuple_list, wr12_losing_teams)
                 # get power of 2 greater than #teams
                 cpower2 = pow(2, int(ceil(_logbase2(wr12_losing_teams))))
-                #cpower2 = _POWER_2S[bisect_left(_POWER_2S, wr12_losing_teams)]
                 c1bye_num = cpower2 - wr12_losing_teams
                 nt = wr12_losing_teams - c1bye_num
                 seed_id_list = [x[1] for x in ctuple_list[-nt:]]
@@ -459,8 +456,6 @@ class TournSchedMaster(object):
             logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
             logging.debug("elimsched:createConsole: Consolation div %d round %d",
                           div_id, cround_id)
-            #logging.debug("elimsched:createConsole: Consolocation rmatch %s",
-            #             rmatch_dict)
             for rm in rmatch_dict['match_list']:
                 logging.debug("elimsched:createConsole: match %s", rm)
             cmatch_list.append(rmatch_dict)
@@ -487,7 +482,9 @@ class TournSchedMaster(object):
         match_id_count, divmatch_list, div_name):
         # generate 3rd place match - just take championship match
         # and replace W match_id identifiers with 'L' prefix
-        # round_id, absround_id stays the same as the championship match
+        # round_id, absround_id stays the same as the championship match.
+        # Only applicable for single elimination matches as third place
+        # can be automatically determined for double or consolation tournaments.
         mindexerMatch = lambda x,y:[i for i,p in enumerate(
             amatch_list) if p['div_id']==x and p['round_id']==y]
         mindex = mindexerMatch(div_id, max_round_id)[0]
@@ -507,6 +504,8 @@ class TournSchedMaster(object):
         pprint(rmatch_dict)
         return match_id_count
 
+    ''' sort match list according to absround_id
+    '''
     def addOverallRoundID(self, adivmatch_list, totalteams, elimination_type):
         adjustedmatch_list = [{'div_id':dkey,
             'divmatch_list':[x['divmatch_list'] for x in ditems]}
@@ -515,32 +514,7 @@ class TournSchedMaster(object):
         # (and there will only be one div, so adjustedmatch_list will be
         # a single element array)
         divmatch_list = adjustedmatch_list[0]['divmatch_list']
-        rrgenobj = roundrobin(divmatch_list)
-        multiplex_match_list = []
-        #if elimination_type in ['C', 'D']:
-        #    schedorder_index = _SCHEDORDERindexerGet(totalteams)
-        #    if schedorder_index is None:
-        #        raise CodeLogicError("addOverallRoundID:No index for totalteams=%d" % (totalteams,))
-        for ind, rmatch_dict in enumerate(rrgenobj):
-            '''
-            div_id = rmatch_dict['div_id']
-            round_id = rmatch_dict['round_id']
-            round_index = round_id-1
-            if elimination_type == 'S':
-                # for single elimination, there is only a winner's bracket
-                # and the round_id for the bracket equalis the abs round_id
-                rmatch_dict['absround_id'] = rmatch_dict['round_id']
-            else:
-                olist = _SCHEDORDER_list[schedorder_index]['order_list']
-                #olist = schedorder_list[sindexerGet(div_id)]['order_list']
-                if rmatch_dict['btype'] == 'W':
-                    rmatch_dict['absround_id'] = olist[round_index][0]
-                else:
-                    rmatch_dict['absround_id'] = olist[round_index][1]
-            logging.info("elimsched:addOverallRoundID div %d round %d ind %d btype %s abs %d", rmatch_dict['div_id'], rmatch_dict['round_id'] , ind+1, rmatch_dict['btype'], rmatch_dict['absround_id'])
-            '''
-            multiplex_match_list.append(rmatch_dict)
-        logging.info("*******************")
+        multiplex_match_list = list(roundrobin(divmatch_list))
         return sorted(multiplex_match_list, key=itemgetter('absround_id', 'btype'))
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''

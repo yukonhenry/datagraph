@@ -5,17 +5,9 @@ from schedule_util import mkdir_p
 from singletonlite import hostserver
 import os
 
-LOCALDIR_PATH = '/home/henry/workspace/datagraph/bottle_baseball/download/xls'
+LOCALDIR_PATH = '/home/henry/workspace/datagraph/scheduler_service/download/xls'
 SERVERDIR_PATH = '/home/tominaga/webapps/htdocs/xls'
-_reftrust_level = [{'div_id':1, 'cr':1, 'ar':1, 'ment':3},
-    {'div_id':2, 'cr':1, 'ar':1, 'ment':3},
-    {'div_id':3, 'cr':1, 'ar':1, 'ment':3},
-    {'div_id':4, 'cr':1, 'ar':1, 'ment':3},
-    {'div_id':5, 'cr':2, 'ar':2, 'ment':3},
-    {'div_id':6, 'cr':2, 'ar':2, 'ment':3},
-    {'div_id':7, 'cr':3, 'ar':2, 'ment':4},
-    {'div_id':8, 'cr':3, 'ar':2, 'ment':4}]
-_rindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_reftrust_level)).get(x)
+
 class XLS_Exporter:
     ''' this class and it's methods will eventually supersede sched_exporter
     class and methods '''
