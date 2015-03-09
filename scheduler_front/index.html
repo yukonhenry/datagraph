@@ -16,7 +16,7 @@
     </head>
     <body class="dbootstrap">
         <h1><a href="http://www.yukontr.com/">YukonTR</a> Sports League Scheduler <small id="versiongreeting"></small> </h1>
-        <h3><i>Maximize fairness, satisfy constraints, and resolve conflicts</i></h3>
+        <h3><i>Maximize fairness and convenience</i></h3>
     	<!-- load Dojo -->
     	<script src="static/dojo/dojo.js"
             data-dojo-config="async: true , packages: [{location:'../dbootstrap', name:'dbootstrap'},
@@ -25,7 +25,7 @@
 			require(["dbootstrap", "dojo/dom", "dijit/layout/TabContainer",
                 "scheduler_front/scheduler", "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.47j";
+                var version_str = "v1.0.0.47i";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date()
                 greeting_node.innerHTML = version_str;

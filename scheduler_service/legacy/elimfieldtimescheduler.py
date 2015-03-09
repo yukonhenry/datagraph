@@ -15,9 +15,7 @@ from math import ceil, floor
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id gameday_id slot_index')
 time_format_CONST = '%H:%M'
-min_slotgap_CONST = 2
-min_u10slotgap_CONST = 3
-gameday_list_CONST = [3,4,5,6]
+MIN_SLOTGAP = 2
 _absolute_earliest_time = parser.parse('05:00')
 _min_timegap = timedelta(0,0,0,0,160) # in minutes
 maxgameday_CONST = 8
@@ -60,8 +58,8 @@ class EliminationFieldTimeScheduler:
 
     def generateSchedule(self, totalmatch_list):
         tmindexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
-        # reset game schedule docs for eilimination tournament
-        self.tdbInterface.dbInterface.dropGameDocuments(gameday_list=gameday_list_CONST)  # reset game schedule docs
+        # reset game schedule docs for elimination tournament
+        self.tdbInterface.dbInterface.dropGameDocuments()  # reset game schedule docs
         for connected_div_list in self.connected_div_components:
             # get the list of divisions that make up a connected component.
             # then get the matchlist corresponding to the connected divisions
@@ -72,21 +70,12 @@ class EliminationFieldTimeScheduler:
             connecteddiv_match_list = [y for x in connected_div_list
                 for y in totalmatch_list[tmindexerGet(x)]['divmatch_list']]
             sorted_match_list = sorted(connecteddiv_match_list, key=itemgetter('absround_id', 'btype'))
-            #for x in sorted_match_list:
-            #   logging.debug("elimftsched:gen: sorted elem %s", x)
-            '''
-            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'depend':x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id', y['match_id']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
-            '''
             grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id'], 'comment':y['comment'], 'round':y['round']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             grouped_param_list = [{'absround_id':arkey, 'param_list':[{'depend': x['depend'], 'round_id':x['round_id'], 'numgames':x['numgames'], 'btype':x['btype'], 'div_id':x['div_id']} for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             for x in grouped_match_list:
                 logging.debug("elimftsched:gen: grouped elem %s", x)
             for x in grouped_param_list:
                 logging.debug("elimftsched:gen: grouped param %s", x)
-            '''
-            grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], 'div_id':dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
-            logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
-            '''
             #find the fields available for the connected_div_set by finding
             # the union of fields for each div
             # another option is to  call set.update (see fieldtimeschedule fset)
@@ -307,7 +296,6 @@ class EliminationFieldTimeScheduler:
         # check if candidate time slot has enough gap with the previously assigned slot for the two teams in the match
         target_slot = 0 # default return value
         target_gameday = gameday
-        min_slotgap = min_u10slotgap_CONST if div_id in (1,2) else min_slotgap_CONST
         validate_flag = [False, False]
         target_tuple =  [-1,-1]
         for i, team in enumerate((home,away)):
@@ -322,7 +310,7 @@ class EliminationFieldTimeScheduler:
                 validate_flag[i] = True
             elif (gameday > gapday):
                 validate_flag[i] = True
-            elif (gapday == gameday and slot_index-gapslot > min_slotgap):
+            elif (gapday == gameday and slot_index-gapslot > MIN_SLOTGAP):
                 validate_flag[i] = True
             else:
                 #print 'slot gapslot', slot_index, gapslot
@@ -330,7 +318,7 @@ class EliminationFieldTimeScheduler:
                 logging.info("tourn_ftscheduler:validatetimeslot: TimeGap Validation Failed, div_id=%d slot_index=%d gameday=%d home=%d away=%d",
                              div_id, slot_index, gameday, home, away)
                 # target slot is the minimu slot that gives the required game gap
-                target_tuple[i] = gapslot + min_slotgap + 1
+                target_tuple[i] = gapslot + MIN_SLOTGAP + 1
                 #print 'FALSE div slot target gameday home away', div_id, slot_index, target_tuple[i], gameday, home, away
             if all(validate_flag):
                 validate = True
@@ -369,7 +357,8 @@ class EliminationFieldTimeScheduler:
                 #http://stackoverflow.com/questions/3694835/python-2-6-5-divide-timedelta-with-timedelta
                 # function has to be ceil to ensure that minimum gap times are
                 # met
-                # however, take care of situaions where different fields have different start times
+                # however, take care of situaions where different fields have
+                # different start times
                 # this is a hack
                 # if division is U12 only, if the target_start was way early and
                 # before the min_start, then it must be the first slot we are talking

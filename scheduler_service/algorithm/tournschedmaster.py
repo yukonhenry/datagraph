@@ -10,49 +10,36 @@ import logging
 from html import HTML
 from random import shuffle, seed
 from bisect import bisect_left
+from math import ceil, log
 from util.schedule_util import flatten, roundrobin
 from itertools import chain, groupby
 from operator import itemgetter
 from util.sched_exceptions import CodeLogicError, SchedulerConfigurationError
 from pprint import pprint
-_POWER_2S = [1,2,4,8,16,32,64]
+_logbase2 = lambda x: log(x, 2)
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _List_IndexerGM = namedtuple('List_Indexer', 'dict_list indexerGet indexerMatch')
 _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
 
+# Start number for Match ID's (export to UI)
 _ELIM_MATCH_ID_START = 100
 # Ordering of rounds for winner and losers brackets.  index of order_list
 # corresponds to round in respective winner/losers (consolation) bracket
 # [0] element of tuple corresponds to winner's bracket, [1] element of
 # tuple corresponds to loser's bracket.  Tuple values correspond to absolute
 # round id.
-_SCHEDORDER_list = [{'totalteams':7, 'order_list':[(1,2),(2,3),(3,4),(6,5)]},
-    {'totalteams':10, 'order_list':[(1,3),(2,4),(3,5),(4,6),(8,7)]},
-    {'totalteams':12, 'order_list':[(1,3),(2,4),(3,5),(4,6),(8,7)]},
-    {'totalteams':15, 'order_list':[(1,2),(2,3),(3,4),(4,5),(8,6),(8,7)]}]
-_SCHEDORDERindexerGet = lambda x: dict((p['totalteams'],i) for i,p in enumerate(_SCHEDORDER_list)).get(x)
-_U10B_team_list = [{'team_id_list': [3, 4, 8, 12], 'bracket_id': 1},
-                {'team_id_list': [16,18,20,24], 'bracket_id': 2},
-                {'team_id_list': [1,5,6,10], 'bracket_id': 3},
-                {'team_id_list': [14,15,17,23], 'bracket_id': 4},
-                {'team_id_list': [2,7,9,11], 'bracket_id': 5},
-                {'team_id_list': [13,19,21,22], 'bracket_id': 6}]
-_U10B_indexerGet = lambda x: dict((p['bracket_id'],i) for i,p in enumerate(_U10B_team_list)).get(x)
-_U10G_team_list = [{'team_id_list': [8,1,7,9], 'bracket_id': 1},
-                {'team_id_list': [19,5,10,6], 'bracket_id': 2},
-                {'team_id_list': [17,12, 15,3], 'bracket_id': 3},
-                {'team_id_list': [14,11,13,16], 'bracket_id': 4},
-                {'team_id_list': [20,2,22,4,21], 'bracket_id': 5}]
-_U10G_indexerGet = lambda x: dict((p['bracket_id'],i) for i,p in enumerate(_U10G_team_list)).get(x)
 DIVCONFIG_INCOMPLETE_MASK = 0x1
 FIELDCONFIG_INCOMPLETE_MASK = 0x2
 PREFINFODATE_ERROR_MASK = 0x4
 
 DB_TYPE = "tourndb"
 IDPROPERTY_str = 'tourndiv_id'
-# main class for launching schedule generator
-# Handling round-robin season-long schedules.  May extend to handle other schedule
-# generators.
+''' main class for launching tournament schedule generator
+    Tournament Scheduler supports Elimination-format tournaments:
+        - Single Elimination, Double Elimination, Consolation (Modified Double)
+    Scheduler also supports generation of 'World Cup'- style tournaments:
+        - Round-Robin-format preliminary rounds followed by Elimination rounds
+'''
 class TournSchedMaster(object):
     def __init__(self, mongoClient, userid_name, divcol_name, fieldcol_name, schedcol_name, tourn_type='RR'):
         self._error_code = 0x0
@@ -114,6 +101,8 @@ class TournSchedMaster(object):
     def error_code(self):
         return self._error_code
 
+    ''' Generate either RoundRobin-format preliminary rounds, or elimination rounds
+    '''
     def schedGenerate(self):
         if self.tourn_type == 'RR':
             return self.prepGenerate()
@@ -140,16 +129,9 @@ class TournSchedMaster(object):
                 else:
                     bracket_size = totalteams - index
                 running_index += bracket_size
-                if tourndiv_id == 1:
-                    team_id_list = _U10B_team_list[_U10B_indexerGet(bracket_id)]['team_id_list']
-                elif tourndiv_id == 2:
-                    team_id_list = _U10G_team_list[_U10G_indexerGet(bracket_id)]['team_id_list']
-                else:
-                    team_id_list = team_list[index:running_index]
+                team_id_list = team_list[index:running_index]
                 if bracket_size != len(team_id_list):
                      raise CodeLogicError('tournschedmaster:bracketsze mismatch div %d bracketsize %d team_id_list %s' % (tourndiv_id, bracket_size, team_id_list))
-                #bracket_dict = {'bracket_id':bracket_id,
-                #    'team_id_list':team_id_list}
                 # calculate virtual number of game days required as parameter for
                 # MatchGenerator object.  Value is equal to #games if #teams is even,
                 # if odd, add one to #games.
@@ -174,15 +156,20 @@ class TournSchedMaster(object):
             div_name = divinfo['div_age'] + divinfo['div_gen']
             elimination_type = divinfo['elimination_type']
             thirdplace_enable = divinfo['thirdplace_enable']
+            # assign bracket type (Winners or Losers)
             btype = 'W'
             totalteams = divinfo['totalteams']
             team_id_list = range(1,totalteams+1)
-            totalrounds = bisect_left(_POWER_2S, totalteams)
-            maxpower2 = _POWER_2S[totalrounds]
+            # total number of rounds for winner's bracket
+            # does not include championship game for double elimination format
+            totalwrounds =int(ceil(_logbase2(totalteams)))
+            maxpower2 = pow(2, totalwrounds)
             div_id = divinfo[IDPROPERTY_str]
             match_list = []
             divmatch_list = []
-            for round_id in range(1, totalrounds+1):
+            absround_id = 0
+            for round_id in range(1, totalwrounds+1):
+                absround_id += 1
                 if round_id == 1:
                     r1bye_num = maxpower2 - totalteams
                     roundteams_num = totalteams - r1bye_num
@@ -191,7 +178,7 @@ class TournSchedMaster(object):
                     cumulative_list = []
                     cindexerGet = None
                 else:
-                    roundteams_num = maxpower2/_POWER_2S[round_id-1]
+                    roundteams_num = maxpower2/pow(2, round_id-1)
                     seed_id_list = range(1, roundteams_num+1)
                     # rm_list is from previous round, make sure to call this before
                     # rmatch_dict in this round
@@ -215,16 +202,19 @@ class TournSchedMaster(object):
                 # for flattening two-deep and regular nested lists
                 lseed_list = self.generate_lseed_list(round_id, seed_id_list)
                 rmatch_dict = {'round_id': round_id, 'btype':btype,
+                    'absround_id': absround_id,
                     'numgames':numgames, 'depend':0, 'div_id':div_id,
                     'match_list': [{'home':rteam_list[x],'away':rteam_list[-x-1],
-                    'div_id':div_id,
-                    'cumulative':[rteam_list[y] if rteam_list[y][0]=='S' else self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
-                    'next_w_seed':seed_id_list[x],
-                    'next_l_seed':lseed_list[x],
-                    'next_w_id':'W'+str(match_id_count+x+1),
-                    'next_l_id':'L'+str(match_id_count+x+1),
-                    'match_id':match_id_count+x+1,
-                    'comment':"", 'round':'Elim'} for x in range(numgames)]}
+                        'div_id':div_id,
+                        'cumulative':[rteam_list[y] if rteam_list[y][0]=='S' else self.getCumulative_teams(cumulative_list, cindexerGet,rteam_list[y][1:]) for y in (x,-x-1)],
+                        'next_w_seed':seed_id_list[x],
+                        'next_l_seed':lseed_list[x],
+                        'next_w_id':'W'+str(match_id_count+x+1),
+                        'next_l_id':'L'+str(match_id_count+x+1),
+                        'match_id':match_id_count+x+1,
+                        'comment':"", 'round':'Elim'} for x in range(numgames)
+                    ]
+                }
                 logging.debug("elimsched:gen: div %d round %d",
                               div_id, round_id)
                 logging.debug("elimsched:gen: seed list %s lseed %s",
@@ -248,20 +238,22 @@ class TournSchedMaster(object):
             divmatch_list.append({'div_id': divinfo[IDPROPERTY_str],
                 'elimination_type':elimination_type,
                 'btype':btype, 'divmatch_list':match_list,
-                'max_round':totalrounds, 'totalteams':totalteams})
+                'max_round':totalwrounds, 'totalteams':totalteams})
             if totalteams > 2:
                 if elimination_type == 'S' and thirdplace_enable == 'Y':
                     # generate third place game for single elimination
                     match_id_count = self.createThirdPlaceMatch(div_id, match_list,
-                        totalrounds, match_id_count, divmatch_list, div_name)
+                        totalwrounds, match_id_count, divmatch_list, div_name)
                 if elimination_type in ['C', 'D']:
-                    match_id_count = self.createConsolationRound(div_id, match_list,totalrounds, match_id_count, elimination_type, divmatch_list)
+                    (match_id_count, c_absround_id) = self.createConsolationRound(div_id, match_list,totalwrounds, match_id_count, elimination_type, divmatch_list)
                     if elimination_type =='D':
                         # final game for double eliminatio game
                         rm_list = rmatch_dict['match_list']
                         rmindexerGet = lambda x: dict((p['next_w_seed'],i) for i,p in enumerate(rm_list)).get(x)
                         rteam = rm_list[rmindexerGet(carryseed_list[0])]['next_w_id']
-                        rmatch_dict = {'round_id': round_id+1, 'btype':btype,
+                        nextabsround_id = max(rmatch_dict['absround_id'], c_absround_id) + 1
+                        rmatch_dict = {'round_id': round_id+1,
+                        'absround_id': nextabsround_id, 'btype':btype,
                         'numgames':1, 'depend':0, 'div_id':div_id,
                         'match_list': [{'home':rteam,
                         'away':'W'+str(match_id_count),
@@ -308,6 +300,7 @@ class TournSchedMaster(object):
 
     def createConsolationRound(self, div_id, match_list, wr_total, match_id_count,
         elimination_type, divmatch_list):
+
         # create the seed list for the consolation matches by getting
         # the 'losing' seed number from the previous round
         # x in [-1,-2] intended to get last and second-to-last match_list
@@ -318,12 +311,13 @@ class TournSchedMaster(object):
         btype = 'L'
         while True:
             if cround_id == 1:
-                overall_round = 1
                 wr_round = 2
                 # use range if tuple needs to represent range
                 cinitindex_tuple = (0,wr_round-1)
                 # get info for losing teams from the first two elimination rounds
-                ctuple_list = [(y['next_l_id'],y['next_l_seed'])
+                # List of tuples - tuple(team id, seed, absround_id)
+                ctuple_list = [(y['next_l_id'],y['next_l_seed'],
+                    match_list[x]['absround_id'])
                     for x in cinitindex_tuple
                     for y in match_list[x]['match_list']]
                 ctuple_list.sort(key=itemgetter(1))
@@ -332,12 +326,19 @@ class TournSchedMaster(object):
                 logging.debug("elimsched:createConsol: INIT ctuple %s INIT losing teams %d",
                               ctuple_list, wr12_losing_teams)
                 # get power of 2 greater than #teams
-                cpower2 = _POWER_2S[bisect_left(_POWER_2S, wr12_losing_teams)]
+                cpower2 = pow(2, int(ceil(_logbase2(wr12_losing_teams))))
+                #cpower2 = _POWER_2S[bisect_left(_POWER_2S, wr12_losing_teams)]
                 c1bye_num = cpower2 - wr12_losing_teams
                 nt = wr12_losing_teams - c1bye_num
                 seed_id_list = [x[1] for x in ctuple_list[-nt:]]
                 rteam_list = [x[0] for x in ctuple_list[-nt:]]
                 remain_ctuple_list = ctuple_list[0:-nt]
+                # 2-index element of three-tuple x is the absround_id for that
+                # team_id's last match
+                # calculate the next absround_id, by getting the max of the current
+                # absround_id for each team id (designated by W/L of match_id) and
+                # adding 1
+                nextabsround_id = max([x[2] for x in ctuple_list[-nt:]])+1
                 logging.debug("elimsched:createConsol: INIT cpower2 %d cbye %d nt %d seed list %s rteam %s remain %s",
                               cpower2, c1bye_num, nt, seed_id_list, rteam_list,
                               remain_ctuple_list)
@@ -366,6 +367,13 @@ class TournSchedMaster(object):
                     seed_id_list.sort()
                     rcindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(remain_ctuple_list)).get(x)
                     rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else remain_ctuple_list[rcindexerGet(s)][0] for s in seed_id_list]
+                    # calculate next absround_id by taking the max out of all
+                    # absround_id's attached to effective team_id's feeding into
+                    # this round, and then incrementing by one
+                    nextabsround_id = max(
+                        [nextabsround_id if s in carryseed_list
+                        else remain_ctuple_list[rcindexerGet(s)][2]
+                        for s in seed_id_list]) + 1
                     remain_ctuple_list = []
                     # adding the whole wround cumu list is overkill, but simple
                     cumulative_list += wr_cumulative_list
@@ -378,8 +386,9 @@ class TournSchedMaster(object):
                     # get losing team information from current source winner
                     # round
                     if wr_round <= wr_total:
-                        ctuple_list = [(y['next_l_id'],y['next_l_seed'])
-                        for y in match_list[wr_ind]['match_list']]
+                        ctuple_list = [(y['next_l_id'], y['next_l_seed'],
+                            match_list[wr_ind]['absround_id'])
+                            for y in match_list[wr_ind]['match_list']]
                         cindexerGet = lambda x: dict((p[1],i) for i,p in enumerate(ctuple_list)).get(x)
                         wr_cumulative_list = [{'match_id':y['match_id'],
                         'cumulative':y['cumulative']}
@@ -394,6 +403,10 @@ class TournSchedMaster(object):
                             seed_id_list = carryseed_list + incoming_seed_list
                             seed_id_list.sort()
                             rteam_list = [rm_list[rmindexerGet(s)]['next_w_id'] if s in carryseed_list else ctuple_list[cindexerGet(s)][0] for s in seed_id_list]
+                            nextabsround_id = max(
+                                [nextabsround_id if s in carryseed_list
+                                    else ctuple_list[cindexerGet(s)][2]
+                                    for s in seed_id_list]) + 1
                             cumulative_list  += wr_cumulative_list
                         elif wr_nt == len(carryseed_list)/2:
                             # if only half the number of games are coming in, save for
@@ -404,6 +417,7 @@ class TournSchedMaster(object):
                             seed_id_list.sort()
                             rteam_list = [rm_list[rmindexerGet(s)]['next_w_id']
                                 for s in seed_id_list]
+                            nextabsround_id += 1
                             wr_round -= 1 # for depend key used for ordering
                         else:
                             # if there are any other number of teams coming in from the
@@ -431,6 +445,7 @@ class TournSchedMaster(object):
             cindexerGet = lambda x: dict((p['match_id'],i) for i,p in enumerate(cumulative_list)).get(x)
             #self.checkRepeatOpponent(cumulative_list, cindexerGet, rteam_list)
             rmatch_dict = {'round_id': cround_id, 'btype':btype,
+                'absround_id': nextabsround_id,
                 'numgames':numgames, 'depend':wr_round, 'div_id':div_id,
                 'match_list': [{'home':rteam_list[x], 'away':rteam_list[-x-1],
                 'div_id':div_id,
@@ -465,12 +480,14 @@ class TournSchedMaster(object):
                             'btype':btype,
                             'divmatch_list':cmatch_list,
                             'max_round':cround_id})
-        return match_id_count
+        # return last absround_id as well as last match_id_count
+        return (match_id_count, nextabsround_id)
 
     def createThirdPlaceMatch(self, div_id, amatch_list, max_round_id,
         match_id_count, divmatch_list, div_name):
         # generate 3rd place match - just take championship match
         # and replace W match_id identifiers with 'L' prefix
+        # round_id, absround_id stays the same as the championship match
         mindexerMatch = lambda x,y:[i for i,p in enumerate(
             amatch_list) if p['div_id']==x and p['round_id']==y]
         mindex = mindexerMatch(div_id, max_round_id)[0]
@@ -499,17 +516,13 @@ class TournSchedMaster(object):
         # a single element array)
         divmatch_list = adjustedmatch_list[0]['divmatch_list']
         rrgenobj = roundrobin(divmatch_list)
-        next_abs = 1
         multiplex_match_list = []
-        if elimination_type in ['C', 'D']:
-            # don't need to look up absround id mapping table for single elim
-            # bracket
-            schedorder_index = _SCHEDORDERindexerGet(totalteams)
-            if schedorder_index is None:
-                raise CodeLogicError("addOverallRoundID:No index for totalteams=%d" % (totalteams,))
+        #if elimination_type in ['C', 'D']:
+        #    schedorder_index = _SCHEDORDERindexerGet(totalteams)
+        #    if schedorder_index is None:
+        #        raise CodeLogicError("addOverallRoundID:No index for totalteams=%d" % (totalteams,))
         for ind, rmatch_dict in enumerate(rrgenobj):
-            # we can get div_id outside of for loop with
-            # div_id = adjustedmatch_list[0]['div_id']
+            '''
             div_id = rmatch_dict['div_id']
             round_id = rmatch_dict['round_id']
             round_index = round_id-1
@@ -525,6 +538,7 @@ class TournSchedMaster(object):
                 else:
                     rmatch_dict['absround_id'] = olist[round_index][1]
             logging.info("elimsched:addOverallRoundID div %d round %d ind %d btype %s abs %d", rmatch_dict['div_id'], rmatch_dict['round_id'] , ind+1, rmatch_dict['btype'], rmatch_dict['absround_id'])
+            '''
             multiplex_match_list.append(rmatch_dict)
         logging.info("*******************")
         return sorted(multiplex_match_list, key=itemgetter('absround_id', 'btype'))

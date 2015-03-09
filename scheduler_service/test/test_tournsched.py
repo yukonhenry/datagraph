@@ -13,11 +13,15 @@ from collections import namedtuple
 
 TESTUSER = "testuser"
 TESTCOL = "TESTCOL"
-TESTDIV = [{"tourndiv_id":1,"div_age":"U8","div_gen":"B","totalteams":8,"totalgamedays":2,
-    "gameinterval":80,"mingap_time":120,"elimination_type":"S","thirdplace_enable":"N"}]
-TESTFIELD = [{"pr":"1","end_date":"6/5/2015","tfd":28,"start_time":"8:00:00 AM",
+TESTDIV = [{"tourndiv_id":1,"div_age":"U8","div_gen":"B","totalteams":10,
+    "totalgamedays":2,
+    "gameinterval":30,"mingap_time":90,"elimination_type":"D","thirdplace_enable":"N"}]
+TESTFIELD = [{"pr":"1","end_date":"6/12/2015","tfd":28,"start_time":"8:00:00 AM",
     "field_id":1,"detaileddates":"","end_time":"5:00:00 PM","field_name":"p1",
-    "dr":"0,6","start_date":"3/7/2015"}]
+    "dr":"0,6","start_date":"3/14/2015"},
+    {"pr":"1","end_date":"6/12/2015","tfd":28,"start_time":"8:00:00 AM",
+    "field_id":2,"detaileddates":"","end_time":"5:00:00 PM","field_name":"p2",
+    "dr":"0,6","start_date":"3/14/2015"}]
 
 @pytest.fixture
 def userdbinterface():
