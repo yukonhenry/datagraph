@@ -75,44 +75,6 @@ define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					node.style.color = 'red';
 				}
 			},
-			createSchedLinks: function(ldata_array, dom_name) {
-				var target_dom = dom.byId(dom_name);
-				var hrefstr = "";
-				arrayUtil.forEach(ldata_array, function(item, index) {
-					var divstr = item.div_age + item.div_gen;
-					var urlstr = "http://localhost/doc/xls/"+divstr+"_schedule.xls";
-					var labelstr = divstr + " Schedule";
-					hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
-				});
-				domConstruct.place(hrefstr, target_dom);
-			},
-			createTeamSchedLinks: function(ldata_array, dom_name) {
-				// loop through each division, and with second loop that loops
-				// through each team_id, create string for <a href=
-				// then create dom entry w. domConstruct.create call
-				// http://dojotoolkit.org/documentation/tutorials/1.9/dom_functions/
-				var target_dom = dom.byId(dom_name);
-				target_dom.innerHTML = "";
-				arrayUtil.forEach(ldata_array, function(item, index) {
-					var divstr = item.div_age + item.div_gen;
-					var numteams = item.totalteams;
-					var divheaderstr = "<u>"+divstr+" Teams</u><br>";
-					var hrefstr = "";
-					var teamstr = "";
-					for (var i = 1; i < numteams+1; i++) {
-						if (i < 10) {
-							teamstr = '0' + i;
-						} else {
-							teamstr = i.toString();
-						}
-						var dtstr = divstr+teamstr;
-						var urlstr = "http://localhost/doc/xls/"+dtstr+"_schedule.xls";
-						var labelstr = dtstr + " Schedule";
-						hrefstr += "<a href="+urlstr+">"+labelstr+"</a> ";
-					}
-					domConstruct.create("p",{innerHTML:divheaderstr+hrefstr},target_dom);
-				});  //foreach
-			},  //createTeamSchedLinks
 			// review usage of hitch to provide context to event handlers
 			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
 			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {

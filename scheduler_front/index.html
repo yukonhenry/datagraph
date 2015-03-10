@@ -18,14 +18,29 @@
         <h1><a href="http://www.yukontr.com/">YukonTR</a> Sports League Scheduler <small id="versiongreeting"></small> </h1>
         <h3><i>Maximize fairness and convenience</i></h3>
     	<!-- load Dojo -->
+        <script>
+            var dojoConfig = {
+                baseUrl:"static",
+                packages:[
+                    {name:"scheduler_front", location:"../js"},
+                    {name:"dbootstrap", location:"dbootstrap"},
+                    {name:"dojo", location:"dojo"},
+                    {name:"dijit", location:"dijit"},
+                    {name:"dstore", location:"dstore"},
+                    {name:"dgrid", location:"dgrid"},
+                    {name:"dojox", location:"dojox"},
+                    {name:"put-selector", location:"put-selector"},
+                    {name:"xstyle", location:"xstyle"},
+                    {name:"underscore", location:"underscore"}]
+            }
+        </script>
     	<script src="static/dojo/dojo.js"
-            data-dojo-config="async: true , packages: [{location:'../dbootstrap', name:'dbootstrap'},
-                {name:'scheduler_front', location:'/scheduler_front/js'}]"></script>
+            data-dojo-config="async: true"></script>
         <script>
 			require(["dbootstrap", "dojo/dom", "dijit/layout/TabContainer",
                 "scheduler_front/scheduler", "dojo/domReady!"],
 			function(dbootstrap, dom){
-                var version_str = "v1.0.0.47i";
+                var version_str = "v1.0.0.47s";
                 var greeting_node = dom.byId("versiongreeting");
                 var today = new Date()
                 greeting_node.innerHTML = version_str;
