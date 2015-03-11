@@ -15,12 +15,16 @@ TESTUSER = "testuser"
 TESTCOL = "TESTCOL"
 TESTDIV_list = [{"tourndiv_id":1,"div_age":"U8","div_gen":"B","totalteams":23,
     "totalgamedays":2,
-    "gameinterval":30,"mingap_time":90,"elimination_type":"S","thirdplace_enable":"Y"}]
+    "gameinterval":30,"mingap_time":90,"elimination_type":"S","thirdplace_enable":"Y"},
+    {"tourndiv_id":2,"div_age":"U8","div_gen":"G","totalteams":14,
+    "totalgamedays":2,
+    "gameinterval":30,"mingap_time":90,"elimination_type":"D","thirdplace_enable":"Y"}]
 tdindexerGet = lambda x: dict((p['tourndiv_id'],i) for i,p in enumerate(TESTDIV_list)).get(x)
-TESTFIELD = [{"pr":"1","end_date":"6/12/2015","tfd":28,"start_time":"8:00:00 AM",
+TESTFIELD_list = [{"pr":"1,2","end_date":"6/12/2015","tfd":28,
+    "start_time":"8:00:00 AM",
     "field_id":1,"detaileddates":"","end_time":"5:00:00 PM","field_name":"p1",
     "dr":"0,6","start_date":"3/14/2015"},
-    {"pr":"1","end_date":"6/12/2015","tfd":28,"start_time":"8:00:00 AM",
+    {"pr":"1,2","end_date":"6/12/2015","tfd":28,"start_time":"8:00:00 AM",
     "field_id":2,"detaileddates":"","end_time":"5:00:00 PM","field_name":"p2",
     "dr":"0,6","start_date":"3/14/2015"}]
 
@@ -92,8 +96,8 @@ def test_tourndivwriteread(datadbinterface):
 # write div config to db and read it back.
 def test_tournfieldwriteread(datadbinterface):
     fielddbinterface = datadbinterface.field
-    testfield_len = len(TESTFIELD[0])
-    testfield_str = json.dumps(TESTFIELD)
+    testfield_len = len(TESTFIELD_list[0])
+    testfield_str = json.dumps(TESTFIELD_list)
     fielddbinterface.writeDB(testfield_str, 1, divstr_colname=TESTCOL,
         divstr_db_type="tourndb")
     read_dict = fielddbinterface.readDB().list[0]
@@ -111,12 +115,12 @@ def test_elimtourngenerate():
     else:
         dbstatus = schedMaster.schedGenerate()
         assert dbstatus
-        tourndiv_id = 1
-        divsched_list = schedMaster.get_schedule('tourndiv_id', tourndiv_id)
-        pprint(divsched_list)
-        actual = calculate_actual_numtotalmatches(divsched_list['game_list'])
-        divinfo = TESTDIV_list[tdindexerGet(tourndiv_id)]
-        expected = calculate_expected_numtotalmatches(divinfo['totalteams'],
-            divinfo['elimination_type'], divinfo['thirdplace_enable'])
-        print "actual #games=", actual, "expected games=", expected
-        assert actual == expected
+        for tourndiv_id in (1,2):
+            divsched_list = schedMaster.get_schedule('tourndiv_id', tourndiv_id)
+            pprint(divsched_list)
+            actual = calculate_actual_numtotalmatches(divsched_list['game_list'])
+            divinfo = TESTDIV_list[tdindexerGet(tourndiv_id)]
+            expected = calculate_expected_numtotalmatches(divinfo['totalteams'],
+                divinfo['elimination_type'], divinfo['thirdplace_enable'])
+            print "actual #games=", actual, "expected games=", expected
+            assert actual == expected
