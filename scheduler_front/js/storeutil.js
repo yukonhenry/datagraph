@@ -282,9 +282,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					title:"Advanced UI",
 					id:"editPane",
 					class:"allonehundred",
-					//class:"allauto",
-					//content:"<span style='margin-left:2em'>User/Organization ID: <strong>"+this.userid_name+"</strong></span>"
-					//doLayout:false,
 				})
 				advanced_cpane.on("show", lang.hitch(this, function(evt) {
 					console.log("advanced onshow");
@@ -292,10 +289,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					if (this.uistackmgr && this.uistackmgr.current_grid) {
 						this.uistackmgr.current_grid.resize();
 					}
-					/*
-					if (this.wizuistackmgr && this.wizuistackmgr.current_grid) {
-						this.wizuistackmgr.current_grid.resize();
-					} */
 					advanced_cpane.domNode.scrollTop = 0;
 				}))
 				advanced_cpane.on("load", function(evt) {
@@ -344,15 +337,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
 				this.uistackmgr.create_grid_stack(advanced_cpane);
-			},
-			create_dropdown_menu: function(ddownmenu_widget, db_type, widgetgen_obj, info_obj) {
-				// WIZARD MENU target
-				// (to make it generic for WIZARD or ADVANCED, pass in op_type and
-				// also callback+context)
-				var db_list = this.getfromdb_store_value(db_type, 'name');
-				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
-					db_list, widgetgen_obj, widgetgen_obj.get_leagueparam_frommenu_list,
-					info_obj)
 			},
 			create_divmenu: function(args_obj) {
 				// ADVANCE menu target
@@ -427,9 +411,15 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						{db_type:db_type, storeutil_obj:this, op_type:"advance"});
 				}
 			},
-			create_menubar: function(id, info_obj, delflag, mbar_node) {
+			create_menubar: function(id, info_obj, delflag, mbar_node,
+				edit_ddownmenu_widget, del_ddownmenu_widget) {
 				// WIZARD pane target function
 				// Similar to create_menu, except create a horizontal menubar instead
+				// ddownmenu_widgets (for edit and delete) are optional parameters
+				var edit_ddownmenu_widget = (typeof edit_ddownmenu_widget === "undefined" ||
+					edit_ddownmenu_widget === null) ? new DropDownMenu() : edit_ddownmenu_widget;
+				var del_ddownmenu_widget = (typeof del_ddownmenu_widget === "undefined" ||
+					del_ddownmenu_widget === null) ? new DropDownMenu() : del_ddownmenu_widget;
 				var tooltipconfig_list = new Array();
 				// Create horizontal menubar
 				var mbar_widget = new MenuBar({
@@ -454,11 +444,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// Create second element, which is the edit menu
 				match_obj = this.getuniquematch_obj(constant.editmenu_list,
 					'id', id);
-				var ddownmenu_widget = new DropDownMenu();
 				var popmbaritem_widget = new PopupMenuBarItem({
 					label:match_obj.label_str,
 					style:"color:blue; font:bold",
-					popup:ddownmenu_widget
+					popup:edit_ddownmenu_widget
 				})
 				tooltipconfig_list.push({
 					connect_node:popmbaritem_widget.domNode,
@@ -467,7 +456,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = match_obj.db_type;
 				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
-				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
+				this.schedutil_obj.generateDBCollection_smenu(edit_ddownmenu_widget,
 					db_list, this.wizuistackmgr,
 					this.wizuistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
@@ -483,10 +472,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// NOTE: example in ref above shows a 'popup' property, but the
 				// API spec for dijit/popupmenuitem does NOT have that property
 				//idtop_ddown_reg = registry.byId(match_obj.parent_id)
-				ddownmenu_widget = new DropDownMenu();
 				popmbaritem_widget = new PopupMenuBarItem({
 					label:match_obj.label_str,
-					popup:ddownmenu_widget,
+					popup:del_ddownmenu_widget,
 					style:"color:orange; font:bold",
 				})
 				tooltipconfig_list.push({
@@ -495,7 +483,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				mbar_widget.addChild(popmbaritem_widget);
 				db_type = match_obj.db_type;
 				// create respective del db menu
-				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_widget,
+				this.schedutil_obj.generateDBCollection_smenu(del_ddownmenu_widget,
 					db_list, this, this.delete_dbcollection,
 					{db_type:db_type, storeutil_obj:this, op_type:"wizard"});
 				//}

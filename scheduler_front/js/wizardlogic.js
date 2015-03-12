@@ -34,8 +34,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				//wizard documentation:
 				// http://archive.dojotoolkit.org/nightly/dojotoolkit/dojox/widget/tests/test_Wizard.html
 				//https://github.com/dojo/dojox/blob/master/widget/tests/test_Wizard.html
-				//var wizuistackmgr = new WizUIStackManager();
-				//this.wizuistackmgr = wizuistackmgr;
 				var tabcontainer = registry.byId("tabcontainer_id");
 				var container_cpane = registry.byId(constant.top_cpane_id);
 				if (container_cpane) {
@@ -79,16 +77,19 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
 				// radio button to choose between rrd and tourndb
 				// select value is a dummy value as popup subemnu is used instead of select
-				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.divradio1_id, constant.divradio2_id, this.db_type, this,
-					this.radio1_callback, this.radio2_callback, 'dummy_select');
 				var divinfo_obj = new divinfo({
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+				var edit_ddownmenu_widget = new DropDownMenu();
+				var del_ddownmenu_widget = new DropDownMenu();
+				var widget_obj = {edit:edit_ddownmenu_widget, del:del_ddownmenu_widget, info_obj:divinfo_obj}
+				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
+					constant.divradio1_id, constant.divradio2_id, this.db_type, this,
+					this.radio1_callback, this.radio2_callback, widget_obj);
 				var menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node);
+				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node, edit_ddownmenu_widget, del_ddownmenu_widget);
 				var pcontainerdiv_node = put(topdiv_node, "div")
 				var gcontainerdiv_node = put(topdiv_node, "div")
 				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
@@ -258,16 +259,47 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				*/
 				return container_cpane;
 			},
-			radio1_callback: function(select_id, event) {
-				if (event) {
-					var db_list = this.storeutil_obj.getfromdb_store_value('rrdb', 'name');
-					this.db_type = 'rrdb';
+			delete_menu_elements: function(menu_widget) {
+				// delete all elements of menu (menu widget to be reused to
+				// create another)
+				var elem_array = menu_widget.getChildren()
+				if (elem_array.length > 0) {
+					// remove existing submenu elements before
+					// recreating submenu with switched over db elements
+					arrayUtil.forEach(elem_array, function(item) {
+						menu_widget.removeChild(item);
+					})
 				}
 			},
-			radio2_callback: function(select_id, event) {
+			repopulate_ddownmenu: function(db_type, widget_obj) {
+				var db_list = this.storeutil_obj.getfromdb_store_value(db_type, 'name');
+				var edit_ddownmenu_widget = widget_obj.edit;
+				var del_ddownmenu_widget = widget_obj.del;
+				var info_obj = widget_obj.info_obj;
+				// delete elements from both edit and delete ddown menus
+				this.delete_menu_elements(edit_ddownmenu_widget);
+				this.delete_menu_elements(del_ddownmenu_widget);
+				// repopulate ddownmenus
+				// edit ddownmenu
+				this.schedutil_obj.generateDBCollection_smenu(edit_ddownmenu_widget, db_list, this.wizuistackmgr,
+					this.wizuistackmgr.check_getServerDBInfo,
+					{db_type:db_type, info_obj:info_obj,
+						storeutil_obj:this.storeutil_obj, op_type:"wizard"})
+				this.schedutil_obj.generateDBCollection_smenu(del_ddownmenu_widget, db_list, this.storeutil_obj,
+					this.storeutil_obj.delete_dbcollection,
+					{db_type:db_type, storeutil_obj:this.storeutil_obj,
+						op_type:"wizard"});
+			},
+			radio1_callback: function(widget_obj, event) {
 				if (event) {
-					var db_list = this.storeutil_obj.getfromdb_store_value('tourndb', 'name');
+					this.db_type = 'rrdb';
+					this.repopulate_ddownmenu(this.db_type, widget_obj);
+				}
+			},
+			radio2_callback: function(widget_obj, event) {
+				if (event) {
 					this.db_type = 'tourndb';
+					this.repopulate_ddownmenu(this.db_type, widget_obj);
 				}
 			},
 			get_idstr_obj: function(id) {
