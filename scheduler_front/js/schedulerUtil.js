@@ -42,18 +42,6 @@ define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 				// conflict nmenu list
 				this.conflictdbmenureg_list = new Array();
 			},
-			tConvert: function(time) {
-				// courtesy http://stackoverflow.com/questions/13898423/javascript-convert-24-hour-time-of-day-string-to-12-hour-time-with-am-pm-and-no
-  				// Check correct time format and split into components
-  				time = time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
-
-  				if (time.length > 1) { // If time format correct
-    				time = time.slice (1);  // Remove full string match value
-    				time[5] = +time[0] < 12 ? ' am' : ' pm'; // Set AM/PM
-    				time[0] = +time[0] % 12 || 12; // Adjust hours
-  				}
-  				return time.join (''); // return adjusted time or original string
-			},
 			// following function is robust whether nodelist is a n Array
 			// or a scalar dom node
 			updateDBstatus_nodelist: function(dbstatus, nodelist) {
@@ -150,11 +138,6 @@ define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					console.log("Error get_dbmenureg_list: Invalid db_type");
 				}
 				return dbmenureg_list;
-			},
-			getCupSchedule: function(options_obj) {
-				var item = options_obj.item;
-				this.server_interface.getServerData("getcupschedule/"+item,
-					this.server_interface.server_ack);
 			},
 			detect_arrayduplicate: function(arry) {
 				// detect duplicate elements in array

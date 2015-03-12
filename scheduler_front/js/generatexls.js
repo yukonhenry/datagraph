@@ -16,10 +16,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		baseinfoSingleton, put) {
 		var constant = {
 			idproperty_str:'xls_id',
-			label_id_list:[{label:"by Division", genxls_id:'div_id'},
-				{label:"by Field", genxls_id:'field_id'},
-				{label:"by Team", genxls_id:'team_id'}]
-				//{label:"by Referee Scheduler Compatible Format", genxls_id:'referee_id'}],
 		};
 		var idconstant = {
 			// id for the dropdown btn
@@ -36,7 +32,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			idproperty:constant.idproperty_str, idmgr_obj:null, op_type:"",
 			server_interface:null, schedcol_name:"",
 			stackcpane_list:null, stackcontainer_widget:null, userid_name:"",
-			db_type:null,
+			db_type:null, label_id_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -53,14 +49,18 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						descrip_str:"by Division"},
 					{genxls_id:'field_id',
 						cpane_id:this.opconstant_obj.field_cpane_id,
-						descrip_str:"by Field"},
-					{genxls_id:'team_id',
-						cpane_id:this.opconstant_obj.team_cpane_id,
-						descrip_str:"by Team"},
-					/*{genxls_id:'referee_id',
-						cpane_id:this.opconstant_obj.referee_cpane_id,
-						descrip_str:"by Referee Format"}, */
+						descrip_str:"by Field"}
 				];
+				this.label_id_list = [{label:"by Division", genxls_id:'div_id'},
+					{label:"by Field", genxls_id:'field_id'}];
+				if (this.db_type == "rrdb") {
+					// per team_id info only relevant for RoundRobin league as elimination tournament
+					// schedule dependent on seeding and win/loss results for each match
+					this.stackcpane_list.push({genxls_id:'team_id',
+						cpane_id:this.opconstant_obj.team_cpane_id,
+						descrip_str:"by Team"});
+					this.label_id_list.push({label:"by Team", genxls_id:'team_id'});
+				}
 				this.columnsdef_obj_list = [{genxls_id:'div_id',
 					columsndef_obj:{}}
 				]
@@ -87,7 +87,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 						id:this.opconstant_obj.ddown_btn_id
 					})
 					xls_cpane.addChild(ddown_btn);
-					arrayUtil.forEach(constant.label_id_list, function(item) {
+					arrayUtil.forEach(this.label_id_list, function(item) {
 						var menuitem_widget = new MenuItem({
 							label:item.label,
 							onClick:lang.hitch(this, this.switch_xlsstack_cpane,

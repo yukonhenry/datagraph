@@ -23,7 +23,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
 			schedutil_obj:null, wizardid_list:null, wizuistackmgr:null,
-			userid_name:"",
+			userid_name:"", db_type:constant.init_db_type,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
@@ -78,11 +78,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
 				// radio button to choose between rrd and tourndb
+				// select value is a dummy value as popup subemnu is used instead of select
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.divradio1_id, constant.divradio2_id,
-					constant.init_db_type,
-					this, this.radio1_callback, this.radio2_callback,
-					'div_id_type_select');
+					constant.divradio1_id, constant.divradio2_id, this.db_type, this,
+					this.radio1_callback, this.radio2_callback, 'dummy_select');
 				var divinfo_obj = new divinfo({
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
@@ -150,9 +149,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
 					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
-				/*
-				this.storeutil_obj.create_dropdown_menu(ddmenu_widget,
-					constant.init_db_type, this.widgetgen_obj, teaminfo_obj); */
 				menubar_node = put(topdiv_node, "div");
 				// No menubar for team_id as there is no create/delete operations
 				// for teaminfo grids
@@ -263,10 +259,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				return container_cpane;
 			},
 			radio1_callback: function(select_id, event) {
-
+				if (event) {
+					var db_list = this.storeutil_obj.getfromdb_store_value('rrdb', 'name');
+					this.db_type = 'rrdb';
+				}
 			},
 			radio2_callback: function(select_id, event) {
-
+				if (event) {
+					var db_list = this.storeutil_obj.getfromdb_store_value('tourndb', 'name');
+					this.db_type = 'tourndb';
+				}
 			},
 			get_idstr_obj: function(id) {
 				var idmgr_obj = this.getuniquematch_obj(this.wizardid_list,

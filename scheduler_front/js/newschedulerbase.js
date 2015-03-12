@@ -615,34 +615,37 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data('field_id', dbstatus);
-				// add by-team sched grid
-				cpane_id = this.cpane_id_mapobj.team_id;
-				cpane_txt_id = this.cpane_txt_id_mapobj.team_id;
-				cpane_grid_id = this.cpane_grid_id_mapobj.team_id;
-				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.team_id;
-				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.team_id;
-				var cpane_select_id = this.opconstant_obj.teamcpane_select_id;
-				args_obj = {
-					suffix_id:cpane_id,
-					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
-					title_suffix:' by Team',
+				if (this.current_db_type == 'rrdb') {
+					// add by-team sched grid
+					cpane_id = this.cpane_id_mapobj.team_id;
+					cpane_txt_id = this.cpane_txt_id_mapobj.team_id;
+					cpane_grid_id = this.cpane_grid_id_mapobj.team_id;
+					cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.team_id;
+					cpane_schedheader_id = this.cpane_schedheader_id_mapobj.team_id;
+					var cpane_select_id = this.opconstant_obj.teamcpane_select_id;
+					args_obj = {
+						suffix_id:cpane_id,
+						content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
+						title_suffix:' by Team',
+					}
+					this.createnewsched_pane(args_obj);
+					this.prepgrid_data(constant.team_id, dbstatus)
+					// add fairness metrics cpane
+					cpane_id = this.cpane_id_mapobj.fair_id;
+					cpane_txt_id = this.cpane_txt_id_mapobj.fair_id;
+					cpane_grid_id = this.cpane_grid_id_mapobj.fair_id;
+					cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.fair_id;
+					cpane_schedheader_id = this.cpane_schedheader_id_mapobj.fair_id;
+					cpane_select_id = this.opconstant_obj.faircpane_select_id;
+					args_obj = {
+						suffix_id:cpane_id,
+						content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
+						title_suffix:' by Fairness Metrics',
+					}
+					this.createnewsched_pane(args_obj);
+					this.prepgrid_data(constant.fair_id, dbstatus)
 				}
-				this.createnewsched_pane(args_obj);
-				this.prepgrid_data(constant.team_id, dbstatus)
-				// add fairness metrics cpane
-				cpane_id = this.cpane_id_mapobj.fair_id;
-				cpane_txt_id = this.cpane_txt_id_mapobj.fair_id;
-				cpane_grid_id = this.cpane_grid_id_mapobj.fair_id;
-				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.fair_id;
-				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.fair_id;
-				cpane_select_id = this.opconstant_obj.faircpane_select_id;
-				args_obj = {
-					suffix_id:cpane_id,
-					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific Fairness Metrics - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
-					title_suffix:' by Fairness Metrics',
-				}
-				this.createnewsched_pane(args_obj);
-				this.prepgrid_data(constant.fair_id, dbstatus)
+
 				// add cpane to display constraint satisfaction only if preferences
 				// were specified
 				if (this.pref_select_value) {
