@@ -10,49 +10,16 @@ http://dojotoolkit.org/documentation/tutorials/1.9/augmenting_objects/
 */
 define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 	"dojo/_base/lang", "dojo/dom-class", "dojo/date",
-	"dojo/_base/array","dijit/registry", "dijit/MenuItem",
-	"scheduler_front/divinfo", "scheduler_front/fieldinfo", "dojo/domReady!"],
+	"dojo/_base/array","dijit/registry", "dojo/domReady!"],
 	function(dom, domConstruct, declare, lang, domClass, date,
-		arrayUtil,
-		registry, MenuItem, DivInfo, FieldInfo){
-		var tournCalendarMapObj = {1:'Oct 26', 2:'Oct 27', 3:'Nov 2', 4:'Nov 3', 5:'Nov 9', 6:'Nov 10'};
-		//var status1_dom = dom.byId("dbstatus1_txt");
+		arrayUtil, registry){
 		return declare(null, {
 			server_interface:null,
-			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
-			nsdbmenureg_list:null, prefdbmenureg_list:null, teamdbmenureg_list:null,
-			conflictdbmenureg_list:null,
 			constructor: function(args) {
 				//declare.safeMixin(this, args);
 				// augmenting object tutorial referenced above says lang.mixin is a better choise
 				// than declare.safeMixin
 				lang.mixin(this, args);
-				// round robin menu register list
-				this.rrdbmenureg_list = new Array();
-				// tournament menu register list
-				this.tdbmenureg_list = new Array();
-				// field menu register list
-				this.fielddbmenureg_list = new Array();
-				// new sched/generate menu list
-				this.nsdbmenureg_list = new Array();
-				// preference menu list
-				this.prefdbmenureg_list = new Array();
-				// team menu list
-				this.teamdbmenureg_list = new Array();
-				// conflict nmenu list
-				this.conflictdbmenureg_list = new Array();
-			},
-			// following function is robust whether nodelist is a n Array
-			// or a scalar dom node
-			updateDBstatus_nodelist: function(dbstatus, nodelist) {
-				// ref http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
-				if (nodelist instanceof Array) {
-					arrayUtil.forEach(nodelist, function(item) {
-						this.updateDBstatus_node(dbstatus, item);
-					}, this)
-				} else {
-					this.updateDBstatus_node(dbstatus, nodelist);
-				}
 			},
 			updateDBstatus_node: function(dbstatus, node) {
 				if (dbstatus) {
@@ -62,82 +29,6 @@ define(["dojo/dom", "dojo/dom-construct", "dojo/_base/declare",
 					node.innerHTML = "Schedule Computing, Not Ready";
 					node.style.color = 'red';
 				}
-			},
-			// review usage of hitch to provide context to event handlers
-			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
-			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
-				var options_obj = options_obj || {};
-				arrayUtil.forEach(submenu_list, function(item, index) {
-					// a new copy of options_obj needs to be created before
-					// assigning a different item value for each menu entry
-					// however lang.clone does not work as objects in options_obj
-					// are initiated by calling constructors
-					// http://dojotoolkit.org/documentation/tutorials/1.10/augmenting_objects/
-					var dupoptions_obj = declare.safeMixin({}, options_obj);
-					dupoptions_obj.item = item;
-					var smenuitem = new MenuItem({label: item,
-						onClick: lang.hitch(onclick_context, onclick_func,
-							dupoptions_obj)
-					});
-    				submenu_reg.addChild(smenuitem);
-				});  // context should be function
-				// use itemclick on entire menu widget instead of onclicks on
-				// individual menuitems
-				// ref http://dojotoolkit.org/documentation/tutorials/1.10/menus/
-				//submenu_reg.set("onItemClick", lang.hitch(onclick_context, onclick_func, options_obj));
-				if (typeof options_obj.db_type !== 'undefined') {
-					var dbmenureg_list = this.get_dbmenureg_list(options_obj.db_type);
-					// note options_obj does not include item value
-					dbmenureg_list.push({reg:submenu_reg,
-						context:onclick_context, func:onclick_func,
-						options_obj:options_obj});
-				}
-			},
-			regenDelDBCollection_smenu: function(delindex, db_type) {
-				var dbmenureg_list = this.get_dbmenureg_list(db_type);
-				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
-					var dbmenureg = dbmenudata.reg;
-					dbmenureg.removeChild(delindex);
-				});
-			},
-			regenAddDBCollection_smenu: function(insertIndex, object, db_type) {
-				var dbmenureg_list = this.get_dbmenureg_list(db_type);
-				var item_name = object.name;
-				//var divinfo_obj = new DivInfo({server_interface:this.server_interface, schedutil_obj:this});
-				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
-					var dbmenureg = dbmenudata.reg;
-					var options_obj = dbmenudata.options_obj;
-					// use safemixin to prevent copying of objects to reinitialize
-					// with constructors
-					var dupoptions_obj = declare.safeMixin({}, options_obj);
-					dupoptions_obj.item = item_name;
-					var smenuitem = new MenuItem({label:item_name,
-						onClick:lang.hitch(dbmenudata.context, dbmenudata.func,
-							dupoptions_obj)});
-    				dbmenureg.addChild(smenuitem, insertIndex);
-				});
-			},
-			get_dbmenureg_list: function(db_type) {
-				var dbmenureg_list = null;
-				if (db_type == 'rrdb')
-					dbmenureg_list = this.rrdbmenureg_list;
-				else if (db_type == 'tourndb')
-					dbmenureg_list = this.tdbmenureg_list;
-				else if (db_type == 'fielddb')
-					dbmenureg_list = this.fielddbmenureg_list;
-				else if (db_type == 'newscheddb')
-					dbmenureg_list = this.nsdbmenureg_list;
-				else if (db_type == 'prefdb')
-					dbmenureg_list = this.prefdbmenureg_list;
-				else if (db_type == 'teamdb')
-					dbmenureg_list = this.teamdbmenureg_list;
-				else if (db_type == 'conflictdb')
-					dbmenureg_list = this.conflictdbmenureg_list;
-				else {
-					dbmenureg_list = [];
-					console.log("Error get_dbmenureg_list: Invalid db_type");
-				}
-				return dbmenureg_list;
 			},
 			detect_arrayduplicate: function(arry) {
 				// detect duplicate elements in array

@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/home/henry/anaconda/bin/python
 # Copyright YukonTR 2013
 from bottle import route, request, run
 import sys, socket

@@ -96,12 +96,29 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
 			server_interface:null, dbstore_list:null, wizuistackmgr:null,
 			widgetgen_obj:null, userid_name:"",
+			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
+			nsdbmenureg_list:null, prefdbmenureg_list:null, teamdbmenureg_list:null,
+			conflictdbmenureg_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.dbstore_list = new Array();
 				// idProperty not assigned as we are using an 'id' field
 				//this.dbselect_store = new Observable(new Memory({data:new Array(),
 				//	idProperty:'name'}));
+				// round robin menu register list
+				this.rrdbmenureg_list = new Array();
+				// tournament menu register list
+				this.tdbmenureg_list = new Array();
+				// field menu register list
+				this.fielddbmenureg_list = new Array();
+				// new sched/generate menu list
+				this.nsdbmenureg_list = new Array();
+				// preference menu list
+				this.prefdbmenureg_list = new Array();
+				// team menu list
+				this.teamdbmenureg_list = new Array();
+				// conflict nmenu list
+				this.conflictdbmenureg_list = new Array();
 			},
 			createdb_store: function(db_list, db_type) {
 				/* create store for db name labels which are used for select dropdowns
@@ -134,7 +151,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						// note removing by index only may not be reliable
 						// other option is to pass in the object and then search
 						// the reg children to find a math on the label
-						this.schedutil_obj.regenDelDBCollection_smenu(removeIndex, db_type);
+						this.regenDelDBCollection_smenu(removeIndex, db_type);
 						arrayUtil.forEach(newsched_obj_list,
 						function(register_obj) {
 							// look at baseinfosingleton register_obj function for
@@ -149,7 +166,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						})
 					}
 					if (insertIndex > -1) {
-						this.schedutil_obj.regenAddDBCollection_smenu(insertIndex,
+						this.regenAddDBCollection_smenu(insertIndex,
 							object, db_type);
 						arrayUtil.forEach(newsched_obj_list,
 						function(register_obj) {
@@ -385,7 +402,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = match_obj.db_type;
 				// create respective db menu
 				var db_list = this.getfromdb_store_value(db_type, 'name');
-				this.schedutil_obj.generateDBCollection_smenu(ddownmenu_reg,
+				this.generateDBCollection_smenu(ddownmenu_reg,
 					db_list, this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
 						op_type:"advance"})
@@ -406,7 +423,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					idtop_ddown_reg.addChild(popup_reg);
 					db_type = match_obj.db_type;
 					// create respective del db menu
-					this.schedutil_obj.generateDBCollection_smenu(ddownmenu_reg,
+					this.generateDBCollection_smenu(ddownmenu_reg,
 						db_list, this, this.delete_dbcollection,
 						{db_type:db_type, storeutil_obj:this, op_type:"advance"});
 				}
@@ -456,7 +473,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = match_obj.db_type;
 				// create respective db menu and populate dropdown
 				var db_list = this.getfromdb_store_value(db_type, 'name');
-				this.schedutil_obj.generateDBCollection_smenu(edit_ddownmenu_widget,
+				this.generateDBCollection_smenu(edit_ddownmenu_widget,
 					db_list, this.wizuistackmgr,
 					this.wizuistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
@@ -483,7 +500,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				mbar_widget.addChild(popmbaritem_widget);
 				db_type = match_obj.db_type;
 				// create respective del db menu
-				this.schedutil_obj.generateDBCollection_smenu(del_ddownmenu_widget,
+				this.generateDBCollection_smenu(del_ddownmenu_widget,
 					db_list, this, this.delete_dbcollection,
 					{db_type:db_type, storeutil_obj:this, op_type:"wizard"});
 				//}
@@ -545,7 +562,82 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
 				this.server_interface.getServerData(server_path+this.userid_name+'/'+db_type+'/'+item,
 					this.server_interface.server_ack);
-			}
+			},
+			// review usage of hitch to provide context to event handlers
+			// http://dojotoolkit.org/reference-guide/1.9/dojo/_base/lang.html#dojo-base-lang
+			generateDBCollection_smenu: function(submenu_reg, submenu_list, onclick_context, onclick_func, options_obj) {
+				var options_obj = options_obj || {};
+				arrayUtil.forEach(submenu_list, function(item, index) {
+					// a new copy of options_obj needs to be created before
+					// assigning a different item value for each menu entry
+					// however lang.clone does not work as objects in options_obj
+					// are initiated by calling constructors
+					// http://dojotoolkit.org/documentation/tutorials/1.10/augmenting_objects/
+					var dupoptions_obj = declare.safeMixin({}, options_obj);
+					dupoptions_obj.item = item;
+					var smenuitem = new MenuItem({label: item,
+						onClick: lang.hitch(onclick_context, onclick_func,
+							dupoptions_obj)
+					});
+    				submenu_reg.addChild(smenuitem);
+				});  // context should be function
+				// use itemclick on entire menu widget instead of onclicks on
+				// individual menuitems
+				// ref http://dojotoolkit.org/documentation/tutorials/1.10/menus/
+				//submenu_reg.set("onItemClick", lang.hitch(onclick_context, onclick_func, options_obj));
+				if (typeof options_obj.db_type !== 'undefined') {
+					var dbmenureg_list = this.get_dbmenureg_list(options_obj.db_type);
+					// note options_obj does not include item value
+					dbmenureg_list.push({reg:submenu_reg,
+						context:onclick_context, func:onclick_func,
+						options_obj:options_obj});
+				}
+			},
+			regenDelDBCollection_smenu: function(delindex, db_type) {
+				var dbmenureg_list = this.get_dbmenureg_list(db_type);
+				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
+					var dbmenureg = dbmenudata.reg;
+					dbmenureg.removeChild(delindex);
+				});
+			},
+			regenAddDBCollection_smenu: function(insertIndex, object, db_type) {
+				var dbmenureg_list = this.get_dbmenureg_list(db_type);
+				var item_name = object.name;
+				arrayUtil.forEach(dbmenureg_list, function(dbmenudata) {
+					var dbmenureg = dbmenudata.reg;
+					var options_obj = dbmenudata.options_obj;
+					// use safemixin to prevent copying of objects to reinitialize
+					// with constructors
+					var dupoptions_obj = declare.safeMixin({}, options_obj);
+					dupoptions_obj.item = item_name;
+					var smenuitem = new MenuItem({label:item_name,
+						onClick:lang.hitch(dbmenudata.context, dbmenudata.func,
+							dupoptions_obj)});
+    				dbmenureg.addChild(smenuitem, insertIndex);
+				});
+			},
+			get_dbmenureg_list: function(db_type) {
+				var dbmenureg_list = null;
+				if (db_type == 'rrdb')
+					dbmenureg_list = this.rrdbmenureg_list;
+				else if (db_type == 'tourndb')
+					dbmenureg_list = this.tdbmenureg_list;
+				else if (db_type == 'fielddb')
+					dbmenureg_list = this.fielddbmenureg_list;
+				else if (db_type == 'newscheddb')
+					dbmenureg_list = this.nsdbmenureg_list;
+				else if (db_type == 'prefdb')
+					dbmenureg_list = this.prefdbmenureg_list;
+				else if (db_type == 'teamdb')
+					dbmenureg_list = this.teamdbmenureg_list;
+				else if (db_type == 'conflictdb')
+					dbmenureg_list = this.conflictdbmenureg_list;
+				else {
+					dbmenureg_list = [];
+					console.log("Error get_dbmenureg_list: Invalid db_type");
+				}
+				return dbmenureg_list;
+			},
 		})
 	}
 );

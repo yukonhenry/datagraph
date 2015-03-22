@@ -1,8 +1,8 @@
 // define observable store-related utility functions
 define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"dijit/registry", "dojox/widget/Wizard", "dojox/widget/WizardPane",
-	"dijit/DropDownMenu", "dijit/form/Button", "dijit/layout/ContentPane",
-	"scheduler_front/baseinfoSingleton",
+	"dijit/DropDownMenu", "dijit/form/Button", "dijit/layout/StackContainer",
+	"dijit/layout/ContentPane", "scheduler_front/baseinfoSingleton",
 	"scheduler_front/wizuistackmanager", "scheduler_front/divinfo",
 	"scheduler_front/tourndivinfo", "scheduler_front/fieldinfo",
 	"scheduler_front/preferenceinfo", "scheduler_front/newschedulerbase",
@@ -10,20 +10,23 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"scheduler_front/idmgrSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
-		DropDownMenu, Button, ContentPane,
+		DropDownMenu, Button, StackContainer, ContentPane,
 		baseinfoSingleton, WizUIStackManager, divinfo, tourndivinfo,
 		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, conflictinfo,
 		idmgrSingleton,
 		put) {
+		// id's for widgets that only exist within wizard context so manage them here instead
+		// of idmgrsingleton
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
 			divselect_id:'wizdivselect_id', init_db_type:"rrdb",
-			top_cpane_id:'wiztop_cpane_id'
+			top_cpane_id:'wiztop_cpane_id', divstcontainer_id:"wizdivstcontainer_id"
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
 			schedutil_obj:null, wizardid_list:null, wizuistackmgr:null,
 			userid_name:"", db_type:constant.init_db_type,
+			divstackcontainer:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
@@ -77,21 +80,48 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
 				// radio button to choose between rrd and tourndb
 				// select value is a dummy value as popup subemnu is used instead of select
-				var divinfo_obj = new divinfo({
-					server_interface:this.server_interface,
-					uistackmgr_type:this.wizuistackmgr,
-					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
-				var edit_ddownmenu_widget = new DropDownMenu();
-				var del_ddownmenu_widget = new DropDownMenu();
-				var widget_obj = {edit:edit_ddownmenu_widget, del:del_ddownmenu_widget, info_obj:divinfo_obj}
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
 					constant.divradio1_id, constant.divradio2_id, this.db_type, this,
-					this.radio1_callback, this.radio2_callback, widget_obj);
-				var menubar_node = put(topdiv_node, "div");
-				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true, menubar_node, edit_ddownmenu_widget, del_ddownmenu_widget);
-				var pcontainerdiv_node = put(topdiv_node, "div")
-				var gcontainerdiv_node = put(topdiv_node, "div")
+					this.radio1_callback, this.radio2_callback, null);
+				var stack_node = put(topdiv_node, "div");
+				// create stackcontainer to manage separate cpane -
+				// one for RR, other for Tourn
+				this.divstackcontainer = new StackContainer({
+					doLayout:false,
+					style:"float:left; width:80%",
+					id:constant.divstcontainer_id,
+				}, stack_node);
+				// create default cpane only (other will be generated if radio button
+				// is selected) and attach it to stack connier
+				var cpane_id = this.generate_divcpane_id(this.db_type);
+				var div_cpane = new ContentPane({
+					id:cpane_id
+				})
+				this.divstackcontainer.addChild(div_cpane);
+				var container_node = div_cpane.containerNode;
+				var divinfo_obj = null;
+				// create default divinfo or tourninfo obj
+				if (this.db_type == 'rrdb') {
+					divinfo_obj = new divinfo({
+						server_interface:this.server_interface,
+						uistackmgr_type:this.wizuistackmgr,
+						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
+						schedutil_obj:this.schedutil_obj, op_type:"wizard"});						
+				} else {
+					divinfo_obj = new tourndivinfo({
+						server_interface:this.server_interface,
+						uistackmgr_type:this.wizuistackmgr,
+						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
+						schedutil_obj:this.schedutil_obj, op_type:"wizard"});						
+				}
+				// create default menubar and attached ddown menu widgets
+				var menubar_node = put(container_node, "div");
+				var edit_ddownmenu_widget = new DropDownMenu();
+				var del_ddownmenu_widget = new DropDownMenu();
+				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true,
+					menubar_node, edit_ddownmenu_widget, del_ddownmenu_widget);
+				var pcontainerdiv_node = put(container_node, "div")
+				var gcontainerdiv_node = put(container_node, "div")
 				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
 					gcontainerdiv_node);
 				var divinfo_wpane = new WizardPane({
@@ -281,25 +311,27 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				this.delete_menu_elements(del_ddownmenu_widget);
 				// repopulate ddownmenus
 				// edit ddownmenu
-				this.schedutil_obj.generateDBCollection_smenu(edit_ddownmenu_widget, db_list, this.wizuistackmgr,
+				this.storeutil_obj.generateDBCollection_smenu(edit_ddownmenu_widget, db_list, this.wizuistackmgr,
 					this.wizuistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj,
 						storeutil_obj:this.storeutil_obj, op_type:"wizard"})
-				this.schedutil_obj.generateDBCollection_smenu(del_ddownmenu_widget, db_list, this.storeutil_obj,
+				this.storeutil_obj.generateDBCollection_smenu(del_ddownmenu_widget, db_list, this.storeutil_obj,
 					this.storeutil_obj.delete_dbcollection,
 					{db_type:db_type, storeutil_obj:this.storeutil_obj,
 						op_type:"wizard"});
 			},
-			radio1_callback: function(widget_obj, event) {
+			radio1_callback: function(dummy, event) {
 				if (event) {
 					this.db_type = 'rrdb';
-					this.repopulate_ddownmenu(this.db_type, widget_obj);
+					var cpane_id = this.check_generate_cpane(this.db_type);
+					this.divstackcontainer.selectChild(cpane_id);
 				}
 			},
-			radio2_callback: function(widget_obj, event) {
+			radio2_callback: function(dummy, event) {
 				if (event) {
 					this.db_type = 'tourndb';
-					this.repopulate_ddownmenu(this.db_type, widget_obj);
+					var cpane_id = this.check_generate_cpane(this.db_type);
+					this.divstackcontainer.selectChild(cpane_id);
 				}
 			},
 			get_idstr_obj: function(id) {
@@ -314,6 +346,23 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					});
 				return match_list[0];
 			},
+			generate_dbtype_id: function(idbase, db_type, idtype) {
+				// db_type will be either "rrdb" or "tourndb" so strip off "db"
+				var db_str = db_type.replace("db","");
+				return "wiz" + idbase + db_str + idtype + "_id"
+			},
+			generate_divcpane_id: function(db_type) {
+				this.generate_dbtype_id("div", db_type, "cpane")
+			}
+			check_generate_cpane: function(db_type) {
+				// check if cpane exists, if not generate
+				var cpane_id = this.generate_divcpane_id_id(db_type);
+				var divcpane = registry.byId(cpane_id);
+				if (!divcpane) {
+
+				}
+				return cpane_id;
+			}
 		})
 	}
 );
