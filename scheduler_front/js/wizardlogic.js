@@ -79,10 +79,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
 				// radio button to choose between rrd and tourndb
-				// select value is a dummy value as popup subemnu is used instead of select
+				// select value is a dummy value as popup subemnu is used instead of select]
+				// divcpanemap_array is a list of mapping objects, with each object
+				// providing maps for db_type, cpane_id, and info_obj
+				// current used only to resize pane-resident grids if switched
+				// into pane
+				var divcpanemap_array = new Array();
 				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.divradio1_id, constant.divradio2_id, this.db_type, this,
-					this.radio1_callback, this.radio2_callback, null);
+					constant.divradio1_id, constant.divradio2_id, this.db_type,
+					this, this.radio1_callback, this.radio2_callback,
+					divcpanemap_array);
 				var stack_node = put(topdiv_node, "div");
 				// create stackcontainer to manage separate cpane -
 				// one for RR, other for Tourn
@@ -91,48 +97,19 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					style:"float:left; width:80%",
 					id:constant.divstcontainer_id,
 				}, stack_node);
-				// create default cpane only (other will be generated if radio button
-				// is selected) and attach it to stack connier
-				var cpane_id = this.generate_divcpane_id(this.db_type);
-				var div_cpane = new ContentPane({
-					id:cpane_id
-				})
-				this.divstackcontainer.addChild(div_cpane);
-				var container_node = div_cpane.containerNode;
-				var divinfo_obj = null;
-				// create default divinfo or tourninfo obj
-				if (this.db_type == 'rrdb') {
-					divinfo_obj = new divinfo({
-						server_interface:this.server_interface,
-						uistackmgr_type:this.wizuistackmgr,
-						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-						schedutil_obj:this.schedutil_obj, op_type:"wizard"});						
-				} else {
-					divinfo_obj = new tourndivinfo({
-						server_interface:this.server_interface,
-						uistackmgr_type:this.wizuistackmgr,
-						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-						schedutil_obj:this.schedutil_obj, op_type:"wizard"});						
-				}
-				// create default menubar and attached ddown menu widgets
-				var menubar_node = put(container_node, "div");
-				var edit_ddownmenu_widget = new DropDownMenu();
-				var del_ddownmenu_widget = new DropDownMenu();
-				this.storeutil_obj.create_menubar('div_id', divinfo_obj, true,
-					menubar_node, edit_ddownmenu_widget, del_ddownmenu_widget);
-				var pcontainerdiv_node = put(container_node, "div")
-				var gcontainerdiv_node = put(container_node, "div")
-				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
-					gcontainerdiv_node);
+				// Haven't exactly figured out why, but generate both RR and Tourn
+				// div config content pane's during first create.  Otherwise,
+				// when creating the missing content pane during run time (when
+				// radio button is selected) causes html button dom (outlines)
+				// to be visible before the dojo widgets are created.
+				arrayUtil.forEach(["rrdb", "tourndb"], function(item) {
+					var cpane_id = this.generate_divcpane_id(item);
+					var info_obj = this.generate_divcpane(item, cpane_id);
+					divcpanemap_array.push({db_type:item,
+						cpane_id:cpane_id, info_obj:info_obj})
+				}, this)
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
-					//class:'allauto'
-					//style:"width:500px; height:400px; border:1px solid red"
-					onShow: function() {
-						if (divinfo_obj.editgrid) {
-							divinfo_obj.editgrid.schedInfoGrid.resize();
-						}
-					}
 				})
 				wizard_reg.addChild(divinfo_wpane);
 				//--------------------------------------//
@@ -155,7 +132,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
 					onShow: function() {
-						if (fieldinfo_obj.editgrid) {
+						if ("editgrid" in fieldinfo_obj &&
+							fieldinfo_obj.editgrid) {
 							fieldinfo_obj.editgrid.schedInfoGrid.resize();
 						}
 					}
@@ -193,7 +171,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
 					onShow: function() {
-						if (teaminfo_obj.editgrid) {
+						if ("editgrid" in teaminfo_obj && teaminfo_obj.editgrid) {
 							teaminfo_obj.editgrid.schedInfoGrid.resize();
 						}
 					}
@@ -219,7 +197,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
 					onShow: function() {
-						if (prefinfo_obj.editgrid) {
+						if ("editgrid" in prefinfo_obj && prefinfo_obj.editgrid) {
 							prefinfo_obj.editgrid.schedInfoGrid.resize();
 						}
 					}
@@ -245,7 +223,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//class:'allauto'
 					//style:"width:500px; height:400px; border:1px solid red"
 					onShow: function() {
-						if (conflictinfo_obj.editgrid) {
+						if ("editgrid" in conflictinfo_obj &&
+							conflictinfo_obj.editgrid) {
 							conflictinfo_obj.editgrid.schedInfoGrid.resize();
 						}
 					}
@@ -279,14 +258,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				wizard_reg.startup();
 				wizard_reg.resize();
 				container_cpane.resize();
-				//-----------------//
-				//Add parameter stack container panes
-				/*
-				this.uistackmgr.create_paramcpane_stack(container_cpane);
-				// we might not need the error node beow
-				put(container_cpane.domNode, "div.style_none#divisionInfoInputGridErrorNode")
-				this.uistackmgr.create_grid_stack(container_cpane);
-				*/
 				return container_cpane;
 			},
 			delete_menu_elements: function(menu_widget) {
@@ -320,18 +291,42 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					{db_type:db_type, storeutil_obj:this.storeutil_obj,
 						op_type:"wizard"});
 			},
-			radio1_callback: function(dummy, event) {
+			// switch to div or tourndiv info cpane dependent on
+			// db_type
+			switch_divcpane: function(db_type, divcpanemap_array) {
+				var cpane_id = this.generate_divcpane_id(db_type)
+				// find the matching object based on db_type
+				// match with cpane_id is an extra check for consistency
+				var match_obj = arrayUtil.filter(divcpanemap_array,
+					function(item) {
+						return item.db_type == db_type &&
+							item.cpane_id == cpane_id;
+					}
+				)[0]
+				// get actual cpane widget and corresponding info object
+				// and for grid resize if there is an onshow signal
+				var cpane_widget = registry.byId(cpane_id);
+				var info_obj = match_obj.info_obj;
+
+				cpane_widget.set("onShow", function() {
+					if ("editgrid" in info_obj && info_obj.editgrid &&
+						"schedInfoGrid" in info_obj.editgrid &&
+						info_obj.editgrid.schedInfoGrid) {
+						info_obj.editgrid.schedInfoGrid.resize();
+					}
+				})
+				this.divstackcontainer.selectChild(cpane_id);
+			},
+			radio1_callback: function(divcpanemap_array, event) {
 				if (event) {
 					this.db_type = 'rrdb';
-					var cpane_id = this.check_generate_cpane(this.db_type);
-					this.divstackcontainer.selectChild(cpane_id);
+					this.switch_divcpane(this.db_type, divcpanemap_array);
 				}
 			},
-			radio2_callback: function(dummy, event) {
+			radio2_callback: function(divcpanemap_array, event) {
 				if (event) {
 					this.db_type = 'tourndb';
-					var cpane_id = this.check_generate_cpane(this.db_type);
-					this.divstackcontainer.selectChild(cpane_id);
+					this.switch_divcpane(this.db_type, divcpanemap_array);
 				}
 			},
 			get_idstr_obj: function(id) {
@@ -352,16 +347,43 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				return "wiz" + idbase + db_str + idtype + "_id"
 			},
 			generate_divcpane_id: function(db_type) {
-				this.generate_dbtype_id("div", db_type, "cpane")
-			}
-			check_generate_cpane: function(db_type) {
-				// check if cpane exists, if not generate
-				var cpane_id = this.generate_divcpane_id_id(db_type);
-				var divcpane = registry.byId(cpane_id);
-				if (!divcpane) {
-
+				return this.generate_dbtype_id("div", db_type, "cpane")
+			},
+			generate_divcpane: function(db_type, cpane_id) {
+				var div_cpane = new ContentPane({
+					id:cpane_id
+				})
+				this.divstackcontainer.addChild(div_cpane);
+				var container_node = div_cpane.containerNode;
+				var divinfo_obj = null;
+				var idproperty = null;
+				// create default divinfo or tourninfo obj
+				if (db_type == 'rrdb') {
+					divinfo_obj = new divinfo({
+						server_interface:this.server_interface,
+						uistackmgr_type:this.wizuistackmgr,
+						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
+						schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					idproperty ="div_id";
+				} else {
+					divinfo_obj = new tourndivinfo({
+						server_interface:this.server_interface,
+						uistackmgr_type:this.wizuistackmgr,
+						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
+						schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					idproperty = "tourndiv_id";
 				}
-				return cpane_id;
+				// create default menubar and attached ddown menu widgets
+				var menubar_node = put(container_node, "div");
+				//var edit_ddownmenu_widget = new DropDownMenu();
+				//var del_ddownmenu_widget = new DropDownMenu();
+				this.storeutil_obj.create_menubar(idproperty, divinfo_obj, true,
+					menubar_node);
+				var pcontainerdiv_node = put(container_node, "div")
+				var gcontainerdiv_node = put(container_node, "div")
+				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
+					gcontainerdiv_node);
+				return divinfo_obj;
 			}
 		})
 	}

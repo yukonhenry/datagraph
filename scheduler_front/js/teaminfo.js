@@ -38,20 +38,16 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					id:this.idproperty, op_type:this.op_type});
 			},
 			getcolumnsdef_obj: function() {
-				var columnsdef_obj = {
-					tm_id: "ID",
-					tm_name: editor({label:"Team Name", autoSave:true,
-						editorArgs:{
-							trim:true, //propercase:true,
-							style:"width:auto"
-						}
-					}, TextBox, "click"),
-					af_list:{label:"Home Field(s)",
+				var columnsdef_list = [
+					{field: "tm_id", label: "ID"},
+					{field: "tm_name", label:"Team Name", autoSave:true,
+						editorArgs:{trim:true, style:"width:auto"},
+						editor:TextBox, editOn:"click"},
+					{field: "af_list", label:"Home Field(s)",
 						renderCell: lang.hitch(this, this.af_field_render)
 					}
-				};
-				return columnsdef_obj;
-				//return {};
+				];
+				return columnsdef_list;
 			},
 			getfixedcolumnsdef_obj: function() {
 				// column definition for constraint satisfaction cpane display

@@ -646,6 +646,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				put(container_node, "span[id=$]", this.idmgr_obj.text_id);
 				put(container_node, "button[id=$]", this.idmgr_obj.btn_id);
 				this.pstackcontainer.addChild(textbtn_cpane)
+				//this.pstackcontainer.selectChild(reset_cpane);
 				// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({
 					doLayout:false,
@@ -669,6 +670,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				put(infogrid_cpane.containerNode, "button.empty_smallgap[id=$]",
 					this.idmgr_obj.delrowbtn_id);
 				this.gstackcontainer.addChild(infogrid_cpane);
+				//this.gstackcontainer.selectChild(blank_cpane);
 			},
 			cleanup:function() {
 				arrayUtil.forEach(this.tooltip_list, function(item) {
