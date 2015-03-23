@@ -32,5 +32,6 @@ Utilized python libraries/tools/frameworks:
   * tablib (xls output support)
 * scheduler_front directory includes js code for UI component generation utilizing dojo libraries.  scheduler.js is the main js module loaded from index.html.  UI code follows two separate paths (for wizard, and 'advanced' UI - for content pane creation, but merge together once the per-pane UI components are generated.  Dojo framework provides the infrastructure, with heavy use of dgrid, dojox calendar, and local dojo store
 
-####Evaluate software @ http://www.yukontr.com/apps/scheduler_front
-####Any questions or comments should be directed to henry@yukontr.com
+##### [Users Guide](https://github.com/yukonhenry/datagraph/wiki)
+#####Evaluate software @ http://www.yukontr.com/apps/scheduler_front
+#####Any questions or comments should be directed to henry@yukontr.com

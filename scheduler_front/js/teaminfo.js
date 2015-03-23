@@ -254,40 +254,44 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					}
 				} else {
 					if (this.infogrid_store) {
-						if (this.serverinfo_list || this.infogrid_store.filter(query_obj).total == 0) {
-							if (this.serverinfo_list && this.serverinfo_list.length > 0) {
-								// if server data exists, use that
-								info_list = this.serverinfo_list;
-								// check that the server data includes current
-								// div_id data; if not, append initialization data
-								if (!arrayUtil.some(info_list, function(item) {
-									return item.div_id == div_id_event;
-								})) {
-									info_list = info_list.concat(
-										this.getInitialList(this.totalrows_num,
-											div_id_event, this.activegrid_colname));
-								}
+						// for dstore, all queries are promise-based
+						// http://dstorejs.io
+						this.infogrid_store.filter(query_obj).fetch().then(lang.hitch(this, function(results) {
+							if (results.length > 0) {
+								// store already provides data for the div_id, just
+								// do a store query switch
+								args_obj = {colname:this.activegrid_colname,
+									queryonly_flag:true, query_obj:query_obj}								
 							} else {
-								// if div_id data does not exist, add initilization data
-								info_list = this.getInitialList(
-									this.totalrows_num, div_id_event,
-									this.activegrid_colname);
+								if (this.serverinfo_list && this.serverinfo_list.length > 0) {
+									// if server data exists, use that
+									info_list = this.serverinfo_list;
+									// check that the server data includes current
+									// div_id data; if not, append initialization data
+									if (!arrayUtil.some(info_list, function(item) {
+										return item.div_id == div_id_event;
+									})) {
+										info_list = info_list.concat(
+											this.getInitialList(this.totalrows_num,
+												div_id_event, this.activegrid_colname));
+									}
+								} else {
+									// if div_id data does not exist, add initilization data
+									info_list = this.getInitialList(
+										this.totalrows_num, div_id_event,
+										this.activegrid_colname);								
+								}
+								info_list.sort(function(a,b) {
+									return a.tm_id-b.tm_id
+								});
+								args_obj = {
+									colname:this.activegrid_colname,
+									griddata_list:info_list, queryonly_flag:false,
+									query_obj:query_obj, store_idproperty:"dt_id"
+								}
 							}
-							info_list.sort(function(a,b) {
-								return a.tm_id-b.tm_id
-							});
-							args_obj = {
-								colname:this.activegrid_colname,
-								griddata_list:info_list, queryonly_flag:false,
-								query_obj:query_obj, store_idproperty:"dt_id"
-							}
-						} else {
-							// store already provides data for the div_id, just
-							// do a store query switch
-							args_obj = {colname:this.activegrid_colname,
-								queryonly_flag:true, query_obj:query_obj}
-						}
-						this.editgrid.addreplace_store(args_obj);
+							this.editgrid.addreplace_store(args_obj);								
+						}))
 					} else {
 						console.log("Code Logic Error:teaminfo:create_team_grid: store should exist");
 					}

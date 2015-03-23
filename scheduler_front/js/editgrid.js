@@ -125,8 +125,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 			},
 			editschedInfoGrid: function(event) {
 				var val = event.value;
-        		//console.log("gridval="+val+' replace='+event.oldValue+ ' cell row='+event.rowId +
-        		//	'col='+event.cell.column.field);
         		if (this.idproperty == 'div_id') {
         			if (event.cell.column.id == 'numgdaysperweek') {
         				// enable single shot writes to mingap and maxgap columns
@@ -209,10 +207,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);
 			},
 			replace_store: function(colname, griddata_list) {
-				//reference http://www.sitepen.com/blog/2013/09/06/dojo-faq-how-can-i-add-filtering-controls-to-dgrid/
-				// Note we should be setting filtering queries to the store, instead
-				// of doing setData everytime new data comes in
-				// setData does not work with observable stores - see comment in fieldinfo.js
+				//https://github.com/SitePen/dgrid/blob/v0.4.0/doc/migrating/0.4-Migration.md
 				this.colname = colname;
 				arrayUtil.forEach(griddata_list, function(item) {
 					this.schedInfoStore.put(item);
@@ -241,28 +236,25 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				if (!queryonly_flag) {
 					var griddata_list = args_obj.griddata_list;
 					var store_idproperty = args_obj.store_idproperty;
-					if (this.schedInfoStore.filter(query_obj).total == 0) {
-						// query produces empty, so add griddata_list elements
-						// (but not setData because we are not resetting all data, e.g.
-						// data that was outside of the query)
-						arrayUtil.forEach(griddata_list, function(item) {
-							this.schedInfoStore.add(item);
-						}, this)
-					} else {
-						// query produced results, so we will overwrite any data existing
-						// in the store with new griddata data
-						arrayUtil.forEach(griddata_list, function(item) {
-							// put does both update and create
-							// returns a promise but we are not using it right now
-							this.schedInfoStore.put(item);
-							/*
-							if (this.schedInfoStore.get(item[store_idproperty])) {
-								this.schedInfoStore.put(item);
-							} else {
+					this.schedInfoStore.filter(query_obj).fetch().then(
+						lang.hitch(this, function(results) {
+						if (results.length == 0) {
+							// query produces empty, so add griddata_list elements
+							// (but not setData because we are not resetting all data, e.g.
+							// data that was outside of the query)
+							arrayUtil.forEach(griddata_list, function(item) {
 								this.schedInfoStore.add(item);
-							} */
-						}, this)
-					}
+							}, this)
+						} else {
+							// query produced results, so we will overwrite any data existing
+							// in the store with new griddata data
+							arrayUtil.forEach(griddata_list, function(item) {
+								// put does both update and create
+								// returns a promise but we are not using it right now
+								this.schedInfoStore.put(item);
+							}, this)					
+						}
+					}));
 				}
 				this.schedInfoGrid.set("collection", this.schedInfoStore.filter(query_obj));
 				this.schedInfoGrid.refresh();
