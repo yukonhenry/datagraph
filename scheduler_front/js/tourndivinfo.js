@@ -206,7 +206,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click cell to edit"},
 					{id:'mingap_time', help_str:"NOTE: Specify the minimum time gap between the end of one game and the start of the next (for each team)"},
 					{id:'elimination_type', help_str:"Elimination tournament type('C'- Consolation; 'D'- double elimination; 'S'- single elimination"},
-					{id:'thirdplace_enable', help_str:"3rd Place Match Generation required? ('Y'- Yes; 'N'- No"}]
+					{id:'thirdplace_enable', help_str:"3rd Place Match Generation required? ('Y'- Yes; 'N'- No), Only applicable for single elimination"}]
 				return gridhelp_list;
 			},
 			checkconfig_status: function(raw_result){
