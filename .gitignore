@@ -1,0 +1,4 @@
+scheduler_front/scheduler_front.sublime-workspace
+scheduler_service/scheduler_service.sublime-workspace
+*.pyc
+static/*.gz
