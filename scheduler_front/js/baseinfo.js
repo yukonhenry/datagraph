@@ -180,9 +180,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// is used for fieldinfo grid
 				//For field grids, create radio button pair to select
 				// schedule type - rr or tourn
-				this.widgetgen.create_dbtype_radiobtn(topdiv_node,
+				/*this.widgetgen.create_dbtype_radiobtn(topdiv_node,
 					radio1_id, radio2_id, init_db_type,
 					this, this.radio1_callback, this.radio2_callback, select_id);
+				*/
 				//for callback function, additional parameters after the first two
 				// are passed to the callback as extra parameters.
 				var args_obj = {
@@ -488,14 +489,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			add_gridselect_handle: function() {
 				if (this.gridrow_handle)
 					this.gridrow_handle.remove();
-				this.gridrow_handle = this.editgrid.schedInfoGrid.on(
-					"dgrid-select",lang.hitch(this, function(event) {
-						if ('rows' in event) {
-							var event_data = event.rows[0].data;
-							this.selected_gridrow = event_data[this.idproperty]
-						}
-					})
-				)
+				if (this.editgrid  && this.editgrid.schedInfoGrid) {
+					this.gridrow_handle = this.editgrid.schedInfoGrid.on(
+						"dgrid-select",lang.hitch(this, function(event) {
+							if ('rows' in event) {
+								var event_data = event.rows[0].data;
+								this.selected_gridrow = event_data[this.idproperty]
+							}
+						})
+					)
+				}
 			},
 			get_gridstatus_node: function(updatebtn_widget, op_type) {
 				var configstatus_id = this.idmgr_obj.configstatus_id;

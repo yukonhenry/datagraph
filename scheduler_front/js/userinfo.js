@@ -195,7 +195,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
                     userid_name:this.userid_name, widgetgen_obj:widgetgen_obj});
                 var wizcontainer_cpane = wizardlogic_obj.create();
                 // create advanced pane
-                this.storeutil_obj.init_advanced_UI(this.userid_name);
+                this.storeutil_obj.init_advanced_UI(this.userid_name,
+                    widgetgen_obj);
                 // select toplevel cpane after name has been selected
                 this.tabcontainer.selectChild(wizcontainer_cpane);
                 // don't need name selection anymore

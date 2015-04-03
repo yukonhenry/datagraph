@@ -104,6 +104,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				// to match_obj
 				//this.cpanestate_list[index] = match_obj;
 			},
+			reset_activecpane: function() {
+				// find active cpane and reset to quiscent states for pstack
+				// and gstack
+				var active_state = this.get_cpanestate_active()
+				if (active_state) {
+					this.reset_cpane(active_state.match_obj.id)
+				}
+			},
 			reset_cpane: function(idproperty) {
 				// reset pstackcpane for idproperty to quiscent/initial state
 				this.pstackcontainer_reg.selectChild(constant.dummy_id);

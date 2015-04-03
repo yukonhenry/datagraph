@@ -18,7 +18,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		PreferenceInfo, TournDivInfo, TeamInfo, ConflictInfo, put) {
 		var constant = {
 			idtopmenu_list:[
-				{id:'div_id', label_str:"League/Round Robin Format",
+				{id:'div_id', label_str:"Configure League Divisions",
 					help_str:"Configure Division/Fields for Round Robin League Schedule", mbaritem_id:"divmbaritem_id", db_type:'rrdb'},
 				{id:'tourndiv_id', label_str:"Tournament format",
 					help_str:"Configure Division/Fields for Tournament Schedule",
@@ -90,14 +90,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					label_str:"Delete Conflict List",
 					help_str:"To Delete, Click and Select Previously Saved Conflict List Name"}
 			],
-			delserver_path:"delete_dbcol/"
+			adv_dbselect_radio1_id:"adv_dbselect_radio1_id",
+			adv_dbselect_radio2_id:"adv_dbselect_radio2_id",
+			init_sched_type:"L"
 		};
 		return declare(null, {
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
 			server_interface:null, dbstore_list:null, wizuistackmgr:null,
-			widgetgen_obj:null, userid_name:"",
-			rrdbmenureg_list:null, fielddbmenureg_list:null, tdbmenureg_list:null,
-			nsdbmenureg_list:null, prefdbmenureg_list:null, teamdbmenureg_list:null,
+			userid_name:"", rrdbmenureg_list:null, fielddbmenureg_list:null,
+			tdbmenureg_list:null, nsdbmenureg_list:null,
+			prefdbmenureg_list:null, teamdbmenureg_list:null,
 			conflictdbmenureg_list:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
@@ -237,7 +239,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					this.createdb_store(item.db_list, item.db_type)
 				}, this)
 			},
-			init_advanced_UI: function(userid_name) {
+			init_advanced_UI: function(userid_name, widgetgen_obj) {
 				// ADVANCE MENU target
 				// save data to local db and create menu structure for advanced
 				// pane
@@ -279,14 +281,22 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
 					storeutil_obj:this, op_type:"advance"});
+				// sched_type legend:
+				// 'L': League/Round Robin
+				// 'T': Tournament
+				// 'B': Both, applies to both League and Tournament
 				var info_obj_list = [
-					{id:'div_id', info_obj:divinfo_obj},
-					{id:'tourndiv_id', info_obj:tourndivinfo_obj},
-					{id:'field_id', info_obj:fieldinfo_obj},
-					{id:'team_id', info_obj:teaminfo_obj},
-					{id:'pref_id', info_obj:preferenceinfo_obj},
-					{id:'conflict_id', info_obj:conflictinfo_obj},
-					{id:'newsched_id', info_obj:newschedbase_obj},
+					{id:'div_id', info_obj:divinfo_obj, 'sched_type':'L'},
+					{id:'tourndiv_id', info_obj:tourndivinfo_obj,
+						'sched_type':'T'},
+					{id:'field_id', info_obj:fieldinfo_obj, 'sched_type':'B'},
+					{id:'team_id', info_obj:teaminfo_obj, 'sched_type':'L'},
+					{id:'pref_id', info_obj:preferenceinfo_obj,
+						'sched_type':'L'},
+					{id:'conflict_id', info_obj:conflictinfo_obj,
+						'sched_type':'L'},
+					{id:'newsched_id', info_obj:newschedbase_obj,
+						'sched_type':'B'},
 				]
 				var args_list = new Array();
 				//var editpane = registry.byId("editPane");
@@ -322,15 +332,26 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var useridtext_node = put(topdiv_node, "div");
 				useridtext_node.innerHTML = "<p style='font-size:larger'>User/Organization ID: <strong>"+
 					userid_name+"</strong></p>"
-				var editddown_btn_node = put(topdiv_node, "button[id=$][type=button]","editddown_btn_id");
+				// create ddown_menu widget here so that it can be passed to
+				// radio button callback
 				var editddown_menu = new DropDownMenu({
 				})
+				widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
+					constant.adv_dbselect_radio1_id,
+					constant.adv_dbselect_radio2_id, "rrdb",
+					this, this.radio1_callback, this.radio2_callback,
+					{ddownmenu_widget:editddown_menu,
+						info_obj_list:info_obj_list});
+				var editddown_btn_node = put(topdiv_node, "button[id=$][type=button]","editddown_btn_id");
+
 				var editddown_btn = new DropDownButton({
 					class:"primary editsched",
 					label:"Select Configuration",
 					dropDown:editddown_menu
 				}, editddown_btn_node)
-				//advanced_cpane.addChild(editddown_btn);
+				this.create_dropdown(constant.init_sched_type, info_obj_list,
+					editddown_menu)
+				/*
 				arrayUtil.forEach(info_obj_list, function(item) {
 					var id = item.id;
 					if (id == 'div_id' || id == 'tourndiv_id') {
@@ -338,7 +359,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					} else {
 						this.create_menu(id, item.info_obj, true, editddown_menu);
 					}
-				}, this)
+				}, this) */
 				// specify parameters for the two-level menu
 				// first specify for the divinfo dropdown
 				// menu_index is the display position in the parent_ddown widget
@@ -347,10 +368,11 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// is already a menu structure created with at least that menu index
 				// items - index x requires that x+1 entries have  already been
 				// created.
+				/*
 				var args_obj = {parent_ddown_reg:editddown_menu,
 					args_list:args_list, label_str: "Division Info",
 					menu_index:0}
-				this.create_divmenu(args_obj);
+				this.create_divmenu(args_obj); */
 				// create other cpane stacks
 				this.uistackmgr.create_paramcpane_stack(advanced_cpane);
 				this.uistackmgr.create_grid_stack(advanced_cpane);
@@ -638,6 +660,41 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				}
 				return dbmenureg_list;
 			},
+			// Switch to league/rourndrobin config
+			radio1_callback: function(args_obj, event) {
+				if (event) {
+					this.clear_create_dropdown(args_obj, "L")
+				}
+			},
+			// switch to tournament config
+			radio2_callback: function(args_obj, event) {
+				if (event) {
+					this.clear_create_dropdown(args_obj, "T")
+				}
+			},
+			// called from radio button, sched type switch
+			// clear out old menu structure and create new one based on
+			// switched sched type
+			clear_create_dropdown: function(args_obj, sched_type) {
+				ddownmenu_widget = args_obj.ddownmenu_widget;
+				info_obj_list = args_obj.info_obj_list;
+				ddownmenu_widget.destroyDescendants();
+				this.uistackmgr.reset_activecpane();
+				this.create_dropdown(sched_type, info_obj_list,
+					ddownmenu_widget);
+			},
+			// Create main dropdown menu list
+			create_dropdown: function(sched_type, info_obj_list, ddownmenu_widget) {
+				var sched_info_obj_list = arrayUtil.filter(
+					info_obj_list, function(item) {
+					return item.sched_type == sched_type ||
+						item.sched_type == 'B';
+				})
+				arrayUtil.forEach(sched_info_obj_list, function(item) {
+					var id = item.id;
+					this.create_menu(id, item.info_obj, true, ddownmenu_widget);
+				}, this)
+			}
 		})
 	}
 );

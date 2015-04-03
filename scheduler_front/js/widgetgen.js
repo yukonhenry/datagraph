@@ -8,8 +8,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
     "dijit/Tooltip",
     "put-selector/put", "scheduler_front/baseinfoSingleton", "dojo/domReady!"],
     function(dom, declare, lang, arrayUtil, Stateful, date,
-        registry, Dialog, Button, RadioButton, Select, NumberSpinner, DateTextBox,
-        Form, ValidationTextBox,
+        registry, Dialog, Button, RadioButton, Select, NumberSpinner,
+        DateTextBox, Form, ValidationTextBox,
         Tooltip, put, baseinfoSingleton) {
         var Watch_class = declare([Stateful], {
             db_type:null
