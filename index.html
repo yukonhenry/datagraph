@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Amateur Sports League Scheduling by yukonhenry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Amateur Sports League Scheduling</h1>
+      <h2 class="project-tagline">Maximum Convenience and Fairness</h2>
+      <a href="https://github.com/yukonhenry/datagraph" class="btn">View on GitHub</a>
+      <a href="https://github.com/yukonhenry/datagraph/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/yukonhenry/datagraph/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h2>
+<a id="sports-league-scheduling-application" class="anchor" href="#sports-league-scheduling-application" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sports League Scheduling Application:</h2>
+
+<hr>
+
+<p>Differentiators:</p>
+
+<ul>
+<li>Maximizes Fairness</li>
+<li>Maximizes Convenience</li>
+<li>Manages Irregular Conflicts</li>
+</ul>
+
+<p>This production level software (used to produce schedules for 1500+ player leagues over the course of two years) implements round-robin league and elimination tournament scheduler software for amateur sports leagues.  There are distinct characterizations with operating amateur sports leagues compared to professional or upper-tier semi-pro leagues, which is driven by scarcity of resources and an abundance of constraints, preferences, and conflicts.  In addition, there is a much larger need to maximize fairness and convenience for the former, in place of maximizing profit, competitiveness, and entertainment value for the latter.  The operational task for match scheduling for amateur leagues has complexities that, compared to their professional counterparts, are accentuated by a)large number of teams/players in a league competing for limited access to resources, and especially what are considered quality resources (i.e. desirable fields, desirable time of day to play, qualified coaches, etc.); b) evaluators and benefactors of the quality of generated schedule is much larger and diverse - i.e. administrators, coaches, players, and families all have a large influence into providing requirements for the quality of a schedule.  These factors contribute to the demand that generated schedules maximize fairness and convenience while satisfying and avoiding a large number of constraints and conflicts.</p>
+
+<h4>
+<a id="algorithm" class="anchor" href="#algorithm" aria-hidden="true"><span class="octicon octicon-link"></span></a>Algorithm</h4>
+
+<p>The application presents a very good use case for formulating and solving a highly constrained discrete optimization problem.</p>
+
+<p>This software creates the schedule by first generating round robin matches and then making venue and time slot allocations.  The latter is accomplished by formulating the scheduling problem as a discrete optimization problem with defined cost functions.  Cost function components represent:</p>
+
+<ul>
+<li>Attaining fairness for venue distribution and undesirable time slot distribution</li>
+<li>Meeting target venue distribution when affinity/home fields are specified</li>
+<li>home/away balancing</li>
+</ul>
+
+<p>In addition, scheduling time preferences and constraints represented as soft constraints, weighted by configured priorities. Priority values also determined how aggressive the algorithm should work to meet constraints at the expense of sacrificing fairness for others.  Constraint violation is represented as penalty costs incorporated into the overall cost function.  Constraints accounted are</p>
+
+<ul>
+<li>Irregular field availability / closures</li>
+<li>Individual team time preferences</li>
+<li>Match time avoidance for pairs of teams</li>
+</ul>
+
+<h4>
+<a id="implementation-stack" class="anchor" href="#implementation-stack" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation stack:</h4>
+
+<p>Algorithm implementation in Python on a hosted (cloud) backend server, with storage of schedule and configuration information on a key:value db (mongodb).  Web-based UI implemented in js, utilizing dojo framework.  dojo components such as dgrid and dojox calendar are heavily utilized.  UI&lt;-&gt;backend data exchange through http rest interface, with python bottle used for server-side controller routing.</p>
+
+<h4>
+<a id="code-structure" class="anchor" href="#code-structure" aria-hidden="true"><span class="octicon octicon-link"></span></a>Code Structure:</h4>
+
+<ul>
+<li>scheduler_service directory includes scheduling algorithm implementation, along with router logic and storage interfaces.  Python implementation, utilizing bottle for router support and mongodb for scheduling storage. Entry pt is schedstart.py.  schedmaster.py implements entry point for schedule generation.  matchgenerator.py implements time/place independent match generation, with xxfieldtimescheduler.py implementing time/venue assignments.
+Utilized python libraries/tools/frameworks:
+
+<ul>
+<li>bottle (for routing)</li>
+<li>pymongo (mongodb interface)</li>
+<li>networkx (graph algorithms for match generation support)</li>
+<li>tablib (xls output support)</li>
+</ul>
+</li>
+<li>scheduler_front directory includes js code for UI component generation utilizing dojo libraries.  scheduler.js is the main js module loaded from index.html.  UI code follows two separate paths (for wizard, and 'advanced' UI - for content pane creation, but merge together once the per-pane UI components are generated.  Dojo framework provides the infrastructure, with heavy use of dgrid, dojox calendar, and local dojo store</li>
+</ul>
+
+<h5>
+<a id="users-guide" class="anchor" href="#users-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="https://github.com/yukonhenry/datagraph/wiki">Users Guide</a>
+</h5>
+
+<h5>
+<a id="evaluate-software--httpwwwyukontrcomappsscheduler_front" class="anchor" href="#evaluate-software--httpwwwyukontrcomappsscheduler_front" aria-hidden="true"><span class="octicon octicon-link"></span></a>Evaluate software @ <a href="http://www.yukontr.com/apps/scheduler_front">http://www.yukontr.com/apps/scheduler_front</a>
+</h5>
+
+<h5>
+<a id="any-questions-or-comments-should-be-directed-to-henryyukontrcom" class="anchor" href="#any-questions-or-comments-should-be-directed-to-henryyukontrcom" aria-hidden="true"><span class="octicon octicon-link"></span></a>Any questions or comments should be directed to <a href="mailto:henry@yukontr.com">henry@yukontr.com</a>
+</h5>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/yukonhenry/datagraph">Amateur Sports League Scheduling</a> is maintained by <a href="https://github.com/yukonhenry">yukonhenry</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
