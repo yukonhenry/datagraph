@@ -102,7 +102,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
 				var topdiv_node = put(infogrid_node, "-div");
 				if (this.divstr_colname && this.divstr_db_type) {
-					this.create_dbselect_radiobtnselect(this.idmgr_obj.radiobtn1_id,
+					this.create_dbselect(this.idmgr_obj.radiobtn1_id,
 						this.idmgr_obj.radiobtn2_id,
 						this.idmgr_obj.league_select_id,
 						this.divstr_db_type, this.divstr_colname, topdiv_node);

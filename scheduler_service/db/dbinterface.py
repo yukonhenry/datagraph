@@ -28,7 +28,7 @@ round_CONST = 'ROUND'
 field_id_CONST = 'FIELD_ID'
 CONFIG_STATUS = 'CONFIG_STATUS'
 divstr_colname_CONST = 'DIVSTR_COLNAME'
-divstr_db_type_CONST = 'DIVSTR_DB_TYPE'
+DIVSTR_DB_TYPE = 'DIVSTR_DB_TYPE'
 fieldday_id_CONST = 'FIELDDAY_ID'
 div_age_CONST = 'DIV_AGE'
 div_gen_CONST = 'DIV_GEN'
@@ -158,7 +158,7 @@ class MongoDBInterface:
             sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name},
             {"$set": {CONFIG_STATUS:config_status,
             divstr_colname_CONST:divstr_colname,
-            divstr_db_type_CONST:divstr_db_type}}, upsert=True)
+            DIVSTR_DB_TYPE:divstr_db_type}}, upsert=True)
         self.collection.remove({sched_type_CONST:self.sched_type,
             USER_ID:self.userid_name, id_str:{"$exists":True}})
         for doc in doc_list:
@@ -610,8 +610,21 @@ class MongoDBInterface:
             'USER_ID':userid_name})]
         # technically possible to do in one messy list comprehension, but break out
         # extracting config_status into the below list comprehension.
-        sc_config_list = [{'name':x, 'config_status':self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), CONFIG_STATUS:{"$exists":True},
-            'USER_ID':userid_name})[CONFIG_STATUS]} for x in sc_list]
+        # add distr_db_type to each db_collection dictionary
+        sc_config_list = list()
+        for x in sc_list:
+            col = self.schedule_db[x].find_one({
+                sched_type_CONST:str(db_col_type),
+                CONFIG_STATUS:{"$exists":True},
+                USER_ID:userid_name})
+            if DIVSTR_DB_TYPE in col:
+                sc_dict = {'name':x, 'config_status':col[CONFIG_STATUS],
+                    'divstr_db_type':col[DIVSTR_DB_TYPE]}
+            else:
+                sc_dict = {'name':x, 'config_status':col[CONFIG_STATUS]}
+            sc_config_list.append(sc_dict)
+        #sc_config_list = [{'name':x, 'config_status':self.schedule_db[x].find_one({sched_type_CONST:str(db_col_type), CONFIG_STATUS:{"$exists":True},
+        #    'USER_ID':userid_name})[CONFIG_STATUS]} for x in sc_list]
         return sc_config_list
 
     def getUserCollection(self):
@@ -652,7 +665,7 @@ class MongoDBInterface:
             {'_id':0})
         config_status = result[CONFIG_STATUS]
         divstr_colname = result[divstr_colname_CONST]
-        divstr_db_type = result[divstr_db_type_CONST]
+        divstr_db_type = result[DIVSTR_DB_TYPE]
         info_curs = self.collection.find({sched_type_CONST:self.sched_type,
             id_str:{"$exists":True}, USER_ID:self.userid_name}, {'_id':0})
         # convert cursor to list

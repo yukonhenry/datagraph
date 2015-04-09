@@ -272,25 +272,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					})
 				}
 			},
-			repopulate_ddownmenu: function(db_type, widget_obj) {
-				var db_list = this.storeutil_obj.getfromdb_store_value(db_type, 'name');
-				var edit_ddownmenu_widget = widget_obj.edit;
-				var del_ddownmenu_widget = widget_obj.del;
-				var info_obj = widget_obj.info_obj;
-				// delete elements from both edit and delete ddown menus
-				this.delete_menu_elements(edit_ddownmenu_widget);
-				this.delete_menu_elements(del_ddownmenu_widget);
-				// repopulate ddownmenus
-				// edit ddownmenu
-				this.storeutil_obj.generateDBCollection_smenu(edit_ddownmenu_widget, db_list, this.wizuistackmgr,
-					this.wizuistackmgr.check_getServerDBInfo,
-					{db_type:db_type, info_obj:info_obj,
-						storeutil_obj:this.storeutil_obj, op_type:"wizard"})
-				this.storeutil_obj.generateDBCollection_smenu(del_ddownmenu_widget, db_list, this.storeutil_obj,
-					this.storeutil_obj.delete_dbcollection,
-					{db_type:db_type, storeutil_obj:this.storeutil_obj,
-						op_type:"wizard"});
-			},
 			// switch to div or tourndiv info cpane dependent on
 			// db_type
 			switch_divcpane: function(db_type, divcpanemap_array) {

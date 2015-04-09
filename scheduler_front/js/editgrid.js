@@ -169,7 +169,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 						this.idproperty == "team_id" ||
 						this.idproperty == "tourndiv_id") {
 						// for field or pref id's modify grid data before sending to
-							// server - also attach divstr information also
+						// server - also attach divstr information also
 						newlist = this.info_obj.modify_toserver_data(results);
 						storedata_json = JSON.stringify(newlist);
 						// get colname and db_type for the divinfo obj attached to the
@@ -204,7 +204,13 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 					constant.createserver_path+this.userid_name+'/'+this.db_type+'/'+this.colname,
 					this.server_interface.server_ack, server_key_obj);
 				// add to select db store (for dropdowns)
-				this.storeutil_obj.addtodb_store(this.colname, this.idproperty, config_status);
+				if ('divstr_db_type' in server_key_obj)
+					this.storeutil_obj.addtodb_store(this.colname,
+						this.idproperty, config_status,
+						server_key_obj.divstr_db_type);
+				else
+					this.storeutil_obj.addtodb_store(this.colname,
+						this.idproperty, config_status);
 			},
 			replace_store: function(colname, griddata_list) {
 				//https://github.com/SitePen/dgrid/blob/v0.4.0/doc/migrating/0.4-Migration.md
@@ -252,7 +258,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 								// put does both update and create
 								// returns a promise but we are not using it right now
 								this.schedInfoStore.put(item);
-							}, this)					
+							}, this)
 						}
 					}));
 				}

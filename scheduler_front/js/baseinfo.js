@@ -29,7 +29,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			infogrid_store:null, userid_name:"", widgetgen:null,
 			gridrow_handle:null, selected_gridrow:null,
 			startref_id:0, configstatus_list:null, idproperty:null,
-			store_idproperty:null,
+			store_idproperty:null, actualsched_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
@@ -169,12 +169,13 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
 					var topdiv_node = put(infogrid_node, "-div");
 				}
-				this.create_dbselect_radiobtnselect(
+				var db_type = (this.actualsched_type == "L")?"rrdb":"tourndb";
+				this.create_dbselect(
 					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
-					this.idmgr_obj.league_select_id, "", "", topdiv_node);
+					this.idmgr_obj.league_select_id, db_type, "", topdiv_node);
 				return topdiv_node;
 			},
-			create_dbselect_radiobtnselect: function(radio1_id, radio2_id, select_id, init_db_type, init_colname, topdiv_node) {
+			create_dbselect: function(radio1_id, radio2_id, select_id, db_type, init_colname, topdiv_node) {
 				// passed in init_db_type and init_colname are typicall
 				// for divinfo(divstr) db_type and colname even though it
 				// is used for fieldinfo grid
@@ -188,7 +189,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// are passed to the callback as extra parameters.
 				var args_obj = {
 					topdiv_node:topdiv_node, select_id:select_id,
-					init_db_type:init_db_type,
+					db_type:db_type,
 					init_colname:init_colname,
 					onchange_callback:lang.hitch(this.widgetgen, this.widgetgen.get_leagueparam_list, this),
 					name_str:"league select",

@@ -344,26 +344,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				this.oddnum_dialog.hide();
 				var oddnum_mode = this.oddnumradio_value;
 				deferred_obj.resolve({oddnum_mode:oddnum_mode});
-				/*
-				var oddnum_mode = this.oddnumradio_value;
-				if (oddnum_mode == 1) {
-					// if oddnum mode is 1, add a virtual team for game scheduling
-					// this allows all teams to have one game every game day
-					// one team will play twice.  Right now we will manually change
-					// the virtual team# to a real team# after the schedule is
-					// generated
-					arrayUtil.forEach(raw_result, function(item) {
-						var totalteams = item['totalteams'];
-						if (totalteams%2 == 1) {
-							item['totalteams']++;
-						}
-					})
-					deferred_obj.resolve({oddnum_mode:oddnum_mode,
-						raw_result:raw_result});
-				} else {
-					deferred_obj.resolve({oddnum_mode:oddnum_mode});
-				}
-				*/
 			},
 			get_server_key_obj: function(raw_result) {
 				var deferred_obj = new Deferred();

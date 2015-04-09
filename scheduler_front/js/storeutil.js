@@ -137,8 +137,18 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					idProperty:'name'}));
 				// add initial entry
 				arrayUtil.forEach(db_list, function(item, index) {
-					dbselect_store.add({name:item.name,
-						config_status:item.config_status});
+					var store_obj = null;
+					// if divstr_db_type exists in the db collection info,
+					// add to the local store object
+					if ("divstr_db_type" in item) {
+						store_obj = {name:item.name,
+							config_status:item.config_status,
+							divstr_db_type:item.divstr_db_type};
+					} else {
+						store_obj = {name:item.name,
+							config_status:item.config_status};
+					}
+					dbselect_store.add(store_obj);
 				});
 				this.dbstore_list.push({db_type:db_type,
 					dbselect_store:dbselect_store});
@@ -204,11 +214,16 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					return null;
 			},
 			// add entry to dbselect store
-			addtodb_store: function(colname, id, config_status) {
+			addtodb_store: function(colname, id, config_status, divstr_db_type) {
 				var match_obj = this.getuniquematch_obj(constant.editmenu_list, 'id', id);
 				var db_type = match_obj.db_type;
 				var dbselect_store = this.getselect_store(db_type);
-				var query_obj = {name:colname};
+				var query_obj = null;
+				// query also with divstr_db_type if it exists
+				if (typeof divstr_db_type !== "undefined")
+					query_obj = {name:colname, divstr_db_type:divstr_db_type};
+				else
+					query_obj = {name:colname};
 				var result_list = dbselect_store.query(query_obj);
 				if (result_list.total == 0) {
 					query_obj.config_status = config_status; // add status field
@@ -219,10 +234,19 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					dbselect_store.put(match_obj);
 				}
 			},
-			getfromdb_store_value:function(db_type, key, config_status) {
+			getfromdb_store_value:function(args_obj) {
+				var db_type = args_obj.db_type;
+				var key = args_obj.key;
+				var query_obj = {};
+				if ('config_status' in args_obj) {
+					query_obj.config_status = args_obj.config_status;
+				}
+				if ('actualsched_type' in args_obj && db_type == "fielddb") {
+					var divstr_db_type = (args_obj.actualsched_type == "L") ?
+						"rrdb":"tourndb";
+					query_obj.divstr_db_type = divstr_db_type
+				}
 				var dbselect_store = this.getselect_store(db_type);
-				var query_obj = (typeof config_status === "undefined") ?
-					{}:{config_status:config_status};
 				var dbtype_result = dbselect_store.query(query_obj)
 					.map(function(item){
 						return item[key];
@@ -286,17 +310,17 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// 'T': Tournament
 				// 'B': Both, applies to both League and Tournament
 				var info_obj_list = [
-					{id:'div_id', info_obj:divinfo_obj, 'sched_type':'L'},
+					{id:'div_id', info_obj:divinfo_obj, sched_type:'L'},
 					{id:'tourndiv_id', info_obj:tourndivinfo_obj,
-						'sched_type':'T'},
-					{id:'field_id', info_obj:fieldinfo_obj, 'sched_type':'B'},
-					{id:'team_id', info_obj:teaminfo_obj, 'sched_type':'L'},
+						sched_type:'T'},
+					{id:'field_id', info_obj:fieldinfo_obj, sched_type:'B'},
+					{id:'team_id', info_obj:teaminfo_obj, sched_type:'L'},
 					{id:'pref_id', info_obj:preferenceinfo_obj,
-						'sched_type':'L'},
+						sched_type:'L'},
 					{id:'conflict_id', info_obj:conflictinfo_obj,
-						'sched_type':'L'},
+						sched_type:'L'},
 					{id:'newsched_id', info_obj:newschedbase_obj,
-						'sched_type':'B'},
+						sched_type:'B'},
 				]
 				var args_list = new Array();
 				//var editpane = registry.byId("editPane");
@@ -404,7 +428,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					popup:idtop_ddown_reg,
 				})
 				ddown_reg.addChild(idtop_popup_reg);
-				// get create new info menu items
+				// create new info menu items
 				match_obj = this.getuniquematch_obj(constant.initmenu_list,
 					'id', id);
 				var menu_reg = new MenuItem({
@@ -412,7 +436,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					onClick:lang.hitch(this.uistackmgr, this.uistackmgr.check_initialize, info_obj)
 				})
 				idtop_ddown_reg.addChild(menu_reg);
-				// get submenu names based on db_type
+				// edit menu; get submenu names based on db_type
 				match_obj = this.getuniquematch_obj(constant.editmenu_list,
 					'id', id);
 				var ddownmenu_reg = new DropDownMenu();
@@ -423,7 +447,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				idtop_ddown_reg.addChild(popup_reg);
 				var db_type = match_obj.db_type;
 				// create respective db menu
-				var db_list = this.getfromdb_store_value(db_type, 'name');
+				args_obj = {db_type:db_type, key:'name',
+					actualsched_type:info_obj.actualsched_type};
+				var db_list = this.getfromdb_store_value(args_obj);
 				this.generateDBCollection_smenu(ddownmenu_reg,
 					db_list, this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
 					{db_type:db_type, info_obj:info_obj, storeutil_obj:this,
@@ -494,7 +520,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				mbar_widget.addChild(popmbaritem_widget);
 				var db_type = match_obj.db_type;
 				// create respective db menu and populate dropdown
-				var db_list = this.getfromdb_store_value(db_type, 'name');
+				args_obj = {db_type:db_type, key:'name'};
+				var db_list = this.getfromdb_store_value(args_obj);
 				this.generateDBCollection_smenu(edit_ddownmenu_widget,
 					db_list, this.wizuistackmgr,
 					this.wizuistackmgr.check_getServerDBInfo,
@@ -550,8 +577,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var config_status = args_obj.config_status;
 				var init_colname = args_obj.init_colname;
 				// get list of db's from store that have been completed
-				var label_list = this.getfromdb_store_value(db_type,
-					'name', config_status);
+				args_obj.key = 'name';
+				var label_list = this.getfromdb_store_value(args_obj);
 				var select_flag = init_colname?false:true;
 				// select_flag for the first entry is false if there is an init_colname
 				var option_list = [{label:label_str, value:"",
@@ -692,6 +719,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				})
 				arrayUtil.forEach(sched_info_obj_list, function(item) {
 					var id = item.id;
+					var info_obj = item.info_obj;
+					// attach designated sched type to info_obj
+					// (only useful for info_obj's that can be used for both,
+					// as idproperty for others uniquely identifies sched type,
+					// but for now assign sched_type to all info_obj's)
+					info_obj.actualsched_type = sched_type;
 					this.create_menu(id, item.info_obj, true, ddownmenu_widget);
 				}, this)
 			}

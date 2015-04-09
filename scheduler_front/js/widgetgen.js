@@ -126,15 +126,15 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             create_select: function(args_obj) {
                 var topdiv_node = args_obj.topdiv_node;
                 var lselect_id = args_obj.select_id;
-                var init_db_type = args_obj.init_db_type;
+                var db_type = args_obj.db_type;
                 var init_colname = args_obj.init_colname;
                 var onchange_callback = args_obj.onchange_callback;
                 var name_str = args_obj.name_str;
                 var label_str = args_obj.label_str;
                 var put_trail_spacing = args_obj.put_trail_spacing;
 
-                var db_type = (init_db_type == "") ?
-                    constant.default_db_type:init_db_type;
+                //var db_type = (init_db_type == "") ?
+                //    constant.default_db_type:init_db_type;
                 var league_select = null;
                 var select_node = dom.byId(lselect_id);
                 if (!select_node) {

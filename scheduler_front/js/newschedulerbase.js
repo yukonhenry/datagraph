@@ -370,7 +370,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var lsargs_obj = {
 					topdiv_node:scinput_dom,
 					select_id:league_select_id,
-					init_db_type:divdb_type,
+					db_type:divdb_type,
 					init_colname:divcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
 						this.newschedwatch_obj.set('leagueselect_flag',
@@ -386,7 +386,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var fgargs_obj = {
 					topdiv_node:scinput_dom,
 					select_id:fg_select_id,
-					init_db_type:'fielddb',
+					db_type:'fielddb',
 					init_colname:fieldcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
 						this.newschedwatch_obj.set('fgselect_flag',
@@ -403,7 +403,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var prefargs_obj = {
 					topdiv_node:scinput_dom,
 					select_id:pref_select_id,
-					init_db_type:'prefdb',
+					db_type:'prefdb',
 					init_colname:prefcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
 						this.pref_select_value = evt;
@@ -418,7 +418,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var conflictargs_obj = {
 					topdiv_node:scinput_dom,
 					select_id:conflict_select_id,
-					init_db_type:'conflictdb',
+					db_type:'conflictdb',
 					init_colname:conflictcol_name,
 					onchange_callback:lang.hitch(this, function(evt) {
 						this.conflict_select_value = evt;
