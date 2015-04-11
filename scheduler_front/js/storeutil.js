@@ -725,6 +725,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// as idproperty for others uniquely identifies sched type,
 					// but for now assign sched_type to all info_obj's)
 					info_obj.actualsched_type = sched_type;
+					if ('divstr_db_type' in info_obj) {
+						// if divstr_db_type is part of info_obj, set to value
+						// corresponding to sched_type
+						info_obj.divstr_db_type = (sched_type == "L") ?
+							"rrdb":"tourndb";
+					}
 					this.create_menu(id, item.info_obj, true, ddownmenu_widget);
 				}, this)
 			}
