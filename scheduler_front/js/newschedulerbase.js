@@ -41,9 +41,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			teamcpane_select_id:'teamcpane_select_id',
 			faircpane_select_id:'faircpane_select_id',
 		}
-		var wizconstant = {
-			nscpane_id:"wiznewschedcpane_id",
-		};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
 			fgselect_flag:false,
@@ -74,12 +71,13 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			teamdivselect_handle:null, fairdivselect_handle:null,
 			idmgr_obj:null, op_type:"", opconstant_obj:null,
 			pref_select_value:null, conflict_select_value:null, errormgr_obj:null,
-			userid_name:"", xls_obj:null,
+			userid_name:"", xls_obj:null, sched_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
+					id:this.idproperty, op_type:this.op_type,
+					sched_type:this.sched_type});
 				// watch object is specific to this object so we don't need to
 				// expand watch functionality to accomodate op_type
 				// also preference is only optional so it doesn't affect the league_fg_flag which enables the button
@@ -362,7 +360,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					server_interface:this.server_interface
 				});
 				var scinput_dom = dom.byId(this.idmgr_obj.textbtncpane_id);
-				this.widgetgen.create_dbtype_radiobtn(scinput_dom,
+				this.widgetgen.create_schedtype_radiobtn(scinput_dom,
 					radio1_id, radio2_id, divdb_type,
 					this, this.radio1_callback, this.radio2_callback,
 					league_select_id);
@@ -690,7 +688,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						server_interface:this.server_interface,
 						schedcol_name:this.newsched_name,
 						userid_name:this.userid_name,
-						db_type:this.current_db_type});
+						db_type:this.current_db_type, sched_type:this.sched_type});
 				}
 				this.xls_obj.generate_xlscpane_widgets(xls_cpane);
 			},
@@ -1102,8 +1100,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				})
 				this.pstackcontainer.addChild(reset_cpane)
 				// add sched config  cpane
+				// use numcpane_id for preconfig for newsched
 				var newsched_cpane = new ContentPane({
-					id:wizconstant.nscpane_id,
+					id:this.idmgr_obj.numcpane_id
 				})
 				var newsched_form = new Form({
 					id:this.idmgr_obj.form_id

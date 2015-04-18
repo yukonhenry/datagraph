@@ -29,11 +29,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			infogrid_store:null, userid_name:"", widgetgen:null,
 			gridrow_handle:null, selected_gridrow:null,
 			startref_id:0, configstatus_list:null, idproperty:null,
-			store_idproperty:null, actualsched_type:null,
+			store_idproperty:null, sched_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
+					id:this.idproperty, op_type:this.op_type,
+					sched_type:this.sched_type});
 				this.tooltip_list = new Array();
 				// use to create op-type unique id strings local to this file
 				this.op_prefix = this.op_type.substring(0,3);
@@ -169,22 +170,15 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
 					var topdiv_node = put(infogrid_node, "-div");
 				}
-				var db_type = (this.actualsched_type == "L")?"rrdb":"tourndb";
+				var db_type = (this.sched_type == "L")?"rrdb":"tourndb";
 				this.create_dbselect(
-					this.idmgr_obj.radiobtn1_id, this.idmgr_obj.radiobtn2_id,
 					this.idmgr_obj.league_select_id, db_type, "", topdiv_node);
 				return topdiv_node;
 			},
-			create_dbselect: function(radio1_id, radio2_id, select_id, db_type, init_colname, topdiv_node) {
+			create_dbselect: function(select_id, db_type, init_colname, topdiv_node) {
 				// passed in init_db_type and init_colname are typicall
 				// for divinfo(divstr) db_type and colname even though it
 				// is used for fieldinfo grid
-				//For field grids, create radio button pair to select
-				// schedule type - rr or tourn
-				/*this.widgetgen.create_dbtype_radiobtn(topdiv_node,
-					radio1_id, radio2_id, init_db_type,
-					this, this.radio1_callback, this.radio2_callback, select_id);
-				*/
 				//for callback function, additional parameters after the first two
 				// are passed to the callback as extra parameters.
 				var args_obj = {
@@ -196,19 +190,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					label_str:"Select Division List",
 					put_trail_spacing:"br"}
 				this.widgetgen.create_select(args_obj);
-			},
-			// callback function when dbtype radiobutton is changed
-			radio1_callback: function(select_id, event) {
-				if (event) {
-					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
-					this.divstr_db_type = 'rrdb';
-				}
-			},
-			radio2_callback: function(select_id, event) {
-				if (event) {
-					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
-					this.divstr_db_type = 'tourndb';
-				}
 			},
 			getServerDBInfo: function(options_obj) {
 				// called when data is retrieved from server, which occurs when

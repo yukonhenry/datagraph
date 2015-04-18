@@ -40,11 +40,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             // also reference
             // http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
             // http://dojotoolkit.org/reference-guide/1.9/dijit/info.html
-            create_dbtype_radiobtn: function(topdiv_node, div1_radio_id,
-                div2_radio_id, init_db_type, callback_context, radio1_callback,
+            create_schedtype_radiobtn: function(topdiv_node, div1_radio_id,
+                div2_radio_id, init_sched_type, callback_context, radio1_callback,
                 radio2_callback, league_select_id) {
                 // first figure out which radio button is initially enabled
-                var radio1_flag = false;
+                var radio1_flag = (init_sched_type == "L")? true:false;
+                /*
                 if (init_db_type) {
                     // if an init_db_type is specified
                     radio1_flag = (init_db_type == 'rrdb')?true:false;
@@ -52,7 +53,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     // if no init_db_type, then use default for initial
                     // radiobtn selection
                     radio1_flag = (constant.default_db_type == 'rrdb')?true:false;
-                }
+                } */
                 // NOTE: dom.byID after the widget does not recover the
                 // widget's domNode. In this example, the widget's domNode is a
                 // HTML div element, but the dom.byId after the widget is created
@@ -71,8 +72,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         "label.label_box[for=$]", div1_radio_id,
                         "League/Round Robin");
                     div1_radio = new RadioButton({
-                        name:'db_type',
-                        value:'rrdb',
+                        name:'sched_type',
+                        value:"L",
                         checked:radio1_flag,
                         style:"margin-left:5px",
                         // ok to include league_select_id as a third parameter to
@@ -99,8 +100,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         "label.label_box[for=$]", div2_radio_id,
                         "Tournament");
                     div2_radio = new RadioButton({
-                        name:'db_type',
-                        value:'tourndb',
+                        name:'sched_type',
+                        value:"T",
                         style:"margin-left:10px",
                         checked:!radio1_flag,
                         onChange: lang.hitch(callback_context, radio2_callback, league_select_id)

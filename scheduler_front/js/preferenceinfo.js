@@ -33,7 +33,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.today = new Date();
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
+					id:this.idproperty, op_type:this.op_type,
+					sched_type:this.sched_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_list = [
@@ -102,8 +103,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var infogrid_node = dom.byId(this.idmgr_obj.grid_id);
 				var topdiv_node = put(infogrid_node, "-div");
 				if (this.divstr_colname && this.divstr_db_type) {
-					this.create_dbselect(this.idmgr_obj.radiobtn1_id,
-						this.idmgr_obj.radiobtn2_id,
+					this.create_dbselect(
 						this.idmgr_obj.league_select_id,
 						this.divstr_db_type, this.divstr_colname, topdiv_node);
 				} else {

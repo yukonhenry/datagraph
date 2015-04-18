@@ -6,17 +6,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 	function(declare, lang, arrayUtil, dom, registry, StackContainer, ContentPane,
 		BorderContainer, put, idmgrSingleton) {
 		var constant = {
-			// param stack  cpaneid's
-			nscpane_id:"wiznewschedcpane_id",
 			// grid stack id's
 			// entry_pt id's
-			init:"init", fromdb:"fromdb", fromdel:"fromdel",
+			init:"init", fromdb:"fromdb", fromdel:"fromdel"
 		};
 		return declare(null, {
 			pstackcontainer_list:null, pstackmap_list:null,
 			gstackcontainer_list:null, gstackmap_list:null,
 			cpanestate_list:null, updatebtn_widget:null,
 			current_grid:null, null_cpanestate:null, wizardid_list:null,
+			sched_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				// For the wizard page, there will be stack container
@@ -29,12 +28,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 				this.blankcpane_list = new Array();
 				this.gstackmap_list = new Array();
 				this.cpanestate_list = new Array();
-				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
+				// to get id's for stack related items, we should be able to fix the
+				// sched_type to constant.init_sched_type and not have to be updated
+				// during sched_type reassignment - to be verified
+				this.wizardid_list = idmgrSingleton.get_idmgr_list(
+					{op_type:'wizard', sched_type:this.sched_type});
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id'];
 				arrayUtil.forEach(id_list, function(item) {
 					// strip off the 'id' suffix portion
 					var idmgr_obj = idmgrSingleton.get_idmgr_obj({id:item,
-						op_type:"wizard"})
+						op_type:"wizard", sched_type:this.sched_type})
 					this.pstackcontainer_list.push({id:item,
 						container_id:idmgr_obj.pcontainer_id})
 					this.gstackcontainer_list.push({id:item,
@@ -55,22 +58,12 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 						text_str:"", btn_callback:null, updatebtn_str:"",
 						active_flag:false});
 				}, this)
-				/*
-				arrayUtil.forEach(id_list, function(item, index) {
-					var blankcpane_id = this.getuniquematch_obj(
-						this.blankcpane_list, 'id', item.id).cpane_id;
-					this.cpanestate_list.push({id:item.id,
-						p_pane:null, p_stage:null, entry_pt:null,
-						g_pane:blankcpane_id,
-						text_str:"", btn_callback:null, updatebtn_str:"",
-						active_flag:false});
-				}, this); */
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
 				// create pstackmap_list and gstackmap_list manually for newsched_id
 				this.pstackmap_list = new Array();
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'preconfig',
-					pane_id:constant.nscpane_id});
+					pane_id:this.get_idstr_obj('newsched_id').numcpane_id});
 				this.pstackmap_list.push({id:'newsched_id', p_stage:'config',
 					pane_id:this.get_idstr_obj('newsched_id').textbtncpane_id});
 				// note the id_list does not include newsched_id as the grid structure

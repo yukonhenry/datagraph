@@ -184,14 +184,20 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang",
                 // create advanced and wiz ui stackmanagers
                 var uistackmgr = new UIStackManager();
                 this.storeutil_obj.uistackmgr = uistackmgr;
-                var wizuistackmgr = new WizUIStackManager();
-                this.storeutil_obj.wizuistackmgr = wizuistackmgr;
+                // Instantiate separate wizuistack managers for
+                // league and tournament schedule types
+                var wizuistackmgr_list = [{sched_type:"L",
+                    wizuistackmgr:new WizUIStackManager({sched_type:"L"})},
+                    {sched_type:"T", wizuistackmgr:
+                        new WizUIStackManager({sched_type:"T"})}]
+                this.storeutil_obj.setWizUIStackMgrList(wizuistackmgr_list)
+                //this.storeutil_obj.wizuistackmgr = wizuistackmgr;
                 // create basic wizard
                 var wizardlogic_obj = new WizardLogic({
                     server_interface:this.server_interface,
                     storeutil_obj:this.storeutil_obj,
                     schedutil_obj:this.schedutil_obj,
-                    wizuistackmgr:wizuistackmgr,
+                    wizuistackmgr_list:wizuistackmgr_list,
                     userid_name:this.userid_name, widgetgen_obj:widgetgen_obj});
                 var wizcontainer_cpane = wizardlogic_obj.create();
                 // create advanced pane

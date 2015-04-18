@@ -97,6 +97,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 		return declare(null, {
 			dbselect_store:null, schedutil_obj:null, uistackmgr:null,
 			server_interface:null, dbstore_list:null, wizuistackmgr:null,
+			wizuistackmgr_list:null,
 			userid_name:"", rrdbmenureg_list:null, fielddbmenureg_list:null,
 			tdbmenureg_list:null, nsdbmenureg_list:null,
 			prefdbmenureg_list:null, teamdbmenureg_list:null,
@@ -241,8 +242,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				if ('config_status' in args_obj) {
 					query_obj.config_status = args_obj.config_status;
 				}
-				if ('actualsched_type' in args_obj && db_type == "fielddb") {
-					var divstr_db_type = (args_obj.actualsched_type == "L") ?
+				if ('sched_type' in args_obj && db_type == "fielddb") {
+					var divstr_db_type = (args_obj.sched_type == "L") ?
 						"rrdb":"tourndb";
 					query_obj.divstr_db_type = divstr_db_type
 				}
@@ -274,37 +275,44 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				var divinfo_obj = new DivInfo({
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				var tourndivinfo_obj = new TournDivInfo({
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				var fieldinfo_obj = new FieldInfo({
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				var preferenceinfo_obj = new PreferenceInfo({
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				var teaminfo_obj = new TeamInfo({
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				var conflictinfo_obj = new ConflictInfo({
 					server_interface:this.server_interface,
 					schedutil_obj:this.schedutil_obj,
 					uistackmgr_type:this.uistackmgr, userid_name:userid_name,
-					storeutil_obj:this, op_type:"advance"});
+					storeutil_obj:this, op_type:"advance",
+					sched_type:constant.init_sched_type});
 				// sched_type legend:
 				// 'L': League/Round Robin
 				// 'T': Tournament
@@ -360,9 +368,10 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// radio button callback
 				var editddown_menu = new DropDownMenu({
 				})
-				widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
+				widgetgen_obj.create_schedtype_radiobtn(topdiv_node,
 					constant.adv_dbselect_radio1_id,
-					constant.adv_dbselect_radio2_id, "rrdb",
+					constant.adv_dbselect_radio2_id,
+					constant.init_sched_type,
 					this, this.radio1_callback, this.radio2_callback,
 					{ddownmenu_widget:editddown_menu,
 						info_obj_list:info_obj_list});
@@ -448,7 +457,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				var db_type = match_obj.db_type;
 				// create respective db menu
 				args_obj = {db_type:db_type, key:'name',
-					actualsched_type:info_obj.actualsched_type};
+					sched_type:info_obj.sched_type};
 				var db_list = this.getfromdb_store_value(args_obj);
 				this.generateDBCollection_smenu(ddownmenu_reg,
 					db_list, this.uistackmgr, this.uistackmgr.check_getServerDBInfo,
@@ -724,7 +733,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// (only useful for info_obj's that can be used for both,
 					// as idproperty for others uniquely identifies sched type,
 					// but for now assign sched_type to all info_obj's)
-					info_obj.actualsched_type = sched_type;
+					info_obj.sched_type = sched_type;
 					if ('divstr_db_type' in info_obj) {
 						// if divstr_db_type is part of info_obj, set to value
 						// corresponding to sched_type
@@ -733,6 +742,23 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					}
 					this.create_menu(id, item.info_obj, true, ddownmenu_widget);
 				}, this)
+			},
+			setWizUIStackMgrList: function(wizuistackmgr_list) {
+				this.wizuistackmgr_list = wizuistackmgr_list;
+				var defaultsched_type = "L";
+				this.wizuistackmgr = arrayUtil.filter(wizuistackmgr_list,
+					function(item) {
+						return item.sched_type == defaultsched_type;
+					}
+				)[0].wizuistackmgr;
+			},
+			switchWizUIStackMgr: function(sched_type) {
+				// switch wizuistackmgr when sched_type changes
+				this.wizuistackmgr = arrayUtil.filter(this.wizuistackmgr_list,
+					function(item) {
+						return item.sched_type == sched_type;
+					}
+				)[0].wizuistackmgr;
 			}
 		})
 	}

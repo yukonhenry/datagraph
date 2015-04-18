@@ -7,29 +7,79 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 	"scheduler_front/tourndivinfo", "scheduler_front/fieldinfo",
 	"scheduler_front/preferenceinfo", "scheduler_front/newschedulerbase",
 	"scheduler_front/teaminfo", "scheduler_front/conflictinfo",
-	"scheduler_front/idmgrSingleton",
+	"scheduler_front/idmgrSingleton", "scheduler_front/errormanager",
 	"put-selector/put", "dojo/domReady!"],
 	function(dom, declare, lang, arrayUtil, registry, Wizard, WizardPane,
 		DropDownMenu, Button, StackContainer, ContentPane,
 		baseinfoSingleton, WizUIStackManager, divinfo, tourndivinfo,
 		fieldinfo, preferenceinfo, newschedulerbase, teaminfo, conflictinfo,
-		idmgrSingleton,
+		idmgrSingleton, ErrorManager,
 		put) {
 		// id's for widgets that only exist within wizard context so manage them here instead
 		// of idmgrsingleton
 		var constant = {
 			divradio1_id:'wizdivradio1_id', divradio2_id:'wizdivradio2_id',
-			divselect_id:'wizdivselect_id', init_db_type:"rrdb",
+			divselect_id:'wizdivselect_id', init_sched_type:"L",
 			top_cpane_id:'wiztop_cpane_id', divstcontainer_id:"wizdivstcontainer_id"
 		};
 		return declare(null, {
 			storeutil_obj:null, server_interface:null, widgetgen_obj:null,
 			schedutil_obj:null, wizardid_list:null, wizuistackmgr:null,
-			userid_name:"", db_type:constant.init_db_type,
+			wizuistackmgr_list:null,
+			userid_name:"",  sched_type:constant.init_sched_type,
 			divstackcontainer:null,
+			wizard_reg:null, errormgr_obj:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
-				this.wizardid_list = idmgrSingleton.get_idmgr_list('op_type', 'wizard');
+				this.wizardid_list = idmgrSingleton.get_idmgr_list(
+					{op_type:'wizard', sched_type:constant.init_sched_type});
+				this.wizuistackmgr = arrayUtil.filter(this.wizuistackmgr_list,
+					function(item) {
+						return item.sched_type == constant.init_sched_type;
+					}
+				)[0].wizuistackmgr;
+				this.errormgr_obj = new ErrorManager();
+			},
+			getschedTypeWpaneMap: function(schedTypeWpaneMapList, sched_type) {
+				// get wpanemap corresponding to sched_type
+				return arrayUtil.filter(schedTypeWpaneMapList,
+					function(item) {
+						return item.sched_type == sched_type;
+					}
+				)[0]
+			},
+			getselectedWpaneMap: function(schedTypeWpaneMapList) {
+				// get wpanemap corresponding to sched_type
+				var selectedMap = arrayUtil.filter(schedTypeWpaneMapList,
+					function(item) {
+						return item.selected ==true;
+					}
+				)
+				if (selectedMap.length > 0)
+					return selectedMap[0]
+				else
+					return null;
+			},
+			generateWpaneGroup: function(wpaneMap, sched_type) {
+				// generate group of wpane's corresponding to current
+				// sched type
+				var wpaneGenFuncList = wpaneMap.wpaneGenFuncList;
+				var wpaneList = wpaneMap.wpaneList;
+				if (wpaneList.length > 0)
+					this.errormgr_obj.emit_error(
+						ErrorManager.constant.software_error_mask,
+						"Wizard Pane List shnould be empty");
+				arrayUtil.forEach(wpaneGenFuncList, function(wpaneFunc) {
+					// generate wizard pane and attach to overall wizard
+					// controller
+					wpane = wpaneFunc(sched_type);
+					this.wizard_reg.addChild(wpane);
+					// save generated wpane
+					wpaneList.push(wpane);
+				}, this)
+				wpaneMap.generated = true;
+				wpaneMap.selected = true;
+				this.wizard_reg.startup();
 			},
 			create: function() {
 				// tabconatiner examples:
@@ -54,7 +104,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				tabcontainer.addChild(container_cpane);
 				// ref http://archive.dojotoolkit.org/nightly/checkout/dijit/tests/layout/test_TabContainer_noLayout.html
 				// for doLayout:false effects
-				var wizard_reg = new Wizard({
+				this.wizard_reg = new Wizard({
 					title:"Scheduling Wizard/Start Here",
 					// style below should have size that will be greater or equal
 					// than child WizardPanes
@@ -62,7 +112,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//style:"width:600px; height:500px",
 					nextButtonLabel:"Next Configuration"
 				});
-				container_cpane.addChild(wizard_reg);
+				container_cpane.addChild(this.wizard_reg);
 
 				//--------------------//
 				// Create informational starting pane
@@ -73,54 +123,87 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					//class:'allonehundred'
 					//style:"width:100px; height:100px"
 				})
-				wizard_reg.addChild(intro_wpane);
+				this.wizard_reg.addChild(intro_wpane);
 				//---------------------//
-				// --- DIVISION INFO-----//
+				//---- Page for Schedule Type Selection -----//
 				var topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>Define the Schedule Type - League Round Robin or Tournament Schedule</i><br><br>";
+				// Generate rest of wpanes for current sched type
+				// define sequence of wizard panes for each schedule type
+				// First define wpane generation functions for each sched type
+				var schedTypeWpaneMapList = [
+					{sched_type:"L", wpaneGenFuncList:[
+						lang.hitch(this, this.createDivWpane),
+						lang.hitch(this, this.createFieldWpane),
+						lang.hitch(this, this.createTeamWpane),
+						lang.hitch(this, this.createPrefWpane),
+						lang.hitch(this, this.createConflictWpane),
+						lang.hitch(this, this.createNewSchedWpane)],
+						generated:false,
+						wpaneList:[], selected:false},
+					{sched_type:"T", wpaneGenFuncList:[
+						lang.hitch(this, this.createTournDivWpane),
+						lang.hitch(this, this.createFieldWpane),
+						lang.hitch(this, this.createNewSchedWpane)],
+						generated:false,
+						wpaneList:[], selected:false}
+				];
+				// create schedule type selection radio button widgets
+				// Note we are passing in the wpane func mapping list so that
+				// the callback can generate or reassign the wpanes based on the
+				// selected sched type
+				this.widgetgen_obj.create_schedtype_radiobtn(topdiv_node,
+					constant.divradio1_id, constant.divradio2_id, "L",
+					this, this.rr_sched_callback, this.tourn_sched_callback,
+					schedTypeWpaneMapList);
+				var select_schedtype_wpane = new WizardPane({
+					content:topdiv_node,
+				})
+				this.wizard_reg.addChild(select_schedtype_wpane);
+				// -------------------------------
+				// get mapping for current sched_type
+				var initschedTypeWpaneMap = this.getschedTypeWpaneMap(
+					schedTypeWpaneMapList, this.sched_type);
+				var generated = initschedTypeWpaneMap.generated;
+				// call wpane generating functions
+				if (!generated) {
+					this.generateWpaneGroup(initschedTypeWpaneMap, this.sched_type);
+				}
+				this.wizard_reg.resize();
+				container_cpane.resize();
+				return container_cpane;
+			},
+			//-----------------------//
+			// --- Generate DIVISION INFO-----//
+			createDivWpane: function(sched_type) {
+				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Division-relation information.  A division is defined as the group of teams that will interplay with each other.  Define name, # of teams, # of games in season, length of each game, and minimum/maximum days that should lapse between games for each team.</i><br><br>";
-				// radio button to choose between rrd and tourndb
-				// select value is a dummy value as popup subemnu is used instead of select]
-				// divcpanemap_array is a list of mapping objects, with each object
-				// providing maps for db_type, cpane_id, and info_obj
-				// current used only to resize pane-resident grids if switched
-				// into pane
-				var divcpanemap_array = new Array();
-				this.widgetgen_obj.create_dbtype_radiobtn(topdiv_node,
-					constant.divradio1_id, constant.divradio2_id, this.db_type,
-					this, this.radio1_callback, this.radio2_callback,
-					divcpanemap_array);
-				var stack_node = put(topdiv_node, "div");
-				// create stackcontainer to manage separate cpane -
-				// one for RR, other for Tourn
-				this.divstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"float:left; width:80%",
-					id:constant.divstcontainer_id,
-				}, stack_node);
-				// Haven't exactly figured out why, but generate both RR and Tourn
-				// div config content pane's during first create.  Otherwise,
-				// when creating the missing content pane during run time (when
-				// radio button is selected) causes html button dom (outlines)
-				// to be visible before the dojo widgets are created.
-				arrayUtil.forEach(["rrdb", "tourndb"], function(item) {
-					var cpane_id = this.generate_divcpane_id(item);
-					var info_obj = this.generate_divcpane(item, cpane_id);
-					divcpanemap_array.push({db_type:item,
-						cpane_id:cpane_id, info_obj:info_obj})
-				}, this)
+				this.generate_divwpane(sched_type, topdiv_node);
 				var divinfo_wpane = new WizardPane({
 					content:topdiv_node,
 				})
-				wizard_reg.addChild(divinfo_wpane);
-				//--------------------------------------//
-				// Field Config Pane
+				return divinfo_wpane
+			},
+			// --- Generate Tourn DIVISION INFO-----//
+			createTournDivWpane: function(sched_type) {
+				topdiv_node = put("div");
+				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Tournament Division-relation information.  A division is defined as the group of teams that will interplay with each other in the tournament bracket.  Define name, # of teams in division.</i><br><br>";
+				this.generate_divwpane(sched_type, topdiv_node);
+				var tourndivinfo_wpane = new WizardPane({
+					content:topdiv_node,
+				})
+				return tourndivinfo_wpane
+			},
+			// Field Config Pane
+			createFieldWpane: function(sched_type) {
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Create or Edit Field-availability -relation information.  Specify name of the field, dates/times available, and the divisions that will be using the fields.  Note for detailed date/time configuration or to specify exceptions, click 'Detailed Config' to bring up calendar UI to specify dates/times.</i><br><br>";
 				var fieldinfo_obj = new fieldinfo({
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard",
+					sched_type:sched_type});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('field_id', fieldinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -138,8 +221,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						}
 					}
 				})
-				wizard_reg.addChild(fieldinfo_wpane);
-				//-------------------------------------------//
+				return fieldinfo_wpane
+			},
+			createTeamWpane: function(sched_type) {
 				// ------------- TEAM INFO Pane  ----------------
 				topdiv_node = put("div");
 				topdiv_node.innerHTML = "<i>In this Pane, Assign team-related information.  Specify name of the team (for identification purposes) and any preferred fields for that team. As a default, schedule is created assuming there is field-use fairness across all fields, regardless of whether a team is designated as home/away.  If teams are associated with certain fields for home games, assign them in the grid below.</i><br><br>";
@@ -157,7 +241,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard",
+					sched_type:sched_type});
 				menubar_node = put(topdiv_node, "div");
 				// No menubar for team_id as there is no create/delete operations
 				// for teaminfo grids
@@ -176,7 +261,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						}
 					}
 				})
-				wizard_reg.addChild(teaminfo_wpane);
+				return teaminfo_wpane;
+			},
+			createPrefWpane: function(sched_type) {
 				//-------------------------------------------//
 				// Preference Config Pane
 				topdiv_node = put("div");
@@ -185,7 +272,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard",
+					sched_type:sched_type});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('pref_id', prefinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -202,7 +290,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						}
 					}
 				})
-				wizard_reg.addChild(prefinfo_wpane);
+				return prefinfo_wpane;
+			},
+			createConflictWpane: function(sched_type) {
 				//----------------------------------------------//
 				// Conflicts Config Pane
 				topdiv_node = put("div");
@@ -211,7 +301,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard",
+					sched_type:sched_type});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('conflict_id', conflictinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -229,7 +320,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						}
 					}
 				})
-				wizard_reg.addChild(conflictinfo_wpane);
+				return conflictinfo_wpane;
+			},
+			createNewSchedWpane: function(sched_type) {
 				//----------------------------------------------//
 				// Schedule Generation
 				topdiv_node = put("div");
@@ -238,7 +331,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					server_interface:this.server_interface,
 					uistackmgr_type:this.wizuistackmgr,
 					storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-					schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+					schedutil_obj:this.schedutil_obj, op_type:"wizard",
+					sched_type:sched_type});
 				menubar_node = put(topdiv_node, "div");
 				this.storeutil_obj.create_menubar('newsched_id', newschedinfo_obj, true, menubar_node);
 				pcontainerdiv_node = put(topdiv_node, "div")
@@ -253,12 +347,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 						alert("Feedback Appreciated on YukonTR Scheduler - Contact:henry@yukontr.com")
 					}
 				})
-				/////////////////////
-				wizard_reg.addChild(newschedinfo_wpane);
-				wizard_reg.startup();
-				wizard_reg.resize();
-				container_cpane.resize();
-				return container_cpane;
+				return newschedinfo_wpane;
 			},
 			delete_menu_elements: function(menu_widget) {
 				// delete all elements of menu (menu widget to be reused to
@@ -272,42 +361,68 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					})
 				}
 			},
-			// switch to div or tourndiv info cpane dependent on
-			// db_type
-			switch_divcpane: function(db_type, divcpanemap_array) {
-				var cpane_id = this.generate_divcpane_id(db_type)
-				// find the matching object based on db_type
-				// match with cpane_id is an extra check for consistency
-				var match_obj = arrayUtil.filter(divcpanemap_array,
-					function(item) {
-						return item.db_type == db_type &&
-							item.cpane_id == cpane_id;
+			generateswitchWPaneGroup: function(wpaneMapList, sched_type) {
+				this.sched_type = sched_type;
+				// switch references to wizuistack object to point to
+				// the one with the new sched_type property
+				this.storeutil_obj.switchWizUIStackMgr(sched_type);
+				this.switchWizUIStackMgr(sched_type);
+				// get new wizard id list
+				this.wizardid_list = idmgrSingleton.get_idmgr_list(
+					{op_type:'wizard', sched_type:sched_type});
+				var wpaneMap = this.getschedTypeWpaneMap(wpaneMapList,
+					sched_type);
+				if (!wpaneMap.selected) {
+					var currentMap = this.getselectedWpaneMap(wpaneMapList);
+					if (currentMap !== null) {
+						// first remove the current active wpanes
+						// from the wizard controller; note the wpanes for the
+						// de-selected sched_type are not destroyed and preserved
+						// so that it can be attached again to the controller
+						// when sched_type is selected.
+						arrayUtil.forEach(currentMap.wpaneList,
+							function(wpane) {
+								this.wizard_reg.removeChild(wpane);
+							}, this
+						)
+						currentMap.selected = false;
+					} else {
+						this.errormgr_obj.emit_error(
+							ErrorManager.constant.software_error_mask,
+							"Current Selected Wizard Pane cannot be found");
 					}
-				)[0]
-				// get actual cpane widget and corresponding info object
-				// and for grid resize if there is an onshow signal
-				var cpane_widget = registry.byId(cpane_id);
-				var info_obj = match_obj.info_obj;
-
-				cpane_widget.set("onShow", function() {
-					if ("editgrid" in info_obj && info_obj.editgrid &&
-						"schedInfoGrid" in info_obj.editgrid &&
-						info_obj.editgrid.schedInfoGrid) {
-						info_obj.editgrid.schedInfoGrid.resize();
+					if (wpaneMap.generated) {
+						// add the new selected wpanes to the
+						// wizard controller
+						arrayUtil.forEach(wpaneMap.wpaneList,
+							function(wpane) {
+								this.wizard_reg.addChild(wpane)
+							}, this
+						)
+						wpaneMap.selected = true;
+					} else {
+						// need to generate the wpanes for the selecte sched
+						// type
+						this.generateWpaneGroup(wpaneMap, sched_type);
+						currentMap.selected = false;
 					}
-				})
-				this.divstackcontainer.selectChild(cpane_id);
-			},
-			radio1_callback: function(divcpanemap_array, event) {
-				if (event) {
-					this.db_type = 'rrdb';
-					this.switch_divcpane(this.db_type, divcpanemap_array);
+				} else if (!wpanemap.generated) {
+					// if target wpane is already selected, then we don't
+					// need to do anything, but make sure there is no
+					// erroneous state with generated flag
+					this.errormgr_obj.emit_error(
+						ErrorManager.constant.software_error_mask,
+						"Wizard Pane Generation and Selection inconsistency")
 				}
 			},
-			radio2_callback: function(divcpanemap_array, event) {
+			rr_sched_callback: function(wpaneMapList, event) {
 				if (event) {
-					this.db_type = 'tourndb';
-					this.switch_divcpane(this.db_type, divcpanemap_array);
+					this.generateswitchWPaneGroup(wpaneMapList, "L");
+				}
+			},
+			tourn_sched_callback: function(wpaneMapList, event) {
+				if (event) {
+					this.generateswitchWPaneGroup(wpaneMapList, "T");
 				}
 			},
 			get_idstr_obj: function(id) {
@@ -322,49 +437,46 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					});
 				return match_list[0];
 			},
-			generate_dbtype_id: function(idbase, db_type, idtype) {
-				// db_type will be either "rrdb" or "tourndb" so strip off "db"
-				var db_str = db_type.replace("db","");
-				return "wiz" + idbase + db_str + idtype + "_id"
-			},
-			generate_divcpane_id: function(db_type) {
-				return this.generate_dbtype_id("div", db_type, "cpane")
-			},
-			generate_divcpane: function(db_type, cpane_id) {
-				var div_cpane = new ContentPane({
-					id:cpane_id
-				})
-				this.divstackcontainer.addChild(div_cpane);
-				var container_node = div_cpane.containerNode;
+			generate_divwpane: function(sched_type, topdiv_node) {
 				var divinfo_obj = null;
 				var idproperty = null;
 				// create default divinfo or tourninfo obj
-				if (db_type == 'rrdb') {
+				if (sched_type == 'L') {
 					divinfo_obj = new divinfo({
 						server_interface:this.server_interface,
 						uistackmgr_type:this.wizuistackmgr,
 						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-						schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+						schedutil_obj:this.schedutil_obj, op_type:"wizard",
+						sched_type:sched_type});
 					idproperty ="div_id";
 				} else {
 					divinfo_obj = new tourndivinfo({
 						server_interface:this.server_interface,
 						uistackmgr_type:this.wizuistackmgr,
 						storeutil_obj:this.storeutil_obj, userid_name:this.userid_name,
-						schedutil_obj:this.schedutil_obj, op_type:"wizard"});
+						schedutil_obj:this.schedutil_obj, op_type:"wizard",
+						sched_type:sched_type});
 					idproperty = "tourndiv_id";
 				}
 				// create default menubar and attached ddown menu widgets
-				var menubar_node = put(container_node, "div");
+				var menubar_node = put(topdiv_node, "div");
 				//var edit_ddownmenu_widget = new DropDownMenu();
 				//var del_ddownmenu_widget = new DropDownMenu();
 				this.storeutil_obj.create_menubar(idproperty, divinfo_obj, true,
 					menubar_node);
-				var pcontainerdiv_node = put(container_node, "div")
-				var gcontainerdiv_node = put(container_node, "div")
+				var pcontainerdiv_node = put(topdiv_node, "div")
+				var gcontainerdiv_node = put(topdiv_node, "div")
 				divinfo_obj.create_wizardcontrol(pcontainerdiv_node,
 					gcontainerdiv_node);
 				return divinfo_obj;
+			},
+			switchWizUIStackMgr: function(sched_type) {
+				// switch wizuistackmgr when sched_type changes
+				this.wizuistackmgr = arrayUtil.filter(this.wizuistackmgr_list,
+					function(item) {
+						return item.sched_type == sched_type;
+					}
+				)[0].wizuistackmgr;
 			}
 		})
 	}

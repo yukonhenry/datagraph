@@ -35,7 +35,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
+					id:this.idproperty, op_type:this.op_type,
+					sched_type:this.sched_type});
 			},
 			getcolumnsdef_obj: function() {
 				var columnsdef_list = [
@@ -261,7 +262,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 								// store already provides data for the div_id, just
 								// do a store query switch
 								args_obj = {colname:this.activegrid_colname,
-									queryonly_flag:true, query_obj:query_obj}								
+									queryonly_flag:true, query_obj:query_obj}
 							} else {
 								if (this.serverinfo_list && this.serverinfo_list.length > 0) {
 									// if server data exists, use that
@@ -279,7 +280,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 									// if div_id data does not exist, add initilization data
 									info_list = this.getInitialList(
 										this.totalrows_num, div_id_event,
-										this.activegrid_colname);								
+										this.activegrid_colname);
 								}
 								info_list.sort(function(a,b) {
 									return a.tm_id-b.tm_id
@@ -290,7 +291,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 									query_obj:query_obj, store_idproperty:"dt_id"
 								}
 							}
-							this.editgrid.addreplace_store(args_obj);								
+							this.editgrid.addreplace_store(args_obj);
 						}))
 					} else {
 						console.log("Code Logic Error:teaminfo:create_team_grid: store should exist");

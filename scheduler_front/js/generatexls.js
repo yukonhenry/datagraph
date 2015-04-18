@@ -32,11 +32,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 			idproperty:constant.idproperty_str, idmgr_obj:null, op_type:"",
 			server_interface:null, schedcol_name:"",
 			stackcpane_list:null, stackcontainer_widget:null, userid_name:"",
-			db_type:null, label_id_list:null,
+			db_type:null, label_id_list:null, sched_type:null,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				this.idmgr_obj = idmgrSingleton.get_idmgr_obj({
-					id:this.idproperty, op_type:this.op_type});
+					id:this.idproperty, op_type:this.op_type,
+					sched_type:this.sched_type});
 				// create id's that are not managed by idmgr_obj
 				var op_prefix = this.op_type.substring(0,3);
 				this.opconstant_obj = new Object();

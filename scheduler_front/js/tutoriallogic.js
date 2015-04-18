@@ -29,7 +29,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
             userid_name:"",
             constructor: function(args) {
                 lang.mixin(this, args);
-                this.tutorialid_list = idmgrSingleton.get_idmgr_list('op_type', 'tutorial');
+                this.tutorialid_list = idmgrSingleton.get_idmgr_list(
+                    {op_type:'tutorial', sched_type:"L"});
             },
             create: function() {
                 var tabcontainer = registry.byId("tabcontainer_id");

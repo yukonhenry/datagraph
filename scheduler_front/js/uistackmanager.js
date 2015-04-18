@@ -8,7 +8,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 		var constant = {
 			// param stack id's
 			dummy_id:"dummy_id",
-			//nscpane_id:"newschedcpane_id",
 			// grid stack id's
 			blankcpane_id:"blankcpane_id",
 			// entry_pt id's
@@ -23,8 +22,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array", "dojo/dom",
 			constructor: function(args) {
 				lang.mixin(this, args);
 				// get advanceid_list before any call to get_idstr_obj
-				this.advanceid_list = idmgrSingleton.get_idmgr_list('op_type',
-					'advance');
+				this.advanceid_list = idmgrSingleton.get_idmgr_list({op_type:
+					'advance', sched_type:"L"});
 				var id_list = ['div_id', 'tourndiv_id', 'field_id', 'newsched_id', 'pref_id', 'team_id', 'conflict_id'];
 				// define param stack mapping that maps tuple (idproperty, config stage)->
 				// param content pane
