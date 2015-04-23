@@ -605,7 +605,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// items = event.label works as long as the calling function that
 				// creates that menuitems is using the item value as the label
 				//var item = event.label;
-				var server_path = constant.delserver_path;
+				var server_path = "delete_dbcol/";
 				var db_type = options_obj.db_type
 				this.removefromdb_store(item, db_type);
 				var match_obj = this.getuniquematch_obj(constant.delmenu_list,

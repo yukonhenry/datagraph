@@ -287,8 +287,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				})
 				var div_select_prefix = this.op_prefix+"prefdiv_select";
 				for (var row_id = 1; row_id < this.totalrows_num+1; row_id++) {
-					var div_select_id = div_select_prefix+row_id+"_id";
-					var div_select_widget = registry.byId(div_select_id);
+					var divselect_id = div_select_prefix+row_id+"_id";
+					var div_select_widget = registry.byId(divselect_id);
 					if (div_select_widget) {
 						// the select widget should be there, but check for existence anyway
 						var copy_list = lang.clone(option_list);
@@ -355,8 +355,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				/* Called when grid is created */
 				var pref_id = object.pref_id;
 				var div_select_prefix = this.op_prefix+"prefdiv_select";
-				var div_select_id = div_select_prefix+pref_id+"_id";
-				var div_select_widget = registry.byId(div_select_id);
+				var divselect_id = div_select_prefix+pref_id+"_id";
+				var div_select_widget = registry.byId(divselect_id);
 				if (!this.divstr_list) {
 					this.divstr_list = baseinfoSingleton.get_watch_obj(
 						'divstr_list', this.op_type, 'pref_id');
@@ -393,7 +393,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 					var select_node = put(node, "select");
 					div_select_widget = new Select({
 						options:option_list, style:"width:auto",
-						id:div_select_id,
+						id:divselect_id,
 					}, select_node)
 				} else {
 					div_select_widget.set("options", option_list)

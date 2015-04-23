@@ -16,7 +16,19 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             text_node_str:'Conflict List Name',
             updatebtn_str:'Update Conflict Info',
             div_select_base:"exdiv_select",
-            team_select_base:"exteam_select"
+            team_select_base:"exteam_select",
+            //******************//
+            // Change Maps below if grid design (with respect to columns) changes
+            //******************//
+            // define map from info_obj table column property to
+            // parameters (column number of table derived from node.columnId)
+            // the map value is used to construct the id for the select widget
+            // corresponding to div_1_id, div_2_id respectively.
+            divselect_id_map:{div_1_id:"2", div_2_id:"4"},
+            // similar mapping for team select id generation
+            // obj values correspond to column numbers for the conflict info grid
+            teamselect_id_map:{div_1_id:"3", div_2_id:"5"},
+            reverseteamselect_id_map:{'3':"div_1_id", '5':"div_2_id"}
         };
         return declare(baseinfo, {
             idproperty:constant.idproperty_str,
@@ -223,8 +235,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 var div_select_prefix = this.op_prefix+constant.div_select_base+
                     node.columnId;
                 // get unique widget id
-                var div_select_id = div_select_prefix+conflict_id+"_id";
-                var div_select_widget = registry.byId(div_select_id);
+                var divselect_id = div_select_prefix+conflict_id+"_id";
+                var div_select_widget = registry.byId(divselect_id);
                 var divstr_list = baseinfoSingleton.get_watch_obj('divstr_list',
                     this.op_type, 'conflict_id');
                 var option_list = new Array();
@@ -258,8 +270,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     var select_node = put(node, "select");
                     div_select_widget = new Select({
                         options:option_list, style:"width:auto",
-                        id:div_select_id,
-                    }, select_node)
+                        id:divselect_id,
+                    }, select_node);
                 } else {
                     div_select_widget.set("options", option_list)
                     // NOTE - if widget exists, it should already be attached to
@@ -277,11 +289,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 // node.columnId gives the column id where the rendering
                 // is occuring
                 var columnId = node.columnId;
-                // extract of the column number (str type) in embedded in columnId
-                // example: extract '1' from team_1_id, '2' from team_2_id, etc
-                var column_num_str = columnId.substring(columnId.indexOf('_')+1,
-                    columnId.lastIndexOf('_'))
-                var div_id = object['div_'+column_num_str+'_id']
+                // changes due to dgrid 0.4 transition
+                var div_id_key = constant.reverseteamselect_id_map[columnId];
+                var key_id = div_id_key.substring(div_id_key.indexOf('_')+1,
+                    div_id_key.lastIndexOf('_'));
+                var div_id = object[div_id_key]
                 var team_select_prefix = this.op_prefix+
                     constant.team_select_base+columnId;
                 // get unique widget id
@@ -317,7 +329,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                             var infostore = this.editgrid.schedInfoStore;
                             infostore.get(conflict_id).then(
                             function(conflict_obj) {
-                                conflict_obj['team_'+column_num_str+'_id'] = event;
+                                conflict_obj['team_'+key_id+'_id'] = event;
                                 infostore.put(conflict_obj);
                             });
                         })
@@ -348,11 +360,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 arrayUtil.forEach(['div_1_id', 'div_2_id'], function(col_id) {
                     // iterate for each div_id selection columns (one for each
                     // conflict)
-                    var div_select_prefix = div_select_base + col_id;
+                    var div_select_prefix = div_select_base +
+                        constant.divselect_id_map[col_id];
                     for (var row_id = 1; row_id < this.totalrows_num+1;
                         row_id++) {
-                        var div_select_id = div_select_prefix+row_id+"_id";
-                        var div_select_widget = registry.byId(div_select_id);
+                        var divselect_id = div_select_prefix+row_id+"_id";
+                        var div_select_widget = registry.byId(divselect_id);
                         if (div_select_widget) {
                             // the select widget should be there, but check for existence anyway
                             var copy_list = lang.clone(option_list);
@@ -391,9 +404,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     team_id++) {
                     option_list.push({label:team_id.toString(), value:team_id, selected:false})
                 }
-                var column_num_str = divcol_id.substring(divcol_id.indexOf('_')+1,
-                    divcol_id.lastIndexOf('_'))
-                var teamcol_id = 'team_'+column_num_str+'_id';
+                var teamcol_id = constant.teamselect_id_map[divcol_id]
                 var team_select_prefix = this.op_prefix+
                     constant.team_select_base+teamcol_id;
                 var team_select_id = team_select_prefix+conflict_id+"_id";
