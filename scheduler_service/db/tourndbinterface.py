@@ -15,9 +15,9 @@ _List_Status = namedtuple('_List_Status', 'list config_status')
 ''' class to convert process new tournament schedule.  All namespace conversion between
 js object keys and db document keys happen here '''
 class TournDBInterface(BaseDBInterface):
-    def __init__(self, mongoClient, userid_name, newcol_name):
+    def __init__(self, mongoClient, userid_name, newcol_name, sched_cat):
         BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
-            DB_Col_Type.TournRR, IDPROPERTY)
+            sched_cat, DB_Col_Type.TournRR, IDPROPERTY)
 
     def writeDB(self, divinfo_str, config_status):
         divinfo_list = json.loads(divinfo_str)
@@ -43,6 +43,7 @@ class TournDBInterface(BaseDBInterface):
         for div in divlist:
             del div['SCHED_TYPE']
             del div['USER_ID']
+            del div['SCHED_CAT']
         result = listresult_tuple.result
         config_status = result['CONFIG_STATUS']
         divinfo_list = [{k.lower():v for k,v in x.items()} for x in divlist]

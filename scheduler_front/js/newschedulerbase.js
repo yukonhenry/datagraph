@@ -295,7 +295,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			getServerDBInfo: function(options_obj) {
 				this.newsched_name = options_obj.item;
 				this.server_interface.getServerData(
-					'get_dbcol/'+this.userid_name+'/'+constant.db_type+'/'+this.newsched_name,
+					'get_dbcol/'+this.userid_name+'/'+constant.db_type+'/'+
+					this.newsched_name+'/'+this.sched_type,
 					lang.hitch(this, this.create_schedconfig));
 			},
 			create_schedconfig: function(adata) {
@@ -564,7 +565,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					schedcol_name:this.newsched_name,
 					tourn_type:'elimination'};
 				this.server_interface.getServerData(
-					"send_generate/"+this.userid_name,
+					"send_generate/"+this.userid_name+'/'+this.sched_type,
 					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,
 					{node:schedstatustxt_node});
 				// add metadata to local store
@@ -751,7 +752,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if info is not available in the store, get it from
 						// the server.
 						this.server_interface.getServerData(
-							'get_dbcol/'+this.userid_name+'/'+db_type+'/'+select_value,
+							'get_dbcol/'+this.userid_name+'/'+db_type+'/'+
+							select_value+'/'+this.sched_type,
 							lang.hitch(this, this.pipegrid_data), null,
 							{info_obj:info_obj, idproperty:idproperty});
 					}
@@ -795,7 +797,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				} else {
 					// if not in store get from server
 					this.server_interface.getServerData(
-						'get_dbcol/'+this.userid_name+'/'+db_type+'/'+select_value,
+						'get_dbcol/'+this.userid_name+'/'+db_type+'/'+
+						select_value+'/'+this.sched_type,
 						lang.hitch(this, this.createdivselect_dropdown), null,
 						{idproperty:idproperty, select_id:select_id,
 							div_id_property:div_id_property});
@@ -875,7 +878,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// send request to server = note event is the div_id here
 				this.server_interface.getServerData('get_schedule/'+
 					this.userid_name+'/'+
-					this.newsched_name+'/'+idproperty+'/'+event,
+					this.newsched_name+'/'+idproperty+'/'+event+'/'+
+					this.sched_type,
 					callback_method,
 					query_obj, {idproperty:idproperty}
 				);
@@ -910,7 +914,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.setselect_text(event_data, idproperty);
 						this.server_interface.getServerData('get_schedule/'+
 							this.userid_name+'/'+
-							this.newsched_name+'/'+idproperty+'/'+id,
+							this.newsched_name+'/'+idproperty+'/'+id+'/'+
+							this.sched_type,
 							callback_method,
 							query_obj, {idproperty:idproperty, event_data:event_data})
 						}));

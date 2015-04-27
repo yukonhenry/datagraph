@@ -44,11 +44,11 @@ class TournSchedMaster(object):
         self._error_code = 0x0
         self.userid_name = userid_name
         self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
-            schedcol_name)
+            schedcol_name, "T")
         self.tourn_type = tourn_type
         self.totalmatch_list = list()
         # db_type is for the divinfo schedule attached to the fielddb spec
-        dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name)
+        dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name, "T")
         dbtuple = dbInterface.readDBraw()
         if dbtuple.config_status == 1:
             self.divinfo_list = dbtuple.list
@@ -60,7 +60,7 @@ class TournSchedMaster(object):
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
         # get field information
-        fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name)
+        fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name, "T")
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
             self.fieldinfo_list = fdbtuple.list

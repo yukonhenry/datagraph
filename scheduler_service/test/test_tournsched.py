@@ -3,7 +3,7 @@ from util.singletonlite import mongoClient, generic_dbInterface
 from algorithm.tournschedmaster import TournSchedMaster
 from db.userdbinterface import UserDBInterface
 from db.dbinterface import DB_Col_Type
-from router.router_process import get_dbcollection, select_db_interface
+from router.router_process import select_db_interface
 import simplejson as json
 from pprint import pprint
 from collections import namedtuple
@@ -28,7 +28,7 @@ TESTFIELD_list = [{"pr":"1,2","end_date":"6/12/2015","tfd":28,
     "field_id":2,"detaileddates":"","end_time":"5:00:00 PM","field_name":"p2",
     "dr":"0,6","start_date":"3/14/2015"}]
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def userdbinterface():
     from db.userdbinterface import UserDBInterface
     return UserDBInterface(mongoClient)
@@ -37,8 +37,8 @@ def userdbinterface():
 @pytest.fixture(scope="module")
 def datadbinterface():
     dbtuple = namedtuple('dbtuple', 'div field')
-    return dbtuple(select_db_interface(TESTUSER, 'tourndb', TESTCOL),
-        select_db_interface(TESTUSER, 'fielddb', TESTCOL))
+    return dbtuple(select_db_interface(TESTUSER, 'tourndb', TESTCOL, "T"),
+        select_db_interface(TESTUSER, 'fielddb', TESTCOL, "T"))
 
 ''' calculate total number of matches in generated match list
 '''
@@ -76,7 +76,7 @@ def test_tournuser(userdbinterface):
 
 def test_existingcollections():
     collection_list = generic_dbInterface.getScheduleCollection(
-        DB_Col_Type.TournRR, TESTUSER)
+        DB_Col_Type.TournRR, TESTUSER, "T")
     if len(collection_list):
         pprint(collection_list)
     else:

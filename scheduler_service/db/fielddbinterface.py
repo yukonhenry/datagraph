@@ -30,9 +30,9 @@ dr - dayweek_str
 tfd - tofalfielddays
 '''
 class FieldDBInterface(BaseDBInterface):
-    def __init__(self, mongoClient, userid_name, newcol_name):
+    def __init__(self, mongoClient, userid_name, newcol_name, sched_cat):
         BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
-            DB_Col_Type.FieldInfo, 'FIELD_ID')
+            sched_cat, DB_Col_Type.FieldInfo, 'FIELD_ID')
 
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
@@ -66,6 +66,7 @@ class FieldDBInterface(BaseDBInterface):
         for field in field_list:
             del field['SCHED_TYPE']
             del field['USER_ID']
+            del field['SCHED_CAT']
             field['pr'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])

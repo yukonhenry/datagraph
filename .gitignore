@@ -2,4 +2,5 @@ scheduler_front/scheduler_front.sublime-workspace
 scheduler_service/scheduler_service.sublime-workspace
 *.pyc
 scheduler_front/static/*.gz
+scheduler_front/static/dojox/
 bottle_baseball/

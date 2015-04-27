@@ -6,8 +6,9 @@ USERID_NAME = 'USERID_NAME'
 USERID_LIST = 'USERID_LIST'
 class UserDBInterface(BaseDBInterface):
     def __init__(self, mongoClient):
+        # "U" sched_cat denotes "User"
         BaseDBInterface.__init__(self, mongoClient, 'yukonadmin',
-            USERID_LIST, DB_Col_Type.UserInfo, 'USER_ID')
+            USERID_LIST, "U", DB_Col_Type.UserInfo, 'USER_ID')
 
     def check_user(self, userid_name):
         query_obj = {USERID_NAME:{"$exists":True}}

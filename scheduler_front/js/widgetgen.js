@@ -257,7 +257,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         // be rrdb or tourndb
                         var userid_name = baseinfoSingleton.get_userid_name();
                         this.server_interface.getServerData(
-                            'get_dbcol/'+userid_name+'/'+db_type+'/'+colname,
+                            'get_dbcol/'+userid_name+'/'+db_type+'/'+colname+
+                            '/'+info_obj.sched_type,
                             lang.hitch(this, this.create_divstr_list), null,
                             options_obj);
                     }

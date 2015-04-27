@@ -44,13 +44,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				} else {
 					this.schedInfoStore = new Memory({data:this.griddata_list, idProperty:this.store_idproperty});
 				}
-				// this is mainly for fieldinfo object - allow the store to be accessed from fieldinfo object.
-				// 'in' operator is generic and works through inherited objects
-				// To use hasOwnProperty, initialize the.info_obj w new Object()
-				/*
-				if (this.info_obj && 'editgrid_obj' in this.info_obj) {
-					this.info_obj.editgrid_obj = this;
-				} */
 				if (this.cellselect_flag) {
 					this.schedInfoGrid = new (declare([OnDemandGrid, Editor, Keyboard, CellSelection]))({
 						collection: this.schedInfoStore,
@@ -201,7 +194,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare", "dojo/_base/lang",
 				//server_key_obj.db_type = this.db_type;
 				//var options_obj = {item:this.colname};  // is this needed?
 				this.server_interface.getServerData(
-					constant.createserver_path+this.userid_name+'/'+this.db_type+'/'+this.colname,
+					constant.createserver_path+this.userid_name+'/'+this.db_type+
+					'/'+this.colname+'/'+this.info_obj.sched_type,
 					this.server_interface.server_ack, server_key_obj);
 				// add to select db store (for dropdowns)
 				if ('divstr_db_type' in server_key_obj)

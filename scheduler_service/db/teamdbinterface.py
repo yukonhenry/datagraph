@@ -4,8 +4,9 @@ from dbinterface import DB_Col_Type
 from basedbinterface import BaseDBInterface
 
 class TeamDBInterface(BaseDBInterface):
-    def __init__(self, mongoClient, userid_name, newcol_name):
-        BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
+    def __init__(self, mongoClient, userid_name, newcol_name, sched_cat):
+        BaseDBInterface.__init__(self, mongoClient, userid_name,
+            newcol_name, sched_cat,
             DB_Col_Type.TeamInfo, 'DT_ID')
 
     def check_docexists(self):

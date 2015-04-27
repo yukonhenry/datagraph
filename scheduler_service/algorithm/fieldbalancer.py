@@ -1,7 +1,7 @@
 ''' Copyright YukonTR 2013 '''
 from datetime import  datetime
 from util.schedule_util import all_value, enum, shift_list, \
-    all_isless, find_ge, find_le
+    all_isless, find_le
 #ref Python Nutshell p.314 parsing strings to return datetime obj
 from dateutil import parser
 import logging

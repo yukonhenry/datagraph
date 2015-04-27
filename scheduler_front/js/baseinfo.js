@@ -220,7 +220,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				// define key for object returned from server to get
 				// status of configuration - config_status
 				this.server_interface.getServerData(
-					getserver_path+this.userid_name+'/'+options_obj.db_type+'/'+colname,
+					getserver_path+this.userid_name+'/'+options_obj.db_type+'/'+
+					colname+'/'+this.sched_type,
 					lang.hitch(this, this.pipegrid_data), null, options_obj);
 			},
 			pipegrid_data: function(server_data, options_obj) {

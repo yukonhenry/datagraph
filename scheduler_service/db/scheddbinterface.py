@@ -17,8 +17,10 @@ _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
 _List_Status = namedtuple('_List_Status', 'list config_status')
 
 class SchedDBInterface:
-    def __init__(self, mongoClient, userid_name, schedcol_name):
-        self.dbinterface = MongoDBInterface(mongoClient, userid_name, collection_name=schedcol_name, db_col_type=DB_Col_Type.GeneratedSchedule)
+    def __init__(self, mongoClient, userid_name, schedcol_name, sched_cat):
+        self.dbinterface = MongoDBInterface(mongoClient, userid_name,
+            collection_name=schedcol_name, sched_cat=sched_cat,
+            db_col_type=DB_Col_Type.GeneratedSchedule)
         self.schedcol_name = schedcol_name
 
     def setschedule_param(self, db_type, divcol_name, fieldcol_name,

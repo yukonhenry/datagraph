@@ -120,7 +120,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
 								this.schedcol_name+'/'+this.db_type+'/'+
-								item.genxls_id,
+								item.genxls_id+'/'+this.sched_type,
 								lang.hitch(this, this.create_links), server_key_obj,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}
@@ -142,7 +142,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
-								this.schedcol_name+'/'+this.db_type+'/'+item.genxls_id,
+								this.schedcol_name+'/'+this.db_type+'/'+
+								item.genxls_id+'/'+this.sched_type,
 								lang.hitch(this, this.create_links), server_key_obj,
 								{cpane:stack_cpane, descrip_str:descrip_str});
 						}

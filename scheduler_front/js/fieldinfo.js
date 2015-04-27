@@ -743,7 +743,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						server_key_obj = {change_str:JSON.stringify(change_list)};
 						this.server_interface.getServerData(
 							"send_delta/"+this.userid_name+'/'+
-							this.activegrid_colname+"/change/"+field_id,
+							this.activegrid_colname+"/change/"+field_id+'/'+
+							this.sched_type,
 							function(data) {
 								var dbstatus = data.dbstatus;
 							}, server_key_obj)
@@ -752,7 +753,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						server_key_obj = {remove_str:remove_list.join(',')};
 						this.server_interface.getServerData(
 							"send_delta/"+this.userid_name+'/'+
-							this.activegrid_colname+"/remove/"+field_id,
+							this.activegrid_colname+"/remove/"+field_id+'/'+
+							this.sched_type,
 							function(data) {
 								var dbstatus = data.dbstatus;
 							}, server_key_obj)
@@ -1244,11 +1246,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 									field_name:field_name}]}
 							map_divfield_obj[idproperty_str] = div_id;
 							map_divfield_list.push(map_divfield_obj);
-							/*
-							map_divfield_list.push({div_id:div_id,
-								fieldcol_name:this.activegrid_colname,
-								divfield_list:[{field_id:field_id,
-									field_name:field_name}]}); */
 						}
 					}, this)
 				}, this)
@@ -1277,7 +1274,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var storedata_json = JSON.stringify(map_divfield_list);
 					var server_key_obj = {update_data:storedata_json}
 					this.server_interface.getServerData(
-						"update_dbcol/"+this.userid_name+'/'+this.divstr_db_type+'/'+this.divstr_colname,
+						"update_dbcol/"+this.userid_name+'/'+this.divstr_db_type+
+						'/'+this.divstr_colname+'/'+this.sched_type,
 						this.server_interface.server_ack, server_key_obj);
 				}
 				// modify store data before sending data to server

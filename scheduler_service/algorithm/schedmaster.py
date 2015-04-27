@@ -27,16 +27,19 @@ PREFINFODATE_ERROR_MASK = 0x4
 # generators.
 class SchedMaster(object):
     def __init__(self, mongoClient, userid_name, db_type, divcol_name,
-        fieldcol_name, schedcol_name, prefcol_name=None, conflictcol_name=None):
+        fieldcol_name, schedcol_name, prefcol_name=None,
+        conflictcol_name=None):
         self._error_code = 0x0
         self.userid_name = userid_name
         self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
-            schedcol_name)
+            schedcol_name, "L")
         # db_type is for the divinfo schedule attached to the fielddb spec
         if db_type == 'rrdb':
-            dbInterface = RRDBInterface(mongoClient, userid_name, divcol_name)
+            dbInterface = RRDBInterface(mongoClient, userid_name, divcol_name,
+                "L")
         elif db_type == 'tourndb':
-            dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name)
+            dbInterface = TournDBInterface(mongoClient, userid_name, divcol_name,
+                "L")
         else:
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
         dbtuple = dbInterface.readDBraw()
@@ -55,7 +58,8 @@ class SchedMaster(object):
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
             self.oddnumplay_mode = False
         # get field information
-        fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name)
+        fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name,
+            "L")
         fdbtuple = fdbInterface.readDBraw();
         if fdbtuple.config_status == 1:
             self.fieldinfo_list = fdbtuple.list
@@ -76,7 +80,8 @@ class SchedMaster(object):
             self.simplifydivfield_list()
         # get team-related field affinity information, if any
         # use divcol_name as it shares collection name w divinfo
-        tmdbInterface = TeamDBInterface(mongoClient, userid_name, divcol_name)
+        tmdbInterface = TeamDBInterface(mongoClient, userid_name, divcol_name,
+            "L")
         if tmdbInterface.check_docexists():
             tmdbtuple = tmdbInterface.readDBraw()
             # recreate tminfo_list from db read, but leave out fields such as
@@ -85,7 +90,8 @@ class SchedMaster(object):
                 'tm_id':x['tm_id'], 'af_list':x['af_list']}
                 for x in tmdbtuple.list]
             # indexerGet for specific div_id and team_id match
-            tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
+            tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in
+                enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
             # indexermatch for list of team matches for specified div_id
             tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x]
             # _List_IndexerM gets dereferenced using indexerMatch instead of
@@ -98,11 +104,13 @@ class SchedMaster(object):
         if prefcol_name:
             # preference list use is optional - only process if preference list
             # exists
-            pdbInterface = PrefDBInterface(mongoClient, userid_name, prefcol_name)
+            pdbInterface = PrefDBInterface(mongoClient, userid_name, prefcol_name,
+                "L")
             pdbtuple = pdbInterface.readDBraw();
             if pdbtuple.config_status == 1:
                 prefinfo_list = pdbtuple.list
-                prefinfo_indexerGet = lambda x: dict((p['pref_id'],i) for i,p in enumerate(prefinfo_list)).get(x)
+                prefinfo_indexerGet = lambda x: dict((p['pref_id'],i) for i,p in
+                    enumerate(prefinfo_list)).get(x)
                 prefinfo_indexerMatch = lambda x: [i for i,p in
                     enumerate(prefinfo_list) if p['div_id'] == x]
                 prefinfo_triple = _List_IndexerGM(prefinfo_list,
@@ -118,7 +126,7 @@ class SchedMaster(object):
 
         if conflictcol_name:
             cdbInterface = ConflictDBInterface(mongoClient, userid_name,
-                conflictcol_name)
+                conflictcol_name, "L")
             cdbtuple = cdbInterface.readDBraw()
             if cdbtuple.config_status == 1:
                 conflictinfo_list = cdbtuple.list
@@ -195,7 +203,7 @@ class SchedMaster(object):
                 if div_id in div_list:
                     index = self.divinfo_indexerGet(div_id)
                     if index is not None:
-                        divset.update(div_id)
+                        divset.add(div_id)
                         divinfo = self.divinfo_list[index]
                         # check existence of key 'divfield_list' - if it exists, append to list of fields, if not create
                         if 'divfield_list' in divinfo:

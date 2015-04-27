@@ -15,9 +15,9 @@ _List_Status_Mode = namedtuple('_List_Status_Mode',
 ''' class to convert process new tournament schedule.  All namespace conversion between
 js object keys and db document keys happen here '''
 class RRDBInterface(BaseDBInterface):
-    def __init__(self, mongoClient, userid_name, newcol_name):
+    def __init__(self, mongoClient, userid_name, newcol_name, sched_cat):
         BaseDBInterface.__init__(self, mongoClient, userid_name, newcol_name,
-            DB_Col_Type.RoundRobin, 'DIV_ID')
+            sched_cat, DB_Col_Type.RoundRobin, 'DIV_ID')
 
     def writeDB(self, divinfo_str, config_status, oddnum_mode):
         divinfo_list = json.loads(divinfo_str)
@@ -42,6 +42,7 @@ class RRDBInterface(BaseDBInterface):
         for div in divlist:
             del div['SCHED_TYPE']
             del div['USER_ID']
+            del div['SCHED_CAT']
         result = listresult_tuple.result
         config_status = result['CONFIG_STATUS']
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python
