@@ -236,19 +236,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					}
 				}
 			},
-			// callback function when dbtype radiobutton is changed
-			radio1_callback: function(select_id, event) {
-				if (event) {
-					this.widgetgen.swap_league_select_db(select_id, 'rrdb');
-					this.current_db_type = 'rrdb';
-				}
-			},
-			radio2_callback: function(select_id, event) {
-				if (event) {
-					this.widgetgen.swap_league_select_db(select_id, 'tourndb');
-					this.current_db_type = 'tourndb';
-				}
-			},
 			removefrom_select: function(db_type, index) {
 				// remove entries from the div or field group dropdown
 				if (db_type == 'rrdb' || db_type == 'tourndb') {
@@ -361,10 +348,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					server_interface:this.server_interface
 				});
 				var scinput_dom = dom.byId(this.idmgr_obj.textbtncpane_id);
-				this.widgetgen.create_schedtype_radiobtn(scinput_dom,
-					radio1_id, radio2_id, divdb_type,
-					this, this.radio1_callback, this.radio2_callback,
-					league_select_id);
 				// create league info dropdowns
 				var lsargs_obj = {
 					topdiv_node:scinput_dom,
