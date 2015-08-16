@@ -1022,6 +1022,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// grid for this idproperty
 				var sched_grid = this.sched_grid_mapobj[idproperty];
 				if (sched_grid) {
+					if (idproperty == 'div_id' || idproperty == 'tourndiv_id')
+						sched_grid.set('columns', columnsdef_obj)
 					sched_grid.refresh();
 				} else {
 					var cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj[idproperty];
