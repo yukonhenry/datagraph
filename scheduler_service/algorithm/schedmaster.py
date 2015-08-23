@@ -174,8 +174,8 @@ class SchedMaster(object):
         totalbyeteam_list = list()
         for divinfo in self.divinfo_list:
             totalteams = divinfo['totalteams']
-            # possibly rename below to 'totalrounddays' as totalgamedays may not
-            # match up to number of physical days
+            # possibly rename below to 'totalrounddays' as totalgamedays may
+            # not match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
             div_id = divinfo['div_id']
             match = MatchGenerator(totalteams, totalgamedays,

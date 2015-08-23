@@ -11,8 +11,7 @@ home_index_CONST = 0
 away_index_CONST = 1
 GAME_TEAM = 'game_team'
 large_CONST = 1e7
-#import pdb
-#http://www.tutorialspoint.com/python/python_classes_objects.htm
+
 class MatchGenerator(object):
     def __init__(self, nt, ng, oddnumplay_mode=False, maxGamesPerTeam=10000):
         self.numTeams = nt
