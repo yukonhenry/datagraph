@@ -482,7 +482,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					// create respective del db menu
 					this.generateDBCollection_smenu(ddownmenu_reg,
 						db_list, this, this.delete_dbcollection,
-						{db_type:db_type, storeutil_obj:this, op_type:"advance"});
+						{db_type:db_type, storeutil_obj:this,
+						 op_type:"advance", sched_type: info_obj.sched_type});
 				}
 			},
 			create_menubar: function(id, info_obj, delflag, mbar_node,
@@ -560,7 +561,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 				// create respective del db menu
 				this.generateDBCollection_smenu(del_ddownmenu_widget,
 					db_list, this, this.delete_dbcollection,
-					{db_type:db_type, storeutil_obj:this, op_type:"wizard"});
+					{db_type:db_type, storeutil_obj:this, op_type:"wizard",
+					 sched_type: info_obj.sched_type});
 				//}
 				var tooltip = null;
 				var tooltipconfig = null;
@@ -618,7 +620,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/array",
 					{idproperty:idproperty, p_stage:"preconfig",
 					entry_pt:"fromddel"});
 				this.uistackmgr.switch_gstackcpane(idproperty, true, null) */
-				this.server_interface.getServerData(server_path+this.userid_name+'/'+db_type+'/'+item,
+				this.server_interface.getServerData(server_path+this.userid_name+'/'+db_type+'/'+item+'/'+options_obj.sched_type,
 					this.server_interface.server_ack);
 			},
 			// review usage of hitch to provide context to event handlers

@@ -644,8 +644,23 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// re-use calendar_id as id for delta_store also.
 				// should not be a problem as calendar_id is unique
 				// calendar_id should be same as data_obj.id
+				var field_id = data_obj.field_id;
 				this.delta_store.add({action:'remove', data_obj:data_obj,
-					id:calendar_id, field_id:data_obj.field_id});
+					id:calendar_id, field_id: field_id});
+				// get fieldday_id up for removal
+				var fieldday_id = data_obj.fieldday_id
+				var adjusted_objects = this.calendar_store
+					.query({field_id:field_id})
+					.filter(function(object) {
+						return object.fieldday_id > fieldday_id;
+					})
+					.map(function(object) {
+						object.fieldday_id -= 1;
+						return object;
+					})
+				adjusted_objects.forEach(function(object) {
+					this.calendar_store.put(object);
+				}, this);
 				this.calendar_store.remove(calendar_id);
 				this.disable_chgdel_widgets();
 				this.enable_savecancel_widgets();
