@@ -25,6 +25,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             // the map value is used to construct the id for the select widget
             // corresponding to div_1_id, div_2_id respectively.
             divselect_id_map:{div_1_id:"2", div_2_id:"4"},
+            reverse_divselect_id_map:{"2":"div_1_id", "4":"div_2_id"},
             // similar mapping for team select id generation
             // obj values correspond to column numbers for the conflict info grid
             teamselect_id_map:{div_1_id:"3", div_2_id:"5"},
@@ -260,7 +261,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     eventoptions_obj = {conflict_id:conflict_id,
                         // slice leaves out the 0-th element
                         option_list:option_list.slice(1),
-                        divcol_id:node.columnId}
+                        divcol_id: constant.reverse_divselect_id_map[node.columnId] }
                 } else {
                     // default if no divstr_list is read in
                     option_list.push({label:"Select League first", selected:true, value:""});

@@ -580,7 +580,6 @@ class FieldTimeScheduleGenerator:
     def place_endschedule(self, field_list, match_list):
         ''' Find field and slot for the earliest last opening so separately
         generated extra games can be added on.  Give results for each game date'''
-        min_gap_slot_index = 3
         # first create a map from field to slotstatus_list so we don't have to
         # repeat the fieldstatus_list dereferencing for each match
         slotstatus_map = dict()
@@ -604,7 +603,7 @@ class FieldTimeScheduleGenerator:
     def find_earliest_field_slot(self, slotstatus_map, field_list, match):
         game_date = match['game_date']
         firststart_time = match['firststart_time']
-        mingap_start_time = firststart_time + timedelta(minutes=160)
+        mingap_start_time = firststart_time + timedelta(minutes=170)
         nextstart_list = list()
         for field_id in field_list:
             slotstatus_list = slotstatus_map[field_id]
@@ -925,7 +924,8 @@ class FieldTimeScheduleGenerator:
                                 # the second segment is too late
                                 segment_type = 1
                             else:
-                                raise SchedulerConfigurationError("Constraint Configuration Error: Start after time is too late")
+                                raise SchedulerConfigurationError(
+                                    "Constraint Configuration Error: Start after time is too late pref id %d div %d team %d" % (cpref_id, cdiv_id, cteam_id))
 
                         # -1 return means that the end time is before the end of the first game
                         endbefore_index = self.mapEndTimeToSlot(cendbefore_time, firstgame_time, gameinterval) if cendbefore_time else -2
