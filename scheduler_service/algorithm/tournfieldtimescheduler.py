@@ -16,7 +16,6 @@ from random import shuffle
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id fieldday_id slot_index')
 time_format_CONST = '%H:%M'
-GAME_TEAM_str = 'game_team'
 _absolute_earliest_time = parser.parse('05:00').time()
 _absolute_earliest_date = parser.parse('01/01/2010').date()
 _min_timegap = timedelta(0,0,0,0,160) # in minutes
@@ -36,9 +35,9 @@ class TournamentFieldTimeScheduleGenerator:
         self.dbinterface = dbinterface
         self.tourn_type = tourn_type
         if tourn_type == 'elimination':
-            IDPROPERTY_str = 'div_id'
+            self.idproperty = 'div_id'
         elif tourn_type == 'RR':
-            IDPROPERTY_str = 'tourndiv_id'
+            self.idproperty = 'tourndiv_id'
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.findexerGet = fieldinfo_tuple.indexerGet
         self.connected_div_components = getConnectedDivisionGroup(self.fieldinfo_list)
@@ -88,7 +87,7 @@ class TournamentFieldTimeScheduleGenerator:
         return calendarmap_list[calendarmap_indexerGet(fieldday_id)]['date']
 
     def generateSchedule(self, totalmatch_list):
-        tmindexerGet = lambda x: dict((p[IDPROPERTY_str],i) for i,p in enumerate(totalmatch_list)).get(x)
+        tmindexerGet = lambda x: dict((p[self.idproperty],i) for i,p in enumerate(totalmatch_list)).get(x)
         self.dbinterface.dropgame_docs()  # reset game schedule docs
         for connected_div_list in self.connected_div_components:
             # get the list of divisions that make up a connected component.
@@ -96,7 +95,7 @@ class TournamentFieldTimeScheduleGenerator:
             connecteddiv_match_list = [totalmatch_list[tmindexerGet(x)] for x in connected_div_list]
             # flatten out the list embed div_id value in each dictionary
             # also flatten out 'GAME_TEAM' list generate by the match generator
-            flatmatch_list = [{'ROUND_ID':z['round_id'], 'HOME':p['HOME'], 'AWAY':p['AWAY'], 'DIV_ID':x[IDPROPERTY_str]} for x in connecteddiv_match_list for y in x['match_list'] for z in y for p in z[GAME_TEAM_str]]
+            flatmatch_list = [{'ROUND_ID':z['round_id'], 'HOME':p['HOME'], 'AWAY':p['AWAY'], 'DIV_ID':x[self.idproperty]} for x in connecteddiv_match_list for y in x['match_list'] for z in y for p in z['game_team']]
             # sort the list according to round_id (needed for groupby below), and then by div_id
             sorted_flatmatch_list = sorted(flatmatch_list, key=itemgetter('ROUND_ID', 'DIV_ID'))
             # group list by round_id; dict value of 'match_list' key is a nested array, which is created by an inner groupby based on div_id
@@ -105,7 +104,7 @@ class TournamentFieldTimeScheduleGenerator:
             #   for key1, items1 in groupby(items, key=itemgetter('DIV_ID')):
             #      for j in items1:
             #         print key, key1, j
-            grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], IDPROPERTY_str:dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
+            grouped_match_list = [{'round_id':rkey, 'match_list':[[{'home':x['HOME'], 'away':x['AWAY'], self.idproperty:dkey} for x in ditems] for dkey, ditems in groupby(ritems, key=itemgetter('DIV_ID'))]} for rkey, ritems in groupby(sorted_flatmatch_list, key=itemgetter('ROUND_ID'))]
             logging.debug("tournftscheduler:gensched:groupedlist=%s", grouped_match_list)
             #find the fields available for the connected_div_set by finding
             # the union of fields for each div
@@ -133,7 +132,7 @@ class TournamentFieldTimeScheduleGenerator:
                     #current_fieldday_id_list = [1,1]  # for U10
                     #current_fieldday_id = 1
                     #earliestfield_list = None
-                    div_id = rrgame[IDPROPERTY_str]
+                    div_id = rrgame[self.idproperty]
                     home = rrgame['home']
                     away = rrgame['away']
                     divinfo = self.divinfo_list[self.dindexerGet(div_id)]
@@ -181,7 +180,7 @@ class TournamentFieldTimeScheduleGenerator:
                         if match['isgame']:
                             start_time = match['start_time']
                             teams = match['teams']
-                            div_id = teams[IDPROPERTY_str]
+                            div_id = teams[self.idproperty]
                             home_id = teams['home']
                             away_id = teams['away']
                             div = self.divinfo_list[self.dindexerGet(div_id)]
@@ -383,24 +382,20 @@ class TournamentFieldTimeScheduleGenerator:
 
     def initTeamTimeGap_list(self, div_list):
         for div_id in div_list:
+            '''
             if div_id == 2:
-                self.timegap_list.extend([{IDPROPERTY_str:div_id,
+                self.timegap_list.extend([{self.idproperty:div_id,
                     'last_date':_absolute_earliest_date, 'fieldday_id':0,
                     'last_endtime':-1, 'team_id':y}
                     for y in range(1, 18)+range(19,23)])
-            else:
-                self.timegap_list.extend([{IDPROPERTY_str:div_id,
-                    'last_date':_absolute_earliest_date, 'fieldday_id':0,
-                    'last_endtime':-1, 'team_id':y}
-                    for y in range(1, self.divinfo_list[self.dindexerGet(div_id)]['totalteams']+1)])
-        '''
-        self.timegap_list.extend([{IDPROPERTY_str:x,
-            'last_date':_absolute_earliest_date, 'fieldday_id':0,
-            'last_endtime':-1, 'team_id':y}
-            for x in div_list for y in range(1, self.divinfo_list[self.dindexerGet(x)]['totalteams']+1)])
-        '''
+            '''
+            self.timegap_list.extend([{self.idproperty:div_id,
+                'last_date':_absolute_earliest_date, 'fieldday_id':0,
+                'last_endtime':-1, 'team_id':y}
+                for y in range(1, self.divinfo_list[self.dindexerGet(div_id)]['totalteams']+1)])
+
         # gapindexerGet must have a (div_id, team_id) tuple passed to it
-        self.timegap_indexerGet = lambda x: [i for i,p in enumerate(self.timegap_list) if p[IDPROPERTY_str] == x[0] and p['team_id']==x[1]]
+        self.timegap_indexerGet = lambda x: [i for i,p in enumerate(self.timegap_list) if p[self.idproperty] == x[0] and p['team_id']==x[1]]
 
     def initElimTeamTimeGap_list(self, matchrange_list):
         self.timegap_list.extend([{'div_id':x['div_id'],
@@ -590,7 +585,7 @@ class TournamentFieldTimeScheduleGenerator:
         for divmatch_list in rmlist:
             #print 'divmatch', divmatch_list
             for match in divmatch_list:
-                div_id = match[IDPROPERTY_str]
+                div_id = match[self.idproperty]
                 home = match['home']
                 away = match['away']
                 #*********************#
@@ -631,4 +626,4 @@ class TournamentFieldTimeScheduleGenerator:
             # gameday_ind is an INDEX and not an ID
             gameday_ind = slot_count / total_gameday_slots
             slot_index = slot_count % total_gameday_slots / total_fields
-            fstatus[1][gameday_ind][slot_index][IDPROPERTY_str] = div_id
+            fstatus[1][gameday_ind][slot_index][self.idproperty] = div_id

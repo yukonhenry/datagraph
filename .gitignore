@@ -1,9 +1,6 @@
 scheduler_front/scheduler_front.sublime-workspace
 scheduler_service/scheduler_service.sublime-workspace
 *.pyc
-scheduler_front/static/*.gz
-scheduler_front/static/dojox/
-scheduler_front/static/build-report.txt
-scheduler_front/static/xstyle
+scheduler_front/static
 bottle_baseball/
 scheduler_service/download

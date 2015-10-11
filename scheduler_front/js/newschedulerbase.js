@@ -20,7 +20,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 		var constant = {
 			idproperty_str:'newsched_id',
 			tabcontainer_id:'tabcontainer_id',
-			defaultselect_db_type:'rrdb',
 			db_type:'newscheddb',
 			slot_id:'slot_id',
 			game_id:'game_id',
@@ -60,8 +59,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			event_flag:false, uistackmgr_type:null, newschedwatch_obj:null,
 			selectexists_flag:false,
 			league_select_value:"", fg_select_value:"", widgetgen:null,
-			current_db_type:constant.defaultselect_db_type,
-			tabcontainer_reg:null,
+			current_db_type:null, tabcontainer_reg:null,
 			cpane_id_mapobj:null, cpane_txt_id_mapobj:null,
 			cpane_grid_id_mapobj:null, cpane_schedgrid_id_mapobj:null,
 			cpane_schedheader_id_mapobj:null,
@@ -206,6 +204,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var form_reg = args_obj.form_reg;
 					var dbname_reg = args_obj.dbname_reg;
 					var op_type = args_obj.op_type;
+					var db_type = (this.sched_type == "L")?"rrdb":"tourndb";
 					if (form_reg.validate()) {
 						confirm('Input format is Valid, creating new Schedule DB');
 						this.newsched_name = dbname_reg.get("value");
@@ -217,7 +216,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						if (this.keyup_handle)
 							this.keyup_handle.remove();
 						if (!this.widgetgen) {
-							this.create_widgets(constant.defaultselect_db_type);
+							this.create_widgets(db_type);
 						} else {
 							// sometimes widgetgen might already exist as an
 							// existing newsched may have been first selected from
@@ -226,7 +225,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 							// First reset watch objects
 							this.reset_newschedwatch_obj();
 							// reload widgets
-							this.reload_widgets(constant.defaultselect_db_type);
+							this.reload_widgets(db_type);
 						}
 						this.uistackmgr_type.switch_pstackcpane({
 							idproperty:this.idproperty, p_stage:"config",
@@ -540,13 +539,14 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// save server_key_obj to a member variable, as this will 'lock' the
 				// values and used as data for the newly generate schedule cpanes.
 				// NOTE: tournament type of elimination is a hack for now
+				// NOTE: Hack: hardcode either 'RR' or 'elimination'
 				this.server_key_obj = {divcol_name:this.league_select_value,
 					fieldcol_name:this.fg_select_value,
 					prefcol_name:this.pref_select_value,
 					conflictcol_name:this.conflict_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name,
-					tourn_type:'elimination'};
+					tourn_type:'RR'};
 				this.server_interface.getServerData(
 					"send_generate/"+this.userid_name+'/'+this.sched_type,
 					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,

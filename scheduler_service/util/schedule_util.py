@@ -214,7 +214,7 @@ def find_ge(a,x):
     if i != len(a):
         return_index = i
         return (return_index, a[return_index])
-    raise ValueError
+    raise ValueError('find_ge, bisect_left failed', a, x)
 
 def mkdir_p(path):
     ''' http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python

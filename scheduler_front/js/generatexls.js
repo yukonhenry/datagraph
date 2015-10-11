@@ -115,7 +115,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// NOTE: this is a hack for elimination tourn
 							// type
 							if (this.db_type == 'tourndb') {
-								server_key_obj = {tourn_type:"elimination"}
+								// NOTE: hack - set to either 'RR' or 'elimination'
+								server_key_obj = {tourn_type:'RR'}
 							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
@@ -138,7 +139,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// get all links and populate
 							var descrip_str = item.descrip_str;
 							if (this.db_type == 'tourndb') {
-								server_key_obj = {tourn_type:"elimination"}
+								// NOTE: hack - set to either 'RR' or 'elimination'
+								server_key_obj = {tourn_type:'RR'}
 							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
