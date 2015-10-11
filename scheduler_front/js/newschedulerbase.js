@@ -27,7 +27,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			fair_id:'fair_id',
 			pref_id:'pref_id',
 			conflict_id:'conflict_id',
-			results_cpane_id_prefix:"results_cpane"
+			results_cpane_id_prefix:"results_cpane",
+			worldcup_stage: 'RR'
 		};
 		var idconstant = {
 			radio1_id:'scradio1_id',
@@ -546,7 +547,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					conflictcol_name:this.conflict_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name,
-					tourn_type:'RR'};
+					tourn_type: consant.worldcup_stage };
 				this.server_interface.getServerData(
 					"send_generate/"+this.userid_name+'/'+this.sched_type,
 					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,
@@ -597,21 +598,10 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				this.createnewsched_pane(args_obj);
 				this.prepgrid_data('field_id', dbstatus);
+				if (this.current_db_type == 'rrdb' || (this.current_db_type == 'tourndb' && constant.worldcup_stage == 'RR')) {
+					this.display_team_sched(dbstatus);
+				}
 				if (this.current_db_type == 'rrdb') {
-					// add by-team sched grid
-					cpane_id = this.cpane_id_mapobj.team_id;
-					cpane_txt_id = this.cpane_txt_id_mapobj.team_id;
-					cpane_grid_id = this.cpane_grid_id_mapobj.team_id;
-					cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.team_id;
-					cpane_schedheader_id = this.cpane_schedheader_id_mapobj.team_id;
-					var cpane_select_id = this.opconstant_obj.teamcpane_select_id;
-					args_obj = {
-						suffix_id:cpane_id,
-						content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
-						title_suffix:' by Team',
-					}
-					this.createnewsched_pane(args_obj);
-					this.prepgrid_data(constant.team_id, dbstatus)
 					// add fairness metrics cpane
 					cpane_id = this.cpane_id_mapobj.fair_id;
 					cpane_txt_id = this.cpane_txt_id_mapobj.fair_id;
@@ -675,6 +665,22 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						db_type:this.current_db_type, sched_type:this.sched_type});
 				}
 				this.xls_obj.generate_xlscpane_widgets(xls_cpane);
+			},
+			display_team_sched: function(dbstatus) {
+				// add by-team sched grid
+				cpane_id = this.cpane_id_mapobj.team_id;
+				cpane_txt_id = this.cpane_txt_id_mapobj.team_id;
+				cpane_grid_id = this.cpane_grid_id_mapobj.team_id;
+				cpane_schedgrid_id = this.cpane_schedgrid_id_mapobj.team_id;
+				cpane_schedheader_id = this.cpane_schedheader_id_mapobj.team_id;
+				var cpane_select_id = this.opconstant_obj.teamcpane_select_id;
+				args_obj = {
+					suffix_id:cpane_id,
+					content_str:"<div id='"+cpane_txt_id+"'></div> <b>Select Division</b> and then select team ID by <b>clicking grid row</b> to see team-specific schedule - scroll down<br><label for='"+cpane_select_id+"'>Select Division</label><select id='"+cpane_select_id+"' data-dojo-type='dijit/form/Select' name='"+cpane_select_id+"'></select><div id='"+cpane_grid_id+"'></div><div id='"+cpane_schedheader_id+"'></div><div id='"+cpane_schedgrid_id+"'></div>",
+					title_suffix:' by Team',
+				}
+				this.createnewsched_pane(args_obj);
+				this.prepgrid_data(constant.team_id, dbstatus)
 			},
 			prepgrid_data: function(idproperty, dbstatus) {
 				var statusnode_id = null;

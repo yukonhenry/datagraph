@@ -16,6 +16,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		baseinfoSingleton, put) {
 		var constant = {
 			idproperty_str:'xls_id',
+			worldcup_stage: 'RR'
 		};
 		var idconstant = {
 			// id for the dropdown btn
@@ -116,7 +117,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							// type
 							if (this.db_type == 'tourndb') {
 								// NOTE: hack - set to either 'RR' or 'elimination'
-								server_key_obj = {tourn_type:'RR'}
+								server_key_obj = {tourn_type: constant.worldcup_stage }
 							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
@@ -140,7 +141,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 							var descrip_str = item.descrip_str;
 							if (this.db_type == 'tourndb') {
 								// NOTE: hack - set to either 'RR' or 'elimination'
-								server_key_obj = {tourn_type:'RR'}
+								server_key_obj = {tourn_type: constant.worldcup_stage}
 							}
 							this.server_interface.getServerData(
 								'get_xls/'+this.userid_name+'/'+
