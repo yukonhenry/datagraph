@@ -547,7 +547,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					conflictcol_name:this.conflict_select_value,
 					db_type:this.current_db_type,
 					schedcol_name:this.newsched_name,
-					tourn_type: consant.worldcup_stage };
+					tourn_type: constant.worldcup_stage };
 				this.server_interface.getServerData(
 					"send_generate/"+this.userid_name+'/'+this.sched_type,
 					lang.hitch(this, this.update_schedstatustxt), this.server_key_obj,

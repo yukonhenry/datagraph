@@ -55,7 +55,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 				];
 				this.label_id_list = [{label:"by Division", genxls_id:'div_id'},
 					{label:"by Field", genxls_id:'field_id'}];
-				if (this.db_type == "rrdb") {
+				if (this.db_type == "rrdb" || (this.db_type == 'tourndb' &&
+					constant.worldcup_stage == 'RR')) {
 					// per team_id info only relevant for RoundRobin league as elimination tournament
 					// schedule dependent on seeding and win/loss results for each match
 					this.stackcpane_list.push({genxls_id:'team_id',
