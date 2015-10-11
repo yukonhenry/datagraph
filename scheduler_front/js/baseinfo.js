@@ -438,6 +438,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					lang.hitch(this, function(results) {
 						// copy current last element except custom changes
 						var newlast_entry = lang.clone(results[0]);
+						if ('calendarmap_list' in newlast_entry)
+							delete newlast_entry.calendarmap_list;
 						if ('closed_list' in newlast_entry)
 							delete newlast_entry.closed_list;
 						if ('timechange_list' in newlast_entry)
