@@ -436,8 +436,14 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 					.eq("colname", this.activegrid_colname);
 				this.infogrid_store.filter(sfilter).fetch().then(
 					lang.hitch(this, function(results) {
-						// copy current last element
+						// copy current last element except custom changes
 						var newlast_entry = lang.clone(results[0]);
+						if ('closed_list' in newlast_entry)
+							delete newlast_entry.closed_list;
+						if ('timechange_list' in newlast_entry)
+							delete newlast_entry.timechange_list;
+						if ('notes' in newlast_entry)
+							delete newlast_entry.notes;
 						this.totalrows_num++;
 						newlast_entry[this.idproperty] = this.totalrows_num;
 						newlast_entry[this.store_idproperty] += 1;
