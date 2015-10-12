@@ -52,6 +52,10 @@ class FieldDBInterface(BaseDBInterface):
                 fieldinfo['start_date'], fieldinfo['tfd'])
             del fieldinfo['dr']
             del fieldinfo['pr']
+            if 'closed_list' in fieldinfo:
+                del fieldinfo['closed_list']
+            if 'timechange_list' in fieldinfo:
+                del fieldinfo['timechange_list']
         document_list = [{k.upper():v for k,v in x.items()} for x in fieldinfo_list]
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,

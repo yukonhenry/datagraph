@@ -16,7 +16,7 @@
 #b elimfieldtimescheduler.py:362, div_id==3
 #b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
-#b tournfieldtimescheduler.py:297
+b algorithm/tournfieldtimescheduler.py:47
 #b tournschedmaster.py:490
 #b algorithm/tournschedmaster.py:536
 #b fielddbinterface.py:51
@@ -42,6 +42,6 @@
 #b rrdbinterface.py:28
 #b userdbinterface.py:19
 #b scheddbinterface.py:38
-b router/router_process.py:217
+#b router/router_process.py:217
 #b db/dbinterface.py:640
 #b xls_exporter.py:94

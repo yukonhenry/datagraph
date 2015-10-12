@@ -337,6 +337,9 @@ class TournamentFieldTimeScheduleGenerator:
             # note the below is a duplicate check to one of the tests in
             # fieldcheckavailability
             # If checks do not produce consistent results look at test logic.
+            # Not necessarily an accurate test as one field could have total fielddays less
+            # than totalgamedays; more important test is to compare aagregate fieldday
+            # availability versus required totalgamedays
             if self.tourn_type == 'RR' and totalfielddays < totalgamedays:
                 raise FieldTimeAvailabilityError("Note enough total fielddays %d to cover required totalgamedays" % (totalfielddays,),
                     totalgamedays_list)
