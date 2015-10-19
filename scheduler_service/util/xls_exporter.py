@@ -71,7 +71,7 @@ class XLS_Exporter:
 
     def generate_elimdivxls(self, genxls_id):
         headers = ['Match ID', 'Game Date', 'Day', 'Time', 'Division', 'Home',
-            'Visitor', 'Venue', '', 'Comment']
+            'Visitor', 'Venue', 'Round', 'Comment']
         datasheet_list = list()
         for divinfo in self.divinfo_list:
             div_id = divinfo[genxls_id]
@@ -86,9 +86,9 @@ class XLS_Exporter:
             tabformat_list = [(y['match_id'], x['game_date'],
                 parser.parse(x['game_date']).strftime("%a"),
                 datetime.strptime(x['start_time'], "%H:%M").strftime("%I:%M%p"),
-                div_str, y['home'], y['away'],
+                div_str, self.team_map(div_id, y['home']), self.team_map(div_id, y['away']),
                 self.fieldinfo_list[self.findexerGet(y['venue'])]['field_name'],
-                '', y['comment']) for x in match_list for y in x['gameday_data']]
+                y['around'], y['comment']) for x in match_list for y in x['gameday_data']]
             for tabformat in tabformat_list:
                 datasheet.append(tabformat)
             datasheet_list.append(datasheet)
@@ -99,6 +99,17 @@ class XLS_Exporter:
             f.write(book.xls)
         f.close()
         return [{'path':bookname_xls_relpath}]
+
+    def team_map(self, div_id, team_str):
+        team_map = {7: [3, 6, 9, 11, 1, 2, 7, 8, 12, 5, 13, 14, 10, 4],
+                    8: [5, 9, 3, 7, 6, 10, 2, 4, 1, 8],
+                    9: [1, 2, 7, 3, 6, 5, 4],
+                    10: [1, 6, 3, 5, 4, 2, 7]}
+        if div_id in [7, 8, 9, 10] and team_str[0] == 'S':
+            seed = int(team_str.lstrip('S'))
+            return str(team_map[div_id][seed-1]) + ' / ' + team_str
+        else:
+            return team_str
 
     def generate_fieldxls(self):
         headers = ['Game Date', 'Day', 'Time', 'Division', 'Home',

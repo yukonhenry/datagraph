@@ -108,6 +108,26 @@ class TournSchedMaster(object):
         elif self.tourn_type == 'elimination':
             return self.elimGenerate()
 
+    def get2015_U10_team_ids(self, tourndiv_id, bracket_id):
+        bracket_list = [
+            {'tourndiv_id': 2,
+             'team_ids': [{'team_id_list': [7,9,11,19], 'bracket_id': 2},
+                          {'team_id_list': [13,14,6,1], 'bracket_id': 3},
+                          {'team_id_list': [3,4,18,17], 'bracket_id': 4},
+                          {'team_id_list': [15,16,20,8], 'bracket_id': 5},
+                          {'team_id_list': [5,10,12,2], 'bracket_id': 1}]},
+            {'tourndiv_id': 1,
+             'team_ids': [{'team_id_list': [2,5,9,13,17,21], 'bracket_id': 6},
+                          {'team_id_list': [1,4,10,15], 'bracket_id': 5},
+                          {'team_id_list': [6,7,14,22], 'bracket_id': 4},
+                          {'team_id_list': [3,8,19,26], 'bracket_id': 3},
+                          {'team_id_list': [12,25,18,23], 'bracket_id': 2},
+                          {'team_id_list': [16,11,20,24], 'bracket_id': 1}]}]
+        tindexerGet = lambda x: dict((p['tourndiv_id'],i) for i,p in enumerate(bracket_list)).get(x)
+        team_ids = bracket_list[tindexerGet(tourndiv_id)]['team_ids']
+        bindexerGet = lambda x: dict((p['bracket_id'],i) for i,p in enumerate(team_ids)).get(x)
+        return team_ids[bindexerGet(bracket_id)]['team_id_list']
+
     def prepGenerate(self):
         totalmatch_list = list()
         for divinfo in self.divinfo_list:
@@ -128,7 +148,10 @@ class TournSchedMaster(object):
                 else:
                     bracket_size = totalteams - index
                 running_index += bracket_size
-                team_id_list = team_list[index:running_index]
+                if tourndiv_id <= 2:
+                    team_id_list = self.get2015_U10_team_ids(tourndiv_id, bracket_id)
+                else:
+                    team_id_list = team_list[index:running_index]
                 if bracket_size != len(team_id_list):
                      raise CodeLogicError('tournschedmaster:bracketsze mismatch div %d bracketsize %d team_id_list %s' % (tourndiv_id, bracket_size, team_id_list))
                 # calculate virtual number of game days required as parameter for
@@ -211,7 +234,7 @@ class TournSchedMaster(object):
                         'next_w_id':'W'+str(match_id_count+x+1),
                         'next_l_id':'L'+str(match_id_count+x+1),
                         'match_id':match_id_count+x+1,
-                        'comment':"", 'round':'Elim'} for x in range(numgames)
+                        'comment':"", 'round':btype + str(round_id)} for x in range(numgames)
                     ]
                 }
                 logging.debug("elimsched:gen: div %d round %d",
@@ -259,7 +282,7 @@ class TournSchedMaster(object):
                         'div_id':div_id,
                         'match_id':match_id_count+1,
                         'round': 'Champ',
-                        'comment':'Championship Game ('+rteam+' secures 1st place w tie)'}]}
+                        'comment':'Championship Game (1st Winner bracket vs 1st place Loser/Repcharge bracket'}]}
                         match_list.append(rmatch_dict)
                         match_id_count += 1
             else:
@@ -452,7 +475,7 @@ class TournSchedMaster(object):
                 'next_w_id':'W'+str(match_id_count+x+1),
                 'next_l_id':'L'+str(match_id_count+x+1),
                 'match_id':match_id_count+x+1,
-                'comment':"", 'round':'Elim'} for x in range(numgames)]}
+                'comment':"", 'round':btype + str(cround_id)} for x in range(numgames)]}
             logging.debug("elimsched:createConsole&&&&&&&&&&&&&&&&")
             logging.debug("elimsched:createConsole: Consolation div %d round %d",
                           div_id, cround_id)

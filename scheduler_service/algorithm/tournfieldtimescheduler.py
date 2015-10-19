@@ -15,6 +15,8 @@ from pprint import pprint
 from random import shuffle
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id fieldday_id slot_index')
+_SlotStatusListLength = namedtuple('SlotStatusListLength', 'sstatus_list length')
+
 time_format_CONST = '%H:%M'
 _absolute_earliest_time = parser.parse('05:00').time()
 _absolute_earliest_date = parser.parse('01/01/2010').date()
@@ -27,8 +29,9 @@ _min_timegap = timedelta(0,0,0,0,160) # in minutes
 # (later than necessary date), then define _force_absround_to_fieldday_list,
 # with a list-implied mapping from round# (list index+1) to fieldday_id
 # Eventually UI support will be required.
-#_force_absround_to_fieldday_list = [{'div_id':1, 'fieldday_map':[1,2,2]}]
-#_findexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_force_absround_to_fieldday_list)).get(x)
+_force_absround_to_fieldday_list = [{'div_id':7, 'fieldday_map':[1,2,2,2,2,2,2]},
+                                    {'div_id':8, 'fieldday_map':[1,1,3,3,3,3,3]}]
+_findexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(_force_absround_to_fieldday_list)).get(x)
 class TournamentFieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         tourn_type='RR'):
@@ -212,7 +215,10 @@ class TournamentFieldTimeScheduleGenerator:
             connecteddiv_match_list = [y for x in connected_div_list
                 for y in totalmatch_list[tmindexerGet(x)]['divmatch_list']]
             sorted_match_list = sorted(connecteddiv_match_list, key=itemgetter('absround_id', 'btype'))
-            grouped_match_list = [{'absround_id':arkey,'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id'], 'comment':y['comment'], 'round':y['round']} for y in x['match_list']] for x in aritems]} for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
+            grouped_match_list = [{'absround_id':arkey,
+                                   'match_list':[[{'home':y['home'], 'away':y['away'], 'div_id':y['div_id'], 'match_id':y['match_id'],
+                                                   'comment':y['comment'], 'round':y['round']} for y in x['match_list']] for x in aritems]}
+                                  for arkey, aritems in groupby(sorted_match_list,key=itemgetter('absround_id'))]
             for x in grouped_match_list:
                 logging.debug("elimftsched:gen: grouped elem %s", x)
 
@@ -254,6 +260,7 @@ class TournamentFieldTimeScheduleGenerator:
                     # group them according to date
                     datesortedfield_list = self.datesort_fields(mindate_tuple,
                         field_list)
+                    logging.debug("next mindatetime=%s datesortedfield_list=%s" % (nextmin_datetime, datesortedfield_list))
                     #current_fieldday_id = search_tuple[0]
                     #current_start = search_tuple[1]
                     # start time calc needs to be done here as start times for fields may change based on gameday
@@ -294,7 +301,7 @@ class TournamentFieldTimeScheduleGenerator:
                             away_id = teams['away']
                             match_id = teams['match_id']
                             comment = teams['comment']
-                            around = teams['round']
+                            around = teams['round'] # round is a function so call around
                             div = self.divinfo_list[self.dindexerGet(div_id)]
                             self.dbinterface.insertElimGameData(age=div['div_age'],
                                 gen=div['div_gen'], fieldday_id=fieldday_id,
@@ -344,37 +351,29 @@ class TournamentFieldTimeScheduleGenerator:
                 raise FieldTimeAvailabilityError("Note enough total fielddays %d to cover required totalgamedays" % (totalfielddays,),
                     totalgamedays_list)
                 return None
-            # leave gamestart and end_time as datetime objects as time objects do
-            # not support addition/subtraction with timedelta objects
-            game_start_dt = parser.parse(f['start_time'])
-            end_dt = parser.parse(f['end_time'])
-            # slotstatus_list has a list of statuses, one for each gameslot
-            sstatus_list = []
-            while game_start_dt + gameinterval <= end_dt:
-                # for above, correct statement should be adding pure gametime only
-                sstatus_list.append({'start_time':game_start_dt, 'isgame':False})
-                game_start_dt += gameinterval
-            sstatus_len = len(sstatus_list)
+            default_start_time = parser.parse(f['start_time'])
+            default_end_time = parser.parse(f['end_time'])
             slotstatus_list = []
             for fieldday_id in range(1, totalfielddays+1):
                 calendarmap = calendarmap_list[calendarmap_indexerGet(fieldday_id)]
                 game_date = calendarmap['date']
                 slotstatus_dict = {'fieldday_id':fieldday_id, 'game_date':game_date}
+                if 'blocktime_list' in calendarmap:
+                    blocktime_list = calendarmap['blocktime_list']
+                else:
+                    blocktime_list = None
                 if 'start_time' in calendarmap:
                     # start_time in calendarmap indicates we have a specific start/
                     # endtime for that date (and field)
                     start_time = parser.parse(calendarmap['start_time'])
                     end_time = parser.parse(calendarmap['end_time'])
-                    lstatus_list = []
-                    while start_time + gameinterval <= end_time:
-                        lstatus_list.append({'start_time':start_time,
-                            'isgame':False})
-                        start_time += gameinterval
-                    slotstatus_dict['sstatus_list'] = lstatus_list
-                    slotstatus_dict['slotsperday'] = len(lstatus_list)
                 else:
-                    slotstatus_dict['sstatus_list'] = deepcopy(sstatus_list)
-                    slotstatus_dict['slotsperday'] = sstatus_len
+                    start_time = default_start_time
+                    end_time = default_end_time
+                slotstatus_tuple = self.create_slot_status_list(start_time, end_time,
+                                                                gameinterval, blocktime_list)
+                slotstatus_dict['sstatus_list'] = slotstatus_tuple.sstatus_list
+                slotstatus_dict['slotsperday'] = slotstatus_tuple.length
                 slotstatus_list.append(slotstatus_dict)
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
             fieldstatus_list.append({'field_id':f['field_id'],
@@ -382,6 +381,33 @@ class TournamentFieldTimeScheduleGenerator:
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldstatus_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldstatus_list, fstatus_indexerGet)
+
+    def create_slot_status_list(self, start_time, end_time, gameinterval, blocktime_list=None):
+        game_start_dt = start_time
+        end_dt = end_time
+        sstatus_list = []
+        while game_start_dt + gameinterval <= end_dt:
+            # for above, correct statement should be adding pure gametime only
+            if blocktime_list:
+                temp_game_end_dt = game_start_dt + gameinterval - timedelta(0, 0, 0, 0, 30)
+                game_start_dt = self.avoid_blocktime(game_start_dt, temp_game_end_dt, blocktime_list)
+            sstatus_list.append({'start_time':game_start_dt, 'isgame':False})
+            game_start_dt += gameinterval
+        return _SlotStatusListLength(sstatus_list, len(sstatus_list))
+
+    def avoid_blocktime(self, start_dt, end_dt, blocktime_list):
+        for blocktime in blocktime_list:
+            blockstart_dt = parser.parse(blocktime['start_time'])
+            blockend_dt = parser.parse(blocktime['end_time'])
+            if (start_dt >= blockstart_dt and start_dt < blockend_dt) or\
+               (end_dt >= blockstart_dt and end_dt < blockend_dt):
+                new_start_dt = blockend_dt
+                break
+            else:
+                continue
+        else:
+            new_start_dt = start_dt
+        return new_start_dt
 
     def initTeamTimeGap_list(self, div_list):
         for div_id in div_list:
@@ -494,8 +520,8 @@ class TournamentFieldTimeScheduleGenerator:
                     next_date = nextmin_datetime.date() + timedelta(days=1)
                     next_start = _absolute_earliest_time
                     nextmin_datetime = datetime.combine(next_date, next_start)
-            if elimination_type == 'S' and "_force_absround_to_fieldday_list" in globals():
-                # for single elimination tournament, if there is a force-fieldday
+            if elimination_type == 'C' and "_force_absround_to_fieldday_list" in globals():
+                # for consolation (or any type) tournament, if there is a force-fieldday
                 # map defined for the division:
                 findex = _findexerGet(div_id)
                 if findex is not None:
@@ -531,7 +557,8 @@ class TournamentFieldTimeScheduleGenerator:
             # next fieldday index is minfieldday_id-1 + 1 = minfieldday_id
             nextfieldday_index = minfieldday_id
             for slotstatus_dict in slotstatus_list[nextfieldday_index:]:
-                mindate_dict = {'field_id':field_id, 'fieldday_id':slotstatus_dict['fieldday_id'], 'date':slotstatus_dict['game_date']}
+                mindate_dict = {'field_id':field_id, 'fieldday_id':slotstatus_dict['fieldday_id'],
+                                'date':slotstatus_dict['game_date']}
                 mindate_list.append(mindate_dict)
         # sort according to date
         mindexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(mindate_list)).get(x)
@@ -580,6 +607,8 @@ class TournamentFieldTimeScheduleGenerator:
                 # if the date rolls over, target_start_time is at the earliest time
                 target_start_time = _absolute_earliest_time
         slot_list.sort(key=itemgetter('game_date', 'start_time', 'field_id'))
+        if not slot_list:
+            logging.warning("Cannot find empty field slot past target time %s" % (target_start_time,))
         pprint(slot_list)
         return slot_list[0]
 

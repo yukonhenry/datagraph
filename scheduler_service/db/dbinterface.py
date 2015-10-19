@@ -129,13 +129,6 @@ class MongoDBInterface:
                     venue_CONST:venue, home_CONST:home, away_CONST:away}
         docID = self.collection.insert(document)
 
-    def insertElimGameData(self, age, gen, gameday_id, start_time_str, venue, home, away, match_id, comment, around):
-        document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
-                    start_time_CONST:start_time_str,
-                    venue_CONST:venue, home_CONST:home, away_CONST:away,
-                    match_id_CONST:match_id, comment_CONST:comment, round_CONST:around}
-        docID = self.collection.insert(document)
-
     def updateInfoDocument(self, doc_list, set_obj, id_str):
         # note $set operator only updates specified fields, not the entire document
         # change doc structure to be similar to the fielddb structure - separate
@@ -261,7 +254,7 @@ class MongoDBInterface:
             USER_ID:self.userid_name, SCHED_CAT:self.sched_cat}},
             {"$group":{'_id':{'GAME_DATE_ORD':"$GAME_DATE_ORD",
             'START_TIME':"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE",
-            'match_id':"$MATCH_ID", 'comment':"$COMMENT", 'round':"$ROUND"}}}},{"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
+            'match_id':"$MATCH_ID", 'comment':"$COMMENT", 'around':"$AROUND"}}}},{"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
         game_list = []
         for result in result_list['result']:
             #print 'result',result
