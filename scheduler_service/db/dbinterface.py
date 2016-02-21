@@ -82,7 +82,7 @@ class MongoDBInterface:
     def insertdoc(self, document):
         document.update({'SCHED_TYPE':self.sched_type, USER_ID:self.userid_name,
             SCHED_CAT:self.sched_cat})
-        docID = self.collection.insert(document)
+        docID = self.collection.insert_one(document)
         return docID
 
     def updatedoc(self, query_obj, operator, operator_obj, upsert_flag=False):
@@ -234,7 +234,7 @@ class MongoDBInterface:
             'START_TIME':"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE"}}}},
             {"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
         game_list = []
-        for result in result_list['result']:
+        for result in result_list:
             #print 'result',result
             sortkeys = result['_id']
             #game_date = sortkeys['GAME_DATE']
@@ -256,7 +256,7 @@ class MongoDBInterface:
             'START_TIME':"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{'home':"$HOME", 'away':"$AWAY", 'venue':"$VENUE",
             'match_id':"$MATCH_ID", 'comment':"$COMMENT", 'around':"$AROUND"}}}},{"$sort":{'_id.GAME_DATE_ORD':1, '_id.START_TIME':1}}])
         game_list = []
-        for result in result_list['result']:
+        for result in result_list:
             #print 'result',result
             sortkeys = result['_id']
             game_date = date.fromordinal(sortkeys['GAME_DATE_ORD']).strftime(date_format_CONST)
@@ -285,7 +285,7 @@ class MongoDBInterface:
                 start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE"}}}},
                 {"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
-        for result in result_list['result']:
+        for result in result_list:
             #print 'result',result
             sortkeys = result['_id']
             gameday_id = sortkeys[gameday_id_CONST]
@@ -304,7 +304,7 @@ class MongoDBInterface:
             result_list = self.collection.aggregate([{"$match":{age_CONST:age,gen_CONST:gender}},
                 {"$group":{'_id':{gameday_id_CONST:"$GAMEDAY_ID",start_time_CONST:"$START_TIME"},'count':{"$sum":1},gameday_data_CONST:{"$push":{home_CONST:"$HOME", away_CONST:"$AWAY", venue_CONST:"$VENUE", match_id_CONST:"$MATCH_ID", comment_CONST:"$COMMENT", round_CONST:"$ROUND"}}}},{"$sort":{'_id.GAMEDAY_ID':1, '_id.START_TIME':1}}])
         game_list = []
-        for result in result_list['result']:
+        for result in result_list:
             #print 'result',result
             sortkeys = result['_id']
             gameday_id = sortkeys[gameday_id_CONST]
@@ -366,7 +366,7 @@ class MongoDBInterface:
         # 'linearly independent'
         max_totalfielddays = max(fieldinfo_list[fieldinfo_indexerGet(x)]['tfd'] for x in divfield_list)
         for fieldday_id in range(1, max_totalfielddays+1):
-            res_list = self.collection.aggregate([
+            result = self.collection.aggregate([
                 {"$match":{venue_CONST:{"$in":divfield_list},
                 fieldday_id_CONST:fieldday_id,
                 sched_type_CONST:self.sched_type, USER_ID:self.userid_name,
@@ -379,7 +379,6 @@ class MongoDBInterface:
                 'earliest':{"$first":{'data':"$data", 'time':"$_id.start_time"}},
                 'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
                 {"$project":{'_id':0, 'venue':"$_id", 'earliest':1,'latest':1}}])
-            result = res_list['result'] # there should only be one element which includes the latest and earliest team data
             earliest_home = [x['earliest']['data'][0]['home']
                              for x in result
                              if x['earliest']['data'][0]['div_age']==div_age and x['earliest']['data'][0]['div_gen']==div_gen]
@@ -437,7 +436,7 @@ class MongoDBInterface:
             # group to consist of teams (home and away), agegroup; sort based on starttime; group sorted results based on field
             # and define group output based on earliest and latest of prev sort operation (but for every field);
             # and carry along latest group operation output with team info, along with time
-            res_list = self.collection.aggregate([{"$match":{venue_CONST:{"$in":fields},
+            result = self.collection.aggregate([{"$match":{venue_CONST:{"$in":fields},
                 gameday_id_CONST:gameday_id}},
                 {"$group":{'_id':{'start_time':"$START_TIME",'venue':"$VENUE"},
                 'data':{"$push":{'home':"$HOME", 'away':"$AWAY", 'gen':"$GEN",
@@ -448,7 +447,6 @@ class MongoDBInterface:
                 'latest':{"$last":{'data':"$data", 'time':"$_id.start_time"}}}},
                 {"$project":{'_id':0, 'venue':"$_id", 'earliest':1,'latest':1}}])
 
-            result = res_list['result'] # there should only be one element which includes the latest and earliest team data
             earliest_home = [x['earliest']['data'][0]['home']
                              for x in result
                              if x['earliest']['data'][0]['age']==age and x['earliest']['data'][0]['gen']==gender]
@@ -656,7 +654,7 @@ class MongoDBInterface:
     def drop_collection(self):
         query_obj = {"SCHED_TYPE":self.sched_type, USER_ID:self.userid_name,
         SCHED_CAT:self.sched_cat}
-        self.collection.remove(query_obj)
+        self.collection.delete_many(query_obj)
         # if no documents are left, then actually drop collection
         if not self.collection.find().limit(1).count():
             self.collection.drop()

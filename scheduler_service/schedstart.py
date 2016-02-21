@@ -1,4 +1,4 @@
-#!/home/henry/anaconda/bin/python
+#!/home/henry/anaconda2/bin/python
 # Copyright YukonTR 2013
 from bottle import route, request, run
 import sys, socket
@@ -11,7 +11,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     now = time.strftime("%c")
     logging.debug("Current time is %s",now)
-    logging.debug("Version: 0.0.0.17q")
+    logging.debug("Version: 0.0.0.17s")
     if socket.gethostname() == 'web380.webfaction.com':
         run(port = 31032, server = 'cherrypy')
     else:

@@ -319,7 +319,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var tpform_endtime_node = put(tpform_domnode,
 						"input[id=$]", tpform_endtime_id);
 					this.tpform_endtime_widget = new TimeTextBox({
-						value:"T09:00:00", style:'width:110px'
+						value:"T16:00:00", style:'width:110px'
 					}, tpform_endtime_node);
 					put(tpform_domnode,"br, br");
 					// create buttons
@@ -462,77 +462,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					lang.hitch(this, this.restore_delta, field_id));
 				this.tpform_savebtn_widget.set("onClick",
 					lang.hitch(this, this.send_delta, field_id));
-				/*
-				// create drop down to select (either) field
-				if (this.fieldselect_reg) {
-
-				} else {
-					// if field select widget does not exist, create one.
-					this.fieldselect_reg = registry.byId("fieldselect_id");
-					var fieldselect_list = new Array();
-					for (var i = 1; i < this.totalrows_num+1; i++) {
-						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
-					}
-					fieldselect_list[field_index].selected = true;
-					this.fieldselect_reg.addOption(fieldselect_list);
-					// add field list for schedule duplication select drop-down
-					var dupfieldselect_list = lang.clone(fieldselect_list);
-					dupfieldselect_list.push({label:'All Fields', value:this.totalrows_num+1, selected:false});
-					this.dupfieldselect_reg = registry.byId("dupfieldselect_id");
-					this.dupfieldselect_reg.addOption(dupfieldselect_list);
-					//this.dupfieldselect_reg.startup();
-					if (this.fieldselect_handle)
-						this.fieldselect_handle.remove();
-					this.fieldselect_handle = this.fieldselect_reg.on("change",
-						lang.hitch(this, function(event) {
-							this.field_id = event;
-						})
-					);
-					this.fieldselect_reg.startup();
-					// set registers for field time parameters entry
-					this.fieldevent_reg = registry.byId("tpform_input_id");
-					this.eventdate_reg = registry.byId("tpform_date_id");
-					this.starttime_reg = registry.byId("tpform_starttime_id");
-					if (this.starttime_handle) {
-						this.starttime_handle.remove();
-					}
-					this.starttime_handle = this.starttime_reg.on("change",
-						lang.hitch(this, function (event) {
-							this.endtime_reg.set('value',
-								date.add(event, 'hour', 1));
-						}));
-					this.endtime_reg = registry.byId("tpform_endtime_id");
-					var datetimeset_reg = registry.byId("datetimeset_btn");
-					if (this.datetimeset_handle) {
-						this.datetimeset_handle.remove();
-					}
-					this.datetimeset_handle = datetimeset_reg.on("click",
-						lang.hitch(this, this.datetimeset_submit));
-					var tooltipconfig = {connectId:['tpform_input_id'],
-						label:"Enter Event Type and Name",
-						position:['below','after']};
-					this.tooltip = new Tooltip(tooltipconfig);
-					this.eventdate_reg.set('value', this.today);
-					this.eventdate_reg.startup();
-					// setup titlepane widget to generate event when it opens
-					var duptitlepane_reg = registry.byId("duptitlepane_id");
-					duptitlepane_reg.on("show", function(event){
-						console.log("dupfield");
-					});
-					this.calendar_store = new Observable(new Memory({data:new Array()}));
-					this.calendar = new Calendar({
-						dateInterval: "day",
-						date: this.today,
-						store: this.calendar_store,
-						style: "position:inherit;width:600px;height:600px",
-						cssClassFunc: function(item) {
-							return item.calendar;
-						}
-					}, "calendarGrid_id");
-					this.calendar.startup();
-					this.calendar.set("createOnGridClick", true);
-					this.calendar.set("createItemFunc", this.createItem);
-				} */
 			},
 			populate_calendar_store: function(calendarmap_list, field_id, fieldevent_str) {
 				// populate calendar_store with entries from calendarmap_list
@@ -558,68 +487,6 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			createItem: function(view, date, event) {
 				console.log('ok item');
-			},
-			// handler for datetime update btn in left title pane
-			datetimeset_submit: function(event) {
-				var fieldevent_str = this.fieldevent_reg.get("value");
-				// get respective Date/Time strings
-				var eventdate_str = this.eventdate_reg.get("value").toDateString();
-				var starttime_str = this.starttime_reg.get("value").toTimeString();
-				var endtime_str = this.endtime_reg.get("value").toTimeString();
-				var start_datetime_obj = new Date(eventdate_str+' '+
-					starttime_str);
-				var end_datetime_obj = new Date(eventdate_str+' '+
-					endtime_str);
-				if (date.compare(end_datetime_obj, start_datetime_obj) > 0) {
-					// after checking end date is later than start time
-					// using the store query+filter call below, attempt to find
-					// time-overlapped events on the same field.
-					// ref https://www.sitepen.com/blog/2011/02/15/dojo-object-stores/
-					// on making complex queries
-					var overlapped_list = this.calendar_store.query(lang.hitch(this, function(object){
-						return date.compare(start_datetime_obj,
-							object.starttime, "date") == 0 &&
-							date.compare(end_datetime_obj,
-							object.endtime, "date") == 0 &&
-							(object.field_id == this.field_id);
-					})).filter(function(object) {
-						//ref http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
-						// http://stackoverflow.com/questions/13387490/determining-if-two-time-ranges-overlap-at-any-point
-						// overlap happens when
-						// (StartA <= EndB) and (EndA >= StartB)
-						// 'A'suffix comes from start_datetime_obj and end_datetime_obj function variables
-						// 'B'suffix is from object
-						// if object field_id is different than selected field id
-						// then no need to worry about time overlap
-						return (date.compare(start_datetime_obj,
-							object.endtime,"time") < 0 &&
-							date.compare(end_datetime_obj, object.starttime,
-								"time") > 0);
-					})
-					if (!overlapped_list.length) {
-						// no time overlap detected
-						var data_obj = {id:this.calendar_id,
-							// tried to put in newline to break the string below,
-							// but it appears that text in calendar item doesn't
-							// accept newline char
-							// note we can also use this.field_id in lieu of passed
-							// paramemter row_id
-							// calendar key needed to cssClassFunc to retrieve style
-							// for Calendar element
-							fieldevent_str:fieldevent_str,
-							summary:"Field"+this.field_id+':'+fieldevent_str+' '+
-								"Block:"+this.calendar_id,
-							starttime:start_datetime_obj, endtime:end_datetime_obj,
-							field_id:this.field_id,
-							calendar:'Calendar'+this.field_id};
-						this.calendar_store.add(data_obj);
-						this.calendar_id++;
-					} else {
-						alert("time overlap, reselect time, or change event");
-					}
-				} else {
-					alert("end time must be later than start timse");
-				}
 			},
 			process_clickedCalendarItem: function(event) {
 				var item = event.item;
