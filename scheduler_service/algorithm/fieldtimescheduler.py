@@ -665,7 +665,7 @@ class FieldTimeScheduleGenerator:
             # get equivalent datetime object
             nextmin_datetime = datetime.combine(maxgap_gameday, next_start)
             # nextmax_datetime is later calculated once the field list is known
-            diffgap_days_td = timedelta(days=7) #give more than two weeks
+            diffgap_days_td = timedelta(days=7) #default one week, may set larger
         else:
             maxgap_datetime = datetime.combine(maxgap_gameday, maxgap_end)
             # calculate earliest datetime that satisfies the minimum timegap
