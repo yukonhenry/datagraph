@@ -1200,8 +1200,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
         		// http://dojotoolkit.org/reference-guide/1.9/dojo/date.html
         		// add one to include the end date
         		var diffdays_num = date.difference(start_date, end_date)+1;
-        		var diffweeks_num = date.difference(start_date, end_date,
-        			'week');
+        		// don't use date.difference with 'week' option as weeks are
+        		// rounded
+        		var diffweeks_num = Math.floor(diffdays_num / 7)
         		// get current configuration for days-of-week and it's length
         		// i.e. number of days in week
         		// Note dayweek_list might not be sorted correctly

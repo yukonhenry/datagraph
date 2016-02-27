@@ -130,13 +130,8 @@ class SchedMaster(object):
             cdbtuple = cdbInterface.readDBraw()
             if cdbtuple.config_status == 1:
                 conflictinfo_list = cdbtuple.list
-                #cindexerGet = lambda x: dict((p['conflict_id'],i) for i,p in enumerate(conflictinfo_list)).get(x)
-                #conflictinfo_tuple = _List_Indexer(conflictinfo_list, cindexerGet)
             else:
                 conflictinfo_list = None
-                #conflictinfo_tuple = None
-                # raise error as client should only be displaying in select widget
-                # conflict lists that have config status complete
                 raise CodeLogicError("schedmaster:init: conflict config not complete=%s" % (conflictcol_name,))
         else:
             conflictinfo_list = None

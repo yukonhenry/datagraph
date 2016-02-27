@@ -300,9 +300,12 @@ class FieldTimeScheduleGenerator:
                     # games (set for div_id in UI)
                     mingap_days = self.divinfo_list[self.divinfo_indexerGet(div_id)]['mingap_days']
                     maxgap_days = self.divinfo_list[self.divinfo_indexerGet(div_id)]['maxgap_days']
-                    diffgap_days_td = timedelta(maxgap_days - mingap_days)
-                    nextmin_datetime = self.getcandidate_daytime(div_id, home_id,
-                        away_id, latest_endtime-gameinterval, mingap_days)
+                    nextmin_datetime_diffgap_days_td = self.getcandidate_daytime(div_id, home_id,
+                        away_id, latest_endtime-gameinterval, mingap_days, maxgap_days)
+
+                    nextmin_datetime = nextmin_datetime_diffgap_days_td['nextmin_datetime']
+                    diffgap_days_td = nextmin_datetime_diffgap_days_td['diffgap_days_td']
+
                     # get full list of fieldday_id, calendardates that correspond
                     # to min and max nextmin/nextmax datestimes that will bound the
                     # search for fields during current round
@@ -636,7 +639,7 @@ class FieldTimeScheduleGenerator:
             teamgap_dict['last_endtime'] = endtime.time()
         return True
 
-    def getcandidate_daytime(self, div_id, home, away, latest_starttime, mingap_days):
+    def getcandidate_daytime(self, div_id, home, away, latest_starttime, mingap_days, maxgap_days):
         ''' get next earliest potential calendar date and time to schedule a game.
         Satisfies gaptime requirements.  Note calculations are based on raw
         calendar dates; Actual scheduling dates based on real field availability is
@@ -662,6 +665,7 @@ class FieldTimeScheduleGenerator:
             # get equivalent datetime object
             nextmin_datetime = datetime.combine(maxgap_gameday, next_start)
             # nextmax_datetime is later calculated once the field list is known
+            diffgap_days_td = timedelta(days=7) #give more than two weeks
         else:
             maxgap_datetime = datetime.combine(maxgap_gameday, maxgap_end)
             # calculate earliest datetime that satisfies the minimum timegap
@@ -674,13 +678,14 @@ class FieldTimeScheduleGenerator:
                 next_gameday = nextmin_datetime.date() + timedelta(days=1)
                 next_start = _absolute_earliest_time
                 nextmin_datetime = datetime.combine(next_gameday, next_start)
+            diffgap_days_td = timedelta(days=(maxgap_days - mingap_days))
             # get the latest allowable date/time to have the next scheduled game
             # we have to set a max so that the algorithm does not indefinitely look
             # for dates to schedule a game; if the max is reached and no game can be
             # scheduled, then there is field resource problem.
             # CHANGE: nextmax_datetime is calculated only After a real fieldday
             # date is found out
-        return nextmin_datetime
+        return {'diffgap_days_td': diffgap_days_td, 'nextmin_datetime': nextmin_datetime }
 
     def datesort_fields(self, minmaxdate_list, minmaxdate_indexerGet, field_list):
         ''' sort and group fields by calendar date; sort list by calendar date
@@ -1318,8 +1323,8 @@ class FieldTimeScheduleGenerator:
                 # check if there are enough gamedays during the week
                 if dayweek_set_len < div_numgdaysperweek:
                     logging.error("Not enough gamedays in week for %d" % (div_id,))
-                    raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough gamedays in week, need %d days, but only %d available" % (div_numgdaysperweek, dayweek_set_len),
-                        div_id)
+                    raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough gamedays in week, need %d days, but only %d available" % 
+                        (div_numgdaysperweek, dayweek_set_len), div_id)
                     break
                 # check if there are enough totalfielddays to cover the total
                 # gamedays required for each division
@@ -1338,7 +1343,8 @@ class FieldTimeScheduleGenerator:
                 available_slots = sum(self.fieldstatus_list[self.fstatus_indexerGet(x)]['slotsperday']*self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['tfd'] for x in field_id_set)
                 if available_slots < required_slots:
                     logging.error("Not enough total field slots to cover %d" % (div_id,))
-                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available" % (required_slots,available_slots), div_id)
+                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available" % 
+                        (required_slots, available_slots), div_id)
                     break
                 else:
                     # do the next check: affinity fields.  See if affinity field

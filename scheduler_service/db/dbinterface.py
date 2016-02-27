@@ -134,14 +134,14 @@ class MongoDBInterface:
         # change doc structure to be similar to the fielddb structure - separate
         # doc for each div_id, instead of putting it all as subdocuments under
         # DOC_LIST
-        self.collection.update({sched_type_CONST:self.sched_type,
+        # remove existing config documents for the same doc type and id
+        self.collection.delete_many({sched_type_CONST:self.sched_type,
+            USER_ID:self.userid_name, SCHED_CAT:self.sched_cat,
+            id_str:{"$exists":True}})
+        self.collection.update_one({sched_type_CONST:self.sched_type,
             sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name,
             SCHED_CAT:self.sched_cat},
             {"$set": set_obj}, upsert=True)
-        # remove existing config documents for the same doc type and id
-        self.collection.remove({sched_type_CONST:self.sched_type,
-            USER_ID:self.userid_name, SCHED_CAT:self.sched_cat,
-            id_str:{"$exists":True}})
         for doc in doc_list:
             # put fieldinfo in separate mongo documents
             # each doc should have a sched_type field

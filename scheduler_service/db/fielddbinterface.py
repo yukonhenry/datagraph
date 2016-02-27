@@ -22,7 +22,6 @@ start_date_CONST = 'START_DATE'
 end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
-TFD = 'TFD'
 date_format_CONST = "%m/%d/%Y"
 ''' some acronyms used:
 pr - primaryuse_str
