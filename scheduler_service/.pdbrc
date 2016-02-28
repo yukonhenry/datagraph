@@ -17,7 +17,7 @@
 #b elimfieldtimescheduler.py:141, div_id==5 and home=='S2'
 #b elimfieldtimescheduler.py:262, div_id==5 and home=='L133' and away=='L131'
 #b algorithm/tournfieldtimescheduler.py:581, div_id==3 and home=='S4' and away=='S5'
-b algorithm/fieldtimescheduler.py:1343
+b algorithm/fieldtimescheduler.py:1314
 #b tournschedmaster.py:490
 #b algorithm/tournschedmaster.py:536
 #b fielddbinterface.py:51

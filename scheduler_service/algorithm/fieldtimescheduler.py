@@ -1247,15 +1247,6 @@ class FieldTimeScheduleGenerator:
                 sstatus_list.append({'start_time':game_start_dt, 'isgame':False})
                 game_start_dt += gameinterval
             sstatus_len = len(sstatus_list)
-            # add round_id, assumes i is 0-indexed, and round_id is 1-indexed
-            # when assigning fieldslots, round_id from the match generator should
-            # match up with the round_id
-            '''
-            slotstatus_list = [{'fieldday_id':i,
-                'game_date':calendarmap_list[calendarmap_indexerGet(i)]['date'],
-                'sstatus_list':deepcopy(sstatus_list)}
-                for i in range(1,totalfielddays+1)]
-            '''
             slotstatus_list = []
             for fieldday_id in range(1, totalfielddays+1):
                 calendarmap = calendarmap_list[calendarmap_indexerGet(fieldday_id)]
@@ -1311,7 +1302,11 @@ class FieldTimeScheduleGenerator:
                 div_totalgamedays = divinfo['totalgamedays']
                 totalmatch = totalmatch_list[totalmatch_indexerGet(div_id)]
                 # for comparison criteria c) compute total number of required slots
-                required_slots += totalmatch['gameslots_perrnd_perdiv']*max(totalmatch['numgames_perteam_list'])
+                double_numgames_in_divsion = sum(totalmatch['numgames_perteam_list'])
+                if double_numgames_in_divsion % 2:
+                    raise FieldAvailabilityError(div_id)
+                required_slots += double_numgames_in_divsion / 2
+                # required_slots += totalmatch['gameslots_perrnd_perdiv']*max(totalmatch['numgames_perteam_list'])
                 # find # days per week available from fields attached to div
                 dayweek_set = set()
                 totalfielddays_list = []
