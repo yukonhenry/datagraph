@@ -665,7 +665,7 @@ class FieldTimeScheduleGenerator:
             # get equivalent datetime object
             nextmin_datetime = datetime.combine(maxgap_gameday, next_start)
             # nextmax_datetime is later calculated once the field list is known
-            diffgap_days_td = timedelta(days=7) #default one week, may set larger
+            diffgap_days_td = timedelta(days=14) #default one week, may set larger
         else:
             maxgap_datetime = datetime.combine(maxgap_gameday, maxgap_end)
             # calculate earliest datetime that satisfies the minimum timegap
@@ -911,7 +911,6 @@ class FieldTimeScheduleGenerator:
                         # search through each field for the divset to 1)find if team is already scheduled in a desired slot; or
                         # 2) if not, find the list of matches that the team can swap with during that day
                         fstatus = self.fieldstatus_list[self.fstatus_indexerGet(f)]
-                        #fslots_num = fstatus['slotsperday']
                         fsstatus_list =  fstatus['slotstatus_list'][cmapfieldday_id-1]['sstatus_list']
                         # getting len of current fsstatus_list more accurate
                         # than using slotsperday value
@@ -1268,11 +1267,14 @@ class FieldTimeScheduleGenerator:
                 slotstatus_list.append(slotstatus_dict)
             # ref http://stackoverflow.com/questions/4260280/python-if-else-in-list-comprehension for use of if-else in list comprehension
             fieldstatus_list.append({'field_id':f['field_id'],
-                'slotstatus_list':slotstatus_list,
-                'slotsperday':sstatus_len})
+                'slotstatus_list':slotstatus_list})
         fstatus_indexerGet = lambda x: dict((p['field_id'],i) for i,p in enumerate(fieldstatus_list)).get(x)
         List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
         return List_Indexer(fieldstatus_list, fstatus_indexerGet)
+
+    def get_total_number_slots(self):
+        return sum(sum(len(f['sstatus_list']) for f in fieldstatus['slotstatus_list'])
+            for fieldstatus in self.fieldstatus_list)
 
     def checkFieldAvailability(self, totalmatch_tuple):
         '''check if there is enough field availability by comparing against what is
@@ -1335,10 +1337,10 @@ class FieldTimeScheduleGenerator:
                 # gameslotsperday is defined for the field across all fielddays,
                 # whereas in reality there may be limited availability days where
                 # the number of slots may be less than the gameslotsperday value
-                available_slots = sum(self.fieldstatus_list[self.fstatus_indexerGet(x)]['slotsperday']*self.fieldinfo_list[self.fieldinfo_indexerGet(x)]['tfd'] for x in field_id_set)
+                available_slots = self.get_total_number_slots()
                 if available_slots < required_slots:
                     logging.error("Not enough total field slots to cover %d" % (div_id,))
-                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available" % 
+                    raise FieldTimeAvailabilityError("!!!Not enough total field and time slots, need %d slots, but only %d available" % 
                         (required_slots, available_slots), div_id)
                     break
                 else:
