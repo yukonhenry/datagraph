@@ -434,7 +434,8 @@ class FieldTimeScheduleGenerator:
                     computedgame_date = self.mapfieldday_datetime(field_id, fieldday_id)
                     selected_ftstatus = slotstatus_dict['sstatus_list'][slot_index]
                     selected_ftstatus['isgame'] = True
-                    selected_ftstatus['teams'] = {'div_id': div_id, home_CONST:home_id, away_CONST:away_id}
+                    selected_ftstatus['teams'] = {'div_id': div_id, home_CONST:home_id, away_CONST:away_id,
+                                                  'round_id': round_id}
                     gametime = selected_ftstatus['start_time']
                     if game_date != computedgame_date:
                         raise CodeLogicError("ftscheduler:generate: sstatus game_date %s does not match w computed game_date %s" % (game_date, computedgame_date))
@@ -545,42 +546,61 @@ class FieldTimeScheduleGenerator:
             multiplegame_counter_list = [{'team_id': i, 'count': 0} for i in range(1, totalteams + 1)]
             mindexerGet = lambda x: dict((p['team_id'],i)
                                          for i,p in enumerate(multiplegame_counter_list)).get(x)
-            for game_date, game_date_match_set in groupby(sched_list, key=itemgetter('game_date')):
+            round_game_date_list = []
+            for round_id, round_game_date_match_set in groupby(sched_list, key=itemgetter('round_id')):
+                round_game_date_match_list = list(round_game_date_match_set)
+                round_game_date_list.append({'round_id': round_id,
+                                             'game_date_list': [x['game_date'] for x in round_game_date_match_list]})
+                min_fieldday_id = min(round_game_date_match_list, key=itemgetter('fieldday_id'))['fieldday_id']
                 byeteam_id = byeteam_iter.next()['byeteam']
                 cost_list = []
                 cindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(cost_list)).get(x)
-                for slot_index, match_set in groupby(game_date_match_set, key=itemgetter('slot_index')):
-                    for match in match_set:
-                        for tid in ['home_id', 'away_id']:
-                            team_id = match[tid]
-                            if team_id != byeteam_id:
-                                cindex = cindexerGet(team_id)
-                                team_count = multiplegame_counter_list[mindexerGet(team_id)]['count']
-                                incremental_cost = self.oddnum_extramatch_cost(team_count, slot_index)
-                                if cindex is not None:
-                                    cost_list[cindex]['cost'] += incremental_cost
-                                    if slot_index < cost_list[cindex]['slot_index']:
-                                        cost_list[cindex]['slot_index'] = slot_index
-                                else:
-                                    cost_list.append({'team_id': team_id, 'cost': incremental_cost,
-                                                      'slot_index': slot_index,
-                                                      'start_time': match['start_time']})
-                min_cost_elem = min(cost_list, key=itemgetter('cost', 'slot_index', 'team_id'))
+                for game_date, game_date_match_set in groupby(round_game_date_match_list, key=itemgetter('game_date')):          
+                    for slot_index, match_set in groupby(game_date_match_set, key=itemgetter('slot_index')):
+                        for match in match_set:
+                            for tid in ['home_id', 'away_id']:
+                                team_id = match[tid]
+                                if team_id != byeteam_id:
+                                    cindex = cindexerGet(team_id)
+                                    team_count = multiplegame_counter_list[mindexerGet(team_id)]['count']
+                                    incremental_cost = self.oddnum_extramatch_cost(team_count, slot_index,
+                                                                                   match['fieldday_id'], min_fieldday_id)
+                                    if cindex is not None:
+                                        current_cost = cost_list[cindex]
+                                        current_cost['cost'] += incremental_cost
+                                        if check_later_date_time(current_cost, game_date, match['start_time']):
+                                            current_cost['game_date'] = game_date
+                                            current_cost['start_time'] = match['start_time']
+                                            current_cost['slot_index'] = slot_index
+                                    else:
+                                        cost_list.append({'team_id': team_id, 'cost': incremental_cost,
+                                                          'slot_index': slot_index, 'game_date': game_date,
+                                                          'start_time': match['start_time']})
+                min_cost_elem = min(cost_list, key=itemgetter('cost', 'game_date', 'slot_index', 'team_id'))
                 extrateam_id = min_cost_elem['team_id']
-                #extrateam_id = min([x['team_id'] for x in cost_list if x['cost'] == mincost])
                 multiplegame_counter_list[mindexerGet(extrateam_id)]['count']+=1
                 logging.debug("extra match for game date %s div %d byeteam %d extrateam %d" %
                               (game_date, div_id, byeteam_id, extrateam_id))
-                extramatch_list.append({'game_date':game_date, 'div_id':div_id,
-                                        'home_id':byeteam_id, 'away_id':extrateam_id,
-                                        'firstslot_index': min_cost_elem['slot_index'],
-                                        'firststart_time': min_cost_elem['start_time']})
-            self.place_endschedule(divfield_list, extramatch_list)
+                extramatch_list.append({'game_date': min_cost_elem['game_date'], 'div_id':div_id,
+                                        'home_id':byeteam_id, 'away_id':extrateam_id, 'round_id': round_id,
+                                        'lastslot_index': min_cost_elem['slot_index'],
+                                        'laststart_time': min_cost_elem['start_time']})
+            self.place_endschedule(divfield_list, extramatch_list, round_game_date_list)
 
-    def oddnum_extramatch_cost(self, count, slot_index):
-        return 5 * count + slot_index + 1
+    def oddnum_extramatch_cost(self, count, slot_index, fieldday_id, min_fieldday_id):
+        return 8 * count + (fieldday_id - min_fieldday_id) + slot_index + 1
 
-    def place_endschedule(self, field_list, match_list):
+    def check_later_date_time(self, reference, compare_date, compare_time):
+        if compare_date > reference['game_date']:
+            return True
+        elif compare_date < reference['game_date']:
+            return False
+        elif compare_time > reference['start_time']:
+            return True
+        else:
+            return False
+
+    def place_endschedule(self, field_list, match_list, round_game_date_list):
         ''' Find field and slot for the earliest last opening so separately
         generated extra games can be added on.  Give results for each game date'''
         # first create a map from field to slotstatus_list so we don't have to
@@ -590,46 +610,60 @@ class FieldTimeScheduleGenerator:
             slotstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list']
             slotstatus_map[field_id] = slotstatus_list
         for match in match_list:
-            nextstart = self.find_earliest_field_slot(slotstatus_map, field_list, match)
-            nextopen_field_id = nextstart['field_id']
-            fieldday_id = nextstart['fieldday_id']
-            nextopen_sstatus_list = slotstatus_map[nextopen_field_id][fieldday_id-1]['sstatus_list']
-            # MAKE sure to Increment
-            nextopen_slot_index = nextstart['slot_index']
-            nextopen_ftstatus = nextopen_sstatus_list[nextopen_slot_index]
-            nextopen_ftstatus['isgame'] = True
-            nextopen_ftstatus['teams'] = {'div_id': match['div_id'], home_CONST:match['home_id'], away_CONST:match['away_id']}
-            logging.debug("extra match div %d home %d away %d scheduled at field %d on game date %s start_time %s" %
-                (match['div_id'], match['home_id'], match['away_id'],
-                    nextopen_field_id, match['game_date'], nextopen_ftstatus['start_time']))
-
-    def find_earliest_field_slot(self, slotstatus_map, field_list, match):
-        game_date = match['game_date']
-        firststart_time = match['firststart_time']
-        mingap_start_time = firststart_time + timedelta(minutes=170)
-        nextstart_list = list()
-        for field_id in field_list:
-            slotstatus_list = slotstatus_map[field_id]
-            if not slotstatus_list:
-                continue
-            fieldday_id, computedgame_date = self.mapdatetime_fieldday(field_id, game_date, 'min')
-            sstatus_list = slotstatus_list[fieldday_id-1]['sstatus_list']
-            isgame_list = [x['isgame']  for x in sstatus_list]
-            lastslot_index = len(isgame_list)-1-isgame_list[::-1].index(True)
-            slot_index = lastslot_index + 1
-            start_time = sstatus_list[slot_index]['start_time']
-            for slot_index in range(lastslot_index + 1, len(isgame_list)):
-                start_time = sstatus_list[slot_index]['start_time']
-                if start_time >= mingap_start_time:
-                    break
+            nextstart = self.find_earliest_field_slot(slotstatus_map, field_list, match, round_game_date_list)
+            if nextstart is None:
+                logging.debug("extra match div %d home %d away %d round %d cannot find a field" %
+                              (match['div_id'], match['home_id'], match['away_id'], match['round_id']) )
             else:
-                continue
-            nextstart_list.append({'field_id':field_id, 'slot_index':slot_index,
-                                   'start_time':start_time, 'fieldday_id': fieldday_id})
-        if nextstart_list:
-            return min(nextstart_list, key=itemgetter('start_time'))
+                nextopen_field_id = nextstart['field_id']
+                fieldday_id = nextstart['fieldday_id']
+                nextopen_sstatus_list = slotstatus_map[nextopen_field_id][fieldday_id-1]['sstatus_list']
+                # MAKE sure to Increment
+                nextopen_slot_index = nextstart['slot_index']
+                nextopen_ftstatus = nextopen_sstatus_list[nextopen_slot_index]
+                nextopen_ftstatus['isgame'] = True
+                nextopen_ftstatus['teams'] = {'div_id': match['div_id'], home_CONST:match['home_id'], away_CONST:match['away_id']}
+                logging.debug("extra match div %d home %d away %d scheduled at field %d on game date %s start_time %s" %
+                    (match['div_id'], match['home_id'], match['away_id'],
+                        nextopen_field_id, match['game_date'], nextopen_ftstatus['start_time']))
+
+    def find_earliest_field_slot(self, slotstatus_map, field_list, match, round_game_date_list):
+        rindexerGet = lambda x: dict((p['round_id'],i) for i,p in enumerate(round_game_date_list)).get(x)
+        game_date_list = round_game_date_list[rindexerGet(match['round_id'])]['game_date_list']
+        game_date_list.sort()
+        start_index = game_date_list.index(match['game_date'])
+        nextstart_list = list()
+        for game_date in game_date_list[start_index:]:
+            laststart_time = match['laststart_time']
+            mingap_start_time = laststart_time + timedelta(minutes=170)
+            for field_id in field_list:
+                slotstatus_list = slotstatus_map[field_id]
+                if not slotstatus_list:
+                    continue
+                fieldday_id, computedgame_date = self.mapdatetime_fieldday(field_id, game_date, 'min')
+                sstatus_list = slotstatus_list[fieldday_id-1]['sstatus_list']
+                isgame_list = [x['isgame']  for x in sstatus_list]
+                if all(isgame_list):
+                    continue
+                elif not any(isgame_list):
+                    slot_index = 0
+                else:
+                    slot_index = isgame_list.index(False)
+                start_time = sstatus_list[slot_index]['start_time']
+                for slot_index in range(slot_index, len(isgame_list)):
+                    start_time = sstatus_list[slot_index]['start_time']
+                    if start_time >= mingap_start_time:
+                        break
+                else:
+                    continue
+                nextstart_list.append({'field_id':field_id, 'slot_index':slot_index, 'game_date': game_date,
+                                       'start_time':start_time, 'fieldday_id': fieldday_id})
+            if nextstart_list:
+                break
         else:
             return None
+        return min(nextstart_list, key=itemgetter('game_date', 'start_time'))
+
     def updatetimegap_list(self, div_id, home, away, game_date, endtime):
         ''' update self.timegap_list entries with latest scheduled games '''
         for team in (home, away):
@@ -1554,12 +1588,13 @@ class FieldTimeScheduleGenerator:
                         div_id = teams['div_id']
                         home_id = teams[home_CONST]
                         away_id = teams[away_CONST]
+                        round_id = teams['round_id']
                         match_dict = {'game_date': game_date,
                                       'start_time': start_time,
                                       'home_id': home_id,
                                       'away_id': away_id, 'field_id': field_id,
                                       'fieldday_id': fieldday_id,
-                                      'slot_index': slot_index}
+                                      'slot_index': slot_index, 'round_id': round_id}
                         index = indexerGet(div_id)
                         if index is None:
                             sched_list.append({'div_id':div_id,
