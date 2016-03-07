@@ -13,15 +13,15 @@ GAME_TEAM = 'game_team'
 large_CONST = 1e7
 
 class MatchGenerator(object):
-    def __init__(self, nt, ng, oddnumplay_mode=False, maxGamesPerTeam=10000):
+    def __init__(self, nt, ng, oddnumplay_mode=0, games_per_team=10000):
         self.numTeams = nt
-        self.numGameSlots = ng  # num gameslots per team per season
-        self.maxGamesPerTeam = maxGamesPerTeam
-        if (nt*maxGamesPerTeam % 2 == 1):
+        self.num_rounds = ng  # num gameslots per team per season
+        self.games_per_team = games_per_team
+        if (nt*games_per_team % 2 == 1):
             logging.warning("MatchGenerator: some team will need a bye!")
         # actual number of games per team (determined by counter), init to 0 to start
         # position in list is team_id-1
-        self.numgames_perteam_list = nt*[0]
+        self._numgames_perteam_list = nt*[0]
         self.bye_flag = False
         self._byeteam_list = None
         self.oddnumplay_mode = oddnumplay_mode
@@ -29,8 +29,10 @@ class MatchGenerator(object):
             # if odd number of teams
             self.eff_numTeams = self.numTeams+1
             self.bye_flag = True
-            self.gameslotsperday = (self.numTeams-1)/2
-            if oddnumplay_mode:
+            if oddnumplay_mode == 0:
+                self.gameslotsperday = (self.numTeams - 1) / 2
+            else:
+                self.gameslotsperday = (self.numTeams + 1) / 2
                 self._byeteam_list = list()
         else:
             self.eff_numTeams = self.numTeams
@@ -53,6 +55,10 @@ class MatchGenerator(object):
     def byeteam_list(self):
         return self._byeteam_list
 
+    @property
+    def numgames_perteam_list(self):
+        return self._numgames_perteam_list
+    
     def removeGraphEdgeAttribute(self, source_id, sink_id, gamecount_id):
         # delete edge from matchG graph
         edge_dict = self.matchG.get_edge_data(source_id, sink_id, default=None)
@@ -85,10 +91,10 @@ class MatchGenerator(object):
         t1_ind = team1_id - 1
         t2_ind = team2_id - 1
         # update game number (per team) counter
-        self.numgames_perteam_list[t1_ind] += 1
-        self.numgames_perteam_list[t2_ind] += 1
-        if (self.numgames_perteam_list[t1_ind] <= self.maxGamesPerTeam and
-            self.numgames_perteam_list[t2_ind] <= self.maxGamesPerTeam):
+        self._numgames_perteam_list[t1_ind] += 1
+        self._numgames_perteam_list[t2_ind] += 1
+        if (self._numgames_perteam_list[t1_ind] <= self.games_per_team and
+            self._numgames_perteam_list[t2_ind] <= self.games_per_team):
             if (self.metrics_list[t1_ind] <= self.metrics_list[t2_ind]):
                 # if team1 should be the home team
                 gamematch = {home_CONST:team1_id, away_CONST:team2_id}
@@ -101,8 +107,8 @@ class MatchGenerator(object):
                 self.metrics_list[t2_ind] += 1
             return gamematch
         else:
-            self.numgames_perteam_list[t1_ind] -= 1
-            self.numgames_perteam_list[t2_ind] -= 1
+            self._numgames_perteam_list[t1_ind] -= 1
+            self._numgames_perteam_list[t2_ind] -= 1
             return None
 
     # calculate cost function - euclidean distance between metrics_list and
@@ -285,8 +291,8 @@ class MatchGenerator(object):
         if not self.bye_flag:
             # if there are no bye games for a team, then target number of home game is half the number
             # of total games.
-            half_games = self.numGameSlots / 2
-            targethome_count = [half_games] if self.numGameSlots%2 == 0 else [half_games, half_games+1]
+            half_games = self.num_rounds / 2
+            targethome_count = [half_games] if self.num_rounds%2 == 0 else [half_games, half_games+1]
             self.targethome_count_list = self.numTeams*[targethome_count]
             #self.targethome_count_dict = {id+1:count for (id, count_list) in zip(range(self.numTeams),targethome_count) for count in count_list}
             #self.targethome_count_dict = {id+1:count for id,count_list in enumerate(self.targethome_count_list) for count in count_list }
@@ -299,12 +305,12 @@ class MatchGenerator(object):
             # each team has either the minNumByes or maxNumByes
             # total games for each team can be computed by the number of game slots
             # minus the min or max number of byes
-            minNumByes = self.numGameSlots / self.numTeams
-            maxGames = self.numGameSlots - minNumByes
+            minNumByes = self.num_rounds / self.numTeams
+            maxGames = self.num_rounds - minNumByes
             maxNumByes = minNumByes+1
-            minGames = self.numGameSlots - maxNumByes
+            minGames = self.num_rounds - maxNumByes
 
-            numTeams_minGames = self.numGameSlots % self.numTeams
+            numTeams_minGames = self.num_rounds % self.numTeams
             numTeams_maxGames = self.numTeams - numTeams_minGames
 
             mingames_list = numTeams_minGames*[minGames]
@@ -330,7 +336,9 @@ class MatchGenerator(object):
         game_count):
         ''' round robin match generation '''
         for rotation_ind in range(circle_total_pos):
-            if game_count >= self.numGameSlots:
+            if ((self.oddnumplay_mode < 2 and game_count >= self.num_rounds) or
+                (self.oddnumplay_mode == 2 and all(x >= self.games_per_team
+                                                   for x in self.numgames_perteam_list))):
                 break
             else:
                 game_count += 1
@@ -346,7 +354,7 @@ class MatchGenerator(object):
                     raise CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" %
                         (circletop_team, circlecenter_team))
             else:
-                if self.oddnumplay_mode:
+                if self.oddnumplay_mode > 0:
                     self._byeteam_list.append({'round_id':game_count, 'byeteam':circletop_team})
             for j in range(1, self.half_n):
                 # we need to loop for the n value (called half_n)
@@ -368,7 +376,8 @@ class MatchGenerator(object):
                 if gamematch_dict:
                     round_list.append(gamematch_dict)
                 else:
-                    CodeLogicError("matchgen:gencirclepairing:match not created between %d %d" % (CCW_team, CW_team))
+                    logging.info("matchgen:gencirclepairing:match not created between %d %d" % (CCW_team, CW_team))
+                    continue
             # round id is 1-index based, equivalent to team# at top of circle
             self.match_by_round_list.append({'round_id':game_count, GAME_TEAM:round_list})
         return game_count
@@ -388,11 +397,14 @@ class MatchGenerator(object):
         # outer loop emulates circle rotation there will be eff_numTeams-1 iterations
         # corresponds to number of game rotations, i.e. weeks (assuming there is one week per game)
         circle_total_pos = self.eff_numTeams - 1
-        game_count = 0
-        while (game_count < self.numGameSlots):
-            game_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, game_count)
+        round_count = 0
+        if self.oddnumplay_mode == 2:
+            while any(x < self.games_per_team for x in self._numgames_perteam_list):
+                round_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, round_count)
+        else:
+            while (round_count < self.num_rounds):
+                round_count = self.generateCirclePairing(circle_total_pos, circlecenter_team, round_count)
         print '****************************************'
-        #print 'metrics_list', self.numTeams, self.metrics_list
         self.adjustHomeAwayTeams()
         if teamid_map:
             self.mapTeamID(teamid_map)

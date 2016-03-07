@@ -25,7 +25,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 			seasondates_btn_id:'sdbtn_id',
 			numweeks:12,
 			bye_value: 0,
-			play_value: 1
+			play_value: 1,
+			balanced_value: 2
 		};
 		var wizconstant = {
 			//ndcpane_id:"wiznumdivcpane_id",
@@ -340,6 +341,11 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 					this.oddnumradio_value = constant.play_value;
 				}
 			},
+			oddnumradio3_callback: function(event) {
+				if (event) {
+					this.oddnumradio_value = constant.balanced_value;
+				}
+			},
 			oddnumsubmit_callback: function(deferred_obj, raw_result, event) {
 				this.oddnum_dialog.hide();
 				var oddnum_mode = this.oddnumradio_value;
@@ -363,6 +369,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 						context:this,
 						radio1_callback:this.oddnumradio1_callback,
 						radio2_callback:this.oddnumradio2_callback,
+						radio3_callback:this.oddnumradio3_callback,
 						submit_callback:this.oddnumsubmit_callback,
 						deferred_obj:deferred_obj,
 						raw_result:raw_result};
