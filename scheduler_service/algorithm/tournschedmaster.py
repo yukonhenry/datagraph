@@ -159,7 +159,7 @@ class TournSchedMaster(object):
                 # if odd, add one to #games.
                 vgames_num = totalgamedays if bracket_size%2==0 else totalgamedays+1
                 match = MatchGenerator(bracket_size, vgames_num,
-                    maxGamesPerTeam=totalgamedays)
+                    games_per_team=totalgamedays)
                 bracket_match_list = match.generateMatchList(
                     teamid_map=team_id_list)
                 match_list.append(bracket_match_list)

@@ -16,7 +16,7 @@ import networkx as nx
 from timebalancer import TimeBalancer
 from fieldbalancer import FieldBalancer
 from conflictprocess import ConflictProcess
-from pprint import pprint
+
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 GAME_TEAM = 'game_team'
@@ -498,7 +498,7 @@ class FieldTimeScheduleGenerator:
                     constraint_status_list)
             if conflict_status_list:
                 self.cdbinterface.write_conflict_status(conflict_status_list)
-        if oddnumplay_mode:
+        if oddnumplay_mode == 1:
             self.make_oddnum_matches(totalbyeteam_list)
 
         # read from memory and store in db
@@ -1342,8 +1342,6 @@ class FieldTimeScheduleGenerator:
                 if double_numgames_in_divsion % 2:
                     raise FieldAvailabilityError(div_id)
                 required_slots += double_numgames_in_divsion / 2
-                # required_slots += totalmatch['gameslots_perrnd_perdiv']*max(totalmatch['numgames_perteam_list'])
-                # find # days per week available from fields attached to div
                 dayweek_set = set()
                 totalfielddays_list = []
                 for field_id in field_id_list:

@@ -66,7 +66,7 @@ class TournamentScheduler:
                 # if odd, add one to #games.
                 numbracket_teams = len(bracket['team_id_list'])
                 virtualgamedays = ng if numbracket_teams%2==0 else ng+1
-                match = MatchGenerator(numbracket_teams, virtualgamedays, maxGamesPerTeam=ng)
+                match = MatchGenerator(numbracket_teams, virtualgamedays, games_per_team=ng)
                 bracket_match_list = match.generateMatchList(teamid_map=bracket['team_id_list'])
                 logging.info("tournscheduler:prepGenerate:div=%d bracket=%s bracketmatch_list=%s",
                              div_id, bracket, bracket_match_list)

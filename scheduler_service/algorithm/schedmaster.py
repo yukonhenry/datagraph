@@ -44,10 +44,7 @@ class SchedMaster(object):
             raise CodeLogicError("schemaster:init: db_type not recognized db_type=%s" % (db_type,))
         dbtuple = dbInterface.readDBraw()
         if dbtuple.config_status == 1:
-            if dbtuple.oddnum_mode == 1:
-                self.oddnumplay_mode = True
-            else:
-                self.oddnumplay_mode = False
+            self.oddnumplay_mode = dbtuple.oddnum_mode
             self.divinfo_list = dbtuple.list
             self.divinfo_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(self.divinfo_list)).get(x)
             self.divinfo_tuple = _List_Indexer(self.divinfo_list,
@@ -56,7 +53,7 @@ class SchedMaster(object):
             self.divinfo_tuple = _List_Indexer(None, None)
             raise CodeLogicError("schemaster:init: div config not complete=%s" % (divcol_name,))
             self._error_code |= DIVCONFIG_INCOMPLETE_MASK
-            self.oddnumplay_mode = False
+            self.oddnumplay_mode = 0
         # get field information
         fdbInterface = FieldDBInterface(mongoClient, userid_name, fieldcol_name,
             "L")
@@ -173,14 +170,15 @@ class SchedMaster(object):
             # not match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
             div_id = divinfo['div_id']
+            games_per_team = totalgamedays if (totalteams * totalgamedays) % 2 == 0 else totalgamedays - 1
             match = MatchGenerator(totalteams, totalgamedays,
-                oddnumplay_mode=self.oddnumplay_mode)
+                oddnumplay_mode=self.oddnumplay_mode, games_per_team=games_per_team)
             match_list = match.generateMatchList()
             args_obj = {'div_id':div_id, 'match_list':match_list,
                 'numgames_perteam_list':match.numgames_perteam_list,
                 'gameslots_perrnd_perdiv':match.gameslotsperday}
             totalmatch_list.append(args_obj)
-            if self.oddnumplay_mode and match.byeteam_list:
+            if self.oddnumplay_mode > 0 and match.byeteam_list:
                 totalbyeteam_list.append({'div_id':div_id, 'byeteam_list':match.byeteam_list})
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)

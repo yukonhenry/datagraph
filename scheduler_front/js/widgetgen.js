@@ -19,6 +19,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
             oddnum_dialog_id:"oddnum_dialog_id",
             oddnum_radio1_id:"oddnum_radio1_id",
             oddnum_radio2_id:"oddnum_radio2_id",
+            oddnum_radio3_id:"oddnum_radio3_id",
             oddnum_radio_name:"oddnum_radio_name", oddnum_btn_id:"oddnum_btn_id"
         }
         return declare(null, {
@@ -45,15 +46,6 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 radio2_callback, league_select_id) {
                 // first figure out which radio button is initially enabled
                 var radio1_flag = (init_sched_type == "L")? true:false;
-                /*
-                if (init_db_type) {
-                    // if an init_db_type is specified
-                    radio1_flag = (init_db_type == 'rrdb')?true:false;
-                } else {
-                    // if no init_db_type, then use default for initial
-                    // radiobtn selection
-                    radio1_flag = (constant.default_db_type == 'rrdb')?true:false;
-                } */
                 // NOTE: dom.byID after the widget does not recover the
                 // widget's domNode. In this example, the widget's domNode is a
                 // HTML div element, but the dom.byId after the widget is created
@@ -521,18 +513,20 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                 var context = args_obj.context;
                 var radio1_callback = args_obj.radio1_callback;
                 var radio2_callback = args_obj.radio2_callback;
+                var radio3_callback = args_obj.radio3_callback;
                 var submit_callback = args_obj.submit_callback;
                 var deferred_obj = args_obj.deferred_obj;
                 var raw_result = args_obj.raw_result;
                 var radio1_id = constant.oddnum_radio1_id;
                 var radio2_id = constant.oddnum_radio2_id;
+                var radio3_id = constant.oddnum_radio3_id;
                 var btn_id = constant.oddnum_btn_id;
                 var radio1_flag = (init_radio_value == 'BYE')?true:false;
                 var oddnum_dialog = registry.byId(constant.oddnum_dialog_id);
                 if (!oddnum_dialog) {
                    oddnum_dialog = new Dialog({
                         id:constant.oddnum_dialog_id,
-                        class:"dijitDialog", title:"<p style='color:blue'>BYE or PLAY</p>",
+                        class:"dijitDialog", title:"<p style='color:blue'>BYE or PLAY or BALANCED</p>",
                         style:"width:300px",
                         content:"Div has odd # of teams; Select Model"
                     })
@@ -543,6 +537,9 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     put(form_node, "label.label_box[for=$]", radio1_id, "Bye");
                     var radio2_node = put(form_node, "div[id=$]", radio2_id);
                     put(form_node, "label.label_box[for=$]", radio2_id, "Play");
+                    var radio3_node = put(form_node, "div[id=$]", radio3_id);
+                    put(form_node, "label.label_box[for=$]", radio3_id, "Balanced");
+
                     new RadioButton({
                         name:constant.oddnum_radio_name,
                         value:"bye", checked:radio1_flag,
@@ -555,6 +552,12 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                         style:"margin-left:10px",
                         onChange: lang.hitch(context, radio2_callback)
                     }, radio2_node);
+                    new RadioButton({
+                        name:constant.oddnum_radio_name,
+                        value:"balanced", checked:!radio1_flag,
+                        style:"margin-left:15px",
+                        onChange: lang.hitch(context, radio3_callback)
+                    }, radio3_node);
                     var btn_node = put(form_node,
                         "button.dijitButton[id=$][type=submit]", btn_id);
                     var btn_widget = new Button({
@@ -565,7 +568,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     }, btn_node);
                     var tooltipconfig = {
                         connectId:[constant.oddnum_dialog_id],
-                        label:"BYE Model: One Team has Bye; PLAY Model: One team plays twice on a game date so that no team has a BYE",
+                        label:"BYE Model: One Team has Bye every week; PLAY Model: One team plays twice on a game date so that no team has a BYE; BALANCED Model: Equal number of games for each team.",
                         position:['before','after']};
                     new Tooltip(tooltipconfig);
                     oddnum_dialog.addChild(oddnum_form);
@@ -574,6 +577,8 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
                     radio1_widget.set("checked", radio1_flag);
                     var radio2_widget = registry.byId(radio2_id);
                     radio2_widget.set("checked", !radio1_flag);
+                    var radio3_widget = registry.byId(radio3_id);
+                    radio3_widget.set("checked", !radio1_flag);
                     var btn_widget = registry.byId(btn_id);
                     btn_widget.set("onClick", lang.hitch(context, submit_callback,
                         deferred_obj, raw_result))

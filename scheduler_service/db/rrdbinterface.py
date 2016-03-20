@@ -25,6 +25,13 @@ class RRDBInterface(BaseDBInterface):
         set_obj = {'CONFIG_STATUS':config_status, 'ODDNUM_MODE':oddnum_mode}
         self.dbinterface.updateInfoDocument(document_list, set_obj, 'DIV_ID')
 
+    def validate_total_games(self, divinfo):
+        if (divinfo['totalteams'] * divinfo['totalgamedays']) % 2 == 1:
+            divinfo['totalgamedays'] -= 1
+            logging.info("rrdbinterface: oddnum balance mode, reducing games per team to %d",
+                divinfo['totalgamedays'])
+        return divinfo
+ 
     def updateDB(self, update_data_str):
         # right now this update operation is hardcoded to update divfield_list
         update_data_list = json.loads(update_data_str)
