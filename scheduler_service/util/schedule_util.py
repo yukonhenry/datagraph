@@ -74,6 +74,12 @@ def nth_listitem(l, val, nth):
             return -1
     return i
 
+def time_in_range(start, end, x):
+    """Return true if x is in the range [start, end]"""
+    if start <= end:
+        return start <= x <= end
+    else:
+        return start <= x or x <= end
 
 # from
 # http://code.google.com/p/uthcode/source/browse/trunk/python/bipartite.py?r=662

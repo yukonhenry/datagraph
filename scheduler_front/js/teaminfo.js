@@ -1,12 +1,12 @@
 define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
-	"dijit/registry", "dijit/form/TextBox", "dijit/form/DropDownButton",
-	"dijit/form/Select", "dgrid/Editor", "dijit/TooltipDialog",
+	"dijit/registry", "dijit/form/TextBox", "dijit/form/NumberTextBox",
+	"dijit/form/DropDownButton", "dijit/form/Select", "dgrid/Editor", "dijit/TooltipDialog",
 	"dijit/form/CheckBox", "dijit/form/Button",
 	"dijit/form/Form", "dijit/layout/StackContainer", "dijit/layout/ContentPane",
 	"scheduler_front/baseinfo", "scheduler_front/baseinfoSingleton",
 	"scheduler_front/idmgrSingleton", "scheduler_front/editgrid",
 	"put-selector/put", "dojo/domReady!"],
-	function(declare, dom, lang, arrayUtil, registry, TextBox,
+	function(declare, dom, lang, arrayUtil, registry, TextBox, NumberTextBox,
 		DropDownButton, Select, editor, TooltipDialog, CheckBox, Button,
 		Form, StackContainer,
 		ContentPane, baseinfo,
@@ -19,6 +19,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			inputnum_str:'Number of Teams',
 			text_node_str:'League/Division List Name',
 			updatebtn_str:'Update Team Info',
+			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 			// entry_pt id's
 			init:"init", fromdb:"fromdb",  fromdel:"fromdel",
 		};
@@ -45,8 +46,18 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						editorArgs:{trim:true, style:"width:auto"},
 						editor:TextBox, editOn:"click"},
 					{field: "af_list", label:"Home Field(s)",
-						renderCell: lang.hitch(this, this.af_field_render)
-					}
+						renderCell: lang.hitch(this, this.af_field_render)},
+					{field: "prefdays", label: "Preferred Week Days",
+					 renderCell: lang.hitch(this, this.prefdays_render)},
+					{field:"priority", label:"Priority", autoSave:true,
+						editorArgs:{
+							constraints:{min:1, max:500},
+							promptMessage:'Enter Priority Number (lower is higher priority)',
+							invalidMessage:'Must be Non-zero integer',
+							missingMessage:'Enter Priority',
+							value:'1',
+							style:"width:auto",
+						}, editor:NumberTextBox},
 				];
 				return columnsdef_list;
 			},
@@ -54,17 +65,24 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// column definition for constraint satisfaction cpane display
 				// after schedule is generated
 				var columnsdef_obj = {
+					tm_id:"Team ID",
+					priority:"Priority",
+					prefdays:"Preference Days",
+					satisfy:"Met"
 				}
 				return columnsdef_obj;
 			},
 			modifyserver_data: function(data_list, divstr_obj) {
 			},
 			modify_toserver_data: function(raw_result) {
+				//var filtered = arrayUtil.filter(raw_result, function(item) {
+				//	return item.af_list.length > 0 || item.prefdays
+				//})
 				var newlist = arrayUtil.map(raw_result, function(item) {
 					// leave out dt_id to send to server (recreate when
 					// data returned from server)
-					return {tm_id:item.tm_id, tm_name:item.tm_name,
-						af_list:item.af_list, div_id:item.div_id}
+					return {tm_id:item.tm_id, tm_name:item.tm_name, priority: item.priority,
+						af_list:item.af_list, div_id:item.div_id, prefdays: item.prefdays}
 				})
 				return newlist;
 			},
@@ -103,15 +121,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				// define key for object returned from server to get
 				// status of configuration - config_status
 				this.server_interface.getServerData("get_dbcol/"+
-					this.userid_name+'/'+constant.db_type+'/'+options_obj.item,
+					this.userid_name+'/'+constant.db_type+'/'+options_obj.item+'/'+this.sched_type,
 					lang.hitch(this, this.prepgrid_data));
 			},
 			getInitialList: function(num, div_id, colname) {
 				var info_list = new Array();
 				for (var i = 1; i < num+1; i++) {
 					info_list.push({tm_id:i, tm_name:"", af_list:[],
-					div_id:div_id, dt_id:"dv"+div_id+"tm"+i+this.startref_id,
-					colname:colname});
+					div_id:div_id, dt_id:"dv"+div_id+"tm"+i,
+					colname:colname, prefdays: "", priority: i});
 				}
 				this.startref_id += num;
 				return info_list;
@@ -120,7 +138,9 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 				var gridhelp_list = [
 					{id:'tm_id', help_str:"Identifier, Non-Editable"},
 					{id:'tm_name', help_str:"Enter Team Name or Identifier"},
-					{id:"af_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"}
+					{id:"af_list", help_str:"Select Field Preferences for Home Games, if any (default all fields assigned to division)"},
+					{id:"prefdays", help_str:"Select Days-of_Week Preference for Team, if any"},
+					{id:'priority', help_str:"Priority of the preference - assign positive integer, lower value is higher priority"},
 				]
 				return gridhelp_list;
 			},
@@ -314,8 +334,6 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 			},
 			af_field_render: function(object, data_list, node) {
 				var tm_id = object.tm_id;
-				// define parameters for the dialogtooltip that pops up in each
-				// grid cell after ddown btn is clicked
 				var content_str = "";
 				var checkbox_list = new Array();
 				var span_id = "";
@@ -454,6 +472,112 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
 						infostore.put(store_elem);
 					});
 				}
+			},
+			prefdays_render: function(object, data_list, node) {
+				var team_id = object.tm_id;
+				var prefdays_dialog_id = this.op_prefix+"prefdays_tooltip"+team_id+'_id';
+				var prefdays_ddownbtn_prefix = this.op_prefix+"prefdays_ddropdownbtn";
+				var prefdays_ddownbtn_id = prefdays_ddownbtn_prefix+team_id+'_id';
+
+				var checkbox_ids = arrayUtil.map(constant.day_list, function(day) {
+					return {id: this.op_prefix+'tmprefdays_'+ day+team_id+"_id", day: day}
+				}, this);
+				var content_str = checkbox_ids.reduce(function(memo,  item, index) {
+					memo += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+item.id+
+						'" value='+index+'><label for="'+item.id+'">'+item.day+'</label> ';
+					if (index%2)
+						memo += '<br>';
+					return memo;
+				}, "")
+				var button_id = this.op_prefix+'prefdays_dialogbtn'+team_id+'_id';
+				content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+				var prefdays_dialog = registry.byId(prefdays_dialog_id);
+				if (!prefdays_dialog) {
+					prefdays_dialog = new TooltipDialog({
+						id:prefdays_dialog_id,
+						content: content_str
+		    		});
+				} else {
+					prefdays_dialog.set('content', content_str);
+				}
+				var prefdays_dialogprop_obj = {team_id:team_id,
+					checkbox_ids:checkbox_ids, dt_id: object.dt_id,
+    			day_list:constant.day_list};
+    		var button_reg = registry.byId(button_id);
+    		button_reg.on("click",
+    			lang.hitch(this,this.prefdays_dialogbtn_process, prefdays_dialogprop_obj));
+    		var dropdown_btn = registry.byId(prefdays_ddownbtn_id);
+    		if (!dropdown_btn) {
+					dropdown_btn = new DropDownButton({dropDown:prefdays_dialog, id:prefdays_ddownbtn_id});
+					dropdown_btn.startup();
+    		} else {
+    			dropdown_btn.set('dropDown', prefdays_dialog);
+    		}
+    		if (object.prefdays) {
+   				var args_obj = {dialogprop_obj:prefdays_dialogprop_obj,
+    				check_str:object.prefdays, team_id: team_id,
+    				display_list:prefdays_dialogprop_obj.day_list,
+    				dropdownbtn_prefix:prefdays_ddownbtn_prefix,
+    				index_offset:0}
+    			this.init_checkbox(args_obj);
+    		} else {
+    			dropdown_btn.set("label", "Config");
+    		}
+    		node.appendChild(dropdown_btn.domNode);
+				return dropdown_btn;
+			},
+			prefdays_dialogbtn_process: function(prefdays_dialogprop_obj, event) {
+				var dt_id = prefdays_dialogprop_obj.dt_id;
+				var team_id = prefdays_dialogprop_obj.team_id;
+				var checkbox_ids = prefdays_dialogprop_obj.checkbox_ids;
+				var day_list = prefdays_dialogprop_obj.day_list;
+				var checked = arrayUtil.filter(checkbox_ids, function(item) {
+					var checkbox_reg = registry.byId(item.id);
+					return checkbox_reg.get("checked")
+				})
+				var display_str = checked.reduce(function(memo, item) {
+					memo += item.day + ',';
+					return memo;
+				}, "");
+				var value_str = checked.reduce(function(memo, item) {
+					var checkbox_reg = registry.byId(item.id);
+					memo += checkbox_reg.get("value") + ',';
+					return memo;
+				}, "");
+				// trim off last comma
+				display_str = display_str.substring(0, display_str.length-1);
+				value_str = value_str.substring(0, value_str.length-1);
+				if (this.editgrid) {
+					this.editgrid.schedInfoStore.get(dt_id).then(
+						lang.hitch(this, function(store_elem){
+							store_elem.prefdays = value_str;
+							this.editgrid.schedInfoStore.put(store_elem);
+						})
+					);
+					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
+					var prefdays_dropdownbtn_reg = registry.byId(this.op_prefix+"prefdays_ddropdownbtn"+team_id+"_id");
+					prefdays_dropdownbtn_reg.set('label', display_str);
+				}
+			},
+			// mark checkboxes depending on state of store
+			init_checkbox: function(args_obj) {
+				var dialogprop_obj = args_obj.dialogprop_obj;
+				var check_str = args_obj.check_str;
+				var display_list = args_obj.display_list;
+				var dropdownbtn_prefix = args_obj.dropdownbtn_prefix;
+				var index_offset = args_obj.index_offset;
+				var team_id = dialogprop_obj.team_id;
+				var checkbox_ids = dialogprop_obj.checkbox_ids;
+				var display_str = "";
+				arrayUtil.forEach(check_str.split(','), function(item) {
+					var index = parseInt(item)-index_offset;
+					var checkbox_reg = registry.byId(checkbox_ids[index].id);
+					checkbox_reg.set("checked", true);
+					display_str += display_list[index]+',';
+				});
+				display_str = display_str.substring(0, display_str.length-1);
+				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+team_id+"_id");
+				dropdownbtn_reg.set('label', display_str);
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar

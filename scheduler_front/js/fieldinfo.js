@@ -1,50 +1,63 @@
 define(["dojo/dom", "dojo/on", "dojo/_base/declare",
-	"dojo/_base/lang", "dojo/date", "dojo/store/Observable","dojo/store/Memory",
-	"dojo/_base/array",
-	"dijit/registry","dgrid/Editor", "scheduler_front/baseinfo",
-	"scheduler_front/baseinfoSingleton", "scheduler_front/widgetgen",
-	"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Select",
-	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
-	"dijit/form/Button", "dijit/form/Form", "dijit/form/NumberTextBox",
-	"dijit/form/ValidationTextBox", "dijit/Tooltip",
-	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
-	"dijit/TitlePane", "dijit/layout/StackContainer",
-	"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"],
+		"dojo/_base/lang", "dojo/date", "dojo/store/Observable", "dojo/store/Memory",
+		"dojo/_base/array",
+		"dijit/registry", "dgrid/Editor", "scheduler_front/baseinfo",
+		"scheduler_front/baseinfoSingleton", "scheduler_front/widgetgen",
+		"dijit/form/TimeTextBox", "dijit/form/DateTextBox", "dijit/form/Select",
+		"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
+		"dijit/form/Button", "dijit/form/Form", "dijit/form/NumberTextBox",
+		"dijit/form/ValidationTextBox", "dijit/Tooltip",
+		"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
+		"dijit/TitlePane", "dijit/layout/StackContainer",
+		"put-selector/put", "dojox/calendar/Calendar", "dojo/domReady!"
+	],
 	function(dom, on, declare, lang, date, Observable, Memory,
 		arrayUtil, registry, editor, baseinfo, baseinfoSingleton, WidgetGen,
 		TimeTextBox, DateTextBox, Select, DropDownButton, TooltipDialog,
 		CheckBox, Button, Form, NumberTextBox, ValidationTextBox,
 		Tooltip, BorderContainer, ContentPane, TitlePane, StackContainer,
-		put, Calendar){
+		put, Calendar) {
 		var constant = {
-			idproperty_str:"field_id",
-			updatebtn_str:"Update Field Info",
-			text_node_str:'Field List Name',
-			db_type:'fielddb',
-			dbname_str:'New Field List Name',
-			vtextbox_str:'Enter Field List Name',
-			ntextbox_str:'Enter Number of Fields',
-			inputnum_str:'Number of Fields',
-			day_list:['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-			default_fieldevent_str:"Sports"
+			idproperty_str: "field_id",
+			updatebtn_str: "Update Field Info",
+			text_node_str: 'Field List Name',
+			db_type: 'fielddb',
+			dbname_str: 'New Field List Name',
+			vtextbox_str: 'Enter Field List Name',
+			ntextbox_str: 'Enter Number of Fields',
+			inputnum_str: 'Number of Fields',
+			day_list: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+			default_fieldevent_str: "Sports"
 		};
 		return declare(baseinfo, {
- 			idproperty:constant.idproperty_str,
- 			store_idproperty:"col"+constant.idproperty_str,
- 			calendar_store:null,
- 			calendar_id:1,
-			fieldselect_widget:null, fieldevent_reg:null, eventdate_reg:null,
-			starttime_reg:null, endtime_reg:null,
-			starttime_handle:null, tooltip:null,
-			datetimeset_handle:null,
-			calendar:null, db_type:constant.db_type,
-			field_id:0, old_field_id:-1,
-			dupfieldselect_reg:null,
-			rendercell_flag:true, today:null, widgetgen:null,
-			divstr_colname:"", divstr_db_type:"rrdb", calendarmapobj_list:null,
-			tpform_chgbtn_widget:null, tpform_delbtn_widget:null,
-			tpform_savebtn_widget:null, tpform_cancelbtn_widget:null,
-			delta_store:null,
+			idproperty: constant.idproperty_str,
+			store_idproperty: "col" + constant.idproperty_str,
+			calendar_store: null,
+			calendar_id: 1,
+			fieldselect_widget: null,
+			fieldevent_reg: null,
+			eventdate_reg: null,
+			starttime_reg: null,
+			endtime_reg: null,
+			starttime_handle: null,
+			tooltip: null,
+			datetimeset_handle: null,
+			calendar: null,
+			db_type: constant.db_type,
+			field_id: 0,
+			old_field_id: -1,
+			dupfieldselect_reg: null,
+			rendercell_flag: true,
+			today: null,
+			widgetgen: null,
+			divstr_colname: "",
+			divstr_db_type: "rrdb",
+			calendarmapobj_list: null,
+			tpform_chgbtn_widget: null,
+			tpform_delbtn_widget: null,
+			tpform_savebtn_widget: null,
+			tpform_cancelbtn_widget: null,
+			delta_store: null,
 			constructor: function(args) {
 				// reference http://dojotoolkit.org/reference-guide/1.9/dojo/_base/declare.html#arrays-and-objects-as-member-variables
 				// on the importance of initializing object in the constructor'
@@ -54,43 +67,70 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
 			},
 			getcolumnsdef_obj: function() {
-				var columnsdef_list = [
-					{field: "field_id", label: "Field ID"},
-					{field:"field_name", label:"Name", autoSave:true,
-						editor:"text"},
-					{field:"pr", label:"Primary Use",
-						renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)},
-					{field:"start_date", label:"Start Date", autoSave:true,
-						editorArgs:{
-							style:'width:100px',
-						}, editor:DateTextBox},
-					{field:"end_date", label:"End Date", autoSave:true,
-						editorArgs:{
-							style:'width:100px',
-						}, editor:DateTextBox},
-					{field:"start_time", label:"Start Time", autoSave:true,
-						editorArgs:{
-							style:'width:100px',
-						}, editor:TimeTextBox},
-					{field:"end_time", label:"End Time", autoSave:true,
-						editorArgs:{
-							style:'width:100px',
-						}, editor:TimeTextBox},
-					{field:"dr", label:"Days of Week",
-						renderCell: lang.hitch(this,
-							this.dayweek_actionRenderCell)},
-					{field:"detaileddates", label:"Detailed Config",
-						renderCell: lang.hitch(this, this.dates_actionRenderCell)},
-					{field:"tfd", label:"# Open Field Days",
-						set:lang.hitch(this, this.calc_totalfielddays)
-					}
-				];
+				var columnsdef_list = [{
+					field: "field_id",
+					label: "Field ID"
+				}, {
+					field: "field_name",
+					label: "Name",
+					autoSave: true,
+					editor: "text"
+				}, {
+					field: "pr",
+					label: "Primary Use",
+					renderCell: lang.hitch(this, this.primaryuse_actionRenderCell)
+				}, {
+					field: "start_date",
+					label: "Start Date",
+					autoSave: true,
+					editorArgs: {
+						style: 'width:100px',
+					},
+					editor: DateTextBox
+				}, {
+					field: "end_date",
+					label: "End Date",
+					autoSave: true,
+					editorArgs: {
+						style: 'width:100px',
+					},
+					editor: DateTextBox
+				}, {
+					field: "start_time",
+					label: "Start Time",
+					autoSave: true,
+					editorArgs: {
+						style: 'width:100px',
+					},
+					editor: TimeTextBox
+				}, {
+					field: "end_time",
+					label: "End Time",
+					autoSave: true,
+					editorArgs: {
+						style: 'width:100px',
+					},
+					editor: TimeTextBox
+				}, {
+					field: "dr",
+					label: "Days of Week",
+					renderCell: lang.hitch(this,
+						this.dayweek_actionRenderCell)
+				}, {
+					field: "detaileddates",
+					label: "Detailed Config",
+					renderCell: lang.hitch(this, this.dates_actionRenderCell)
+				}, {
+					field: "tfd",
+					label: "# Open Field Days",
+					set: lang.hitch(this, this.calc_totalfielddays)
+				}];
 				return columnsdef_list;
 			},
-			getfixedcolumnsdef_obj: function () {
+			getfixedcolumnsdef_obj: function() {
 				var columnsdef_obj = {
-					field_id:"Field ID",
-					field_name:"Field Name"
+					field_id: "Field ID",
+					field_name: "Field Name"
 				};
 				return columnsdef_obj;
 			},
@@ -108,12 +148,12 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						"input[id=$][type=text][required=true]",
 						this.idmgr_obj.dbname_id)
 					dbname_reg = new ValidationTextBox({
-						value:'',
-						regExp:'\\D[\\w]+',
-						style:'width:12em',
-						promptMessage:constant.vtextbox_str + '-start with letter or _, followed by alphanumeric or _',
-						invalidMessage:'start with letter or _, followed by alphanumeric characters and _',
-						missingMessage:constant.vtextbox_str
+						value: '',
+						regExp: '\\D[\\w]+',
+						style: 'width:12em',
+						promptMessage: constant.vtextbox_str + '-start with letter or _, followed by alphanumeric or _',
+						invalidMessage: 'start with letter or _, followed by alphanumeric characters and _',
+						missingMessage: constant.vtextbox_str
 					}, dbname_node);
 					put(form_node, "span.empty_smallgap");
 					put(form_node, "label.label_box[for=$]",
@@ -122,33 +162,39 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						"input[id=$][type=text][required=true]",
 						this.idmgr_obj.inputnum_id);
 					inputnum_reg = new NumberTextBox({
-						value:'1',
-						style:'width:5em',
-						constraints:{min:1, max:500},
-						promptMessage:constant.ntextbox_str,
-						invalidMessage:'Must be Non-zero integer',
-						missingMessage:constant.ntextbox_str+' (positive integer)'
+						value: '1',
+						style: 'width:5em',
+						constraints: {
+							min: 1,
+							max: 500
+						},
+						promptMessage: constant.ntextbox_str,
+						invalidMessage: 'Must be Non-zero integer',
+						missingMessage: constant.ntextbox_str + ' (positive integer)'
 					}, inputnum_node);
 				} else {
 					inputnum_reg = registry.byId(this.idmgr_obj.inputnum_id);
 				}
-				var tooltipconfig_list = [{connectId:[this.idmgr_obj.inputnum_id],
-					label:"Specify Number of Fields and press ENTER",
-					position:['below','after']},
-					{connectId:[this.idmgr_obj.dbname_id],
-					label:"Specify Field List Name",
-					position:['below','after']}];
+				var tooltipconfig_list = [{
+					connectId: [this.idmgr_obj.inputnum_id],
+					label: "Specify Number of Fields and press ENTER",
+					position: ['below', 'after']
+				}, {
+					connectId: [this.idmgr_obj.dbname_id],
+					label: "Specify Field List Name",
+					position: ['below', 'after']
+				}];
 				var args_obj = {
-					dbname_reg:dbname_reg,
-					form_reg:form_reg,
-					entrynum_reg:inputnum_reg,
+					dbname_reg: dbname_reg,
+					form_reg: form_reg,
+					entrynum_reg: inputnum_reg,
 					text_node_str: constant.text_node_str,
-					grid_id:this.idmgr_obj.grid_id,
-					updatebtn_str:constant.updatebtn_str,
-					tooltipconfig_list:tooltipconfig_list,
-					newgrid_flag:newgrid_flag,
-					cellselect_flag:true,
-					op_type:op_type
+					grid_id: this.idmgr_obj.grid_id,
+					updatebtn_str: constant.updatebtn_str,
+					tooltipconfig_list: tooltipconfig_list,
+					newgrid_flag: newgrid_flag,
+					cellselect_flag: true,
+					op_type: op_type
 				}
 				this.showConfig(args_obj);
 				// delete old calendarmapobj_list if this is the subsequent time
@@ -179,32 +225,57 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var later_date = date.add(this.today, 'month', 3);
 				var info_list = new Array();
 				// assign default values for grid
-				for (var i = 1; i < fieldnum+1; i++) {
-					info_list.push({field_id:i, field_name:"",
-						pr:"",
-						start_date:this.today, end_date:later_date,
-						start_time:new Date(2014,0,1,8,0,0),
-						end_time:new Date(2014,0,1,17,0,0),
-						dr:"", detaileddates:"", tfd:0,
-						colfield_id:this.startref_id+i,
-						colname:colname
+				for (var i = 1; i < fieldnum + 1; i++) {
+					info_list.push({
+						field_id: i,
+						field_name: "",
+						pr: "",
+						start_date: this.today,
+						end_date: later_date,
+						start_time: new Date(2014, 0, 1, 8, 0, 0),
+						end_time: new Date(2014, 0, 1, 17, 0, 0),
+						dr: "",
+						detaileddates: "",
+						tfd: 0,
+						colfield_id: this.startref_id + i,
+						colname: colname
 					});
 				}
 				this.startref_id += fieldnum;
 				return info_list;
 			},
 			get_gridhelp_list: function() {
-				var gridhelp_list = [
-					{id:'field_id', help_str:"Identifier, Non-Editable"},
-					{id:'field_name', help_str:"Enter Field Name, click cell to edit"},
-					{id:'pr', help_str:"Select Division(s) that are using the field, click to bring up checkbox list"},
-					{id:'start_date', help_str:"Specify Date when field availability begins"},
-					{id:'end_date', help_str:"Specify Date when field availability ends"},
-					{id:'dr', help_str:"Specify days of week when field is available; click to bring up check list"},
-					{id:'start_time', help_str:"Specify typical start time when first game can be played"},
-					{id:'end_time', help_str:"Specify typical end time when last needs to finish by"},
-					{id:'detaileddates', help_str:"(Optional)If there are exception dates/times for availability, click bring up calendar-like UI for detailed date configuration"},
-					{id:'tfd', help_str:"total number of days that field is available"}]
+				var gridhelp_list = [{
+					id: 'field_id',
+					help_str: "Identifier, Non-Editable"
+				}, {
+					id: 'field_name',
+					help_str: "Enter Field Name, click cell to edit"
+				}, {
+					id: 'pr',
+					help_str: "Select Division(s) that are using the field, click to bring up checkbox list"
+				}, {
+					id: 'start_date',
+					help_str: "Specify Date when field availability begins"
+				}, {
+					id: 'end_date',
+					help_str: "Specify Date when field availability ends"
+				}, {
+					id: 'dr',
+					help_str: "Specify days of week when field is available; click to bring up check list"
+				}, {
+					id: 'start_time',
+					help_str: "Specify typical start time when first game can be played"
+				}, {
+					id: 'end_time',
+					help_str: "Specify typical end time when last needs to finish by"
+				}, {
+					id: 'detaileddates',
+					help_str: "(Optional)If there are exception dates/times for availability, click bring up calendar-like UI for detailed date configuration"
+				}, {
+					id: 'tfd',
+					help_str: "total number of days that field is available"
+				}]
 				return gridhelp_list;
 			},
 			// main entry point for creating dojox calendar inst
@@ -217,7 +288,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// see if we can get the 1st level bordercontainer which should be
 				// below the top-level cpane which also happens to be a border
 				// container.
-				var dbcontainer_id = this.op_prefix+"detailed_bordercontainer_id"
+				var dbcontainer_id = this.op_prefix + "detailed_bordercontainer_id"
 				var detailed_bordercontainer = registry.byId(dbcontainer_id);
 				if (!detailed_bordercontainer) {
 					// if it doesn't exist, then we need to create it
@@ -226,24 +297,28 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var fieldinfocpane = registry.byId(this.idmgr_obj.bcontainer_id);
 					// created border container
 					var detailed_bordercontainer = new BorderContainer({
-						region:'center', design:'sidebar', gutters:true,
-						liveSplitters:true, class:'allonehundred',
-						id:dbcontainer_id
+						region: 'center',
+						design: 'sidebar',
+						gutters: true,
+						liveSplitters: true,
+						class: 'allonehundred',
+						id: dbcontainer_id
 					});
 					var detailed_leftcpane = new ContentPane({
-						splitter:true, region:'leading',
-						//id:'detailed_leftcpane_id'
-					})
-					// start defining timepane content
-					//var tpcontent_node = put("div#title_pane_content_id");
+							splitter: true,
+							region: 'leading',
+							//id:'detailed_leftcpane_id'
+						})
+						// start defining timepane content
+						//var tpcontent_node = put("div#title_pane_content_id");
 					var fieldselect_id = this.op_prefix + "fieldselect_id";
 					var tpcontent_node = put("div");
-					put(tpcontent_node, "label.label_box[for=$]",fieldselect_id,
+					put(tpcontent_node, "label.label_box[for=$]", fieldselect_id,
 						"Select Venue:");
 					var fieldselect_node = put(tpcontent_node,
 						"select[id=$][name=$]", fieldselect_id, fieldselect_id);
 					this.fieldselect_widget = new Select({
-						name:fieldselect_id,
+						name: fieldselect_id,
 						onChange: lang.hitch(this, function(event) {
 							// call edit_calendar with event as field_id
 							this.edit_calendar(event);
@@ -251,12 +326,16 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					}, fieldselect_node);
 					var fieldselect_list = new Array();
 					// this.totalrows_num is defined in baseinfo
-					for (var i = 1; i < this.totalrows_num+1; i++) {
-						fieldselect_list.push({label:'Field '+i, value:i, selected:false});
+					for (var i = 1; i < this.totalrows_num + 1; i++) {
+						fieldselect_list.push({
+							label: 'Field ' + i,
+							value: i,
+							selected: false
+						});
 					}
 					// initialize selected value with field_id row that selected
 					// calendar.
-					fieldselect_list[field_id-1].selected = true;
+					fieldselect_list[field_id - 1].selected = true;
 					this.fieldselect_widget.addOption(fieldselect_list);
 					put(tpcontent_node, "br, hr");
 					//fieldselect_widget.startup();
@@ -279,78 +358,93 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var tpform_domnode = tpform_widget.domNode;
 					// Note tpform_domnode does not equal tpform_node, but confirm
 					// create elements that fall under form
-					var tpform_input_id = this.op_prefix+"tpform_input_id";
+					var tpform_input_id = this.op_prefix + "tpform_input_id";
 					put(tpform_domnode,
 						"label.label_box[for=$]", tpform_input_id, "Event Name:");
 					var tpform_input_node = put(tpform_domnode,
 						"input[id=$]", tpform_input_id);
 					this.tpform_input_widget = new ValidationTextBox({
-						value:constant.default_fieldevent_str, required:true, regExp:'[\\w]+',
-						promptMessage:'Enter Event Name - only alphanumeric characters and _',
-						invalidMessage:'only alphanumeric characters and _',
-						missingMessage:'enter event name',
-						type:'text', style:'width:150px'
+						value: constant.default_fieldevent_str,
+						required: true,
+						regExp: '[\\w]+',
+						promptMessage: 'Enter Event Name - only alphanumeric characters and _',
+						invalidMessage: 'only alphanumeric characters and _',
+						missingMessage: 'enter event name',
+						type: 'text',
+						style: 'width:150px'
 					}, tpform_input_node);
-					put(tpform_domnode,"br, br");
+					put(tpform_domnode, "br, br");
 					// create date input
-					var tpform_date_id = this.op_prefix+"tpform_date_id";
+					var tpform_date_id = this.op_prefix + "tpform_date_id";
 					put(tpform_domnode,
 						"label.label_box[for=$]", tpform_date_id, "Event Date:");
 					var tpform_date_node = put(tpform_domnode,
 						"input[id=$]", tpform_date_id);
 					this.tpform_date_widget = new DateTextBox({
-						value:this.today, style:'width:150px'
+						value: this.today,
+						style: 'width:150px'
 					}, tpform_date_node);
-					put(tpform_domnode,"br, br");
+					put(tpform_domnode, "br, br");
 					// create time input
-					var tpform_starttime_id = this.op_prefix+"tpform_starttime_id";
+					var tpform_starttime_id = this.op_prefix + "tpform_starttime_id";
 					put(tpform_domnode,
 						"label.label_box[for=$]", tpform_starttime_id, "Start:");
 					var tpform_starttime_node = put(tpform_domnode,
 						"input[id=$]", tpform_starttime_id);
 					this.tpform_starttime_widget = new TimeTextBox({
-						value:"T08:00:00", style:'width:110px'
+						value: "T08:00:00",
+						style: 'width:110px'
 					}, tpform_starttime_node);
-					put(tpform_domnode,"br");
+					put(tpform_domnode, "br");
 					// end time spec
-					var tpform_endtime_id = this.op_prefix+"tpform_endtime_id";
+					var tpform_endtime_id = this.op_prefix + "tpform_endtime_id";
 					put(tpform_domnode,
 						"label.label_box[for=$]", tpform_endtime_id, "End:");
 					var tpform_endtime_node = put(tpform_domnode,
 						"input[id=$]", tpform_endtime_id);
 					this.tpform_endtime_widget = new TimeTextBox({
-						value:"T16:00:00", style:'width:110px'
+						value: "T16:00:00",
+						style: 'width:110px'
 					}, tpform_endtime_node);
-					put(tpform_domnode,"br, br");
+					put(tpform_domnode, "br, br");
 					// create buttons
 					var tpform_chgbtn_node = put(tpform_domnode,
 						"button.dijitButton[type=button]");
 					this.tpform_chgbtn_widget = new Button({
-						label:"Change Event", class:"primary", disabled:true
+						label: "Change Event",
+						class: "primary",
+						disabled: true
 					}, tpform_chgbtn_node);
 					var tpform_delbtn_node = put(tpform_domnode,
 						"button.dijitButton[type=button]");
 					this.tpform_delbtn_widget = new Button({
-						label:"Delete Event", class:"info", disabled:true,
+						label: "Delete Event",
+						class: "info",
+						disabled: true,
 					}, tpform_delbtn_node);
 					put(tpform_domnode, "br, br");
 					// save to server button
 					var tpform_savebtn_node = put(tpform_domnode,
 						"button.dijitButton[type=button]");
 					this.tpform_savebtn_widget = new Button({
-						label:"Save Changes", class:"success", disabled:true
+						label: "Save Changes",
+						class: "success",
+						disabled: true
 					}, tpform_savebtn_node);
 					// cancel changes button
 					var tpform_cancelbtn_node = put(tpform_domnode,
 						"button.dijitButton[type=button]");
 					this.tpform_cancelbtn_widget = new Button({
-						label:"Cancel Changes", class:"warning", disabled:true
+						label: "Cancel Changes",
+						class: "warning",
+						disabled: true
 					}, tpform_cancelbtn_node);
 					// attach all of the above form and its widgets to the title
 					// pane
 					var title_pane = new TitlePane({
-						title:'Select Dates', content:tpcontent_node,
-						style:"overflow:auto"
+						title: 'Select Dates',
+						content: tpcontent_node,
+						style: "overflow:auto"
 					})
 
 					detailed_leftcpane.addChild(title_pane);
@@ -359,8 +453,10 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// that div will hold the dojox calendar.
 					var calendargrid_node = put("div");
 					var detailed_rightcpane = new ContentPane({
-						splitter:true, region:'center', class:'allonehundred',
-						content:calendargrid_node
+						splitter: true,
+						region: 'center',
+						class: 'allonehundred',
+						content: calendargrid_node
 					})
 					detailed_bordercontainer.addChild(detailed_leftcpane);
 					detailed_bordercontainer.addChild(detailed_rightcpane);
@@ -372,10 +468,14 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						delete this.calendar_store
 						this.calendar_id = 1;
 					}
-					this.calendar_store = new Observable(new Memory({data:new Array()}));
+					this.calendar_store = new Observable(new Memory({
+						data: new Array()
+					}));
 					if (this.delta_store)
 						delete this.delta_store
-					this.delta_store = new Memory({data:new Array()});
+					this.delta_store = new Memory({
+						data: new Array()
+					});
 					if (this.calendarmapobj_list) {
 						// copy fieldinfo data originally returned from server to
 						// create fieldinfo grid, to dojox calendar store
@@ -394,30 +494,35 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						// if this.calendarmapobj_list does not exist, then no data
 						// has been returned from the server.  Instead, retrieve
 						// data from the current store
-						for (var f_id = 1; f_id < this.totalrows_num+1; f_id++) {
+						for (var f_id = 1; f_id < this.totalrows_num + 1; f_id++) {
 							// even though edit_calendar was called for a specific
 							// field, populate calendar store with all fields
 							this.editgrid.schedInfoStore.get(f_id).then(
 								lang.hitch(this, function(item) {
-								// convert string elements to int; also sort ascending
-								var dayweekint_list = arrayUtil.map(
-									item.dr.split(','), function(item2) {
-									return parseInt(item2);
-								});
-								// http://www.w3schools.com/jsref/jsref_sort.asp
-								dayweekint_list.sort(function(a, b){return a-b});
-								var args_obj = {dayweek_list:dayweekint_list,
-									start_date:item.start_date,
-									tfd:item.tfd,
-									start_time_str:item.start_time.toLocaleTimeString(),
-									end_time_str:item.end_time.toLocaleTimeString()};
-								// get calendarmap list that maps fieldday_id to calendar
-								// date, for each field
-								var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
-								var fieldevent_str = constant.default_fieldevent_str;
-								this.populate_calendar_store(calendarmap_list,
-									item.field_id, fieldevent_str);
-									})
+									// convert string elements to int; also sort ascending
+									var dayweekint_list = arrayUtil.map(
+										item.dr.split(','),
+										function(item2) {
+											return parseInt(item2);
+										});
+									// http://www.w3schools.com/jsref/jsref_sort.asp
+									dayweekint_list.sort(function(a, b) {
+										return a - b
+									});
+									var args_obj = {
+										dayweek_list: dayweekint_list,
+										start_date: item.start_date,
+										tfd: item.tfd,
+										start_time_str: item.start_time.toLocaleTimeString(),
+										end_time_str: item.end_time.toLocaleTimeString()
+									};
+									// get calendarmap list that maps fieldday_id to calendar
+									// date, for each field
+									var calendarmap_list = this.schedutil_obj.getcalendarmap_list(args_obj);
+									var fieldevent_str = constant.default_fieldevent_str;
+									this.populate_calendar_store(calendarmap_list,
+										item.field_id, fieldevent_str);
+								})
 							);
 						}
 					}
@@ -426,18 +531,20 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.calendar = new Calendar({
 						dateInterval: "day",
 						date: this.today,
-						startTimeAttr:"starttime",
-						endTimeAttr:"endtime",
+						startTimeAttr: "starttime",
+						endTimeAttr: "endtime",
 						store: this.calendar_store,
 						style: "position:inherit;width:100%;height:600px",
 						cssClassFunc: function(item) {
 							return item.calendar;
 						},
-						query:{field_id:field_id}
+						query: {
+							field_id: field_id
+						}
 					}, calendargrid_node);
 					this.calendar.startup();
 					this.calendar.on("itemClick",
-						lang.hitch(this,this.process_clickedCalendarItem));
+						lang.hitch(this, this.process_clickedCalendarItem));
 					//this.calendar.resize();
 				} else {
 					// if border container has already been created, then the
@@ -445,7 +552,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// with the dojox calendar.
 					// Here we will see if there is a different field_id, and if
 					// there is, display the configured field-specific config
-					this.calendar.set("query", {field_id:field_id});
+					this.calendar.set("query", {
+						field_id: field_id
+					});
 					// ref http://stackoverflow.com/questions/12585051/dojox-calendar-and-jsonrest-how-to-update
 					// unlike dgrid, set("store",) must be explicitly called
 					// for the new store query to take effect
@@ -470,16 +579,16 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(calendarmap_list, function(item) {
 					var fieldday_id = item.fieldday_id;
 					var data_obj = {
-						id:this.calendar_id,
-						fieldevent_str:fieldevent_str,
-						field_id:field_id,
-						summary:"Field"+field_id+':'+fieldevent_str+' '+"Block:"+this.calendar_id,
+						id: this.calendar_id,
+						fieldevent_str: fieldevent_str,
+						field_id: field_id,
+						summary: "Field" + field_id + ':' + fieldevent_str + ' ' + "Block:" + this.calendar_id,
 						// start and end times have dates embedded
 						// in them
-						starttime:item.start_time,
-						endtime:item.end_time,
-						fieldday_id:fieldday_id,
-						calendar:'Calendar'+field_id
+						starttime: item.start_time,
+						endtime: item.end_time,
+						fieldday_id: fieldday_id,
+						calendar: 'Calendar' + field_id
 					}
 					this.calendar_store.add(data_obj);
 					this.calendar_id++;
@@ -512,12 +621,18 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// should not be a problem as calendar_id is unique
 				// calendar_id should be same as data_obj.id
 				var field_id = data_obj.field_id;
-				this.delta_store.add({action:'remove', data_obj:data_obj,
-					id:calendar_id, field_id: field_id});
+				this.delta_store.add({
+					action: 'remove',
+					data_obj: data_obj,
+					id: calendar_id,
+					field_id: field_id
+				});
 				// get fieldday_id up for removal
 				var fieldday_id = data_obj.fieldday_id
 				var adjusted_objects = this.calendar_store
-					.query({field_id:field_id})
+					.query({
+						field_id: field_id
+					})
 					.filter(function(object) {
 						return object.fieldday_id > fieldday_id;
 					})
@@ -541,15 +656,19 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// remove it, as the latest one will have priority
 					this.delta_store.remove(calendar_id);
 				}
-				this.delta_store.add({action:'change', data_obj:clonedata_obj,
-					id:calendar_id, field_id:data_obj.field_id});
+				this.delta_store.add({
+					action: 'change',
+					data_obj: clonedata_obj,
+					id: calendar_id,
+					field_id: data_obj.field_id
+				});
 				var fieldevent_str = this.tpform_input_widget.get('value');
 				var date_str = this.tpform_date_widget.get('value').toLocaleDateString();
 				data_obj.fieldevent_str = fieldevent_str;
-				data_obj.summary = "Field"+data_obj.field_id+':'+fieldevent_str+' '+"Block:"+calendar_id;
-				var starttime = new Date(date_str+' '+
+				data_obj.summary = "Field" + data_obj.field_id + ':' + fieldevent_str + ' ' + "Block:" + calendar_id;
+				var starttime = new Date(date_str + ' ' +
 					this.tpform_starttime_widget.get('value').toLocaleTimeString());
-				var endtime = new Date(date_str+' '+
+				var endtime = new Date(date_str + ' ' +
 					this.tpform_endtime_widget.get('value').toLocaleTimeString());
 				if (date.compare(endtime, starttime) > 0) {
 					data_obj.starttime = starttime;
@@ -561,34 +680,36 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.disable_chgdel_widgets();
 				this.enable_savecancel_widgets();
 			},
-			enable_savecancel_widgets:function() {
+			enable_savecancel_widgets: function() {
 				if (this.tpform_cancelbtn_widget.get('disabled'))
 					this.tpform_cancelbtn_widget.set('disabled', false);
 				if (this.tpform_savebtn_widget.get('disabled'))
 					this.tpform_savebtn_widget.set('disabled', false);
 			},
-			disable_savecancel_widgets:function() {
+			disable_savecancel_widgets: function() {
 				this.tpform_cancelbtn_widget.set('disabled', true);
 				this.tpform_savebtn_widget.set('disabled', true);
 			},
-			disable_chgdel_widgets:function() {
+			disable_chgdel_widgets: function() {
 				this.tpform_chgbtn_widget.set('disabled', true);
 				this.tpform_delbtn_widget.set('disabled', true);
 			},
 			// restore calendar changes defined in the delta_store
 			restore_delta: function(field_id, evt) {
-				this.delta_store.query({field_id:field_id})
+				this.delta_store.query({
+						field_id: field_id
+					})
 					.forEach(function(item) {
-					if (item.action == 'remove') {
-						// if action was 'remove', add element back to
-						// calendar store
-						this.calendar_store.add(item.data_obj)
-					} else if (item.action == 'change') {
-						this.calendar_store.put(item.data_obj);
-					}
-					// delete action item from delta_store
-					this.delta_store.remove(item.id);
-				}, this);
+						if (item.action == 'remove') {
+							// if action was 'remove', add element back to
+							// calendar store
+							this.calendar_store.add(item.data_obj)
+						} else if (item.action == 'change') {
+							this.calendar_store.put(item.data_obj);
+						}
+						// delete action item from delta_store
+						this.delta_store.remove(item.id);
+					}, this);
 			},
 			send_delta: function(field_id, evt) {
 				// send contents of delta_store to server, except instead
@@ -600,42 +721,48 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				if (this.config_status) {
 					var change_list = new Array();
 					var remove_list = new Array();
-					this.delta_store.query({field_id:field_id})
+					this.delta_store.query({
+							field_id: field_id
+						})
 						.forEach(function(item) {
-						if (item.action == 'remove') {
-							remove_list.push(item.data_obj.fieldday_id);
-						} else if (item.action == 'change') {
-							// don't use delta_store object for sending to server
-							// as that has the pre-change info necessary to restore
-							// original when a cancel button is clicked; instead
-							// get from calendar_store
-							var data_obj = this.calendar_store.get(item.id)
-							// we only need a subset of the original calendar_store
-							// data_obj for the server
-							change_list.push({
-								fieldday_id:data_obj.fieldday_id,
-								starttime:data_obj.starttime.toLocaleTimeString(),
-								endtime:data_obj.endtime.toLocaleTimeString()
-							});
-						}
-					}, this);
+							if (item.action == 'remove') {
+								remove_list.push(item.data_obj.fieldday_id);
+							} else if (item.action == 'change') {
+								// don't use delta_store object for sending to server
+								// as that has the pre-change info necessary to restore
+								// original when a cancel button is clicked; instead
+								// get from calendar_store
+								var data_obj = this.calendar_store.get(item.id)
+									// we only need a subset of the original calendar_store
+									// data_obj for the server
+								change_list.push({
+									fieldday_id: data_obj.fieldday_id,
+									starttime: data_obj.starttime.toLocaleTimeString(),
+									endtime: data_obj.endtime.toLocaleTimeString()
+								});
+							}
+						}, this);
 					var server_key_obj = null;
 					if (change_list.length > 0) {
 						// make sure to convert list of objects to json string
-						server_key_obj = {change_str:JSON.stringify(change_list)};
+						server_key_obj = {
+							change_str: JSON.stringify(change_list)
+						};
 						this.server_interface.getServerData(
-							"send_delta/"+this.userid_name+'/'+
-							this.activegrid_colname+"/change/"+field_id+'/'+
+							"send_delta/" + this.userid_name + '/' +
+							this.activegrid_colname + "/change/" + field_id + '/' +
 							this.sched_type,
 							function(data) {
 								var dbstatus = data.dbstatus;
 							}, server_key_obj)
 					}
 					if (remove_list.length > 0) {
-						server_key_obj = {remove_str:remove_list.join(',')};
+						server_key_obj = {
+							remove_str: remove_list.join(',')
+						};
 						this.server_interface.getServerData(
-							"send_delta/"+this.userid_name+'/'+
-							this.activegrid_colname+"/remove/"+field_id+'/'+
+							"send_delta/" + this.userid_name + '/' +
+							this.activegrid_colname + "/remove/" + field_id + '/' +
 							this.sched_type,
 							function(data) {
 								var dbstatus = data.dbstatus;
@@ -649,15 +776,17 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			remove_deltastore: function(field_id) {
 				// remove delta_store items that correspond to current field_id
-				this.delta_store.query({field_id:field_id})
+				this.delta_store.query({
+						field_id: field_id
+					})
 					.forEach(function(item) {
-					this.delta_store.remove(item.id);
-				}, this);
+						this.delta_store.remove(item.id);
+					}, this);
 			},
 			primaryuse_actionRenderCell: function(object, data, node) {
 				var field_id = object.field_id;
-			    var ddown_btn_prefix = this.op_prefix+"fielddropdownbtn";
-			    var ddown_btn_id = ddown_btn_prefix+field_id+"_id";
+				var ddown_btn_prefix = this.op_prefix + "fielddropdownbtn";
+				var ddown_btn_id = ddown_btn_prefix + field_id + "_id";
 				if (this.rendercell_flag) {
 					var TDialog = null;
 					var tdialogprop_obj = null;
@@ -675,17 +804,17 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						tdialogprop_obj = primaryuse_obj.tdialogprop_obj;
 						TDialog = primaryuse_obj.tdialog;
 						//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
-			    	} else {
-			    		TDialog = new TooltipDialog({
-			    			content:"Select Database using Select Config->Division Info"
-			    		});
-			    	}
+					} else {
+						TDialog = new TooltipDialog({
+							content: "Select Database using Select Config->Division Info"
+						});
+					}
 					var dropdown_btn = registry.byId(ddown_btn_id);
 					if (!dropdown_btn) {
 						var dropdown_btn = new DropDownButton({
 							//label:"Config",
-							dropDown:TDialog,
-							id:ddown_btn_id
+							dropDown: TDialog,
+							id: ddown_btn_id
 						});
 						dropdown_btn.startup();
 					} else {
@@ -693,21 +822,23 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					}
 					// fill in checkboxes if store already has checkbox info
 					// this has to be called after dropdown_btn is created
-		    		if (divstr_list && divstr_list.length > 0 && object.pr) {
-		    			// index_offset is 1 (-1) as check_str is a list of
-		    			// div_id's, which need to be decremented to be an index
-		    			// into the display_list
-		    			var args_obj = {dialogprop_obj:tdialogprop_obj,
-		    				check_str:object.pr,
-		    				display_list:tdialogprop_obj.div_list,
-		    				dropdownbtn_prefix:ddown_btn_prefix,
-		    				index_offset:1}
-		    			this.init_checkbox(args_obj);
-		    		} else {
-		    			// if there is no divstr list, that means a league has to
-		    			// be selected
-		    			dropdown_btn.set("label", "Config");
-		    		}
+					if (divstr_list && divstr_list.length > 0 && object.pr) {
+						// index_offset is 1 (-1) as check_str is a list of
+						// div_id's, which need to be decremented to be an index
+						// into the display_list
+						var args_obj = {
+							dialogprop_obj: tdialogprop_obj,
+							check_str: object.pr,
+							display_list: tdialogprop_obj.div_list,
+							dropdownbtn_prefix: ddown_btn_prefix,
+							index_offset: 1
+						}
+						this.init_checkbox(args_obj);
+					} else {
+						// if there is no divstr list, that means a league has to
+						// be selected
+						dropdown_btn.set("label", "Config");
+					}
 				} else {
 					// retrieve widget that had already been instantiated
 					var dropdown_btn = registry.byId(ddown_btn_id);
@@ -720,43 +851,48 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var content_str = "";
 				var checkboxid_list = new Array();
 				var div_list = new Array();
-				var idproperty_str = (this.divstr_db_type == 'rrdb')?'div_id':'tourndiv_id';
+				var idproperty_str = (this.divstr_db_type == 'rrdb') ? 'div_id' : 'tourndiv_id';
 				arrayUtil.forEach(divstr_list, function(divstr_obj) {
 					var divstr = divstr_obj.divstr;
 					div_list.push(divstr);
-					var idstr = this.op_prefix+"checkbox"+divstr+field_id+"_id";
-					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-					'" value="'+divstr_obj[idproperty_str]+'"><label for="'+idstr+'">'+divstr+'</label><br>';
+					var idstr = this.op_prefix + "checkbox" + divstr + field_id + "_id";
+					content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="' + idstr +
+						'" value="' + divstr_obj[idproperty_str] + '"><label for="' + idstr + '">' + divstr + '</label><br>';
 					checkboxid_list.push(idstr);
 				}, this);
-				var button_id = this.op_prefix+'tdialogbtn'+field_id+'_id';
-				var tooltip_id = this.op_prefix+'tooltip'+field_id+'_id';
-				content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+				var button_id = this.op_prefix + 'tdialogbtn' + field_id + '_id';
+				var tooltip_id = this.op_prefix + 'tooltip' + field_id + '_id';
+				content_str += '<button data-dojo-type="dijit/form/Button" type="submit" id="' + button_id + '">Save</button>'
 				var TDialog = registry.byId(tooltip_id);
 				if (TDialog) {
 					TDialog.set('content', content_str);
 				} else {
 					TDialog = new TooltipDialog({
-						id:tooltip_id,
+						id: tooltip_id,
 						content: content_str
-	    			});
+					});
 				}
-	    		var tdialogprop_obj = {field_id:field_id,
-	    			checkboxid_list:checkboxid_list,
-	    			div_list:div_list};
-	    		//this.tdialogprop_list.push({field_id:field_id,
-	    		//	checkboxid_list:checkboxid_list});
-	    		var button_reg = registry.byId(button_id);
-	    		button_reg.set("onClick",
-	    			lang.hitch(this,this.dialogbtn_process, tdialogprop_obj));
-	    		return {tdialog:TDialog, tdialogprop_obj:tdialogprop_obj};
+				var tdialogprop_obj = {
+					field_id: field_id,
+					checkboxid_list: checkboxid_list,
+					div_list: div_list
+				};
+				//this.tdialogprop_list.push({field_id:field_id,
+				//	checkboxid_list:checkboxid_list});
+				var button_reg = registry.byId(button_id);
+				button_reg.set("onClick",
+					lang.hitch(this, this.dialogbtn_process, tdialogprop_obj));
+				return {
+					tdialog: TDialog,
+					tdialogprop_obj: tdialogprop_obj
+				};
 			},
 			// below function called after divstr_list changed externally
 			set_primaryuse_dialog_dropdown: function(divstr_list) {
-				for (var field_id = 1; field_id < this.totalrows_num+1; field_id++) {
+				for (var field_id = 1; field_id < this.totalrows_num + 1; field_id++) {
 					var primaryuse_obj = this.create_primaryuse_dialog(divstr_list, field_id);
 					var TDialog = primaryuse_obj.tdialog;
-					var dropdown_btn = registry.byId(this.op_prefix+'fielddropdownbtn'+field_id+'_id');
+					var dropdown_btn = registry.byId(this.op_prefix + 'fielddropdownbtn' + field_id + '_id');
 					if (dropdown_btn) {
 						dropdown_btn.set('dropDown', TDialog);
 					}
@@ -774,18 +910,18 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var checkbox_reg = registry.byId(checkbox_id);
 					if (checkbox_reg.get("checked")) {
 						// create str to display in button
-						display_str += div_list[index]+',';
+						display_str += div_list[index] + ',';
 						// create str to store (str of integer id elements)
 						var check_value = checkbox_reg.get("value");
-						value_str += check_value+',';
+						value_str += check_value + ',';
 						//value_list.push(parseInt(check_value));
 					}
 				});
 				if (this.editgrid && value_str) {
 					// trim off last comma
 					// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
-					display_str = display_str.substring(0, display_str.length-1);
-					value_str = value_str.substring(0, value_str.length-1);
+					display_str = display_str.substring(0, display_str.length - 1);
+					value_str = value_str.substring(0, value_str.length - 1);
 					this.infogrid_store.get(field_id).then(
 						lang.hitch(this, function(store_elem) {
 							store_elem.pr = value_str;
@@ -793,19 +929,19 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						})
 					);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
-					var dropdownbtn_reg = registry.byId(this.op_prefix+"fielddropdownbtn"+field_id+"_id");
+					var dropdownbtn_reg = registry.byId(this.op_prefix + "fielddropdownbtn" + field_id + "_id");
 					dropdownbtn_reg.set('label', display_str);
 				}
 			},
 			dates_actionRenderCell: function(object, data, node) {
 				var field_id = object.field_id;
-				var fielddatesbtn_id = this.op_prefix+"fielddatesbtn"+field_id+"_id"
+				var fielddatesbtn_id = this.op_prefix + "fielddatesbtn" + field_id + "_id"
 				if (this.rendercell_flag) {
 					var config_btn = registry.byId(fielddatesbtn_id);
 					if (!config_btn) {
 						config_btn = new Button({
-							label:"Config Exceptions",
-							id:fielddatesbtn_id,
+							label: "Config Exceptions",
+							id: fielddatesbtn_id,
 							onClick: lang.hitch(this, function() {
 								this.edit_calendar(field_id);
 							})
@@ -821,61 +957,65 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			dayweek_actionRenderCell: function(object, data, node) {
 				var field_id = object.field_id;
-				var dwdialog_id = this.op_prefix+"dwtooltip"+field_id+'_id';
-				var dwfielddownbtn_prefix = this.op_prefix+"dwfielddropdownbtn";
-				var dwfielddownbtn_id = dwfielddownbtn_prefix+field_id+'_id';
+				var dwdialog_id = this.op_prefix + "dwtooltip" + field_id + '_id';
+				var dwfielddownbtn_prefix = this.op_prefix + "dwfielddropdownbtn";
+				var dwfielddownbtn_id = dwfielddownbtn_prefix + field_id + '_id';
 				if (this.rendercell_flag) {
 					//http://stackoverflow.com/questions/13444162/widgets-inside-dojo-dgrid
 					var content_str = "";
 					var checkboxid_list = new Array();
 					arrayUtil.forEach(constant.day_list, function(day, index) {
-						var idstr = this.op_prefix+day+field_id+"_id";
-						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="'+idstr+
-						'" value='+index+'><label for="'+idstr+'">'+day+'</label> ';
-						if (index%2)
+						var idstr = this.op_prefix + day + field_id + "_id";
+						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="' + idstr +
+							'" value=' + index + '><label for="' + idstr + '">' + day + '</label> ';
+						if (index % 2)
 							content_str += '<br>'
 						checkboxid_list.push(idstr);
 					}, this);
-					var button_id = this.op_prefix+'dwdialogbtn'+field_id+'_id';
-					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="'+button_id+'">Save</button>'
+					var button_id = this.op_prefix + 'dwdialogbtn' + field_id + '_id';
+					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="' + button_id + '">Save</button>'
 					var dwdialog = registry.byId(dwdialog_id);
 					if (!dwdialog) {
 						dwdialog = new TooltipDialog({
-							id:dwdialog_id,
+							id: dwdialog_id,
 							content: content_str
-			    		});
+						});
 					} else {
 						dwdialog.set('content', content_str);
 					}
-		    		var dwdialogprop_obj = {field_id:field_id,
-		    			checkboxid_list:checkboxid_list,
-		    			day_list:constant.day_list};
-		    		var button_reg = registry.byId(button_id);
-		    		button_reg.on("click",
-		    			lang.hitch(this,this.dwdialogbtn_process, dwdialogprop_obj));
-		    		var dropdown_btn = registry.byId(dwfielddownbtn_id);
-		    		if (!dropdown_btn) {
+					var dwdialogprop_obj = {
+						field_id: field_id,
+						checkboxid_list: checkboxid_list,
+						day_list: constant.day_list
+					};
+					var button_reg = registry.byId(button_id);
+					button_reg.on("click",
+						lang.hitch(this, this.dwdialogbtn_process, dwdialogprop_obj));
+					var dropdown_btn = registry.byId(dwfielddownbtn_id);
+					if (!dropdown_btn) {
 						dropdown_btn = new DropDownButton({
 							//label:"Config",
-							dropDown:dwdialog,
-							id:dwfielddownbtn_id
+							dropDown: dwdialog,
+							id: dwfielddownbtn_id
 						});
 						dropdown_btn.startup();
-		    		} else {
-		    			dropdown_btn.set('dropDown', dwdialog);
-		    		}
-		    		if (object.dr) {
-		    			// note index_offset is 0 as dayweek_str is already
-		    			// a list of indices into the day_list string list
-		    			var args_obj = {dialogprop_obj:dwdialogprop_obj,
-		    				check_str:object.dr,
-		    				display_list:dwdialogprop_obj.day_list,
-		    				dropdownbtn_prefix:dwfielddownbtn_prefix,
-		    				index_offset:0}
-		    			this.init_checkbox(args_obj);
-		    		} else {
-		    			dropdown_btn.set("label", "Config");
-		    		}
+					} else {
+						dropdown_btn.set('dropDown', dwdialog);
+					}
+					if (object.dr) {
+						// note index_offset is 0 as dayweek_str is already
+						// a list of indices into the day_list string list
+						var args_obj = {
+							dialogprop_obj: dwdialogprop_obj,
+							check_str: object.dr,
+							display_list: dwdialogprop_obj.day_list,
+							dropdownbtn_prefix: dwfielddownbtn_prefix,
+							index_offset: 0
+						}
+						this.init_checkbox(args_obj);
+					} else {
+						dropdown_btn.set("label", "Config");
+					}
 				} else {
 					var dropdown_btn = registry.byId(dwfielddownbtn_id);
 				}
@@ -892,22 +1032,22 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var value_str = "";
 				//var numdays = 0;
 				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
-					var checkbox_reg = registry.byId(checkbox_id);
-					if (checkbox_reg.get("checked")) {
-						// create str to display in buttone
-						display_str += day_list[index]+',';
-						// create str to store (str of integer id elements)
-						value_str += checkbox_reg.get("value")+',';
-						//numdays++;  // numdays counts num days per week
-					}
-				})
-				// trim off last comma
-				// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
-				display_str = display_str.substring(0, display_str.length-1);
-				value_str = value_str.substring(0, value_str.length-1);
+						var checkbox_reg = registry.byId(checkbox_id);
+						if (checkbox_reg.get("checked")) {
+							// create str to display in buttone
+							display_str += day_list[index] + ',';
+							// create str to store (str of integer id elements)
+							value_str += checkbox_reg.get("value") + ',';
+							//numdays++;  // numdays counts num days per week
+						}
+					})
+					// trim off last comma
+					// http://stackoverflow.com/questions/952924/javascript-chop-slice-trim-off-last-character-in-string
+				display_str = display_str.substring(0, display_str.length - 1);
+				value_str = value_str.substring(0, value_str.length - 1);
 				if (this.editgrid) {
 					this.editgrid.schedInfoStore.get(field_id).then(
-						lang.hitch(this, function(store_elem){
+						lang.hitch(this, function(store_elem) {
 							store_elem.dr = value_str;
 							store_elem.tfd = this.calc_totalfielddays(store_elem);
 							//store_elem.dayweek_num = numdays;
@@ -915,7 +1055,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						})
 					);
 					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
-					var dwdropdownbtn_reg = registry.byId(this.op_prefix+"dwfielddropdownbtn"+field_id+"_id");
+					var dwdropdownbtn_reg = registry.byId(this.op_prefix + "dwfielddropdownbtn" + field_id + "_id");
 					dwdropdownbtn_reg.set('label', display_str);
 				}
 			},
@@ -932,16 +1072,16 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				arrayUtil.forEach(check_str.split(','), function(item) {
 					// note index is computed from item
 					// (Not index of function(item, index))
-					var index = parseInt(item)-index_offset;
+					var index = parseInt(item) - index_offset;
 					var checkbox_reg = registry.byId(checkboxid_list[index]);
 					checkbox_reg.set("checked", true);
-					display_str += display_list[index]+',';
+					display_str += display_list[index] + ',';
 				});
-				display_str = display_str.substring(0, display_str.length-1);
-				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix+field_id+"_id");
+				display_str = display_str.substring(0, display_str.length - 1);
+				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix + field_id + "_id");
 				dropdownbtn_reg.set('label', display_str);
 			},
-			checkconfig_status: function(raw_result){
+			checkconfig_status: function(raw_result) {
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than
 				// query.filter() as loop will exit immediately if .some() returns
@@ -950,24 +1090,24 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// be transmitted to server (sent as 'true'/'false' string)
 				var config_status = 0;
 				if (arrayUtil.some(raw_result, function(item, index) {
-					// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
-					// iterate through object's own properties too see if there
-					// any unfilled fields.  If so alert and exit without sending
-					// data to server
-					var break_flag = false;
-					for (var prop in item) {
-						if (prop=='detaileddates')
-							continue;
-						if (item[prop] === "") {
-							//alert("Not all fields in grid filled out, but saving");
-							break_flag = true;
-							break;
+						// ref http://stackoverflow.com/questions/8312459/iterate-through-object-properties
+						// iterate through object's own properties too see if there
+						// any unfilled fields.  If so alert and exit without sending
+						// data to server
+						var break_flag = false;
+						for (var prop in item) {
+							if (prop == 'detaileddates')
+								continue;
+							if (item[prop] === "") {
+								//alert("Not all fields in grid filled out, but saving");
+								break_flag = true;
+								break;
+							}
 						}
-					}
-					return break_flag;
-				})) {
+						return break_flag;
+					})) {
 					// insert return statement here if plan is to prevent saving.
-					console.log("Not all fields complete for "+this.idproperty+
+					console.log("Not all fields complete for " + this.idproperty +
 						" but saving");
 				} else {
 					config_status = 1;
@@ -991,8 +1131,8 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					var end_time_str = item.end_time;
 					item.start_date = new Date(start_date_str);
 					item.end_date = new Date(end_date_str);
-					item.start_time = new Date(start_date_str+' '+start_time_str);
-					item.end_time = new Date(end_date_str+' '+end_time_str);
+					item.start_time = new Date(start_date_str + ' ' + start_time_str);
+					item.end_time = new Date(end_date_str + ' ' + end_time_str);
 					// this.calendarmapobj_list is used by the dojox calendar
 					// to set initial date/time configurations based on server
 					// data.
@@ -1004,21 +1144,22 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						var start_time = null;
 						var end_time = null;
 						if ('start_time' in item2 && 'end_time' in item2) {
-							start_time = new Date(item2.date+' '+item2.start_time);
-							end_time = new Date(item2.date+' '+item2.end_time);
+							start_time = new Date(item2.date + ' ' + item2.start_time);
+							end_time = new Date(item2.date + ' ' + item2.end_time);
 						} else {
-							start_time = new Date(item2.date+' '+start_time_str)
-							end_time = new Date(item2.date+' '+end_time_str)
+							start_time = new Date(item2.date + ' ' + start_time_str)
+							end_time = new Date(item2.date + ' ' + end_time_str)
 						}
 						calendarmap_list.push({
-							start_time:start_time,
-							end_time:end_time,
-							fieldday_id:item2.fieldday_id});
+							start_time: start_time,
+							end_time: end_time,
+							fieldday_id: item2.fieldday_id
+						});
 					})
 					var obj = {
-						field_id:item.field_id,
-						field_name:item.field_name,
-						calendarmap_list:calendarmap_list
+						field_id: item.field_id,
+						field_name: item.field_name,
+						calendarmap_list: calendarmap_list
 					}
 					this.calendarmapobj_list.push(obj)
 					if ('closed_list' in item || 'timechange_list' in item) {
@@ -1033,9 +1174,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						if ('timechange_list' in item) {
 							note_str += " Times changed on ";
 							arrayUtil.forEach(item.timechange_list,
-							function(item2) {
-								note_str += item2;
-							})
+								function(item2) {
+									note_str += item2;
+								})
 						}
 						item.notes = note_str;
 					}
@@ -1068,21 +1209,22 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// however, there is a chance that a non-config-complete fieldgrid
 				// was saved to the server.
 				if (config_status) {
-					var idproperty_str = (this.divstr_db_type == "rrdb")?'div_id':'tourndiv_id';
+					var idproperty_str = (this.divstr_db_type == "rrdb") ? 'div_id' : 'tourndiv_id';
 					var distr_list = divstr_list = arrayUtil.map(info_list,
 							function(item, index) {
-	                            // return both the divstr (string) and div_id value
-	                            // value used as the value for the checkbox in the fieldinfo grid dropdown
-	                            var return_obj = {
-	                            	divstr:item.div_age + item.div_gen};
+								// return both the divstr (string) and div_id value
+								// value used as the value for the checkbox in the fieldinfo grid dropdown
+								var return_obj = {
+									divstr: item.div_age + item.div_gen
+								};
 								return_obj[idproperty_str] = item[idproperty_str];
-	                            return return_obj;
-	                    	}
-					)
-                    // save divinfo obj information that is attached to the current
-                    // fieldinfo obj
-                    baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
-                    	this.op_type, 'field_id');
+								return return_obj;
+							}
+						)
+						// save divinfo obj information that is attached to the current
+						// fieldinfo obj
+					baseinfoSingleton.set_watch_obj('divstr_list', divstr_list,
+						this.op_type, 'field_id');
 				}
 				return data_list;
 			},
@@ -1094,45 +1236,50 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				// field_id to div_id_list which is done in this grid/column)
 				// and save to divinfo db
 				var map_divfield_list = new Array();
-				var idproperty_str = (this.divstr_db_type == "rrdb")?'div_id':'tourndiv_id';
+				var idproperty_str = (this.divstr_db_type == "rrdb") ? 'div_id' : 'tourndiv_id';
 				arrayUtil.forEach(raw_result, function(item) {
-					var field_id = item.field_id;
-					var field_name = item.field_name;
-					// convert primaryuse string into div_id integer array
-					var div_id_list = arrayUtil.map(item.pr.split(','),
-					function(item2) {
-						return parseInt(item2);
-					})
-					arrayUtil.forEach(div_id_list, function(div_id) {
-						// loop through div_id_list for that field - for each div_id
-						// create a reverse map that points to a list of field_id's
-						// for that div_id
-						// first see if there is an entry where the div_id matches
-						var match_obj = arrayUtil.filter(map_divfield_list,
-						function(item) {
-							return (item[idproperty_str] == div_id)
-						})[0];
-						if (match_obj) {
-							// if div_id matches, append current field_id, field
-							// name, and field list name (field collection name)
-							// to the divfield list element
-							match_obj.divfield_list.push({field_id:field_id,
-								field_name:field_name});
-						} else {
-							// if not create a new div_id/field list obj element
-							// also add reference to current field collection name
-							// provide reference col name for field_id value
-							var map_divfield_obj = {
-								fieldcol_name:this.activegrid_colname,
-								divfield_list:[{field_id:field_id,
-									field_name:field_name}]}
-							map_divfield_obj[idproperty_str] = div_id;
-							map_divfield_list.push(map_divfield_obj);
-						}
+						var field_id = item.field_id;
+						var field_name = item.field_name;
+						// convert primaryuse string into div_id integer array
+						var div_id_list = arrayUtil.map(item.pr.split(','),
+							function(item2) {
+								return parseInt(item2);
+							})
+						arrayUtil.forEach(div_id_list, function(div_id) {
+							// loop through div_id_list for that field - for each div_id
+							// create a reverse map that points to a list of field_id's
+							// for that div_id
+							// first see if there is an entry where the div_id matches
+							var match_obj = arrayUtil.filter(map_divfield_list,
+								function(item) {
+									return (item[idproperty_str] == div_id)
+								})[0];
+							if (match_obj) {
+								// if div_id matches, append current field_id, field
+								// name, and field list name (field collection name)
+								// to the divfield list element
+								match_obj.divfield_list.push({
+									field_id: field_id,
+									field_name: field_name
+								});
+							} else {
+								// if not create a new div_id/field list obj element
+								// also add reference to current field collection name
+								// provide reference col name for field_id value
+								var map_divfield_obj = {
+									fieldcol_name: this.activegrid_colname,
+									divfield_list: [{
+										field_id: field_id,
+										field_name: field_name
+									}]
+								}
+								map_divfield_obj[idproperty_str] = div_id;
+								map_divfield_list.push(map_divfield_obj);
+							}
+						}, this)
 					}, this)
-				}, this)
-				// if we created the div to divfield map, then save it -
-				// first see if there is a local divinfo store that we can write to
+					// if we created the div to divfield map, then save it -
+					// first see if there is a local divinfo store that we can write to
 				if (map_divfield_list) {
 					var divinfo_obj = baseinfoSingleton.get_obj(idproperty_str,
 						this.op_type);
@@ -1154,10 +1301,12 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// send divfield update to server (regardless of whether there
 					// is local store or not)
 					var storedata_json = JSON.stringify(map_divfield_list);
-					var server_key_obj = {update_data:storedata_json}
+					var server_key_obj = {
+						update_data: storedata_json
+					}
 					this.server_interface.getServerData(
-						"update_dbcol/"+this.userid_name+'/'+this.divstr_db_type+
-						'/'+this.divstr_colname+'/'+this.sched_type,
+						"update_dbcol/" + this.userid_name + '/' + this.divstr_db_type +
+						'/' + this.divstr_colname + '/' + this.sched_type,
 						this.server_interface.server_ack, server_key_obj);
 				}
 				// modify store data before sending data to server
@@ -1195,94 +1344,96 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var start_day = start_date.getDay();
 				var end_date = item.end_date;
 				var end_day = end_date.getDay();
-        		// create list of available dates during last week
-        		//calc # days between start and end dates
-        		// http://dojotoolkit.org/reference-guide/1.9/dojo/date.html
-        		// add one to include the end date
-        		var diffdays_num = date.difference(start_date, end_date)+1;
-        		// don't use date.difference with 'week' option as weeks are
-        		// rounded
-        		var diffweeks_num = Math.floor(diffdays_num / 7)
-        		// get current configuration for days-of-week and it's length
-        		// i.e. number of days in week
-        		// Note dayweek_list might not be sorted correctly
-        		var dayweek_list = item.dr.split(',')
-        		var dayweekint_list = arrayUtil.map(dayweek_list, function(item2){
-        			return parseInt(item2);
-        		})
-        		var dayweek_len = dayweek_list.length;
-        		// calc baseline # of fielddays based on full weeks
-        		var totalfielddays = dayweek_len * diffweeks_num;
-        		// calc num days in last week (can be partial week)
-        		var lastwkdays_num = diffdays_num % 7;
-        		var lw_list = 0;
-        		if (lastwkdays_num > 0) {
-        			if (end_day >= start_day) {
-        				lw_list = this.schedutil_obj.range(start_day,
-        					end_day+1);
-        			} else {
-                		//days of week are numbered as a circular list so take care
-                		//of case where start day is later than end day wrt day num
-                		//i.e. start = Fri and end = Mon
-                		lw_list = this.schedutil_obj.range(start_day, 7).concat(
-                			this.schedutil_obj.range(end_day+1));
-        			}
-        			totalfielddays += this.schedutil_obj.intersect(
-        				lw_list, dayweekint_list).length;
-        		}
-        		return totalfielddays;
+				// create list of available dates during last week
+				//calc # days between start and end dates
+				// http://dojotoolkit.org/reference-guide/1.9/dojo/date.html
+				// add one to include the end date
+				var diffdays_num = date.difference(start_date, end_date) + 1;
+				// don't use date.difference with 'week' option as weeks are
+				// rounded
+				var diffweeks_num = Math.floor(diffdays_num / 7)
+					// get current configuration for days-of-week and it's length
+					// i.e. number of days in week
+					// Note dayweek_list might not be sorted correctly
+				var dayweek_list = item.dr.split(',')
+				var dayweekint_list = arrayUtil.map(dayweek_list, function(item2) {
+					return parseInt(item2);
+				})
+				var dayweek_len = dayweek_list.length;
+				// calc baseline # of fielddays based on full weeks
+				var totalfielddays = dayweek_len * diffweeks_num;
+				// calc num days in last week (can be partial week)
+				var lastwkdays_num = diffdays_num % 7;
+				var lw_list = 0;
+				if (lastwkdays_num > 0) {
+					if (end_day >= start_day) {
+						lw_list = this.schedutil_obj.range(start_day,
+							end_day + 1);
+					} else {
+						//days of week are numbered as a circular list so take care
+						//of case where start day is later than end day wrt day num
+						//i.e. start = Fri and end = Mon
+						lw_list = this.schedutil_obj.range(start_day, 7).concat(
+							this.schedutil_obj.range(end_day + 1));
+					}
+					totalfielddays += this.schedutil_obj.intersect(
+						lw_list, dayweekint_list).length;
+				}
+				return totalfielddays;
 			},
 			create_wizardcontrol: function(pcontainerdiv_node, gcontainerdiv_node) {
 				// create cpane control for divinfo wizard pane under menubar
 				this.pstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"float:left; width:80%",
-					id:this.idmgr_obj.pcontainer_id
+					doLayout: false,
+					style: "float:left; width:80%",
+					id: this.idmgr_obj.pcontainer_id
 				}, pcontainerdiv_node);
 				// reset pane for initialization and after delete
 				var reset_cpane = new ContentPane({
-					id:this.idmgr_obj.resetcpane_id
+					id: this.idmgr_obj.resetcpane_id
 				})
 				this.pstackcontainer.addChild(reset_cpane)
-				// add field config (number) cpane
+					// add field config (number) cpane
 				var field_cpane = new ContentPane({
-					id:this.idmgr_obj.numcpane_id
+					id: this.idmgr_obj.numcpane_id
 				})
 				var field_form = new Form({
-					id:this.idmgr_obj.form_id
+					id: this.idmgr_obj.form_id
 				})
 				field_cpane.addChild(field_form);
 				this.pstackcontainer.addChild(field_cpane);
 				// add txt + button cpane
 				var textbtn_cpane = new ContentPane({
-					id:this.idmgr_obj.textbtncpane_id
+					id: this.idmgr_obj.textbtncpane_id
 				})
 				var container_node = textbtn_cpane.containerNode;
 				put(container_node, "span[id=$]", this.idmgr_obj.text_id);
 				put(container_node, "button[id=$]", this.idmgr_obj.btn_id);
 				this.pstackcontainer.addChild(textbtn_cpane)
-				// create grid stack container and grid
+					// create grid stack container and grid
 				this.gstackcontainer = new StackContainer({
-					doLayout:false,
-					style:"clear:left",
-					id:this.idmgr_obj.gcontainer_id
+					doLayout: false,
+					style: "clear:left",
+					id: this.idmgr_obj.gcontainer_id
 				}, gcontainerdiv_node);
 				// add blank pane (for resetting)
 				var blank_cpane = new ContentPane({
-					id:this.idmgr_obj.blankcpane_id
+					id: this.idmgr_obj.blankcpane_id
 				})
 				this.gstackcontainer.addChild(blank_cpane);
 				// add fieldinfo cpane and grid div
 				var field_bcontainer = new BorderContainer({
-					id:this.idmgr_obj.bcontainer_id,
-					design:'headline', gutters:true, liveSplitters:true,
-					style:"height:800px; width:100%"
+					id: this.idmgr_obj.bcontainer_id,
+					design: 'headline',
+					gutters: true,
+					liveSplitters: true,
+					style: "height:800px; width:100%"
 				})
 				var fieldgrid_cpane = new ContentPane({
-					id:this.idmgr_obj.gridcpane_id,
-					region:'top',
-					class:'grid_cpane'
-					//style:"height:500px; width:100%"
+					id: this.idmgr_obj.gridcpane_id,
+					region: 'top',
+					class: 'grid_cpane'
+						//style:"height:500px; width:100%"
 				})
 				put(fieldgrid_cpane.containerNode, "div[id=$]",
 					this.idmgr_obj.grid_id);
@@ -1306,4 +1457,4 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.tooltip.destroyRecursive();
 			}
 		});
-});
+	});

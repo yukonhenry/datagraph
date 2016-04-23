@@ -4,3 +4,5 @@ scheduler_service/scheduler_service.sublime-workspace
 scheduler_front/static
 bottle_baseball/
 scheduler_service/download
+legacy/
+scheduler_service/test/.cache

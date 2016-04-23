@@ -8,6 +8,7 @@ from db.teamdbinterface import TeamDBInterface
 from db.conflictdbinterface import ConflictDBInterface
 from matchgenerator import MatchGenerator
 from fieldtimescheduler import FieldTimeScheduleGenerator
+from operator import itemgetter
 from collections import namedtuple
 from dateutil import parser
 import logging
@@ -83,20 +84,11 @@ class SchedMaster(object):
             tmdbtuple = tmdbInterface.readDBraw()
             # recreate tminfo_list from db read, but leave out fields such as
             # team name which is not needed for schedule generation
-            tminfo_list = [{'dt_id':x['dt_id'], 'div_id':x['div_id'],
-                'tm_id':x['tm_id'], 'af_list':x['af_list']}
-                for x in tmdbtuple.list]
-            # indexerGet for specific div_id and team_id match
-            tminfo_indexerGet = lambda x: dict((p['dt_id'],i) for i,p in
-                enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
-            # indexermatch for list of team matches for specified div_id
-            tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x]
-            # _List_IndexerM gets dereferenced using indexerMatch instead of
-            # indexerGet
-            tminfo_tuple = _List_IndexerGM(tminfo_list, tminfo_indexerGet,
-                tminfo_indexerMatch)
+            tminfo_tuple = self.get_team_field_affinity_params(tmdbtuple)
+            tmprefdays_tuple = self.get_team_preference_params(tmdbtuple)
         else:
             tminfo_tuple = None
+            tmprefdays_tuple = None
         # get pref list information, if any
         if prefcol_name:
             # preference list use is optional - only process if preference list
@@ -145,7 +137,7 @@ class SchedMaster(object):
                 fieldinfo_tuple=self.fieldinfo_tuple,
                 prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
                 tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-                cdbinterface=cdbInterface)
+                cdbinterface=cdbInterface, tmprefdays_tuple=tmprefdays_tuple)
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 
@@ -292,3 +284,27 @@ class SchedMaster(object):
             game_row.td(str(game['home']))
             game_row.td(str(game['away']))
         return str(html)
+
+    def get_team_field_affinity_params(self, tmdbtuple):
+        tminfo_list = [{'dt_id':x['dt_id'], 'div_id':x['div_id'],
+            'tm_id':x['tm_id'], 'af_list':x['af_list']} for x in tmdbtuple.list if x['af_list']]
+        return self.get_indexer_tuple(tminfo_list)
+
+    def get_team_preference_params(self, tmdbtuple):
+        tminfo_list = [{'dt_id':x['dt_id'], 'div_id':x['div_id'], 'priority': x['priority'],
+            'tm_id':x['tm_id'], 'prefdays': x['prefdays']} for x in tmdbtuple.list if x['prefdays']]
+        return self.get_indexer_tuple(tminfo_list)
+
+    def get_indexer_tuple(self, tminfo_list):
+        if tminfo_list:
+            tminfo_indexerGet = lambda x: dict((p['dt_id'],i)
+                                               for i,p in enumerate(tminfo_list)).get("dv"+str(x[0])+"tm"+str(x[1]))
+            # indexermatch for list of team matches for specified div_id
+            tminfo_indexerMatch = lambda x: [i for i,p in enumerate(tminfo_list) if p['div_id'] == x]
+            # _List_IndexerM gets dereferenced using indexerMatch instead of
+            # indexerGet
+            tminfo_tuple = _List_IndexerGM(tminfo_list, tminfo_indexerGet, tminfo_indexerMatch)
+            return tminfo_tuple
+        else:
+            return None
+

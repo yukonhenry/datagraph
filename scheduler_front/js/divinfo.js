@@ -3,12 +3,14 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 	"dojo/_base/lang", "dojo/_base/array", "dijit/Dialog",
 	"dijit/registry", "dgrid/Editor", "dijit/form/NumberSpinner",
 	"dijit/form/NumberTextBox", "dijit/form/ValidationTextBox",
+	"dijit/form/DropDownButton", "dijit/TooltipDialog", "dijit/form/CheckBox",
+	"dijit/form/Button",
 	"dijit/form/Form", "dijit/layout/ContentPane",
 	"scheduler_front/baseinfo", "scheduler_front/baseinfoSingleton",
 	"put-selector/put", "dojo/domReady!"],
 	function(declare, dom, Deferred, lang, arrayUtil, Dialog,
-		registry, editor, NumberSpinner,
-		NumberTextBox, ValidationTextBox, Form, ContentPane,
+		registry, editor, NumberSpinner, NumberTextBox, ValidationTextBox,
+		DropDownButton, TooltipDialog, CheckBox, Button, Form, ContentPane,
 		baseinfo, baseinfoSingleton, put){
 		var constant = {
 			idproperty_str:'div_id',
@@ -26,7 +28,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 			numweeks:12,
 			bye_value: 0,
 			play_value: 1,
-			balanced_value: 2
+			balanced_value: 2,
+			day_list: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 		};
 		var wizconstant = {
 			//ndcpane_id:"wiznumdivcpane_id",
@@ -42,6 +45,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 			store_idproperty:"col"+constant.idproperty_str,
 			db_type:constant.db_type,
 			base_numweeks:0, oddnumradio_value:-1, oddnum_dialog:null,
+			rendercell_flag:true,
 			constructor: function(args) {
 				lang.mixin(this, args);
 				baseinfoSingleton.register_obj(this, constant.idproperty_str);
@@ -107,7 +111,15 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 								this.change_flag = false;
 								return (7/item.numgdaysperweek+1)
 							}
-						}, editor:NumberSpinner}
+						}, editor:NumberSpinner},
+					{field: "primary_dw",
+					 label: "Primary Preferred Days",
+					 renderCell: lang.hitch(this,this.primary_dayweek_actionRenderCell)
+				 },
+					{field: "secondary_dw",
+					 label: "Secondary Preferred Days",
+					 renderCell: lang.hitch(this,this.secondary_dayweek_actionRenderCell)
+				 },
 				];
 				return columnsdef_list;
 			},
@@ -211,6 +223,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 						totalteams:10, numweeks:this.base_numweeks,
 						numgdaysperweek:1, totalgamedays:this.base_numweeks,
 						gameinterval:60, mingap_days:5, maxgap_days:8,
+						primary_dw:"", secondary_dw:"",
 						coldiv_id:this.startref_id+i,
 						colname:colname
 					});
@@ -228,7 +241,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 						numgdaysperweek:item.numgdaysperweek,
 						totalgamedays:item.totalgamedays,
 						gameinterval:item.gameinterval,
-						mingap_days:item.mingap_days, maxgap_days:item.maxgap_days}
+						mingap_days:item.mingap_days, maxgap_days:item.maxgap_days,
+						primary_dw:item.primary_dw, secondary_dw:item.secondary_dw}
 				})
 				return newlist;
 			},
@@ -243,7 +257,10 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 					{id:'totalgamedays', help_str:"total #games for each team, (#weeks x #gamedays per week) save bye games in the schedule if there are an odd number of teams in the division, Non-editable"},
 					{id:'gameinterval', help_str:"NOTE: Assign Time interval between scheduled games on a field, e.g. the length of a single game plus break between games; click cell to edit"},
 					{id:'mingap_days', help_str:"NOTE: Assign the minimum # days that should elapse between consecutive games for a given team, unit is in days"},
-					{id:'maxgap_days', help_str:"NOTE: Assign the maximum # days that should elapse between consecutive games for a given team, unit is in days"}]
+					{id:'maxgap_days', help_str:"NOTE: Assign the maximum # days that should elapse between consecutive games for a given team, unit is in days"},
+					{id:'primary_dw', help_str:"Preferred Primary Day of Week to Play"},
+					{id:'secondary_dw', help_str:"Preferred Secondary Day of Week to Play"}
+				];
 				return gridhelp_list;
 			},
 			update_numweeks: function(numweeks) {
@@ -269,6 +286,224 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 				}
 				this.widgetgen.create_calendarspinner_input(args_obj);
 			},
+			primary_dayweek_actionRenderCell: function(object, data, node) {
+				var primarydiv_id = object.div_id;
+				var dwdialog_id = this.op_prefix + "primarydiv_dwtooltip" + primarydiv_id + '_id';
+				var dwprimarydivdownbtn_prefix = this.op_prefix + "dwprimarydivdropdownbtn";
+				var dwprimarydivdownbtn_id = dwprimarydivdownbtn_prefix + primarydiv_id + '_id';
+				var dropdown_btn = null;
+				if (this.rendercell_flag) {
+					var content_str = '';
+					var checkboxid_list = new Array();
+					arrayUtil.forEach(constant.day_list, function(day, index) {
+						var idstr = this.op_prefix + day + 'primarydiv' + primarydiv_id + "_id";
+						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="' + idstr +
+							'" value=' + index + '><label for="' + idstr + '">' + day + '</label> ';
+						if (index % 2)
+							content_str += '<br>';
+						checkboxid_list.push(idstr);
+					}, this);
+					var button_id = this.op_prefix + 'primarydiv_dwdialogbtn' + primarydiv_id + '_id';
+					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="' + button_id + '">Save</button>';
+					var dwdialog = registry.byId(dwdialog_id);
+					if (!dwdialog) {
+						dwdialog = new TooltipDialog({
+							id: dwdialog_id,
+							content: content_str
+						});
+					} else {
+						dwdialog.set('content', content_str);
+					}
+					var dwdialogprop_obj = {
+						div_id: primarydiv_id,
+						checkboxid_list: checkboxid_list,
+						day_list: constant.day_list
+					};
+					var button_reg = registry.byId(button_id);
+					button_reg.on("click",
+						lang.hitch(this, this.primarydiv_dwdialogbtn_process, dwdialogprop_obj));
+					dropdown_btn = registry.byId(dwprimarydivdownbtn_id);
+					if (!dropdown_btn) {
+						dropdown_btn = new DropDownButton({
+								dropDown: dwdialog,
+							id: dwprimarydivdownbtn_id
+						});
+						dropdown_btn.startup();
+					} else {
+						dropdown_btn.set('dropDown', dwdialog);
+					}
+					if (object.primary_dw) {
+						// note index_offset is 0 as dayweek_str is already
+						// a list of indices into the day_list string list
+						var args_obj = {
+							dialogprop_obj: dwdialogprop_obj,
+							check_str: object.primary_dw,
+							display_list: dwdialogprop_obj.day_list,
+							dropdownbtn_prefix: dwprimarydivdownbtn_prefix,
+							index_offset: 0
+						};
+						this.init_checkbox(args_obj);
+					} else {
+						dropdown_btn.set("label", "Config");
+					}
+				} else {
+					dropdown_btn = registry.byId(dwprimarydivdownbtn_id);
+				}
+				node.appendChild(dropdown_btn.domNode);
+				//dropdown_btn.startup();
+				return dropdown_btn;
+			},
+			// handler for primary div days week dialog btn
+			primarydiv_dwdialogbtn_process: function(dwdialogprop_obj, event) {
+				var div_id = dwdialogprop_obj.div_id;
+				var checkboxid_list = dwdialogprop_obj.checkboxid_list;
+				var day_list = dwdialogprop_obj.day_list;
+				var display_str = "";
+				var value_str = "";
+				//var numdays = 0;
+				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
+						var checkbox_reg = registry.byId(checkbox_id);
+						if (checkbox_reg.get("checked")) {
+							// create str to display in buttone
+							display_str += day_list[index] + ',';
+							// create str to store (str of integer id elements)
+							value_str += checkbox_reg.get("value") + ',';
+						}
+					})
+				display_str = display_str.substring(0, display_str.length - 1);
+				value_str = value_str.substring(0, value_str.length - 1);
+				if (this.editgrid) {
+					this.editgrid.schedInfoStore.get(div_id).then(
+						lang.hitch(this, function(store_elem) {
+							store_elem.primary_dw = value_str;
+							this.editgrid.schedInfoStore.put(store_elem);
+						})
+					);
+					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
+					var dwdropdownbtn_reg = registry.byId(this.op_prefix + "dwprimarydivdropdownbtn" + div_id + "_id");
+					dwdropdownbtn_reg.set('label', display_str);
+				}
+			},
+			secondary_dayweek_actionRenderCell: function(object, data, node) {
+				var secondarydiv_id = object.div_id;
+				var dwdialog_id = this.op_prefix + "secondarydiv_dwtooltip" + secondarydiv_id + '_id';
+				var dwsecondarydivdownbtn_prefix = this.op_prefix + "dwsecondarydivdropdownbtn";
+				var dwsecondarydivdownbtn_id = dwsecondarydivdownbtn_prefix + secondarydiv_id + '_id';
+				var dropdown_btn = null;
+				if (this.rendercell_flag) {
+					var content_str = "";
+					var checkboxid_list = new Array();
+					arrayUtil.forEach(constant.day_list, function(day, index) {
+						var idstr = this.op_prefix + day + 'secondarydiv' + secondarydiv_id + "_id";
+						content_str += '<input type="checkbox" data-dojo-type="dijit/form/CheckBox" style="color:green" id="' + idstr +
+							'" value=' + index + '><label for="' + idstr + '">' + day + '</label> ';
+						if (index % 2)
+							content_str += '<br>'
+						checkboxid_list.push(idstr);
+					}, this);
+					var button_id = this.op_prefix + 'secondarydiv_dwdialogbtn' + secondarydiv_id + '_id';
+					content_str += '<br><button data-dojo-type="dijit/form/Button" type="submit" id="' + button_id + '">Save</button>'
+					var dwdialog = registry.byId(dwdialog_id);
+					if (!dwdialog) {
+						dwdialog = new TooltipDialog({
+							id: dwdialog_id,
+							content: content_str
+						});
+					} else {
+						dwdialog.set('content', content_str);
+					}
+					var dwdialogprop_obj = {
+						div_id: secondarydiv_id,
+						checkboxid_list: checkboxid_list,
+						day_list: constant.day_list
+					};
+					var button_reg = registry.byId(button_id);
+					button_reg.on("click",
+						lang.hitch(this, this.secondarydiv_dwdialogbtn_process, dwdialogprop_obj));
+					dropdown_btn = registry.byId(dwsecondarydivdownbtn_id);
+					if (!dropdown_btn) {
+						dropdown_btn = new DropDownButton({
+								dropDown: dwdialog,
+							id: dwsecondarydivdownbtn_id
+						});
+						dropdown_btn.startup();
+					} else {
+						dropdown_btn.set('dropDown', dwdialog);
+					}
+					if (object.secondary_dw) {
+						// note index_offset is 0 as dayweek_str is already
+						// a list of indices into the day_list string list
+						var args_obj = {
+							dialogprop_obj: dwdialogprop_obj,
+							check_str: object.secondary_dw,
+							display_list: dwdialogprop_obj.day_list,
+							dropdownbtn_prefix: dwsecondarydivdownbtn_prefix,
+							index_offset: 0
+						}
+						this.init_checkbox(args_obj);
+					} else {
+						dropdown_btn.set("label", "Config");
+					}
+				} else {
+					dropdown_btn = registry.byId(dwsecondarydivdownbtn_id);
+				}
+				node.appendChild(dropdown_btn.domNode);
+				//dropdown_btn.startup();
+				return dropdown_btn;
+			},
+			// handler for secondary div days week dialog btn
+			secondarydiv_dwdialogbtn_process: function(dwdialogprop_obj, event) {
+				var div_id = dwdialogprop_obj.div_id;
+				var checkboxid_list = dwdialogprop_obj.checkboxid_list;
+				var day_list = dwdialogprop_obj.day_list;
+				var display_str = "";
+				var value_str = "";
+				//var numdays = 0;
+				arrayUtil.forEach(checkboxid_list, function(checkbox_id, index) {
+						var checkbox_reg = registry.byId(checkbox_id);
+						if (checkbox_reg.get("checked")) {
+							// create str to display in buttone
+							display_str += day_list[index] + ',';
+							// create str to store (str of integer id elements)
+							value_str += checkbox_reg.get("value") + ',';
+						}
+					})
+				display_str = display_str.substring(0, display_str.length - 1);
+				value_str = value_str.substring(0, value_str.length - 1);
+				if (this.editgrid) {
+					this.editgrid.schedInfoStore.get(div_id).then(
+						lang.hitch(this, function(store_elem) {
+							store_elem.secondary_dw = value_str;
+							this.editgrid.schedInfoStore.put(store_elem);
+						})
+					);
+					// because of trouble using dgrid w observable store, directly update dropdownbtn instead of dgrid cell with checkbox info
+					var dwdropdownbtn_reg = registry.byId(this.op_prefix + "dwsecondarydivdropdownbtn" + div_id + "_id");
+					dwdropdownbtn_reg.set('label', display_str);
+				}
+			},
+			// mark checkboxes depending on state of store
+			init_checkbox: function(args_obj) {
+				var dialogprop_obj = args_obj.dialogprop_obj;
+				var check_str = args_obj.check_str;
+				var display_list = args_obj.display_list;
+				var dropdownbtn_prefix = args_obj.dropdownbtn_prefix;
+				var index_offset = args_obj.index_offset;
+				var div_id = dialogprop_obj.div_id;
+				var checkboxid_list = dialogprop_obj.checkboxid_list;
+				var display_str = "";
+				arrayUtil.forEach(check_str.split(','), function(item) {
+					// note index is computed from item
+					// (Not index of function(item, index))
+					var index = parseInt(item) - index_offset;
+					var checkbox_reg = registry.byId(checkboxid_list[index]);
+					checkbox_reg.set("checked", true);
+					display_str += display_list[index] + ',';
+				});
+				display_str = display_str.substring(0, display_str.length - 1);
+				var dropdownbtn_reg = registry.byId(dropdownbtn_prefix + div_id + "_id");
+				dropdownbtn_reg.set('label', display_str);
+			},
 			checkconfig_status: function(raw_result) {
 				// do check to make sure all fields have been filled.
 				// note construct of using arrayUtil.some works better than
@@ -287,41 +522,63 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 					// data to server
 					var break_flag = false;
 					var mingap_days = -1;
+					var primary_dws = [];
+					var secondary_dws = [];
 					for (var prop in item) {
 						if (prop == 'totalgamedays') {
 							// for totalgamedays column we want at least positive gamedays
 							if (item[prop] <= 0) {
 								console.log("divinfo:checkconfig:need at least one total gameday");
-								alert_msg = "Need totalgameday value"
+								alert_msg = "Need totalgameday value";
 								break_flag = true;
 								break;
 							}
 						} else if (prop == 'totalteams') {
 							if (item[prop] < 2) {
 								console.log("divinfo:checkconfig:need at least two teams");
-								alert_msg = "Need >=2 teams"
+								alert_msg = "Need >=2 teams";
 								break_flag = true;
 								break;
 							}
 						} else if (prop == 'mingap_days') {
-							mingap_days = item[prop]
+							mingap_days = item[prop];
 						} else if (prop == 'maxgap_days') {
 							if (item[prop] <= mingap_days) {
 								console.log("divinfo:checkconfig: maxgap value needs to be larger than or equal to mingap value");
-								alert_msg = "Need Max >= Min"
+								alert_msg = "Need Max >= Min";
 								break_flag = true;
 								break;
 							}
-						} else {
-							if (item[prop] === "") {
-								alert_msg = "Empty Field"
+						} else if (prop == 'primary_dw') {
+							primary_dws = arrayUtil.map(item[prop].split(','),
+								function(item2) {
+									return parseInt(item2);
+								});
+						} else if (prop == 'secondary_dw') {
+							if (primary_dws.length == 0) {
+								alert_msg = "Primary Preference Days not entered even though Secondary is";
 								break_flag = true;
-								break;
+							} else {
+								secondary_dws = arrayUtil.map(item[prop].split(','),
+									function(item2) {
+										return parseInt(item2);
+									});
+								var duplicates = this.schedutil_obj.intersect(primary_dws, secondary_dws);
+								if (duplicates.length > 0) {
+									alert_msg = "Primary and Secondary Days have duplicates";
+									break_flag = true;
+								}
+							}
+						}else {
+							if (item[prop] === "") {
+								//alert_msg = "Empty Field"
+								//break_flag = true;
+								//break;
 							}
 						}
 					}
 					return break_flag;
-				})) {
+				}, this)) {
 					// insert return statement here if plan is to prevent saving.
 					console.log("Not all fields complete for "+this.idproperty+
 						" but saving");
