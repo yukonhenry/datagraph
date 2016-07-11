@@ -16,7 +16,9 @@ import networkx as nx
 from timebalancer import TimeBalancer
 from fieldbalancer import FieldBalancer
 from conflictprocess import ConflictProcess
-
+from teampreference import process_tmprefdays
+from daybalancer import DayBalancer
+import pdb
 home_CONST = 'HOME'
 away_CONST = 'AWAY'
 GAME_TEAM = 'game_team'
@@ -37,12 +39,13 @@ _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 class FieldTimeScheduleGenerator:
     def __init__(self, dbinterface, divinfo_tuple, fieldinfo_tuple,
         prefinfo_triple=None, pdbinterface=None, tminfo_tuple=None,
-        conflictinfo_list=None, cdbinterface=None):
+        conflictinfo_list=None, cdbinterface=None, tmprefdays_tuple=None):
         self.divinfo_list = divinfo_tuple.dict_list
         self.divinfo_indexerGet = divinfo_tuple.indexerGet
         self.divinfo_tuple = divinfo_tuple
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.fieldinfo_indexerGet = fieldinfo_tuple.indexerGet
+        self.fieldinfo_tuple = fieldinfo_tuple
         # pref list use is optional
         if prefinfo_triple:
             self.prefinfo_list = prefinfo_triple.dict_list
@@ -68,6 +71,9 @@ class FieldTimeScheduleGenerator:
             self.tminfo_list = None
             self.tminfo_indexerGet = None
             self.tminfo_indexerMatch = None
+        self.tmprefdays_tuple = tmprefdays_tuple
+        self.day_balancer = DayBalancer(divinfo_tuple, fieldinfo_tuple)
+        # self.init_prefdays(tmprefdays_tuple)
         self.conflictinfo_list = conflictinfo_list
         if conflictinfo_list:
             self.conflictprocess_obj = ConflictProcess(conflictinfo_list,
@@ -81,6 +87,7 @@ class FieldTimeScheduleGenerator:
         fstatus_tuple = self.getFieldSeasonStatus_list()
         self.fieldstatus_list = fstatus_tuple.dict_list
         self.fstatus_indexerGet = fstatus_tuple.indexerGet
+        self.fieldstatus_tuple = fstatus_tuple
         #logging.debug("fieldseasonstatus init=%s",self.fieldstatus_list)
         self.total_game_dict = {}
         # initialize dictionary (div_id is key)
@@ -98,6 +105,19 @@ class FieldTimeScheduleGenerator:
         wtuple = self.init_homefieldweight_list()
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
+
+    def init_prefdays(self, tmprefdays_tuple):
+        if tmprefdays_tuple:
+            self.tmprefdays_list = tmprefdays_tuple.dict_list
+            # for indexerGet, parameter is two-tuple (div_id, tm_id)
+            # returns None or index into tmprefdays_list
+            self.tmprefdays_indexerGet = tmprefdays_tuple.indexerGet
+            # for indexerMatch
+            self.tmprefdays_indexerMatch = tmprefdays_tuple.indexerMatch
+        else:
+            self.tmprefdays_list = None
+            self.tmprefdays_indexerGet = None
+            self.tmprefdays_indexerMatch = None
 
     def generateSchedule(self, totalmatch_tuple, oddnumplay_mode=None, totalbyeteam_list=None):
         totalmatch_list = totalmatch_tuple.dict_list
@@ -386,7 +406,8 @@ class FieldTimeScheduleGenerator:
                     # Here we are assuming that minimum date has priority
                     # if prioritization has a different structure, reorder the
                     # logic governing datesortedfield, sumsortedfield, and prioritizefield below
-                    for dsfield_dict in datesortedfield_list:
+                    prefdays_prioritized_fields = self.day_balancer.assign_prefdays_priorities(div_id, datesortedfield_list)
+                    for dsfield_dict in prefdays_prioritized_fields:
                         dategame_date = dsfield_dict['date']
                         datefield_list = dsfield_dict['datefield_list']
                         if len(datefield_list) > 1:
@@ -446,6 +467,7 @@ class FieldTimeScheduleGenerator:
                     rd_fieldcount_list[rd_fieldcount_indexerGet(field_id)]['count'] += 1
                     self.updatetimegap_list(div_id, home_id, away_id, game_date,
                         gametime+gameinterval)
+                    self.day_balancer.update_counters(div_id, game_date)
                     div = self.divinfo_list[self.divinfo_indexerGet(div_id)]
                     logging.info("div=%s%s home=%d away=%d round_id=%d, date=%s fieldday_id=%d field=%d gametime=%s slotindex=%d",
                         div['div_age'], div['div_gen'], home_id, away_id, round_id,
@@ -456,6 +478,7 @@ class FieldTimeScheduleGenerator:
                               connected_div_list, round_id, rd_fieldcount_list)
             # First cut correct schedule is complete at this point, but re-measure
             # and re-iterate on field balance/distribution
+            self.day_balancer.ReDayBalance(connected_div_list)
             self.fieldbalancer.ReFieldBalanceIteration(connected_div_list,
                 fieldmetrics_list,
                 fieldmetrics_indexerGet, commondates_list, numgames_perteam_list,
@@ -467,6 +490,9 @@ class FieldTimeScheduleGenerator:
         # complete (not per-connected_div_list)
         # get alt representation of schedule
         sched_tuple = self.create_connected_sched_list()
+        if self.tmprefdays_tuple and self.tmprefdays_tuple.dict_list:
+            process_tmprefdays(self.tmprefdays_tuple, self.divinfo_tuple, self.fieldinfo_tuple,
+                               self.fieldstatus_tuple, sched_tuple)
         if self.conflictprocess_obj:
             if self.prefinfo_list:
                 pref_len = len(self.prefinfo_list)
@@ -555,7 +581,7 @@ class FieldTimeScheduleGenerator:
                 byeteam_id = byeteam_iter.next()['byeteam']
                 cost_list = []
                 cindexerGet = lambda x: dict((p['team_id'],i) for i,p in enumerate(cost_list)).get(x)
-                for game_date, game_date_match_set in groupby(round_game_date_match_list, key=itemgetter('game_date')):          
+                for game_date, game_date_match_set in groupby(round_game_date_match_list, key=itemgetter('game_date')):
                     for slot_index, match_set in groupby(game_date_match_set, key=itemgetter('slot_index')):
                         for match in match_set:
                             for tid in ['home_id', 'away_id']:
@@ -1352,7 +1378,7 @@ class FieldTimeScheduleGenerator:
                 # check if there are enough gamedays during the week
                 if dayweek_set_len < div_numgdaysperweek:
                     logging.error("Not enough gamedays in week for %d" % (div_id,))
-                    raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough gamedays in week, need %d days, but only %d available" % 
+                    raise FieldTimeAvailabilityError("!!!!!!!!!!!!!!!! Not enough gamedays in week, need %d days, but only %d available" %
                         (div_numgdaysperweek, dayweek_set_len), div_id)
                     break
                 # check if there are enough totalfielddays to cover the total
@@ -1372,7 +1398,7 @@ class FieldTimeScheduleGenerator:
                 available_slots = self.get_total_number_slots()
                 if available_slots < required_slots:
                     logging.error("Not enough total field slots to cover %d" % (div_id,))
-                    raise FieldTimeAvailabilityError("!!!Not enough total field and time slots, need %d slots, but only %d available" % 
+                    raise FieldTimeAvailabilityError("!!!Not enough total field and time slots, need %d slots, but only %d available" %
                         (required_slots, available_slots), div_id)
                     break
                 else:
@@ -1570,8 +1596,7 @@ class FieldTimeScheduleGenerator:
         # in addition to fieldstatus_list, which tracks scheduled games
         # by field and time slot, track schedule by div_id and team_id
         sched_list = list()
-        indexerGet = lambda x: dict((p['div_id'], i)
-            for i,p in enumerate(sched_list)).get(x)
+        indexerGet = lambda x: dict((p['div_id'], i) for i,p in enumerate(sched_list)).get(x)
         field_list = [x['field_id'] for x in self.fieldinfo_list]
         for field_id in field_list:
             for fieldday_id, slotstatus_list in enumerate(self.fieldstatus_list[self.fstatus_indexerGet(field_id)]['slotstatus_list'], start=1):

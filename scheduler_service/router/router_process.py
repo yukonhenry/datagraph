@@ -39,7 +39,7 @@ class RouteLogic:
             self.dbinterface_map_list) if p['userid_name']==x and p['db_type']==y
                 and p['sched_cat']==z]
         self.schedmaster_map_list = list();
-        self.sindexerMatch = lambda x,y:[i for i,p in 
+        self.sindexerMatch = lambda x,y:[i for i,p in
             enumerate(self.schedmaster_map_list) if p['userid_name']==x and
             p['sched_cat']==y]
 
@@ -409,7 +409,7 @@ def get_dbcollection(userid_name):
     prefdb_list = generic_dbInterface.getScheduleCollection(
         DB_Col_Type.PreferenceInfo, userid_name, "L") +\
         generic_dbInterface.getScheduleCollection(
-            DB_Col_Type.PreferenceInfo, userid_name, "T")   
+            DB_Col_Type.PreferenceInfo, userid_name, "T")
     teamdb_list = generic_dbInterface.getScheduleCollection(
         DB_Col_Type.TeamInfo, userid_name, "L") +\
         generic_dbInterface.getScheduleCollection(

@@ -2,9 +2,11 @@
 ''' Copyright YukonTR 2013 '''
 from dbinterface import DB_Col_Type
 from basedbinterface import BaseDBInterface
+from util.schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist
 import simplejson as json
 from collections import namedtuple
 import logging
+import pdb
 gameday_id_CONST = 'GAMEDAY_ID'
 start_time_CONST = 'START_TIME'
 # global for namedtuple
@@ -21,6 +23,19 @@ class RRDBInterface(BaseDBInterface):
 
     def writeDB(self, divinfo_str, config_status, oddnum_mode):
         divinfo_list = json.loads(divinfo_str)
+        for divinfo in divinfo_list:
+            if 'primary_dw' in divinfo:
+                temp_list = [int(x) for x in divinfo['primary_dw'].split(',')]
+                divinfo['primary_days'] = convertJStoPY_daylist(temp_list)
+                del divinfo['primary_dw']
+            else:
+                divinfo['primary_days'] = []
+            if 'secondary_dw' in divinfo:
+                temp_list = [int(x) for x in divinfo['secondary_dw'].split(',')]
+                divinfo['secondary_days'] = convertJStoPY_daylist(temp_list)
+                del divinfo['secondary_dw']
+            else:
+                divinfo['secondary_days'] = []
         document_list = [{k.upper():v for k,v in x.items()} for x in divinfo_list]
         set_obj = {'CONFIG_STATUS':config_status, 'ODDNUM_MODE':oddnum_mode}
         self.dbinterface.updateInfoDocument(document_list, set_obj, 'DIV_ID')
@@ -31,7 +46,7 @@ class RRDBInterface(BaseDBInterface):
             logging.info("rrdbinterface: oddnum balance mode, reducing games per team to %d",
                 divinfo['totalgamedays'])
         return divinfo
- 
+
     def updateDB(self, update_data_str):
         # right now this update operation is hardcoded to update divfield_list
         update_data_list = json.loads(update_data_str)
@@ -50,6 +65,15 @@ class RRDBInterface(BaseDBInterface):
             del div['SCHED_TYPE']
             del div['USER_ID']
             del div['SCHED_CAT']
+            if 'PRIMARY_DAYS' in div:
+                temp_list = convertPYtoJS_daylist(div['PRIMARY_DAYS'])
+                div['primary_dw'] = ','.join(str(f) for f in temp_list)
+                del div['PRIMARY_DAYS']
+            if 'SECONDARY_DAYS' in div:
+                temp_list = convertPYtoJS_daylist(div['SECONDARY_DAYS'])
+                div['secondary_dw'] = ','.join(str(f) for f in temp_list)
+                del div['SECONDARY_DAYS']
+
         result = listresult_tuple.result
         config_status = result['CONFIG_STATUS']
         # ref http://stackoverflow.com/questions/17933168/replace-dictionary-keys-strings-in-python

@@ -9,6 +9,7 @@ import socket
 from flufl.enum import Enum
 from datetime import date
 from pprint import pprint
+import pdb
 start_time_CONST = 'START_TIME'
 gameday_id_CONST = 'GAMEDAY_ID'
 game_date_CONST = 'GAME_DATE'
@@ -93,13 +94,13 @@ class MongoDBInterface:
         '''
         query_obj.update({'SCHED_TYPE':self.sched_type, USER_ID:self.userid_name,
             SCHED_CAT:self.sched_cat})
-        result_obj = self.collection.update(query_obj, {operator:operator_obj},
+        result_obj = self.collection.update_one(query_obj, {operator:operator_obj},
             upsert=upsert_flag)
-        if 'writeConcernError' in result_obj:
+        if result_obj.acknowledged:
+            return 1
+        else:
             raise CodeLogicError("dbinterface:updatedoc: collection update error=%s" %(result_obj.writeConcernError.errmsg,))
             return -1
-        else:
-            return 1
 
     def check_docexists(self, key):
         # use key to check if doc exists - return boolean
@@ -119,9 +120,7 @@ class MongoDBInterface:
         # https://blog.serverdensity.com/checking-if-a-document-exists-mongodb-slow-findone-vs-find/
         # use limit(1) instead based on recommendation above rather than find_one
         if findone_flag:
-            return self.collection.find(query_obj, projection_obj).limit(1)
-        else:
-            return self.collection.find(query_obj, projection_obj)
+            return self.colleupdate_dbcolection.find(query_obj, projection_obj)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
@@ -148,9 +147,9 @@ class MongoDBInterface:
             doc[sched_type_CONST] = self.sched_type
             doc[USER_ID] = self.userid_name
             doc[SCHED_CAT] = self.sched_cat
-            self.collection.update({sched_type_CONST:self.sched_type,
+            self.collection.update_one({sched_type_CONST:self.sched_type,
                 id_str:doc[id_str], USER_ID:self.userid_name,
-                SCHED_CAT:self.sched_cat}, doc, upsert=True)
+                SCHED_CAT:self.sched_cat}, {"$set":doc}, upsert=True)
 
 
     def updateSchedType_doc(self, updatedoc):
@@ -162,13 +161,13 @@ class MongoDBInterface:
     def updateInfoPlusDocument(self, doc_list, config_status, divstr_colname, divstr_db_type, id_str):
         # going to flatten doc structure for fields - do away with doc_list top
         # level structure; put divstr information into main status doc
-        self.collection.update({sched_type_CONST:self.sched_type,
+        self.collection.update_one({sched_type_CONST:self.sched_type,
             sched_status_CONST:{"$exists":True}, USER_ID:self.userid_name,
             SCHED_CAT:self.sched_cat},
             {"$set": {CONFIG_STATUS:config_status,
             divstr_colname_CONST:divstr_colname,
             DIVSTR_DB_TYPE:divstr_db_type}}, upsert=True)
-        self.collection.remove({sched_type_CONST:self.sched_type,
+        self.collection.delete_many({sched_type_CONST:self.sched_type,
             USER_ID:self.userid_name, SCHED_CAT:self.sched_cat,
             id_str:{"$exists":True}})
         for doc in doc_list:
@@ -177,9 +176,10 @@ class MongoDBInterface:
             doc[sched_type_CONST] = self.sched_type
             doc[USER_ID] = self.userid_name
             doc[SCHED_CAT] = self.sched_cat
-            self.collection.update({sched_type_CONST:self.sched_type,
-                id_str:doc[id_str], USER_ID:self.userid_name,
-                SCHED_CAT:self.sched_cat}, doc, upsert=True)
+            self.collection.insert_one(doc)
+            #self.collection.insert_one({sched_type_CONST:self.sched_type,
+            #    id_str:doc[id_str], USER_ID:self.userid_name,
+            #    SCHED_CAT:self.sched_cat}, doc, upsert=True)
 
     def updateGameTime(self, div_id, age, gen, totalgames, totalbrackets):
         query = {gameday_id_CONST:gameday_id, venue_CONST:venue,

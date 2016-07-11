@@ -1,4 +1,3 @@
-''' Copyright YukonTR 2013 '''
 from itertools import product
 import networkx as nx
 from math import sqrt
@@ -58,7 +57,7 @@ class MatchGenerator(object):
     @property
     def numgames_perteam_list(self):
         return self._numgames_perteam_list
-    
+
     def removeGraphEdgeAttribute(self, source_id, sink_id, gamecount_id):
         # delete edge from matchG graph
         edge_dict = self.matchG.get_edge_data(source_id, sink_id, default=None)
