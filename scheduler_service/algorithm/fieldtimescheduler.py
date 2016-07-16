@@ -72,7 +72,6 @@ class FieldTimeScheduleGenerator:
             self.tminfo_indexerGet = None
             self.tminfo_indexerMatch = None
         self.tmprefdays_tuple = tmprefdays_tuple
-        self.day_balancer = DayBalancer(divinfo_tuple, fieldinfo_tuple)
         # self.init_prefdays(tmprefdays_tuple)
         self.conflictinfo_list = conflictinfo_list
         if conflictinfo_list:
@@ -105,6 +104,7 @@ class FieldTimeScheduleGenerator:
         wtuple = self.init_homefieldweight_list()
         self.homefield_weight_list = wtuple.dict_list
         self.hfweight_indexerGet = wtuple.indexerGet
+        self.day_balancer = DayBalancer(divinfo_tuple, fieldinfo_tuple, fstatus_tuple)
 
     def init_prefdays(self, tmprefdays_tuple):
         if tmprefdays_tuple:
@@ -478,7 +478,7 @@ class FieldTimeScheduleGenerator:
                               connected_div_list, round_id, rd_fieldcount_list)
             # First cut correct schedule is complete at this point, but re-measure
             # and re-iterate on field balance/distribution
-            self.day_balancer.ReDayBalance(connected_div_list)
+            self.day_balancer.ReDayBalance(fset, connected_div_list)
             self.fieldbalancer.ReFieldBalanceIteration(connected_div_list,
                 fieldmetrics_list,
                 fieldmetrics_indexerGet, commondates_list, numgames_perteam_list,

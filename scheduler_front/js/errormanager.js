@@ -5,7 +5,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
             divconfig_incomplete_mask:0x1,
             fieldconfig_incomplete_mask:0x2,
             prefinfodate_error_mask:0x4,
-            software_error_mask:0x8
+            generate_error_mask:0x8
         };
         return declare(null, {
             constructor: function(args) {
@@ -22,8 +22,8 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                 if (error_code & constant.prefinfodate_error_mask) {
                     error_msg += "No Field Available on Preference Date;";
                 }
-                if (error_code & constant.software_error_mask) {
-                    error_msg += "Software Error-"+custom_msg;
+                if (error_code & constant.generate_error_mask) {
+                    error_msg += "Generation Error-"+custom_msg+". ";
                 }
                 if (error_msg) {
                     error_msg += "Please recheck configuration"
