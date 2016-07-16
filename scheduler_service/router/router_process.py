@@ -168,7 +168,11 @@ def send_generate(userid_name, sched_cat):
                     {"userid_name":userid_name, "sched_cat":sched_cat,
                     "schedmaster_obj":schedMaster})
             dbstatus = schedMaster.generate()
-            a = json.dumps({"dbstatus":dbstatus})
+            if dbstatus['status'] == 1 or (dbstatus['status'] == 0 and 'error_code' not in dbstatus):
+                a = json.dumps({"dbstatus":dbstatus})
+            else:
+                a = json.dumps({"dbstatus":0, "error_code": dbstatus['error_code'],
+                                "error_message": dbstatus['error_message']})
         else:
             a = json.dumps({"error_code":schedMaster._error_code})
             del schedMaster

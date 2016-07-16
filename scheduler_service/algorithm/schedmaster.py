@@ -23,6 +23,7 @@ _List_IndexerM = namedtuple('List_Indexer', 'dict_list indexerMatch')
 DIVCONFIG_INCOMPLETE_MASK = 0x1
 FIELDCONFIG_INCOMPLETE_MASK = 0x2
 PREFINFODATE_ERROR_MASK = 0x4
+GENERATE_ERROR_MASK = 0x8
 # main class for launching schedule generator
 # Handling round-robin season-long schedules.  May extend to handle other schedule
 # generators.
@@ -174,9 +175,14 @@ class SchedMaster(object):
                 totalbyeteam_list.append({'div_id':div_id, 'byeteam_list':match.byeteam_list})
         totalmatch_indexerGet = lambda x: dict((p['div_id'],i) for i,p in enumerate(totalmatch_list)).get(x)
         totalmatch_tuple = _List_Indexer(totalmatch_list, totalmatch_indexerGet)
-        status = self.fieldtimeScheduleGenerator.generateSchedule(
-            totalmatch_tuple, self.oddnumplay_mode, totalbyeteam_list)
-        return 1 if status else 0
+        try:
+            status = self.fieldtimeScheduleGenerator.generateSchedule(
+                totalmatch_tuple, self.oddnumplay_mode, totalbyeteam_list)
+        except ValueError:
+            return {'status':0, 'error_code': GENERATE_ERROR_MASK,
+                    'error_message': "Not enough available dates: Check Division MinMax Gap or Field Calendar Length" }
+        else:
+            return {'status': 1} if status else {'status':0}
 
     '''function to add fields key to divinfo_list. Supersedes global function (unnamed) in leaguedivprep'''
     def divfield_correlate(self, fieldinfo_list, dbInterface, div_list):
@@ -307,4 +313,3 @@ class SchedMaster(object):
             return tminfo_tuple
         else:
             return None
-

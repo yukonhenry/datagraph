@@ -535,7 +535,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			send_generate: function() {
 				var schedstatustxt_id = this.opconstant_obj.schedstatustxt_id;
 				var schedstatustxt_node = dom.byId(schedstatustxt_id);
-				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready";
+				schedstatustxt_node.innerHTML = "Generating Schedule, Not Ready.  Please wait for a few minutes.";
 				schedstatustxt_node.style.color = 'red';
 				// save server_key_obj to a member variable, as this will 'lock' the
 				// values and used as data for the newly generate schedule cpanes.
@@ -561,7 +561,11 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			},
 			update_schedstatustxt: function(adata, options_obj) {
 				if ('error_code' in adata) {
-					this.errormgr_obj.emit_error(adata.error_code);
+					if ('error_message' in adata) {
+						this.errormgr_obj.emit_error(adata.error_code, adata.error_message);
+					} else {
+						this.errormgr_obj.emit_error(adata.error_code);
+					}
 					return false;
 				}
 				var dbstatus = adata.dbstatus;

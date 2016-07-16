@@ -7,11 +7,14 @@ from copy import deepcopy
 from util.sched_exceptions import CodeLogicError
 import pdb
 class DayBalancer(object):
-    def __init__(self, divinfo_tuple, fieldinfo_tuple):
+    def __init__(self, divinfo_tuple, fieldinfo_tuple, fstatus_tuple):
         self.divinfo_list = divinfo_tuple.dict_list
         self.dindexerGet = divinfo_tuple.indexerGet
         self.fieldinfo_list = fieldinfo_tuple.dict_list
         self.findexerGet = fieldinfo_tuple.indexerGet
+        self.fieldstatus_list = fstatus_tuple.dict_list
+        self.fstatus_indexerGet = fstatus_tuple.indexerGet
+
         self.day_counters = self.initialize_counters(self.divinfo_list, self.dindexerGet, self.fieldinfo_list,
                                                      self.findexerGet)
 
@@ -77,5 +80,5 @@ class DayBalancer(object):
                 date_field.update({'priority': 3})
         return sorted(datesortedfields, key=itemgetter('priority', 'date'))
 
-    def ReDayBalance(self, connected_divs):
+    def ReDayBalance(self, fieldset, connected_divs):
         pass
