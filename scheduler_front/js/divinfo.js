@@ -53,12 +53,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 			getcolumnsdef_obj: function() {
 				var columnsdef_list = [
 					{field: "div_id", label: "Div ID"},
-					{field: "div_age", label:"Age", autoSave:true,
+					{field: "div_age", label:"Age / Primary Identifier", autoSave:true,
 						set:function(item) {
 							// trim any leading or trailing whitespace characters
 							return item.div_age.trim();
 						}, editor:"text", editOn:"click"},
-					{field: "div_gen", label:"Gender", autoSave:true,
+					{field: "div_gen", label:"Gender / Secondary Identifier", autoSave:true,
 						set:function(item) {
 							return item.div_gen.trim();
 						}, editor:"text", editOn:"click"},
