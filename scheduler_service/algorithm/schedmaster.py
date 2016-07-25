@@ -32,6 +32,7 @@ class SchedMaster(object):
         fieldcol_name, schedcol_name, prefcol_name=None,
         conflictcol_name=None):
         self._error_code = 0x0
+        self._error_message = ""
         self.userid_name = userid_name
         self.sdbInterface = SchedDBInterface(mongoClient, userid_name,
             schedcol_name, "L")
@@ -133,12 +134,16 @@ class SchedMaster(object):
         if not self._error_code:
             self.sdbInterface.setschedule_param(db_type, divcol_name, fieldcol_name,
                 prefcol_name=prefcol_name, conflictcol_name=conflictcol_name)
-            self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
-                dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
-                fieldinfo_tuple=self.fieldinfo_tuple,
-                prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
-                tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
-                cdbinterface=cdbInterface, tmprefdays_tuple=tmprefdays_tuple)
+            try:
+                self.fieldtimeScheduleGenerator = FieldTimeScheduleGenerator(
+                    dbinterface=self.sdbInterface, divinfo_tuple=self.divinfo_tuple,
+                    fieldinfo_tuple=self.fieldinfo_tuple,
+                    prefinfo_triple=prefinfo_triple, pdbinterface=pdbInterface,
+                    tminfo_tuple=tminfo_tuple, conflictinfo_list=conflictinfo_list,
+                    cdbinterface=cdbInterface, tmprefdays_tuple=tmprefdays_tuple)
+            except KeyError:
+                self._error_code |= FIELDCONFIG_INCOMPLETE_MASK
+                self._error_message += "Reselect Division Configuration in Field Configuration UI"
             self.schedcol_name = schedcol_name
             self._xls_exporter = None
 

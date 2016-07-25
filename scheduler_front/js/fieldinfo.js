@@ -146,7 +146,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						this.idmgr_obj.dbname_id, constant.dbname_str);
 					var dbname_node = put(form_node,
 						"input[id=$][type=text][required=true]",
-						this.idmgr_obj.dbname_id)
+						this.idmgr_obj.dbname_id);
 					dbname_reg = new ValidationTextBox({
 						value: '',
 						regExp: '\\D[\\w]+',
@@ -195,7 +195,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					newgrid_flag: newgrid_flag,
 					cellselect_flag: true,
 					op_type: op_type
-				}
+				};
 				this.showConfig(args_obj);
 				// delete old calendarmapobj_list if this is the subsequent time
 				// we are coming through initialize()
@@ -670,15 +670,22 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					this.tpform_starttime_widget.get('value').toLocaleTimeString());
 				var endtime = new Date(date_str + ' ' +
 					this.tpform_endtime_widget.get('value').toLocaleTimeString());
+				var endtime_hour = endtime.getHours();
 				if (date.compare(endtime, starttime) > 0) {
-					data_obj.starttime = starttime;
-					data_obj.endtime = endtime;
-					this.calendar_store.put(data_obj);
+					this.update_calendar_store(data_obj, starttime, endtime);
+				} else if (endtime_hour >= 0 && endtime_hour <=3) {
+					var adjusted_endtime = date.add(endtime, 'day', 1);
+					this.update_calendar_store(data_obj, starttime, adjusted_endtime);
 				} else {
 					alert("end time must be later than start timse");
 				}
 				this.disable_chgdel_widgets();
 				this.enable_savecancel_widgets();
+			},
+			update_calendar_store: function(data_obj, starttime, endtime) {
+				data_obj.starttime = starttime;
+				data_obj.endtime = endtime;
+				this.calendar_store.put(data_obj);
 			},
 			enable_savecancel_widgets: function() {
 				if (this.tpform_cancelbtn_widget.get('disabled'))
@@ -1114,6 +1121,14 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				return config_status;
 			},
+			update_endtime_if_wee_hour: function(endtime) {
+				var endtime_hour = endtime.getHours();
+				if (endtime_hour >= 0 && endtime_hour <= 3) {
+					return date.add(endtime, 'day', 1);
+				} else {
+					return endtime;
+				}
+			},
 			// modify field_id-specific data returned from server, which consists
 			// of converting date/time strings to js date objects needed for dojo
 			// widgets.
@@ -1132,7 +1147,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					item.start_date = new Date(start_date_str);
 					item.end_date = new Date(end_date_str);
 					item.start_time = new Date(start_date_str + ' ' + start_time_str);
-					item.end_time = new Date(end_date_str + ' ' + end_time_str);
+					item.end_time = this.update_endtime_if_wee_hour(new Date(end_date_str + ' ' + end_time_str));
 					// this.calendarmapobj_list is used by the dojox calendar
 					// to set initial date/time configurations based on server
 					// data.
@@ -1145,17 +1160,17 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						var end_time = null;
 						if ('start_time' in item2 && 'end_time' in item2) {
 							start_time = new Date(item2.date + ' ' + item2.start_time);
-							end_time = new Date(item2.date + ' ' + item2.end_time);
+							end_time = this.update_endtime_if_wee_hour(new Date(item2.date + ' ' + item2.end_time));
 						} else {
-							start_time = new Date(item2.date + ' ' + start_time_str)
-							end_time = new Date(item2.date + ' ' + end_time_str)
+							start_time = new Date(item2.date + ' ' + start_time_str);
+							end_time = this.update_endtime_if_wee_hour(new Date(item2.date + ' ' + end_time_str));
 						}
 						calendarmap_list.push({
 							start_time: start_time,
 							end_time: end_time,
 							fieldday_id: item2.fieldday_id
 						});
-					})
+					}, this)
 					var obj = {
 						field_id: item.field_id,
 						field_name: item.field_name,

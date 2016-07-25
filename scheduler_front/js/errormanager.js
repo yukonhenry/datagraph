@@ -17,7 +17,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     error_msg += "Division Configuration Incomplete;";
                 }
                 if (error_code & constant.fieldconfig_incomplete_mask) {
-                    error_msg += "Field Configuration Incomplete;";
+                    error_msg += "Field Configuration Incomplete; "+custom_msg;
                 }
                 if (error_code & constant.prefinfodate_error_mask) {
                     error_msg += "No Field Available on Preference Date;";
@@ -26,12 +26,12 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/_base/lang", "dojo/_base/array",
                     error_msg += "Generation Error-"+custom_msg+". ";
                 }
                 if (error_msg) {
-                    error_msg += "Please recheck configuration"
+                    error_msg += "Please recheck configuration";
                 }
                 var error_dialog = new ConfirmDialog({
                     title: "Error Message", content:error_msg,
-                })
+                });
                 error_dialog.show();
             }
-         })
-})
+         });
+});

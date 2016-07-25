@@ -105,8 +105,10 @@ def get_dbcol(userid_name, db_type, getcol_name, sched_cat):
     dbInterface = select_db_interface(userid_name, db_type, getcol_name,
         sched_cat)
     # save as member of global routelogic object to be used in send_delta function
-    _routelogic_obj.dbinterface_map_list.append({'userid_name':userid_name,
-        'db_type':db_type, 'dbinterface':dbInterface, 'sched_cat':sched_cat})
+    sindex_list = _routelogic_obj.sindexerMatch(userid_name, sched_cat)
+    if not sindex_list:
+        _routelogic_obj.dbinterface_map_list.append({'userid_name':userid_name,
+            'db_type':db_type, 'dbinterface':dbInterface, 'sched_cat':sched_cat})
     if db_type == 'newscheddb':
         return_obj = {'param_obj':dbInterface.getschedule_param(),
         'sched_status':dbInterface.getsched_status()}
@@ -174,7 +176,7 @@ def send_generate(userid_name, sched_cat):
                 a = json.dumps({"dbstatus":0, "error_code": dbstatus['error_code'],
                                 "error_message": dbstatus['error_message']})
         else:
-            a = json.dumps({"error_code":schedMaster._error_code})
+            a = json.dumps({"error_code":schedMaster._error_code, "error_message": schedMaster._error_message})
             del schedMaster
     elif sched_cat == "T":
         tourn_type = request.query.tourn_type
@@ -232,12 +234,10 @@ def get_schedule(userid_name, schedcol_name, idproperty, propid, sched_cat):
     sindex_list = _routelogic_obj.sindexerMatch(userid_name, sched_cat)
 
     if sindex_list:
-        if len(sindex_list) == 1:
-            sindex = sindex_list[0]
-            schedMaster = _routelogic_obj.schedmaster_map_list[sindex]['schedmaster_obj']
-        else:
-            raise CodeLogicError("RouteProcess:get_schedule, multiple indexermatch=%s"
-                % (sindex_list,))
+        sindex = sindex_list[0]
+        schedMaster = _routelogic_obj.schedmaster_map_list[sindex]['schedmaster_obj']
+        if len(sindex_list) > 1:
+            logging.warning("RouteProcess:get_schedule, multiple indexermatch=%s" % (sindex_list,))
     else:
         schedMaster = None
     #else:
@@ -277,12 +277,10 @@ def get_teamtable(userid_name, schedcol_name, div_age, div_gen, team_id, sched_c
     #schedMaster = _routelogic_obj.schedmaster_map.get(userid_name)
     sindex_list = _routelogic_obj.sindexerMatch(userid_name, sched_cat)
     if sindex_list:
-        if len(sindex_list) == 1:
-            sindex = sindex_list[0]
-            schedMaster = _routelogic_obj.schedmaster_map_list[sindex]['schedmaster_obj']
-        else:
-            raise CodeLogicError("RouteProcess:get_teamtable, multiple indexermatch=%s"
-                % (sindex_list,))
+        sindex = sindex_list[0]
+        schedMaster = _routelogic_obj.schedmaster_map_list[sindex]['schedmaster_obj']
+        if len(sindex_list) > 1:
+            logging.warning("RouteProcess:get_teamtable, multiple indexermatch=%s" % (sindex_list,))
     else:
         schedMaster = None
         #raise CodeLogicError("RouteProcess:get_teamtable, No indexermatch with routelogic=%s"
@@ -314,12 +312,10 @@ def get_xls(userid_name, schedcol_name, db_type, genxls_id, sched_cat):
     #schedMaster = _routelogic_obj.schedmaster_map.get(userid_name)
     sindex_list = _routelogic_obj.sindexerMatch(userid_name, sched_cat)
     if sindex_list:
-        if len(sindex_list) == 1:
-            sindex = sindex_list[0]
-            schedMaster = _routelogic_obj.schedmaster_map_list[sindex]['schedmaster_obj']
-        else:
-            raise CodeLogicError("RouteProcess:get_xls, multiple indexermatch=%s"
-                % (sindex_list,))
+        sindex = sindex_list[0]
+        schedMaster = _routelogic_obj.schedmaster_map_list[sindex]['schedmaster_obj']
+        if len(sindex_list) > 1:
+            logging.warning("RouteProcess:get_xls, multiple indexermatch=%s" % (sindex_list,))
     else:
         schedMaster = None
         #raise CodeLogicError("RouteProcess:get_xls, No indexermatch with routelogic=%s"

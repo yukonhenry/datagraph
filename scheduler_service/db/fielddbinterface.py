@@ -3,12 +3,13 @@
 from dbinterface import DB_Col_Type
 from basedbinterface import BaseDBInterface
 from util.schedule_util import convertJStoPY_daylist, convertPYtoJS_daylist, \
-    getcalendarmap_list
+    getcalendarmap_list, parse_time_wee_hour_adjust
 import simplejson as json
 from collections import namedtuple
 from dateutil import parser
 from util.sched_exceptions import SchedulerConfigurationError
 import logging
+import pdb
 
 # global for namedtuple
 _List_Indexer = namedtuple('_List_Indexer', 'dict_list indexerGet')
@@ -59,6 +60,18 @@ class FieldDBInterface(BaseDBInterface):
         self.dbinterface.updateInfoPlusDocument(document_list, config_status,
             divstr_colname=divstr_colname, divstr_db_type=divstr_db_type,
             id_str='FIELD_ID')
+
+    def readDBraw(self):
+        fdbtuple = super(FieldDBInterface, self).readDBraw()
+        for fieldinfo in fdbtuple.list:
+            fieldinfo['start_time'] = parse_time_wee_hour_adjust(fieldinfo['start_time'])
+            fieldinfo['end_time'] = parse_time_wee_hour_adjust(fieldinfo['end_time'])
+            for calendarmap in fieldinfo['calendarmap_list']:
+                if 'start_time' in calendarmap:
+                    calendarmap['start_time'] = parse_time_wee_hour_adjust(calendarmap['start_time'])
+                if 'end_time' in calendarmap:
+                    calendarmap['end_time'] = parse_time_wee_hour_adjust(calendarmap['end_time'])
+        return fdbtuple
 
     def readDB(self):
         liststatus_qtuple = self.dbinterface.getInfoPlusDocument('FIELD_ID')

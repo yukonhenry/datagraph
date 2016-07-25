@@ -278,3 +278,10 @@ def getcalendarmap_list(dayweek_list, start_date_str, totalfielddays):
         next_index = (next_index+1) % dayweek_len
         next_date += gap_list[next_index];
     return mapdate_list
+
+def parse_time_wee_hour_adjust(time_str):
+    time_dt = parser.parse(time_str)
+    if 0 <= time_dt.hour <= 3:
+        return time_dt + timedelta(days=1)
+    else:
+        return time_dt

@@ -221,7 +221,7 @@ class FieldTimeScheduleGenerator:
             # if endtimes vary enough that it is best to re-calculate for each round,
             # then move determination of endtime_list into to the for round_id loop
             endtime_list = [(f,
-                parser.parse(self.fieldinfo_list[self.fieldinfo_indexerGet(f)]['end_time'])) for f in field_list]
+                self.fieldinfo_list[self.fieldinfo_indexerGet(f)]['end_time']) for f in field_list]
             # get the max endtime from all fields
             # Note that we want endtime_list to have two-tuples as elements as
             # endtime_list will be used by other functions where the field_id info
@@ -910,8 +910,8 @@ class FieldTimeScheduleGenerator:
                     # first get calendarmap_list for the field, and see if there
                     # is an entry for the priority list game_date
                     finfo = self.fieldinfo_list[self.fieldinfo_indexerGet(f)]
-                    fstart_time = parser.parse(finfo['start_time'])
-                    fend_time = parser.parse(finfo['end_time'])
+                    fstart_time = finfo['start_time']
+                    fend_time = finfo['end_time']
                     cmap_list = finfo['calendarmap_list']
                     cmap_indexerMatch_list = lambda x: [i for i,p in
                         enumerate(cmap_list) if p['date'].date() == x]
@@ -929,8 +929,8 @@ class FieldTimeScheduleGenerator:
                             # there has been a change applied using calendar UI
                             # and cmap start and end times have precedence over
                             # start and end times passed from the grid table
-                            fstart_time = parser.parse(cmap['start_time'])
-                            fend_time = parser.parse(cmap['end_time'])
+                            fstart_time = cmap['start_time']
+                            fend_time = cmap['end_time']
                         if cstartafter_time <= fstart_time:
                             # if the startafter_time is before the earliest time
                             # for that date, it is equivalent to startafter_time
@@ -1297,8 +1297,8 @@ class FieldTimeScheduleGenerator:
                 return None
             # leave gamestart and end_time as datetime objects as time objects do
             # not support addition/subtraction with timedelta objects
-            game_start_dt = parser.parse(f['start_time'])
-            end_dt = parser.parse(f['end_time'])
+            game_start_dt = f['start_time']
+            end_dt = f['end_time']
             # slotstatus_list has a list of statuses, one for each gameslot
             sstatus_list = []
             while game_start_dt + gameinterval <= end_dt:
@@ -1314,8 +1314,8 @@ class FieldTimeScheduleGenerator:
                 if 'start_time' in calendarmap:
                     # start_time in calendarmap indicates we have a specific start/
                     # endtime for that date (and field)
-                    start_time = parser.parse(calendarmap['start_time'])
-                    end_time = parser.parse(calendarmap['end_time'])
+                    start_time = calendarmap['start_time']
+                    end_time = calendarmap['end_time']
                     lstatus_list = []
                     while start_time + gameinterval <= end_time:
                         lstatus_list.append({'start_time':start_time,

@@ -69,16 +69,18 @@ class DayBalancer(object):
         return div_day_counter
 
     def assign_prefdays_priorities(self, div_id, datesortedfields):
+        earliest_date = datesortedfields[0]['date']
         for date_field in datesortedfields:
+            week_id = (date_field['date'] - earliest_date).days // 7
             weekday_id = date_field['date'].weekday()
             divday_counter = self.get_divday_counter(div_id, weekday_id)
-            if divday_counter['primary'] and divday_counter['count'] < divday_counter['target']:
-                date_field.update({'priority': 1})
-            elif divday_counter['secondary'] and divday_counter['count'] < divday_counter['target']:
-                date_field.update({'priority': 2})
+            if divday_counter['primary']:
+                date_field.update({'priority': 1, 'week_id': week_id})
+            elif divday_counter['secondary']:
+                date_field.update({'priority': 2, 'week_id': week_id})
             else:
-                date_field.update({'priority': 3})
-        return sorted(datesortedfields, key=itemgetter('priority', 'date'))
+                date_field.update({'priority': 3, 'week_id': week_id})
+        return sorted(datesortedfields, key=itemgetter('week_id', 'priority', 'date'))
 
     def ReDayBalance(self, fieldset, connected_divs):
         pass
