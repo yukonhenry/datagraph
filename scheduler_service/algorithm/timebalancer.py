@@ -598,6 +598,8 @@ class TimeBalancer(object):
         '''
         fstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(field_id)]
         fday_index = fieldday_id-1
+        if len(fstatus_list['slotstatus_list']) <= fday_index:
+            return None
         sstatus_list = fstatus_list['slotstatus_list'][fday_index]['sstatus_list']
         # first create simple array of isgame statuses for the given slotstatus_list
         # if it is all True then it is not usable

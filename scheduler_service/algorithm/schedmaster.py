@@ -12,7 +12,7 @@ from operator import itemgetter
 from collections import namedtuple
 from dateutil import parser
 import logging
-from util.sched_exceptions import CodeLogicError
+from util.sched_exceptions import CodeLogicError, FieldAvailabilityError
 from html import HTML
 from external.message import RabbitInterface
 
@@ -186,6 +186,9 @@ class SchedMaster(object):
         except ValueError:
             return {'status':0, 'error_code': GENERATE_ERROR_MASK,
                     'error_message': "Not enough available dates: Check Division MinMax Gap or Field Calendar Length" }
+        except FieldAvailabilityError as e:
+            return {'status':0, 'error_code': GENERATE_ERROR_MASK,
+                    'error_message': 'Field space has been exhausted with divsion ' + str(e.div_id)}
         else:
             return {'status': 1} if status else {'status':0}
 
