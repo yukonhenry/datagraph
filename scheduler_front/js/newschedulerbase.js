@@ -40,12 +40,13 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			schedstatustxt_id:'schedstatustxt_id',
 			teamcpane_select_id:'teamcpane_select_id',
 			faircpane_select_id:'faircpane_select_id',
-		}
+		};
+		var day_id_to_day_map = {0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday'};
 		var newschedwatch_class = declare([Stateful],{
 			leagueselect_flag:false,
 			fgselect_flag:false,
 			league_fg_flag:false
-		})
+		});
 		return declare(null, {
 			server_interface:null,
 			newsched_name:"", newsched_dom:"",
@@ -939,7 +940,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var fieldname_dict = adata.fieldname_dict;
 				var game_list = adata.game_list;
 				var columnsdef_obj = {
-					date:'Game Day', time:'Game Time'
+					date:'Game Day', day: 'Day', time:'Game Time'
 				}
 				for (var key in fieldname_dict) {
 					columnsdef_obj[key] = fieldname_dict[key]
@@ -952,6 +953,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					// slot_id row can have multiple games.
 					grid_row.slot_id = index+1;
 					grid_row.date = item.game_date;
+					var game_date = new Date(item.game_date);
+					var game_day = game_date.getDay();
+					grid_row.day = day_id_to_day_map[game_day];
 					grid_row.time = item.start_time;
 					arrayUtil.forEach(item.gameday_data, function(item2) {
 						grid_row[item2.venue] = item2.home+' v '+item2.away;
@@ -967,19 +971,18 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var game_list = adata.game_list;
 				var columnsdef_obj = {
     				game_date:'Game Date',
+						game_day: 'Day',
     				start_time:'Start Time',
     				div_age:'Age Group/Primary ID',
     				div_gen:'Gender/Secondary ID',
     				home:'Home Team#',
     				away:'Away Team#'
 				}
-				// var field_id = event_data.field_id; // selected field_id
-				// get calendar map list for field_id
-				// .filter creates single element list - get single elem/obj and
-				// grab mapping list
-				//var calendarmap_list = this.calendarmap_obj[field_id];
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
+					var game_date = new Date(item.game_date);
+					var game_day = game_date.getDay();
+					item.game_day = day_id_to_day_map[game_day];
 				})
 				this.createsched_grid(idproperty, game_list, columnsdef_obj,
 					constant.game_id);
@@ -989,6 +992,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				var game_list = adata.game_list;
 				var columnsdef_obj = {
    					game_date:'Game Date',
+						game_day: 'Day',
     				start_time:'Start Time',
     				venue:'Venue ID',
     				home:'Home Team#',
@@ -996,6 +1000,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				arrayUtil.forEach(game_list, function(item, index) {
 					item.game_id = index+1; //to be used as idprop for store
+					var game_date = new Date(item.game_date);
+					var game_day = game_date.getDay();
+					item.game_day = day_id_to_day_map[game_day];
 				})
 				this.createsched_grid(idproperty, game_list, columnsdef_obj,
 					constant.game_id);

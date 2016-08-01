@@ -76,7 +76,7 @@ class MongoDBInterface:
             if not self.collection.find_one({sched_status_CONST:{"$exists":True},
                 sched_type_CONST:self.sched_type, USER_ID:userid_name,
                 SCHED_CAT:sched_cat}):
-                self.collection.insert({sched_status_CONST:0,
+                self.collection.insert_one({sched_status_CONST:0,
                     sched_type_CONST:self.sched_type, USER_ID:userid_name,
                     SCHED_CAT:sched_cat})
 
@@ -120,7 +120,9 @@ class MongoDBInterface:
         # https://blog.serverdensity.com/checking-if-a-document-exists-mongodb-slow-findone-vs-find/
         # use limit(1) instead based on recommendation above rather than find_one
         if findone_flag:
-            return self.colleupdate_dbcolection.find(query_obj, projection_obj)
+            return self.collection.find(query_obj, projection_obj).limit(1)
+        else:
+            return self.collection.find(query_obj, projection_obj)
 
     def insertGameData(self, age, gen, gameday_id, start_time_str, venue, home, away):
         document = {age_CONST:age, gen_CONST:gen, gameday_id_CONST:gameday_id,
