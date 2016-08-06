@@ -275,7 +275,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				}, {
 					id: 'tfd',
 					help_str: "total number of days that field is available"
-				}]
+				}];
 				return gridhelp_list;
 			},
 			// main entry point for creating dojox calendar inst
@@ -491,6 +491,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 								item.field_id, fieldevent_str);
 						}, this);
 					} else {
+						this.calendarmapobj_list = [];
 						// if this.calendarmapobj_list does not exist, then no data
 						// has been returned from the server.  Instead, retrieve
 						// data from the current store
@@ -522,6 +523,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 									var fieldevent_str = constant.default_fieldevent_str;
 									this.populate_calendar_store(calendarmap_list,
 										item.field_id, fieldevent_str);
+									var obj = {field_id: item.field_id, field_name: item.field_name,
+														 calendarmap_list: calendarmap_list}
+									this.calendarmapobj_list.push(obj);
 								})
 							);
 						}
@@ -648,6 +652,44 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				this.enable_savecancel_widgets();
 			},
 			change_calevent: function(calendar_id, event) {
+				var data_obj = this.calendar_store.get(calendar_id);
+				// make a copy to store in delta_store as data_obj will be overwritten
+				var clonedata_obj = lang.clone(data_obj);
+				if (this.delta_store.get(calendar_id)) {
+					// if there is already a delta change already in the delta_store
+					// remove it, as the latest one will have priority
+					this.delta_store.remove(calendar_id);
+				}
+				this.delta_store.add({
+					action: 'change',
+					data_obj: clonedata_obj,
+					id: calendar_id,
+					field_id: data_obj.field_id
+				});
+				var fieldevent_str = this.tpform_input_widget.get('value');
+				var date_str = this.tpform_date_widget.get('value').toLocaleDateString();
+				data_obj.fieldevent_str = fieldevent_str;
+				data_obj.summary = "Field" + data_obj.field_id + ':' + fieldevent_str + ' ' + "Block:" + calendar_id;
+				var starttime = new Date(date_str + ' ' +
+					this.tpform_starttime_widget.get('value').toLocaleTimeString());
+				var endtime = new Date(date_str + ' ' +
+					this.tpform_endtime_widget.get('value').toLocaleTimeString());
+				var endtime_hour = endtime.getHours();
+				if (date.compare(endtime, starttime) > 0) {
+					this.update_calendar_store(data_obj, starttime, endtime);
+				} else if (endtime_hour >= 0 && endtime_hour <=3) {
+					var adjusted_endtime = date.add(endtime, 'day', 1);
+					this.update_calendar_store(data_obj, starttime, adjusted_endtime);
+				} else {
+					alert("end time must be later than start timse");
+				}
+				this.disable_chgdel_widgets();
+				this.enable_savecancel_widgets();
+			},
+			change_multiple_calevents: function(calendar_id, event) {
+				var fieldevent_str = this.tpform_input_widget.get('value');
+				var date_str = this.tpform_date_widget.get('value').toLocaleDateString();
+				data_obj.fieldevent_str = fieldevent_str;
 				var data_obj = this.calendar_store.get(calendar_id);
 				// make a copy to store in delta_store as data_obj will be overwritten
 				var clonedata_obj = lang.clone(data_obj);
