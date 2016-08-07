@@ -1121,9 +1121,9 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 				}
 				return config_status;
 			},
-			update_endtime_if_wee_hour: function(endtime) {
+			update_endtime_if_wee_hour: function(starttime, endtime) {
 				var endtime_hour = endtime.getHours();
-				if (endtime_hour >= 0 && endtime_hour <= 3) {
+				if ((endtime_hour >= 0 && endtime_hour <= 3) && (date.compare(endtime, starttime) < 0)) {
 					return date.add(endtime, 'day', 1);
 				} else {
 					return endtime;
@@ -1147,7 +1147,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					item.start_date = new Date(start_date_str);
 					item.end_date = new Date(end_date_str);
 					item.start_time = new Date(start_date_str + ' ' + start_time_str);
-					item.end_time = this.update_endtime_if_wee_hour(new Date(end_date_str + ' ' + end_time_str));
+					item.end_time = this.update_endtime_if_wee_hour(item.start_time, new Date(end_date_str + ' ' + end_time_str));
 					// this.calendarmapobj_list is used by the dojox calendar
 					// to set initial date/time configurations based on server
 					// data.
@@ -1160,10 +1160,10 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						var end_time = null;
 						if ('start_time' in item2 && 'end_time' in item2) {
 							start_time = new Date(item2.date + ' ' + item2.start_time);
-							end_time = this.update_endtime_if_wee_hour(new Date(item2.date + ' ' + item2.end_time));
+							end_time = this.update_endtime_if_wee_hour(start_time, new Date(item2.date + ' ' + item2.end_time));
 						} else {
 							start_time = new Date(item2.date + ' ' + start_time_str);
-							end_time = this.update_endtime_if_wee_hour(new Date(item2.date + ' ' + end_time_str));
+							end_time = this.update_endtime_if_wee_hour(start_time, new Date(item2.date + ' ' + end_time_str));
 						}
 						calendarmap_list.push({
 							start_time: start_time,

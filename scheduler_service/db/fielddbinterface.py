@@ -26,6 +26,7 @@ dayweek_list_CONST = 'DAYWEEK_LIST'
 date_format_CONST = "%m/%d/%Y"
 ''' some acronyms used:
 pr - primaryuse_str
+sr - secondaryuse_str
 dr - dayweek_str
 tfd - tofalfielddays
 '''
@@ -48,6 +49,11 @@ class FieldDBInterface(BaseDBInterface):
                     for x in fieldinfo['pr'].split(',')]
             else:
                 fieldinfo['primaryuse_list'] = []
+            if fieldinfo['sr']:
+                fieldinfo['secondaryuse_list'] = [int(x)
+                    for x in fieldinfo['sr'].split(',')]
+            else:
+                fieldinfo['secondaryuse_list'] = []
             fieldinfo['calendarmap_list'] = getcalendarmap_list(fieldinfo['dayweek_list'],
                 fieldinfo['start_date'], fieldinfo['tfd'])
             del fieldinfo['dr']
@@ -85,6 +91,8 @@ class FieldDBInterface(BaseDBInterface):
             del field['SCHED_CAT']
             field['pr'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
+            field['sr'] = ','.join(str(f) for f in field['SECONDARYUSE_LIST'])
+            del field['SECONDARYUSE_LIST']
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
             field['dr'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
