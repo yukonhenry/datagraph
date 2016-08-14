@@ -554,7 +554,7 @@ define(["dojo/_base/declare", "dojo/dom", "dojo/Deferred",
 								function(item2) {
 									return parseInt(item2);
 								});
-						} else if (prop == 'secondary_dw') {
+						} else if (prop == 'secondary_dw' && item[prop]) {
 							if (primary_dws.length == 0) {
 								alert_msg = "Primary Preference Days not entered even though Secondary is";
 								break_flag = true;

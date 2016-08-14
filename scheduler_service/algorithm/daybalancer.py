@@ -37,10 +37,14 @@ class DayBalancer(object):
         total_div_games = divinfo['totalgamedays'] * divinfo['totalteams'] / 2
         if 'primary_days' in divinfo:
             primary_days = divinfo['primary_days']
-            secondary_days = divinfo['secondary_days'] if 'secondary_days' in divinfo else None
+            if 'secondary_days' in divinfo and divinfo['secondary_days']:
+                secondary_days = divinfo['secondary_days']
+                fair_games_per_day = total_div_games / (len(div_field_days) - len(primary_days))
+            else:
+                secondary_days = None
+                fair_games_per_day = 0
             secondary_state = lambda x: True if secondary_days and x in secondary_days else False
             div_games_per_day = total_div_games / len(primary_days)
-            fair_games_per_day = total_div_games / (len(div_field_days) - len(primary_days))
             targets = [{'day_id':x, 'target': div_games_per_day, 'primary': True,
                         'secondary': secondary_state(x)}
                        if x in primary_days else {'day_id': x,

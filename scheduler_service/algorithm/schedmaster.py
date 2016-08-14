@@ -168,7 +168,10 @@ class SchedMaster(object):
             # not match up to number of physical days
             totalgamedays = divinfo['totalgamedays']
             div_id = divinfo['div_id']
-            games_per_team = totalgamedays if (totalteams * totalgamedays) % 2 == 0 else totalgamedays - 1
+            if self.oddnumplay_mode == 1:
+                games_per_team = totalgamedays
+            else:
+                games_per_team = totalgamedays if (totalteams * totalgamedays) % 2 == 0 else totalgamedays - 1
             match = MatchGenerator(totalteams, totalgamedays,
                 oddnumplay_mode=self.oddnumplay_mode, games_per_team=games_per_team)
             match_list = match.generateMatchList()

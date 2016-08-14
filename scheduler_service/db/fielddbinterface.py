@@ -49,11 +49,13 @@ class FieldDBInterface(BaseDBInterface):
                     for x in fieldinfo['pr'].split(',')]
             else:
                 fieldinfo['primaryuse_list'] = []
-            if fieldinfo['sr']:
+            if 'sr' in fieldinfo and fieldinfo['sr']:
                 fieldinfo['secondaryuse_list'] = [int(x)
                     for x in fieldinfo['sr'].split(',')]
             else:
                 fieldinfo['secondaryuse_list'] = []
+            fieldinfo['tfd'] = self.calc_totalfielddays(fieldinfo['start_date'], fieldinfo['end_date'],
+                                                        fieldinfo['dayweek_list'])
             fieldinfo['calendarmap_list'] = getcalendarmap_list(fieldinfo['dayweek_list'],
                 fieldinfo['start_date'], fieldinfo['tfd'])
             del fieldinfo['dr']
@@ -91,8 +93,9 @@ class FieldDBInterface(BaseDBInterface):
             del field['SCHED_CAT']
             field['pr'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
-            field['sr'] = ','.join(str(f) for f in field['SECONDARYUSE_LIST'])
-            del field['SECONDARYUSE_LIST']
+            if 'SECONDARYUSE_LIST' in field and field['SECONDARYUSE_LIST']:
+                field['sr'] = ','.join(str(f) for f in field['SECONDARYUSE_LIST'])
+                del field['SECONDARYUSE_LIST']
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
             field['dr'] = ','.join(str(f) for f in temp_list)
             del field[dayweek_list_CONST]
@@ -121,7 +124,9 @@ class FieldDBInterface(BaseDBInterface):
         end_day = end_date.weekday()
         # create list of available dates during last week
         # calc # days between start and end dates
-        diff_days = (end_date - start_date).days
+        # add one day to difference since start/end dates are inclusive
+        # see fieldinfo.js equivalent function (same name)
+        diff_days = (end_date - start_date).days + 1
         diff_fullweeks = diff_days / 7
         # calc baseline number of game days based on full weeks
         totalfielddays = len(dayweek_list)*diff_fullweeks

@@ -1243,6 +1243,9 @@ class FieldTimeScheduleGenerator:
         for f in fset:
             slotstatus_list = self.fieldstatus_list[self.fstatus_indexerGet(f)]['slotstatus_list']
             sindexerGet = lambda x: dict((p['game_date'].date(),i) for i,p in enumerate(slotstatus_list)).get(x)
+            sindex = sindexerGet(game_date)
+            if sindex is None:
+                continue
             fieldday_dict = slotstatus_list[sindexerGet(game_date)]
             fieldday_id = fieldday_dict['fieldday_id']
             sstatus_list = fieldday_dict['sstatus_list']
@@ -1292,9 +1295,8 @@ class FieldTimeScheduleGenerator:
             # fieldcheckavailability
             # If checks do not produce consistent results look at test logic.
             if totalfielddays < totalgamedays:
-                raise FieldTimeAvailabilityError("Note enough total fielddays %d to cover required totalgamedays" % (totalfielddays,),
+                logging.warning("Field %d does not have enough total fielddays %d to cover required totalgamedays" % (f_id, totalfielddays,),
                     totalgamedays_list)
-                return None
             # leave gamestart and end_time as datetime objects as time objects do
             # not support addition/subtraction with timedelta objects
             game_start_dt = f['start_time']
@@ -1385,7 +1387,8 @@ class FieldTimeScheduleGenerator:
                 # gamedays required for each division
                 if all_isless(totalfielddays_list, div_totalgamedays):
                     logging.error("Not enough field days to cover %d" % (div_id,))
-                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available" % (div_totalgamedays, max(totalfielddays_list)),
+                    raise FieldTimeAvailabilityError("!!!Not enough fielddays, need %d days, but only %d available for div %d" %
+                                                     (div_totalgamedays, max(totalfielddays_list)),
                         div_id)
                     break
             else:

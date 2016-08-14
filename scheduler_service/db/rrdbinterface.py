@@ -30,7 +30,7 @@ class RRDBInterface(BaseDBInterface):
                 del divinfo['primary_dw']
             else:
                 divinfo['primary_days'] = []
-            if 'secondary_dw' in divinfo:
+            if 'secondary_dw' in divinfo and divinfo['secondary_dw']:
                 temp_list = [int(x) for x in divinfo['secondary_dw'].split(',')]
                 divinfo['secondary_days'] = convertJStoPY_daylist(temp_list)
                 del divinfo['secondary_dw']
