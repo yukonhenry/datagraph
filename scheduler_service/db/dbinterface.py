@@ -155,7 +155,7 @@ class MongoDBInterface:
 
 
     def updateSchedType_doc(self, updatedoc):
-        result_obj = self.collection.update({
+        result_obj = self.collection.update_one({
             sched_type_CONST:self.sched_type,
             USER_ID:self.userid_name, SCHED_CAT:self.sched_cat},
             {"$set": updatedoc}, upsert=True)

@@ -26,7 +26,7 @@ dayweek_list_CONST = 'DAYWEEK_LIST'
 date_format_CONST = "%m/%d/%Y"
 ''' some acronyms used:
 pr - primaryuse_str
-sr - secondaryuse_str
+se - secondaryuse_str
 dr - dayweek_str
 tfd - tofalfielddays
 '''
@@ -49,9 +49,9 @@ class FieldDBInterface(BaseDBInterface):
                     for x in fieldinfo['pr'].split(',')]
             else:
                 fieldinfo['primaryuse_list'] = []
-            if 'sr' in fieldinfo and fieldinfo['sr']:
+            if 'se' in fieldinfo and fieldinfo['se']:
                 fieldinfo['secondaryuse_list'] = [int(x)
-                    for x in fieldinfo['sr'].split(',')]
+                    for x in fieldinfo['se'].split(',')]
             else:
                 fieldinfo['secondaryuse_list'] = []
             fieldinfo['tfd'] = self.calc_totalfielddays(fieldinfo['start_date'], fieldinfo['end_date'],
@@ -60,6 +60,7 @@ class FieldDBInterface(BaseDBInterface):
                 fieldinfo['start_date'], fieldinfo['tfd'])
             del fieldinfo['dr']
             del fieldinfo['pr']
+            del fieldinfo['se']
             if 'closed_list' in fieldinfo:
                 del fieldinfo['closed_list']
             if 'timechange_list' in fieldinfo:
@@ -94,7 +95,7 @@ class FieldDBInterface(BaseDBInterface):
             field['pr'] = ','.join(str(f) for f in field[primaryuse_list_CONST])
             del field[primaryuse_list_CONST]
             if 'SECONDARYUSE_LIST' in field and field['SECONDARYUSE_LIST']:
-                field['sr'] = ','.join(str(f) for f in field['SECONDARYUSE_LIST'])
+                field['se'] = ','.join(str(f) for f in field['SECONDARYUSE_LIST'])
                 del field['SECONDARYUSE_LIST']
             temp_list = convertPYtoJS_daylist(field[dayweek_list_CONST])
             field['dr'] = ','.join(str(f) for f in temp_list)

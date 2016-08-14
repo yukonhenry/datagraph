@@ -1103,7 +1103,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 						// data to server
 						var break_flag = false;
 						for (var prop in item) {
-							if (prop == 'detaileddates')
+							if (prop == 'detaileddates' || prop == 'se')
 								continue;
 							if (item[prop] === "") {
 								//alert("Not all fields in grid filled out, but saving");

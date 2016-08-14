@@ -975,6 +975,8 @@ class FieldTimeScheduleGenerator:
                         # getting len of current fsstatus_list more accurate
                         # than using slotsperday value
                         fslots_num = len(fsstatus_list)
+                        if fslots_num == 0:
+                            continue
                         # find out slot number that is designated by the 'start_after' constraint
                         firstgame_slot = fsstatus_list[0]
                         if not firstgame_slot or not firstgame_slot['isgame']:
@@ -1295,8 +1297,8 @@ class FieldTimeScheduleGenerator:
             # fieldcheckavailability
             # If checks do not produce consistent results look at test logic.
             if totalfielddays < totalgamedays:
-                logging.warning("Field %d does not have enough total fielddays %d to cover required totalgamedays" % (f_id, totalfielddays,),
-                    totalgamedays_list)
+                logging.warning("Field %d does not have enough total fielddays %d to cover required totalgamedays %d" %
+                                (f_id, totalfielddays, totalgamedays))
             # leave gamestart and end_time as datetime objects as time objects do
             # not support addition/subtraction with timedelta objects
             game_start_dt = f['start_time']
