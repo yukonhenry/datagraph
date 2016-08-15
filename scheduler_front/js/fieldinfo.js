@@ -1147,7 +1147,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 					item.start_date = new Date(start_date_str);
 					item.end_date = new Date(end_date_str);
 					item.start_time = new Date(start_date_str + ' ' + start_time_str);
-					item.end_time = this.update_endtime_if_wee_hour(item.start_time, new Date(end_date_str + ' ' + end_time_str));
+					item.end_time = this.update_endtime_if_wee_hour(item.start_time, new Date(start_date_str + ' ' + end_time_str));
 					// this.calendarmapobj_list is used by the dojox calendar
 					// to set initial date/time configurations based on server
 					// data.

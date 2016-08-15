@@ -24,6 +24,7 @@ end_date_CONST = 'END_DATE'
 start_time_CONST = 'START_TIME'
 dayweek_list_CONST = 'DAYWEEK_LIST'
 date_format_CONST = "%m/%d/%Y"
+TIME_FORMAT = "%I:%M %p"
 ''' some acronyms used:
 pr - primaryuse_str
 se - secondaryuse_str
@@ -38,6 +39,11 @@ class FieldDBInterface(BaseDBInterface):
     def writeDB(self, fieldinfo_str, config_status, divstr_colname, divstr_db_type):
         fieldinfo_list = json.loads(fieldinfo_str)
         for fieldinfo in fieldinfo_list:
+            #normalize time strings in case client inserts timezone in  string
+            start_time = parser.parse(fieldinfo['start_time'])
+            end_time = parser.parse(fieldinfo['end_time'])
+            fieldinfo['start_time'] = start_time.replace(tzinfo=None).strftime(TIME_FORMAT)
+            fieldinfo['end_time'] = end_time.replace(tzinfo=None).strftime(TIME_FORMAT)
             if fieldinfo['dr']:
                 temp_list = [int(x) for x in fieldinfo['dr'].split(',')]
                 fieldinfo['dayweek_list'] = convertJStoPY_daylist(temp_list)
@@ -52,6 +58,7 @@ class FieldDBInterface(BaseDBInterface):
             if 'se' in fieldinfo and fieldinfo['se']:
                 fieldinfo['secondaryuse_list'] = [int(x)
                     for x in fieldinfo['se'].split(',')]
+                del fieldinfo['se']
             else:
                 fieldinfo['secondaryuse_list'] = []
             fieldinfo['tfd'] = self.calc_totalfielddays(fieldinfo['start_date'], fieldinfo['end_date'],
@@ -60,7 +67,6 @@ class FieldDBInterface(BaseDBInterface):
                 fieldinfo['start_date'], fieldinfo['tfd'])
             del fieldinfo['dr']
             del fieldinfo['pr']
-            del fieldinfo['se']
             if 'closed_list' in fieldinfo:
                 del fieldinfo['closed_list']
             if 'timechange_list' in fieldinfo:
