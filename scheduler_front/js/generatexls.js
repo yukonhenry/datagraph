@@ -16,7 +16,7 @@ define(["dojo/dom", "dojo/_base/declare", "dojo/_base/lang",
 		baseinfoSingleton, put) {
 		var constant = {
 			idproperty_str:'xls_id',
-			worldcup_stage: 'elimination'
+			worldcup_stage: 'RR'
 		};
 		var idconstant = {
 			// id for the dropdown btn

@@ -138,7 +138,7 @@ class FieldDBInterface(BaseDBInterface):
         # calc baseline number of game days based on full weeks
         totalfielddays = len(dayweek_list)*diff_fullweeks
         # available days in the last week
-        avail_days = diff_days % diff_fullweeks
+        avail_days = diff_days % 7
         if avail_days > 0:
             if end_day >= start_day:
                 lw_list = range(start_day, end_day+1)

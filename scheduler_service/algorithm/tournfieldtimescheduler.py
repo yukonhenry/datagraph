@@ -13,6 +13,7 @@ import logging
 from math import ceil
 from pprint import pprint
 from random import shuffle
+import pdb
 _List_Indexer = namedtuple('List_Indexer', 'dict_list indexerGet')
 _ScheduleParam = namedtuple('SchedParam', 'field_id fieldday_id slot_index')
 _SlotStatusListLength = namedtuple('SlotStatusListLength', 'sstatus_list length')
@@ -117,7 +118,7 @@ class TournamentFieldTimeScheduleGenerator:
             field_list = list(fieldset)
             #max_slot_index = max(self.tfstatus_list[self.tfindexerGet(f)]['slotsperday'] for f in field_list)-1
 
-            endtime_list = [(f,parser.parse(self.fieldinfo_list[self.findexerGet(f)]['end_time'])) for f in field_list]
+            endtime_list = [(f,self.fieldinfo_list[self.findexerGet(f)]['end_time']) for f in field_list]
             latest_endtime = max(endtime_list, key=itemgetter(1))[1]
             #field_cycle = cycle(fieldset)
             self.initTeamTimeGap_list(connected_div_list)
@@ -351,8 +352,8 @@ class TournamentFieldTimeScheduleGenerator:
                 raise FieldTimeAvailabilityError("Note enough total fielddays %d to cover required totalgamedays" % (totalfielddays,),
                     totalgamedays_list)
                 return None
-            default_start_time = parser.parse(f['start_time'])
-            default_end_time = parser.parse(f['end_time'])
+            default_start_time = f['start_time']
+            default_end_time = f['end_time']
             slotstatus_list = []
             for fieldday_id in range(1, totalfielddays+1):
                 calendarmap = calendarmap_list[calendarmap_indexerGet(fieldday_id)]
@@ -365,8 +366,8 @@ class TournamentFieldTimeScheduleGenerator:
                 if 'start_time' in calendarmap:
                     # start_time in calendarmap indicates we have a specific start/
                     # endtime for that date (and field)
-                    start_time = parser.parse(calendarmap['start_time'])
-                    end_time = parser.parse(calendarmap['end_time'])
+                    start_time = calendarmap['start_time']
+                    end_time = calendarmap['end_time']
                 else:
                     start_time = default_start_time
                     end_time = default_end_time
@@ -453,6 +454,9 @@ class TournamentFieldTimeScheduleGenerator:
 
     def getcandidate_daytime(self, div_id, home, away, latest_starttime,
         mingap_time):
+        print "div_id", div_id, "home", home
+        print self.timegap_indexerGet((div_id, home))
+        print "homegap=", self.timegap_list
         homegap_dict = self.timegap_list[self.timegap_indexerGet((div_id, home))[0]]
         awaygap_dict = self.timegap_list[self.timegap_indexerGet((div_id, away))[0]]
         homegap_gameday = homegap_dict['last_date']

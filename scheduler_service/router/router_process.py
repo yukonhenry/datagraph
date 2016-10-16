@@ -26,6 +26,7 @@ from db.userdbinterface import UserDBInterface
 from util.sched_exceptions import CodeLogicError
 from util.xls_exporter import XLS_Exporter
 from operator import itemgetter
+import pdb
 
 class RouteLogic:
     '''ref http://stackoverflow.com/questions/8725605/bottle-framework-and-oop-using-method-instead-of-function and
@@ -197,7 +198,7 @@ def send_generate(userid_name, sched_cat):
             dbstatus = schedMaster.schedGenerate()
             a = json.dumps({"dbstatus":dbstatus})
         else:
-            a = json.dumps({"error_code":schedMaster._error_code})
+            a = json.dumps({"error_code":schedMaster._error_code, "error_message": schedMaster._error_message})
             del schedMaster
     else:
         raise CodeLogicError("RouteProcess:SendGenerate, Invalid Sched Cat=%s" %

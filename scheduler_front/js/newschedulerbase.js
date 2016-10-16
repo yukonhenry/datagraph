@@ -28,7 +28,7 @@ define(["dojo/dom", "dojo/on", "dojo/_base/declare",
 			pref_id:'pref_id',
 			conflict_id:'conflict_id',
 			results_cpane_id_prefix:"results_cpane",
-			worldcup_stage: 'elimination'
+			worldcup_stage: 'RR'
 		};
 		var idconstant = {
 			radio1_id:'scradio1_id',
